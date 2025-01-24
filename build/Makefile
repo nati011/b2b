@@ -2,7 +2,7 @@
 .PHONY: run
 run:
 	clear
-	go run ./cmd/api
+	go run ./cmd
 
 # Re-Run the application
 .PHONY: rer
