@@ -3,6 +3,6 @@ package catalogue
 type Catalogue struct {
 }
 
-func NewDistributor() *Catalogue {
+func NewCatalogue() *Catalogue {
 	return &Catalogue{}
 }
