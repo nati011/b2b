@@ -29,4 +29,7 @@ func main() {
 	flag.StringVar(&cfg.keycloakClientSecret, "keycloak_client_secret", "keycloak ClientSecret", "Environment (development|staging|production)")
 
 	flag.Parse()
+
+	//create test containers
+	tc := MasterTestContainer.NewMasterTestContainer()
 }
