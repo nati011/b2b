@@ -31,5 +31,5 @@ func main() {
 	flag.Parse()
 
 	//create test containers
-	tc := MasterTestContainer.NewMasterTestContainer()
+	_ = MasterTestContainer.NewMasterTestContainer()
 }
