@@ -63,25 +63,17 @@ func TestFailDuplicateUsernameCreateClient(t *testing.T) {
 		Message:  "Oopsy, username is already taken",
 	}
 
-	//create user, prepare for testing duplicate username
-	testCaseInit := testCaseAuth{
-		input: users[0],
-		want:  want,
-	}
-	authTestContainer.authService.CreateClient(testCaseInit.input)
+	//prepare for testing duplicate username
+	authTestContainer.authService.CreateClient(users[0])
 
-	testCase := testCaseAuth{
-		input: users[1],
-		want:  want,
-	}
-	got, err := authTestContainer.authService.CreateClient(testCase.input)
+	got, err := authTestContainer.authService.CreateClient(users[1])
 	if err != nil {
 		t.Errorf("failed to create client err: %v", err)
 	}
-	if got != testCase.want {
-		t.Errorf("want:%v \n got:%v", testCase.want, got)
-	}
 
+	if got != want {
+		t.Errorf("want:%v \n got:%v", want, got)
+	}
 }
 
 // func TestFailDuplicateClientEmail(t *testing.T) {
