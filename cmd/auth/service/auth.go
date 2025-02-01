@@ -2,6 +2,7 @@ package auth
 
 import (
 	auth "b2b.nati011.github.com/cmd/auth/model/dto"
+	provider "b2b.nati011.github.com/cmd/auth/provider"
 )
 
 type Authorizer interface {
@@ -10,7 +11,7 @@ type Authorizer interface {
 }
 
 type AuthService struct {
-	authProvider *AuthProvider
+	authProvider *provider.AuthProvider
 }
 
 func NewAuthService() (*AuthService, error) {
