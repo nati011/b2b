@@ -4,9 +4,18 @@ import (
 	auth "b2b.nati011.github.com/cmd/auth/model/dto"
 )
 
+type Authorizer interface {
+	CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error)
+	LoginClient(auth.LoginUserRequest) (auth.LoginUserResonse, error)
+}
+
 type AuthService struct {
 }
 
-func (a *AuthService) CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
+func NewAuthService() (*AuthService, error) {
+	return &AuthService{}, nil
+}
+
+func CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
 	return auth.RegisterUserResponse{}, nil
 }

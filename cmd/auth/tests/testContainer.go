@@ -2,32 +2,44 @@ package test
 
 import (
 	"context"
+	"log"
 
 	auth "b2b.nati011.github.com/cmd/auth/service"
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
 
-var authTestContainer = &AuthTestContainer{
-	authService: &auth.AuthService{},
-}
+// var authTestContainer = &AuthTestContainer{
+// 	authService: &auth.AuthService{},
+// 	keycloak:    *keycloak.KeycloakContainer,
+// }
 
 type AuthTestContainer struct {
 	authService *auth.AuthService
+	keycloak    *keycloak.KeycloakContainer
 }
 
 func (AuthTestContainer) NewTestContainer() (*AuthTestContainer, error) {
 	tc := AuthTestContainer{}
-	err := initTestContainer(&tc)
-	if err != nil {
-		return nil, err
-	}
+	initTestContainer(&tc)
+	initAuthService(&tc)
 	return &tc, nil
 }
 
-func initTestContainer(tc *AuthTestContainer) error {
+func initTestContainer(tc *AuthTestContainer) {
 	ctx := context.Background()
-	CreateKeycloakContainer(ctx)
-	return nil
+	keycloak, err := CreateKeycloakContainer(ctx)
+	if err != nil {
+		log.Fatal("failed to create keycloak conatiner err: %v", err)
+	}
+	tc.keycloak = keycloak
+}
+
+func initAuthService(tc *AuthTestContainer) {
+	authService, err := auth.NewAuthService()
+	if err != nil {
+		log.Fatal("failed to create auth service err: %v", err)
+	}
+	tc.authService = authService
 }
 
 func CreateKeycloakContainer(ctx context.Context) (*keycloak.KeycloakContainer, error) {
