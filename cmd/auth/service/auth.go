@@ -10,12 +10,13 @@ type Authorizer interface {
 }
 
 type AuthService struct {
+	authProvider *AuthProvider
 }
 
 func NewAuthService() (*AuthService, error) {
 	return &AuthService{}, nil
 }
 
-func CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
+func (a *AuthService) CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
 	return auth.RegisterUserResponse{}, nil
 }
