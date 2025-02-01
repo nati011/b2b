@@ -29,7 +29,7 @@ func initTestContainer(tc *AuthTestContainer) {
 	ctx := context.Background()
 	keycloak, err := CreateKeycloakContainer(ctx)
 	if err != nil {
-		log.Fatal("failed to create keycloak conatiner err: %v", err)
+		log.Fatalf("failed to create keycloak conatiner err: %v", err)
 	}
 	tc.keycloak = keycloak
 }
@@ -37,7 +37,7 @@ func initTestContainer(tc *AuthTestContainer) {
 func initAuthService(tc *AuthTestContainer) {
 	authService, err := auth.NewAuthService()
 	if err != nil {
-		log.Fatal("failed to create auth service err: %v", err)
+		log.Fatalf("failed to create auth service err: %v", err)
 	}
 	tc.authService = authService
 }
