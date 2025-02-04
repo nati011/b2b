@@ -3,8 +3,8 @@ package auth
 import (
 	"errors"
 
-	auth "b2b.nati011.github.com/cmd/auth/model/dto"
-	provider "b2b.nati011.github.com/cmd/auth/provider"
+	auth "b2b.nati011.github.com/pkg/auth/model/dto"
+	provider "b2b.nati011.github.com/pkg/auth/provider"
 )
 
 // user readable errors
@@ -28,8 +28,8 @@ type AuthService struct {
 	authProvider provider.AuthProvider
 }
 
-func NewAuthService(ap provider.AuthProvider) AuthService {
-	return AuthService{authProvider: ap}
+func NewAuthService(ap *provider.AuthProvider) AuthService {
+	return AuthService{authProvider: *ap}
 }
 
 func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
@@ -43,7 +43,6 @@ func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUse
 		default:
 			return auth.RegisterUserResponse{}, ErrUnknown
 		}
-
 	}
 	return auth.RegisterUserResponse{
 		Username: resp.Username,

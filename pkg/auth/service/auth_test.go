@@ -3,8 +3,8 @@ package auth
 import (
 	"testing"
 
-	authDTO "b2b.nati011.github.com/cmd/auth/model/dto"
-	"b2b.nati011.github.com/cmd/auth/provider"
+	authDTO "b2b.nati011.github.com/pkg/auth/model/dto"
+	"b2b.nati011.github.com/pkg/auth/provider"
 )
 
 const (
@@ -81,11 +81,9 @@ func TestCreateClient_UnhappyPath(t *testing.T) {
 			Message:  ErrUsernameTaken.Error(),
 		}
 
-		got, err := container.AuthService.CreateClient(in_b)
-		if err != nil {
-			if got != want {
-				t.Errorf("Expected: %v, Got: %v", want, got)
-			}
+		got, _ := container.AuthService.CreateClient(in_b)
+		if got != want {
+			t.Errorf("Expected: %v, Got: %v", want, got)
 		}
 
 	})
