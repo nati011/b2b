@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"testing"
 
 	authDTO "b2b.nati011.github.com/cmd/auth/model/dto"
@@ -24,14 +23,6 @@ const (
 	INVALID_PASSWORD = ""
 	INVALID_FULLNAME = ""
 	INVALID_EMAIL    = ""
-
-	SUCCESS_MESSAGE = "Ahoy!"
-)
-
-var (
-	ErrUsernameTaken = errors.New("Oopsy, username already taken")
-	ErrEmailTaken    = errors.New("Oopsy, email is already taken")
-	ErrFailedToLogin = errors.New("Oopsy, email or password incorrect")
 )
 
 type MockClient struct {
