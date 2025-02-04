@@ -2,12 +2,11 @@ package auth
 
 import (
 	provider "b2b.nati011.github.com/cmd/auth/provider"
-	authService "b2b.nati011.github.com/cmd/auth/service"
 )
 
 type Container struct {
 	AuthProvider provider.AuthProvider
-	AuthService  authService.AuthService
+	AuthService  AuthService
 }
 
 func NewContainer(ap provider.AuthProvider) *Container {
@@ -22,5 +21,5 @@ func (c *Container) initAuthProvider(ap provider.AuthProvider) {
 }
 
 func (c *Container) initAuthService() {
-	c.AuthService = authService.NewAuthService(&c.AuthProvider)
+	c.AuthService = NewAuthService(&c.AuthProvider)
 }

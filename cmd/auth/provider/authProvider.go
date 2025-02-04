@@ -1,5 +1,14 @@
 package auth
 
+import "errors"
+
+// system errors
+var (
+	ErrUsernameTaken = errors.New("invalid username")
+	ErrEmailTaken    = errors.New("invalid email")
+	ErrFailedToLogin = errors.New("invalid email or password")
+)
+
 type LoginAuthResonse struct {
 }
 
