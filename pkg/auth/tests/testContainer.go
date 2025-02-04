@@ -18,11 +18,11 @@ package test
 // 	keycloak    *keycloak.KeycloakContainer
 // }
 
-// func (AuthTestContainer) NewTestContainer() (*AuthTestContainer, error) {
+// func (AuthTestContainer) NewTestContainer()*AuthTestContainer {
 // 	tc := AuthTestContainer{}
 // 	initTestContainer(&tc)
 // 	initAuthService(&tc)
-// 	return &tc, nil
+// 	return &tc
 // }
 
 // func initTestContainer(tc *AuthTestContainer) {

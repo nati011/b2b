@@ -1,7 +1,7 @@
 package container
 
 type TestContainer interface {
-	NewTestContainer() (*TestContainer, error)
+	NewTestContainer() *TestContainer
 }
 
 type MasterTestContainer struct {
