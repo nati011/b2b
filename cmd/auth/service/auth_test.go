@@ -41,11 +41,15 @@ func NewMockAuthProvider() authProvider.AuthProvider {
 	return &MockAuthProvider{}
 }
 
+func (m *MockAuthProvider) FlushMockAuthProvider() {
+	m.clients = []MockClient{}
+}
+
 func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (authProvider.CreateClientAuthResonse, error) {
 	// check if username or password is taken
 	for _, index := range m.clients {
 		if index.username == username {
-			return authProvider.CreateClientAuthResonse{}, authProvider.ErrSysUsernameTaken
+			return authProvider.CreateClientAuthResonse{}, authProvider.ErrSysEmailTaken
 		} else if index.email == email {
 			return authProvider.CreateClientAuthResonse{}, authProvider.ErrSysUsernameTaken
 		}
@@ -101,18 +105,18 @@ func TestCreateClient_happyPath(t *testing.T) {
 	want := userRegistrationSuccessResponse
 
 	got, err := container.AuthService.CreateClient(in)
+
 	if err != nil {
 		t.Errorf("failed to create client err: %v", err)
 	}
 	if got != want {
-		t.Errorf("want:%v \n got:%v", want, got)
+		t.Errorf("Expected: %v, Got: %v", want, got)
 	}
 }
 
-func TestCreateClient_unhappyPath(t *testing.T) {
+func TestCreateClient_UnhappyPath(t *testing.T) {
 
-	t.Run("duplicateUsername", func(t *testing.T) {
-
+	t.Run("DuplicateUsername", func(t *testing.T) {
 		//init
 		in_a := authDTO.RegisterUserRequest{
 			Username:        VALID_USERNAME_a,
@@ -137,21 +141,19 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 
 		want := authDTO.RegisterUserResponse{
 			Username: "",
-			Message:  ErrEmailTaken.Error(),
+			Message:  ErrUsernameTaken.Error(),
 		}
 
 		got, err := container.AuthService.CreateClient(in_b)
 		if err != nil {
-			t.Errorf("failed to create client err: %v", err)
-		}
-
-		if got != want {
-			t.Errorf("want:%v \n got:%v", want, got)
+			if got != want {
+				t.Errorf("Expected: %v, Got: %v", want, got)
+			}
 		}
 
 	})
 
-	t.Run("duplicateEmail", func(t *testing.T) {
+	t.Run("DuplicateEmail", func(t *testing.T) {
 
 		//init
 		ua := authDTO.RegisterUserRequest{
@@ -179,7 +181,7 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 		got, err := container.AuthService.CreateClient(ub)
 		if err != nil {
 			if got != want {
-				t.Errorf("want:%v \n got:%v", want, got)
+				t.Errorf("Expected: %v, Got: %v", want, got)
 			}
 		}
 
