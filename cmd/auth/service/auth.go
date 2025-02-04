@@ -15,40 +15,55 @@ var (
 	Human_Readable_Error_FailedToLogin = errors.New("Oopsy, email or password incorrect")
 )
 
+const (
+	SUCCESS_MESSAGE = "Ahoy!"
+)
+
 type Authorizer interface {
 	CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error)
 	LoginClient(auth.LoginUserRequest) (auth.LoginUserResonse, error)
 }
 
 type AuthService struct {
-	authProvider *provider.AuthProvider
+	authProvider provider.AuthProvider
 }
 
-func NewAuthService(ap *provider.AuthProvider) AuthService {
+func NewAuthService(ap provider.AuthProvider) AuthService {
 	return AuthService{authProvider: ap}
 }
 
-func (a *AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
-	resp, err := CreateNewClient(rq.FullName, nil, nil, rq.Email, rq.Username, rq.Password)
+func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
+	resp, err := a.authProvider.CreateNewClient(rq.FullName, rq.FullName, rq.Email, rq.Username, rq.Password)
 	if err != nil {
 		switch err {
-		case provider.ErrEmailTaken:
+		case provider.System_Readable_Error_UsernameTaken:
 			return auth.RegisterUserResponse{}, Human_Readable_Error_UsernameTaken
-		case provider.ErrEmailTaken:
+		case provider.System_Readable_Error_EmailTaken:
 			return auth.RegisterUserResponse{}, Human_Readable_Error_EmailTaken
-		case provider.ErrFailedToLogin:
 		default:
 			return auth.RegisterUserResponse{}, nil
 		}
-		log.Fatalf("failed to create client")
+		log.Fatalf("failed to create user err: %q", err)
 	}
-	return resp, nil
+	return auth.RegisterUserResponse{
+		Username: resp.Username,
+		Message:  SUCCESS_MESSAGE,
+	}, nil
 }
 
 func (a *AuthService) LoginClient(rq auth.LoginUserRequest) (auth.LoginUserResonse, error) {
-	resp, err := a.authProvider
+	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
 	if err != nil {
-		log.Fatalf("failed to create client")
+		switch err {
+		case provider.System_Readable_Error_FailedToLogin:
+			return auth.LoginUserResonse{}, Human_Readable_Error_FailedToLogin
+		default:
+			return auth.LoginUserResonse{}, nil
+		}
+		log.Fatalf("failed to login err: %q", err)
 	}
-	return resp, nil
+	return auth.LoginUserResonse{
+		JWT:     resp.JWT,
+		Message: SUCCESS_MESSAGE,
+	}, nil
 }
