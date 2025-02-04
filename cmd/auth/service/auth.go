@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"log"
 
 	auth "b2b.nati011.github.com/cmd/auth/model/dto"
 	provider "b2b.nati011.github.com/cmd/auth/provider"
@@ -35,7 +34,6 @@ func NewAuthService(ap provider.AuthProvider) AuthService {
 func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
 	resp, err := a.authProvider.CreateNewClient(rq.FullName, rq.FullName, rq.Email, rq.Username, rq.Password)
 	if err != nil {
-		log.Fatalf("failed to create user err: %q", err)
 		switch err {
 		case provider.ErrSysUsernameTaken:
 			return auth.RegisterUserResponse{}, ErrUsernameTaken
@@ -55,7 +53,6 @@ func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUse
 func (a *AuthService) LoginClient(rq auth.LoginUserRequest) (auth.LoginUserResonse, error) {
 	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
 	if err != nil {
-		log.Fatalf("failed to login err: %q", err)
 		switch err {
 		case provider.ErrSysFailedToLogin:
 			return auth.LoginUserResonse{}, ErrFailedToLogin
