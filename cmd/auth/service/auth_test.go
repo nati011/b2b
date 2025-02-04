@@ -1,46 +1,49 @@
 package auth
 
 import (
+	"errors"
 	"testing"
 
-	"b2b.nati011.github.com/cmd/auth"
 	authDTO "b2b.nati011.github.com/cmd/auth/model/dto"
 	authProvider "b2b.nati011.github.com/cmd/auth/provider"
 )
 
 const (
-	//VALID CREDENTIALS
+	VALID_PASSWORD = "test@123"
+	VALID_FULLNAME = "ruth tirusew"
+
+	//VALID
 	VALID_USERNAME_a = "expired_pineapple"
-	VALID_PASSWORD_a = "test@123"
-	VALID_FULLNAME_a = "ruth tirusew"
 	VALID_EMAIL_a    = "ruthtirusew944@gmail.com"
 
 	VALID_USERNAME_b = "expired_pineapple"
-	VALID_PASSWORD_b = "test@123"
-	VALID_FULLNAME_b = "ruth tirusew"
 	VALID_EMAIL_b    = "ruthtirusew944@gmail.com"
 
-	//INVALID CREDENTIALS
+	//INVALID
 	INVALID_username = ""
 	INVALID_PASSWORD = ""
 	INVALID_FULLNAME = ""
 	INVALID_EMAIL    = ""
 
-	//MESSAGES
-	SUCCESS_REGISTRATION_MESSAGE                  = "Ahoy"
-	FAILURE_REGISTRATION_MESSAGE_INVALID_USERNAME = "Oopsy, username is already taken"
-	FAILURE_REGISTRATION_MESSAGE_INVALID_EMAIL    = "Oopsy, email is already taken"
-
-	// ??SHOULD BE MESSAGES OR ERROR(PERHAPS HUMAN READABLE ERRORS)??
-	SUCCESS_SIGNIN_MESSAGE                           = "Ahoy"
-	FAILURE_REGISTRATION_MESSAGE_INVALID_CREDENTAILS = "Oopsy, email or password incorrect"
-
-	//ERRORS
+	SUCCESS_MESSAGE = "Ahoy!"
 )
 
-// const authService = NewAuthService(mockProvider)
+var (
+	ErrUsernameTaken = errors.New("Oopsy, username already taken")
+	ErrEmailTaken    = errors.New("Oopsy, email is already taken")
+	ErrFailedToLogin = errors.New("Oopsy, email or password incorrect")
+)
+
+type MockClient struct {
+	firstName string
+	lastName  string
+	email     string
+	username  string
+	password  string
+}
 
 type MockAuthProvider struct {
+	clients []MockClient
 }
 
 func NewMockAuthProvider() authProvider.AuthProvider {
@@ -48,25 +51,16 @@ func NewMockAuthProvider() authProvider.AuthProvider {
 }
 
 func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (authProvider.CreateClientAuthResonse, error) {
-	type Client struct {
-		firstName string
-		lastName  string
-		email     string
-		username  string
-		password  string
-	}
 
-	users := []Client{}
-
-	// check if username exists
-	for _, index := range users {
+	// check if username or password is taken
+	for _, index := range m.clients {
 		if index.username == username {
-			return ClientUsernameAlreadyUsed(username)
+			return authProvider.CreateClientAuthResonse{}, ErrUsernameTaken
 		} else if index.email == email {
-			return ClientEmailAlreadyUsed(email)
+			return authProvider.CreateClientAuthResonse{}, ErrEmailTaken
 		}
 	}
-	users = append(users, Client{
+	m.clients = append(m.clients, MockClient{
 		firstName: firstName,
 		lastName:  lastName,
 		email:     email,
@@ -79,25 +73,34 @@ func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, em
 
 func (m *MockAuthProvider) ClientLogin(email, password string) (authProvider.LoginAuthResonse, error) {
 
+	// check if username or password is taken
+	for _, index := range m.clients {
+		if index.email == email {
+			return authProvider.LoginAuthResonse{}, ErrUsernameTaken
+		} else {
+			return authProvider.LoginAuthResonse{}, ErrEmailTaken
+		}
+	}
+
 	return authProvider.LoginAuthResonse{}, nil
 }
 
 var mockProvider = NewMockAuthProvider()
-var container = auth.NewContainer(mockProvider)
+var container = NewContainer(mockProvider)
 
 func TestCreateClient_happyPath(t *testing.T) {
 
 	user := authDTO.RegisterUserRequest{
 		Username:        VALID_USERNAME_a,
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		FullName:        "ruth tirusew",
-		Email:           "ruthtirusew944@gmail.com",
+		Password:        VALID_PASSWORD,
+		ConfirmPassword: VALID_PASSWORD,
+		FullName:        VALID_FULLNAME,
+		Email:           VALID_EMAIL_a,
 	}
 
 	userRegistrationSuccessResponse := authDTO.RegisterUserResponse{
 		Username: VALID_USERNAME_a,
-		Message:  SUCCESS_REGISTRATION_MESSAGE,
+		Message:  SUCCESS_MESSAGE,
 	}
 
 	in := user
@@ -118,11 +121,11 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 
 		//init
 		in_a := authDTO.RegisterUserRequest{
-			Username:        "expired_pineapple",
-			Password:        "test@123",
-			ConfirmPassword: "test@123",
-			FullName:        "ruth tirusew",
-			Email:           "ruthtirusew944@gmail.com",
+			Username:        VALID_USERNAME_a,
+			Password:        VALID_PASSWORD,
+			ConfirmPassword: VALID_PASSWORD,
+			FullName:        VALID_FULLNAME,
+			Email:           VALID_EMAIL_a,
 		}
 
 		got, err := container.AuthService.CreateClient(in_a)
@@ -131,16 +134,16 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 		}
 
 		in_b := authDTO.RegisterUserRequest{
-			Username:        "expired_pineapple",
-			Password:        "test@123",
-			ConfirmPassword: "test@123",
-			FullName:        "ruth tirusew",
-			Email:           "ruthtirusew30@gmail.com",
+			Username:        VALID_USERNAME_a,
+			Password:        VALID_PASSWORD,
+			ConfirmPassword: VALID_PASSWORD,
+			FullName:        VALID_FULLNAME,
+			Email:           VALID_EMAIL_b,
 		}
 
 		want := authDTO.RegisterUserResponse{
 			Username: "",
-			Message:  FAILURE_REGISTRATION_MESSAGE_INVALID_USERNAME,
+			Message:  ErrUsernameTaken.Error(),
 		}
 
 		got, err = container.AuthService.CreateClient(in_b)
@@ -176,7 +179,7 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 
 		want := authDTO.RegisterUserResponse{
 			Username: "",
-			Message:  FAILURE_REGISTRATION_MESSAGE_INVALID_EMAIL,
+			Message:  ErrEmailTaken.Error(),
 		}
 
 		got, err := container.AuthService.CreateClient(ub)
