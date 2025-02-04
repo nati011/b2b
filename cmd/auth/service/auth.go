@@ -12,6 +12,7 @@ var (
 	ErrUsernameTaken = errors.New("oopsy, username already taken")
 	ErrEmailTaken    = errors.New("oopsy, email is already taken")
 	ErrFailedToLogin = errors.New("oopsy, email or password incorrect")
+	ErrUnknown       = errors.New("oopsy, unknown error has occured")
 )
 
 const (
@@ -40,7 +41,7 @@ func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUse
 		case provider.ErrSysEmailTaken:
 			return auth.RegisterUserResponse{}, ErrEmailTaken
 		default:
-			return auth.RegisterUserResponse{}, nil
+			return auth.RegisterUserResponse{}, ErrUnknown
 		}
 
 	}
@@ -57,7 +58,7 @@ func (a *AuthService) LoginClient(rq auth.LoginUserRequest) (auth.LoginUserReson
 		case provider.ErrSysFailedToLogin:
 			return auth.LoginUserResonse{}, ErrFailedToLogin
 		default:
-			return auth.LoginUserResonse{}, nil
+			return auth.LoginUserResonse{}, ErrUnknown
 		}
 	}
 	return auth.LoginUserResonse{
