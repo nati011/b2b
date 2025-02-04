@@ -58,7 +58,9 @@ func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, em
 		password:  password,
 	})
 
-	return authProvider.CreateClientAuthResonse{}, nil
+	return authProvider.CreateClientAuthResonse{
+		Username: username,
+	}, nil
 }
 
 func (m *MockAuthProvider) ClientLogin(email, password string) (authProvider.LoginAuthResonse, error) {
