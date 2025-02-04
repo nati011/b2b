@@ -21,5 +21,5 @@ func (c *Container) initAuthProvider(ap provider.AuthProvider) {
 }
 
 func (c *Container) initAuthService() {
-	c.AuthService = NewAuthService(&c.AuthProvider)
+	c.AuthService = NewAuthService(c.AuthProvider)
 }

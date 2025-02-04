@@ -4,23 +4,25 @@ import "errors"
 
 // system errors
 var (
-	System_Readable_Error_UsernameTaken = errors.New("invalid username")
-	System_Readable_Error_EmailTaken    = errors.New("invalid email")
-	System_Readable_Error_FailedToLogin = errors.New("invalid email or password")
+	ErrSysUsernameTaken = errors.New("invalid username")
+	ErrSysEmailTaken    = errors.New("invalid email")
+	ErrSysFailedToLogin = errors.New("invalid email or password")
 )
 
 type LoginAuthResonse struct {
-	JWT struct {
-		AccessToken      string `json:"access_token"`
-		IDToken          string `json:"id_token"`
-		ExpiresIn        int    `json:"expires_in"`
-		RefreshExpiresIn int    `json:"refresh_expires_in"`
-		RefreshToken     string `json:"refresh_token"`
-		TokenType        string `json:"token_type"`
-		NotBeforePolicy  int    `json:"not-before-policy"`
-		SessionState     string `json:"session_state"`
-		Scope            string `json:"scope"`
-	}
+	JWT JWT
+}
+
+type JWT struct {
+	AccessToken      string
+	IDToken          string
+	ExpiresIn        int
+	RefreshExpiresIn int
+	RefreshToken     string
+	TokenType        string
+	NotBeforePolicy  int
+	SessionState     string
+	Scope            string
 }
 
 type CreateClientAuthResonse struct {
