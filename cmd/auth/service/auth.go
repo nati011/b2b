@@ -10,9 +10,9 @@ import (
 
 // user readable errors
 var (
-	Human_Readable_Error_UsernameTaken = errors.New("Oopsy, username already taken")
-	Human_Readable_Error_EmailTaken    = errors.New("Oopsy, email is already taken")
-	Human_Readable_Error_FailedToLogin = errors.New("Oopsy, email or password incorrect")
+	ErrUsernameTaken = errors.New("oopsy, username already taken")
+	ErrEmailTaken    = errors.New("oopsy, email is already taken")
+	ErrFailedToLogin = errors.New("oopsy, email or password incorrect")
 )
 
 const (
@@ -35,15 +35,16 @@ func NewAuthService(ap provider.AuthProvider) AuthService {
 func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
 	resp, err := a.authProvider.CreateNewClient(rq.FullName, rq.FullName, rq.Email, rq.Username, rq.Password)
 	if err != nil {
+		log.Fatalf("failed to create user err: %q", err)
 		switch err {
-		case provider.System_Readable_Error_UsernameTaken:
-			return auth.RegisterUserResponse{}, Human_Readable_Error_UsernameTaken
-		case provider.System_Readable_Error_EmailTaken:
-			return auth.RegisterUserResponse{}, Human_Readable_Error_EmailTaken
+		case provider.ErrSysUsernameTaken:
+			return auth.RegisterUserResponse{}, ErrUsernameTaken
+		case provider.ErrSysEmailTaken:
+			return auth.RegisterUserResponse{}, ErrEmailTaken
 		default:
 			return auth.RegisterUserResponse{}, nil
 		}
-		log.Fatalf("failed to create user err: %q", err)
+
 	}
 	return auth.RegisterUserResponse{
 		Username: resp.Username,
@@ -54,16 +55,16 @@ func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUse
 func (a *AuthService) LoginClient(rq auth.LoginUserRequest) (auth.LoginUserResonse, error) {
 	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
 	if err != nil {
+		log.Fatalf("failed to login err: %q", err)
 		switch err {
-		case provider.System_Readable_Error_FailedToLogin:
-			return auth.LoginUserResonse{}, Human_Readable_Error_FailedToLogin
+		case provider.ErrSysFailedToLogin:
+			return auth.LoginUserResonse{}, ErrFailedToLogin
 		default:
 			return auth.LoginUserResonse{}, nil
 		}
-		log.Fatalf("failed to login err: %q", err)
 	}
 	return auth.LoginUserResonse{
-		JWT:     resp.JWT,
+		JWT:     auth.JWT(resp.JWT),
 		Message: SUCCESS_MESSAGE,
 	}, nil
 }
