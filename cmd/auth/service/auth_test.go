@@ -65,14 +65,14 @@ func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, em
 
 func (m *MockAuthProvider) ClientLogin(email, password string) (authProvider.LoginAuthResonse, error) {
 	// check if username or password is taken
-	doesClientExists := false
+	clientExists := false
 
 	for _, index := range m.clients {
 		if index.email == email {
-			doesClientExists = true
+			clientExists = true
 		}
 	}
-	if doesClientExists {
+	if !clientExists {
 		return authProvider.LoginAuthResonse{}, authProvider.ErrSysFailedToLogin
 	}
 
@@ -137,7 +137,7 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 
 		want := authDTO.RegisterUserResponse{
 			Username: "",
-			Message:  authProvider.ErrSysFailedToLogin.Error(),
+			Message:  ErrEmailTaken.Error(),
 		}
 
 		got, err := container.AuthService.CreateClient(in_b)
@@ -165,7 +165,7 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 		container.AuthService.CreateClient(ua)
 		ub := authDTO.RegisterUserRequest{
 			Username:        VALID_USERNAME_b,
-			Password:        "test@123",
+			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 			FullName:        VALID_FULLNAME,
 			Email:           VALID_EMAIL_b,
@@ -178,11 +178,9 @@ func TestCreateClient_unhappyPath(t *testing.T) {
 
 		got, err := container.AuthService.CreateClient(ub)
 		if err != nil {
-			t.Errorf("failed to create client err: %v", err)
-		}
-
-		if got != want {
-			t.Errorf("want:%v \n got:%v", want, got)
+			if got != want {
+				t.Errorf("want:%v \n got:%v", want, got)
+			}
 		}
 
 	})
