@@ -4,11 +4,16 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
 )
 
 const (
+	MessageErrKeyCloakUsernameTaken = "User exists with same email"
+	MessageErrKeyCloakEmailTaken    = "User exists with same username"
+	MessageErrFailedLogin           = "Invalid user credentials"
+
 	KeycloakInstanceURL      = "http://localhost:8080"
 	KeycloakUsername         = "admin"
 	KeycloakPassword         = "admin"
@@ -26,7 +31,7 @@ func NewKeycloakProvider() *KeycloakProvider {
 	return &KeycloakProvider{}
 }
 
-func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (string, error) {
+func CreateNewClient(firstName string, lastName string, email string, username string, password string) (string, error) {
 	client := gocloak.NewClient(KeycloakInstanceURL)
 	ctx := context.Background()
 
@@ -45,22 +50,57 @@ func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, em
 	}
 
 	userId, err := client.CreateUser(ctx, token.AccessToken, KeycloakApplicationRealm, user)
-	client.SendVerifyEmail(ctx, token.AccessToken, userId, KeycloakApplicationRealm)
-	client.SetPassword(ctx, token.AccessToken, userId, KeycloakApplicationRealm, password, false)
-
 	if err != nil {
-		log.Fatalf("Oh no!, failed to create user: %v", err)
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.Code {
+			case 409:
+				switch {
+				case strings.Contains(apiErr.Message, MessageErrKeyCloakEmailTaken):
+					return "", ErrSysEmailTaken
+				case strings.Contains(apiErr.Message, MessageErrKeyCloakUsernameTaken):
+					return "", ErrSysUsernameTaken
+				}
+			default:
+				return "", ErrSysUnknown
+
+			}
+		}
 	}
 
-	return userId, nil
+	if email != "" {
+		client.SendVerifyEmail(ctx, token.AccessToken, userId, KeycloakApplicationRealm)
+	}
+	if password != "" {
+		client.SetPassword(ctx, token.AccessToken, userId, KeycloakApplicationRealm, password, false)
+	}
+
+	if err != nil {
+		return "", ErrSysUnknown
+	}
+
+	return username, nil
 }
 
-func (k *KeycloakProvider) ClientLogin(email, password string) (string, error) {
+func ClientLogin(email, password string) (string, error) {
 	client := gocloak.NewClient(KeycloakInstanceURL)
 	ctx := context.Background()
+
 	token, err := client.Login(ctx, KeycloakClientId, KeycloakClientSecret, KeycloakApplicationRealm, email, password)
 	if err != nil {
-		return "", err
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.Code {
+			case 401:
+				switch {
+				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
+					return "", ErrSysFailedToLogin
+				}
+			default:
+				return "", ErrSysFailedToLogin
+
+			}
+		}
 	}
 
 	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, KeycloakClientId, KeycloakClientSecret, KeycloakApplicationRealm)
