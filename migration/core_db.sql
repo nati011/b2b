@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS public."products"
 
 COMMENT ON TABLE public."products" IS 'stores products';
 
-CREATE TABLE IF NOT EXISTS public."product_category" 
+CREATE TABLE IF NOT EXISTS public."p_category" 
 (
   product_id INT,
   category_id INT,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS public."product_category"
   FOREIGN KEY (category_id) REFERENCES public."category" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
-COMMENT ON TABLE public."product_category" IS 'many to many relationship for category and product';
+COMMENT ON TABLE public."p_category" IS 'many to many relationship for category and product';
 
 CREATE TABLE IF NOT EXISTS public."p_stock"
 (
