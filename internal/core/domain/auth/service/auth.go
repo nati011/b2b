@@ -3,13 +3,8 @@ package auth
 import (
 	"errors"
 
-<<<<<<< HEAD
 	auth "b2b.nati011.github.com/internal/core/domain/auth/model/dto"
 	provider "b2b.nati011.github.com/internal/core/domain/auth/provider"
-=======
-	auth "b2b.nati011.github.com/internal/core/app/auth/model/dto"
-	provider "b2b.nati011.github.com/internal/core/app/auth/provider"
->>>>>>> origin/SCRUM-4-integrate-keycloak
 )
 
 // user readable errors
@@ -33,8 +28,8 @@ type AuthService struct {
 	authProvider provider.AuthProvider
 }
 
-func NewAuthService(ap *provider.AuthProvider) AuthService {
-	return AuthService{authProvider: *ap}
+func NewAuthService(ap provider.AuthProvider) *AuthService {
+	return &AuthService{authProvider: ap}
 }
 
 func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {

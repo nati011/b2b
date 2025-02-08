@@ -1,16 +1,12 @@
 package auth
 
 import (
-<<<<<<< HEAD
 	provider "b2b.nati011.github.com/internal/core/domain/auth/provider"
-=======
-	provider "b2b.nati011.github.com/internal/core/app/auth/provider"
->>>>>>> origin/SCRUM-4-integrate-keycloak
 )
 
 type Container struct {
 	AuthProvider provider.AuthProvider
-	AuthService  AuthService
+	AuthService  *AuthService
 }
 
 func NewContainer(ap provider.AuthProvider) *Container {
@@ -25,5 +21,5 @@ func (c *Container) initAuthProvider(ap provider.AuthProvider) {
 }
 
 func (c *Container) initAuthService() {
-	c.AuthService = NewAuthService(&c.AuthProvider)
+	c.AuthService = NewAuthService(c.AuthProvider)
 }
