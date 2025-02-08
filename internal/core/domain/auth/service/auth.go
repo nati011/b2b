@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 
-	auth "b2b.nati011.github.com/internal/core/domain/auth/model/dto"
+	authDTO "b2b.nati011.github.com/internal/core/domain/auth/model/dto"
 	provider "b2b.nati011.github.com/internal/core/domain/auth/provider"
 )
 
@@ -20,8 +20,8 @@ const (
 )
 
 type Authorizer interface {
-	CreateClient(auth.RegisterUserRequest) (auth.RegisterUserResponse, error)
-	LoginClient(auth.LoginUserRequest) (auth.LoginUserResonse, error)
+	CreateClient(authDTO.RegisterUserRequest) (authDTO.RegisterUserResponse, error)
+	LoginClient(authDTO.LoginUserRequest) (authDTO.LoginUserResonse, error)
 }
 
 type AuthService struct {
@@ -32,45 +32,36 @@ func NewAuthService(ap provider.AuthProvider) *AuthService {
 	return &AuthService{authProvider: ap}
 }
 
-func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUserResponse, error) {
+func (a AuthService) CreateClient(rq authDTO.RegisterUserRequest) (authDTO.RegisterUserResponse, error) {
 	resp, err := a.authProvider.CreateNewClient(rq.FullName, rq.FullName, rq.Email, rq.Username, rq.Password)
 	if err != nil {
 		switch err {
 		case provider.ErrSysUsernameTaken:
-			return auth.RegisterUserResponse{
-				Username: "",
-				Message:  ErrUsernameTaken.Error(),
-			}, ErrUsernameTaken
+			return authDTO.RegisterUserResponse{}, ErrUsernameTaken
 		case provider.ErrSysEmailTaken:
-			return auth.RegisterUserResponse{
-				Username: "",
-				Message:  ErrEmailTaken.Error(),
-			}, ErrEmailTaken
+			return authDTO.RegisterUserResponse{}, ErrEmailTaken
 		default:
-			return auth.RegisterUserResponse{
-				Username: "",
-				Message:  ErrUnknown.Error(),
-			}, ErrUnknown
+			return authDTO.RegisterUserResponse{}, ErrUnknown
 		}
 	}
-	return auth.RegisterUserResponse{
+	return authDTO.RegisterUserResponse{
 		Username: resp.Username,
 		Message:  SUCCESS_MESSAGE,
 	}, nil
 }
 
-func (a *AuthService) LoginClient(rq auth.LoginUserRequest) (auth.LoginUserResonse, error) {
+func (a *AuthService) LoginClient(rq authDTO.LoginUserRequest) (authDTO.LoginUserResonse, error) {
 	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
 	if err != nil {
 		switch err {
 		case provider.ErrSysFailedToLogin:
-			return auth.LoginUserResonse{}, ErrFailedToLogin
+			return authDTO.LoginUserResonse{}, ErrFailedToLogin
 		default:
-			return auth.LoginUserResonse{}, ErrUnknown
+			return authDTO.LoginUserResonse{}, ErrUnknown
 		}
 	}
-	return auth.LoginUserResonse{
-		JWT:     auth.JWT(resp.JWT),
+	return authDTO.LoginUserResonse{
+		JWT:     authDTO.JWT(resp.JWT),
 		Message: SUCCESS_MESSAGE,
 	}, nil
 }
