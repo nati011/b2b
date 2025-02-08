@@ -158,7 +158,6 @@ COMMENT ON TABLE public."products" IS 'stores products';
 
 CREATE TABLE IF NOT EXISTS public."product_category" 
 (
-  id SERIAL PRIMARY KEY,
   product_id INT,
   category_id INT,
   FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE,

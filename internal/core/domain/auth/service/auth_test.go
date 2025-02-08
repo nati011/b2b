@@ -3,13 +3,8 @@ package auth
 import (
 	"testing"
 
-<<<<<<< HEAD
 	authDTO "b2b.nati011.github.com/internal/core/domain/auth/model/dto"
 	"b2b.nati011.github.com/internal/core/domain/auth/provider"
-=======
-	authDTO "b2b.nati011.github.com/internal/core/app/auth/model/dto"
-	"b2b.nati011.github.com/internal/core/app/auth/provider"
->>>>>>> origin/SCRUM-4-integrate-keycloak
 )
 
 const (
