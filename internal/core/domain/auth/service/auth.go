@@ -37,11 +37,20 @@ func (a AuthService) CreateClient(rq auth.RegisterUserRequest) (auth.RegisterUse
 	if err != nil {
 		switch err {
 		case provider.ErrSysUsernameTaken:
-			return auth.RegisterUserResponse{}, ErrUsernameTaken
+			return auth.RegisterUserResponse{
+				Username: "",
+				Message:  ErrUsernameTaken.Error(),
+			}, ErrUsernameTaken
 		case provider.ErrSysEmailTaken:
-			return auth.RegisterUserResponse{}, ErrEmailTaken
+			return auth.RegisterUserResponse{
+				Username: "",
+				Message:  ErrEmailTaken.Error(),
+			}, ErrEmailTaken
 		default:
-			return auth.RegisterUserResponse{}, ErrUnknown
+			return auth.RegisterUserResponse{
+				Username: "",
+				Message:  ErrUnknown.Error(),
+			}, ErrUnknown
 		}
 	}
 	return auth.RegisterUserResponse{

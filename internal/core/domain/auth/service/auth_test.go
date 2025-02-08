@@ -8,10 +8,12 @@ import (
 )
 
 const (
-	VALID_PASSWORD = "test@123"
-	VALID_FULLNAME = "ruth tirusew"
-	VALID_EMAIL    = "ruthtirusew944@gmail.com"
-	VALID_USERNAME = "expired_pineapple"
+	VALID_PASSWORD   = "test@123"
+	VALID_FULLNAME   = "ruth tirusew"
+	VALID_EMAIL_A    = "ruthtirusew944@gmail.com"
+	VALID_EMAIL_B    = "ruthtirusew388@gmail.com"
+	VALID_USERNAME_A = "expired_pineapple"
+	VALID_USERNAME_B = "delila"
 
 	//INVALID
 	INVALID_username = ""
@@ -24,15 +26,15 @@ var container = NewContainer(provider.NewMockAuthProvider())
 
 func TestCreateClient_happyPath(t *testing.T) {
 	user := authDTO.RegisterUserRequest{
-		Username:        VALID_USERNAME,
+		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
 		FullName:        VALID_FULLNAME,
-		Email:           VALID_EMAIL,
+		Email:           VALID_EMAIL_A,
 	}
 
 	userRegistrationSuccessResponse := authDTO.RegisterUserResponse{
-		Username: VALID_USERNAME,
+		Username: VALID_USERNAME_A,
 		Message:  SUCCESS_MESSAGE,
 	}
 
@@ -54,11 +56,11 @@ func TestCreateClient_UnhappyPath(t *testing.T) {
 	t.Run("DuplicateUsername", func(t *testing.T) {
 		//init
 		in_a := authDTO.RegisterUserRequest{
-			Username:        VALID_USERNAME,
+			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL,
+			Email:           VALID_EMAIL_A,
 		}
 
 		_, err := container.AuthService.CreateClient(in_a)
@@ -67,11 +69,11 @@ func TestCreateClient_UnhappyPath(t *testing.T) {
 		}
 
 		in_b := authDTO.RegisterUserRequest{
-			Username:        VALID_USERNAME,
+			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL,
+			Email:           VALID_EMAIL_B,
 		}
 
 		want := authDTO.RegisterUserResponse{
@@ -90,20 +92,20 @@ func TestCreateClient_UnhappyPath(t *testing.T) {
 
 		//init
 		ua := authDTO.RegisterUserRequest{
-			Username:        VALID_USERNAME,
+			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL,
+			Email:           VALID_EMAIL_A,
 		}
 
 		container.AuthService.CreateClient(ua)
 		ub := authDTO.RegisterUserRequest{
-			Username:        VALID_USERNAME,
+			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL,
+			Email:           VALID_EMAIL_A,
 		}
 
 		want := authDTO.RegisterUserResponse{
