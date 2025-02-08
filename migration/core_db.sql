@@ -110,7 +110,8 @@ CREATE TABLE IF NOT EXISTS public."rb_locations"
   general_zone VARCHAR(255) NOT NULL,
   region VARCHAR(255) NOT NULL,
   woreda VARCHAR(255) NOT NULL,
-  business_id INT UNIQUE REFERENCES public."retailer_business_info" (id) ON DELETE CASCADE
+  business_id INT,
+  FOREIGN KEY(business_id) REFERENCES public."retailer_business_info" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."rb_locations" IS 'stores location information of businesses';
@@ -130,7 +131,8 @@ CREATE TABLE IF NOT EXISTS public."db_locations"
   general_zone VARCHAR(255) NOT NULL,
   region VARCHAR(255) NOT NULL,
   woreda VARCHAR(255) NOT NULL,
-  business_id INT UNIQUE REFERENCES public."distributor_business_info" (id) ON DELETE CASCADE
+  business_id INT,
+  FOREIGN KEY(business_id) REFERENCES public."distributor_business_info" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."rb_locations" IS 'stores location information of distributors';
