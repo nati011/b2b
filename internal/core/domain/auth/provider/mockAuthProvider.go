@@ -24,9 +24,9 @@ func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, em
 	// check if username or password is taken
 	for _, index := range m.clients {
 		if index.username == username {
-			return CreateClientAuthResonse{}, ErrSysEmailTaken
-		} else if index.email == email {
 			return CreateClientAuthResonse{}, ErrSysUsernameTaken
+		} else if index.email == email {
+			return CreateClientAuthResonse{}, ErrSysEmailTaken
 		}
 	}
 	m.clients = append(m.clients, MockClient{
