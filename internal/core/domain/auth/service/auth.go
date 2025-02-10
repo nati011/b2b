@@ -10,7 +10,7 @@ import (
 // user readable errors
 var (
 	ErrUsernameTaken = errors.New("oopsy, username already taken")
-	ErrEmailTaken    = errors.New("oopsy, email is already taken")
+	ErrEmailTaken    = errors.New("oopsy, email already taken")
 	ErrFailedToLogin = errors.New("oopsy, email or password incorrect")
 	ErrUnknown       = errors.New("oopsy, unknown error has occured")
 )
@@ -37,9 +37,13 @@ func (a AuthService) CreateClient(rq authDTO.RegisterUserRequest) (authDTO.Regis
 	if err != nil {
 		switch err {
 		case provider.ErrSysUsernameTaken:
-			return authDTO.RegisterUserResponse{}, ErrUsernameTaken
+			return authDTO.RegisterUserResponse{
+				Message: ErrUsernameTaken.Error(),
+			}, ErrUsernameTaken
 		case provider.ErrSysEmailTaken:
-			return authDTO.RegisterUserResponse{}, ErrEmailTaken
+			return authDTO.RegisterUserResponse{
+				Message: ErrEmailTaken.Error(),
+			}, ErrEmailTaken
 		default:
 			return authDTO.RegisterUserResponse{}, ErrUnknown
 		}
@@ -55,7 +59,9 @@ func (a *AuthService) LoginClient(rq authDTO.LoginUserRequest) (authDTO.LoginUse
 	if err != nil {
 		switch err {
 		case provider.ErrSysFailedToLogin:
-			return authDTO.LoginUserResonse{}, ErrFailedToLogin
+			return authDTO.LoginUserResonse{
+				Message: ErrFailedToLogin.Error(),
+			}, ErrFailedToLogin
 		default:
 			return authDTO.LoginUserResonse{}, ErrUnknown
 		}
