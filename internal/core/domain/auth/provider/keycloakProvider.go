@@ -14,28 +14,50 @@ const (
 	MessageErrKeyCloakEmailTaken    = "User exists with same username"
 	MessageErrFailedLogin           = "Invalid user credentials"
 
-	KeycloakInstanceURL      = "http://localhost:8080"
-	KeycloakUsername         = "admin"
-	KeycloakPassword         = "admin"
-	KeycloakRealm            = "master"
-	KeycloakApplicationRealm = "test"
-	KeycloakClientId         = "test"
-	KeycloakClientSecret     = "jQILbkSn6ywmVVYjxgSMHYOUfnlA7pMS"
+	// KeycloakInstanceURL      = "http://localhost:8080"
+	// KeycloakUsername         = "admin"
+	// KeycloakPassword         = "admin"
+	// KeycloakRealm            = "master"
+	// KeycloakApplicationRealm = "test"
+	// KeycloakClientId         = "test"
+	// KeycloakClientSecret     = "jQILbkSn6ywmVVYjxgSMHYOUfnlA7pMS"
 )
 
-type (
-	KeycloakProvider struct{}
-)
-
-func NewKeycloakProvider() *KeycloakProvider {
-	return &KeycloakProvider{}
+type KeycloakProvider struct {
+	KeycloakInstanceURL      string
+	KeycloakUsername         string
+	KeycloakPassword         string
+	KeycloakRealm            string
+	KeycloakApplicationRealm string
+	KeycloakClientId         string
+	KeycloakClientSecret     string
 }
 
-func CreateNewClient(firstName string, lastName string, email string, username string, password string) (string, error) {
-	client := gocloak.NewClient(KeycloakInstanceURL)
+func NewKeycloakProvider(
+	keycloakInstanceURL string,
+	keycloakUsername string,
+	keycloakPassword string,
+	keycloakRealm string,
+	keycloakApplicationRealm string,
+	keycloakClientId string,
+	keycloakClientSecret string,
+) *KeycloakProvider {
+	return &KeycloakProvider{
+		KeycloakInstanceURL:      keycloakInstanceURL,
+		KeycloakUsername:         keycloakUsername,
+		KeycloakPassword:         keycloakPassword,
+		KeycloakRealm:            keycloakRealm,
+		KeycloakApplicationRealm: keycloakApplicationRealm,
+		KeycloakClientId:         keycloakClientId,
+		KeycloakClientSecret:     keycloakClientSecret,
+	}
+}
+
+func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (string, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 
-	token, err := client.LoginAdmin(ctx, KeycloakUsername, KeycloakPassword, KeycloakRealm)
+	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
 		log.Fatalf("Something wrong with the credentials or URL: %v", err)
 	}
@@ -49,7 +71,7 @@ func CreateNewClient(firstName string, lastName string, email string, username s
 		ID:        gocloak.StringP(email),
 	}
 
-	userId, err := client.CreateUser(ctx, token.AccessToken, KeycloakApplicationRealm, user)
+	userId, err := client.CreateUser(ctx, token.AccessToken, k.KeycloakApplicationRealm, user)
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
@@ -69,10 +91,10 @@ func CreateNewClient(firstName string, lastName string, email string, username s
 	}
 
 	if email != "" {
-		client.SendVerifyEmail(ctx, token.AccessToken, userId, KeycloakApplicationRealm)
+		client.SendVerifyEmail(ctx, token.AccessToken, userId, k.KeycloakApplicationRealm)
 	}
 	if password != "" {
-		client.SetPassword(ctx, token.AccessToken, userId, KeycloakApplicationRealm, password, false)
+		client.SetPassword(ctx, token.AccessToken, userId, k.KeycloakApplicationRealm, password, false)
 	}
 
 	if err != nil {
@@ -82,11 +104,11 @@ func CreateNewClient(firstName string, lastName string, email string, username s
 	return username, nil
 }
 
-func ClientLogin(email, password string) (string, error) {
-	client := gocloak.NewClient(KeycloakInstanceURL)
+func (k *KeycloakProvider) ClientLogin(email, password string) (string, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 
-	token, err := client.Login(ctx, KeycloakClientId, KeycloakClientSecret, KeycloakApplicationRealm, email, password)
+	token, err := client.Login(ctx, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm, email, password)
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
@@ -103,7 +125,7 @@ func ClientLogin(email, password string) (string, error) {
 		}
 	}
 
-	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, KeycloakClientId, KeycloakClientSecret, KeycloakApplicationRealm)
+	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
 	if err != nil {
 		log.Fatal("Inspection failed:" + err.Error())
 		return "", err
