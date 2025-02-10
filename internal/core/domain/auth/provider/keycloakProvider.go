@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	MessageErrKeyCloakUsernameTaken = "User exists with same email"
-	MessageErrKeyCloakEmailTaken    = "User exists with same username"
-	MessageErrFailedLogin           = "Invalid user credentials"
+	MessageErrKeyCloakEmailTaken    = "User exists with same email"
+	MessageErrKeyCloakUsernameTaken = "User exists with same username"
+
+	MessageErrFailedLogin = "Invalid user credentials"
 
 	// KeycloakInstanceURL      = "http://localhost:8080"
 	// KeycloakUsername         = "admin"
@@ -40,7 +41,6 @@ func NewKeycloakProvider(
 	keycloakRealm string,
 	keycloakApplicationRealm string,
 	keycloakClientId string,
-	keycloakClientSecret string,
 ) *KeycloakProvider {
 	return &KeycloakProvider{
 		KeycloakInstanceURL:      keycloakInstanceURL,
@@ -49,11 +49,10 @@ func NewKeycloakProvider(
 		KeycloakRealm:            keycloakRealm,
 		KeycloakApplicationRealm: keycloakApplicationRealm,
 		KeycloakClientId:         keycloakClientId,
-		KeycloakClientSecret:     keycloakClientSecret,
 	}
 }
 
-func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (string, error) {
+func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 
@@ -79,12 +78,12 @@ func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, em
 			case 409:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakEmailTaken):
-					return "", ErrSysEmailTaken
+					return CreateClientAuthResonse{}, ErrSysEmailTaken
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakUsernameTaken):
-					return "", ErrSysUsernameTaken
+					return CreateClientAuthResonse{}, ErrSysUsernameTaken
 				}
 			default:
-				return "", ErrSysUnknown
+				return CreateClientAuthResonse{}, ErrSysUnknown
 
 			}
 		}
@@ -98,17 +97,26 @@ func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, em
 	}
 
 	if err != nil {
-		return "", ErrSysUnknown
+		return CreateClientAuthResonse{}, ErrSysUnknown
 	}
 
-	return username, nil
+	return CreateClientAuthResonse{
+		Username: username,
+	}, nil
 }
 
-func (k *KeycloakProvider) ClientLogin(email, password string) (string, error) {
+func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
-
-	token, err := client.Login(ctx, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm, email, password)
+	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
+	if err != nil {
+		log.Fatalf("Something wrong with the credentials or URL: %v", err)
+	}
+	clientSecret, err := client.GetClientSecret(ctx, adminToken.AccessToken, k.KeycloakApplicationRealm, k.KeycloakClientId)
+	if err != nil {
+		log.Fatal("client secret fetching failed:" + err.Error())
+	}
+	token, err := client.Login(ctx, k.KeycloakClientId, *clientSecret.Value, k.KeycloakApplicationRealm, email, password)
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
@@ -116,10 +124,10 @@ func (k *KeycloakProvider) ClientLogin(email, password string) (string, error) {
 			case 401:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
-					return "", ErrSysFailedToLogin
+					return LoginAuthResonse{}, ErrSysFailedToLogin
 				}
 			default:
-				return "", ErrSysFailedToLogin
+				return LoginAuthResonse{}, ErrSysFailedToLogin
 
 			}
 		}
@@ -128,14 +136,26 @@ func (k *KeycloakProvider) ClientLogin(email, password string) (string, error) {
 	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
 	if err != nil {
 		log.Fatal("Inspection failed:" + err.Error())
-		return "", err
+		return LoginAuthResonse{}, err
 	}
 
 	if !*rptResult.Active {
 		err := errors.New("token is not active")
 		log.Fatal("token is not active:" + err.Error())
-		return "", err
+		return LoginAuthResonse{}, err
 	}
 
-	return token.AccessToken, err
+	return LoginAuthResonse{
+		JWT: JWT{
+			token.AccessToken,
+			token.IDToken,
+			token.ExpiresIn,
+			token.RefreshExpiresIn,
+			token.RefreshToken,
+			token.TokenType,
+			token.NotBeforePolicy,
+			token.SessionState,
+			token.Scope,
+		},
+	}, err
 }
