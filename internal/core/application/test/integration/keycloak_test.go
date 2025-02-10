@@ -67,8 +67,8 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateUsername", func(t *testing.T) {
 		// defer teardown()
-		// create a user with some username x and attempt
-		// to create another user with the same username
+		/* create a user with some username x and attempt
+		to create another user with the same username */
 		in_a := authDTO.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
@@ -103,8 +103,8 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
 		// defer teardown()
-		// create a user with some email x and attempt
-		// to create another user with the same email
+		/* create a user with some email x and attempt
+		to create another user with the same email */
 		ua := authDTO.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
