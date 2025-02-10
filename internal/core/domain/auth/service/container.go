@@ -5,8 +5,11 @@ import (
 )
 
 type Container struct {
-	AuthProvider provider.AuthProvider
-	AuthService  *AuthService
+	//exportable
+	AuthService *AuthService
+
+	//non exportables
+	authProvider provider.AuthProvider
 }
 
 func NewContainer(ap provider.AuthProvider) *Container {
@@ -17,9 +20,9 @@ func NewContainer(ap provider.AuthProvider) *Container {
 }
 
 func (c *Container) initAuthProvider(ap provider.AuthProvider) {
-	c.AuthProvider = ap
+	c.authProvider = ap
 }
 
 func (c *Container) initAuthService() {
-	c.AuthService = NewAuthService(c.AuthProvider)
+	c.AuthService = NewAuthService(c.authProvider)
 }
