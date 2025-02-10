@@ -12,7 +12,7 @@ import (
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
 
-var keycloakContainer *keycloak.KeycloakContainer
+// var keycloakContainer *keycloak.KeycloakContainer
 var KeycloakProvider *provider.KeycloakProvider
 var authContainer *service.Container
 
@@ -187,19 +187,19 @@ func setup() {
 	authContainer = service.NewContainer(KeycloakProvider)
 }
 
-func shutDown() {
-	ctx := context.Background()
-	err := keycloakContainer.Terminate(ctx)
-	if err != nil {
-		panic(err)
-	}
-}
+// func shutDown() {
+// 	ctx := context.Background()
+// 	err := keycloakContainer.Terminate(ctx)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
 
-func teardown() {
-	//TODO: research if there is a more efficient way to do this
-	shutDown()
-	setup()
-}
+// func teardown() {
+// 	//TODO: research if there is a more efficient way to do this
+// 	shutDown()
+// 	setup()
+// }
 
 const (
 	KEYCLOAK_VERSION            = "keycloak/keycloak:24.0"
