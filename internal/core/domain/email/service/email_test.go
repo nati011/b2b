@@ -8,23 +8,24 @@ import (
 )
 
 const (
-	VALID_EMAIL_ADDR   = "ruthtirusew944@mailpit.com"
-	INVALID_EMAIL_ADDR = "ruthtirusew944"
-	VALID_HEADER       = "test"
-	VALID_CONTENT      = "test"
+	VALID_EMAIL_RECEPIENT = "ruthtirusew944@mailpit.com"
+	VALID_EMAIL_SENDER    = "ruthtirusew388@gmail.com"
+	INVALID_EMAIL_ADDR    = "ruthtirusew944"
+	VALID_SUBJECT         = "test"
+	VALID_TEXT            = "test"
+	INVALID_TEXT          = ""
 )
 
 var service *EmailService
 
 func Test_SendEmail_happyPath(t *testing.T) {
 	in := Request{
-		Addr:    VALID_EMAIL_ADDR,
-		Header:  VALID_HEADER,
-		Content: VALID_CONTENT,
+		From:    VALID_EMAIL_SENDER,
+		To:      VALID_EMAIL_RECEPIENT,
+		Subject: VALID_SUBJECT,
+		Text:    VALID_TEXT,
 	}
-
 	want := Response{
-		Addr:    VALID_EMAIL_ADDR,
 		Message: SUCCESS_MESSAGE,
 	}
 
@@ -38,16 +39,38 @@ func Test_SendEmail_happyPath(t *testing.T) {
 }
 
 func Test_SendEmail_unhappyPath(t *testing.T) {
-	t.Run("invalidEmail", func(t *testing.T) {
+	t.Run("invalidSenderEmail", func(t *testing.T) {
 		in := Request{
-			Addr:    INVALID_EMAIL_ADDR,
-			Header:  VALID_HEADER,
-			Content: VALID_CONTENT,
+			From:    INVALID_EMAIL_ADDR,
+			To:      VALID_EMAIL_RECEPIENT,
+			Subject: VALID_SUBJECT,
+			Text:    VALID_TEXT,
 		}
 		want := Response{
-			Addr:    INVALID_EMAIL_ADDR,
-			Message: ErrAddressNotValid.Error(),
+			Message: ErrSenderAddressNotValid.Error(),
 		}
+
+		got, err := service.Send(&in)
+		if err != nil {
+			t.Errorf("Failed to send email err: %v", err)
+		}
+		if got != want {
+			t.Errorf("Expected: %v, Got: %v", want, got)
+		}
+
+	})
+
+	t.Run("invalidRecepientEmail", func(t *testing.T) {
+		in := Request{
+			From:    VALID_EMAIL_SENDER,
+			To:      INVALID_EMAIL_ADDR,
+			Subject: VALID_SUBJECT,
+			Text:    VALID_TEXT,
+		}
+		want := Response{
+			Message: ErrReceiverAddressNotValid.Error(),
+		}
+
 		got, err := service.Send(&in)
 		if err != nil {
 			t.Errorf("Failed to send email err: %v", err)
@@ -60,12 +83,12 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 
 	t.Run("emptyContent", func(t *testing.T) {
 		in := Request{
-			Addr:    VALID_EMAIL_ADDR,
-			Header:  VALID_HEADER,
-			Content: VALID_CONTENT,
+			From:    INVALID_EMAIL_ADDR,
+			To:      VALID_EMAIL_RECEPIENT,
+			Subject: VALID_SUBJECT,
+			Text:    INVALID_TEXT,
 		}
 		want := Response{
-			Addr:    VALID_EMAIL_ADDR,
 			Message: ErrContentEmpty.Error(),
 		}
 		got, err := service.Send(&in)

@@ -2,25 +2,27 @@ package email
 
 import (
 	"errors"
+	"regexp"
 
 	provider "b2b.nati011.github.com/internal/core/domain/email/provider"
 )
 
 type Request struct {
-	Addr    string
-	Content string
-	Header  string
+	From    string
+	To      string
+	Subject string
+	Text    string
 }
 
 type Response struct {
-	Addr    string
 	Message string
 }
 
 // exportable errors
 var (
-	ErrAddressNotValid = errors.New("oopsy, email is not valid")
-	ErrContentEmpty    = errors.New("oopsy, email content is empty")
+	ErrSenderAddressNotValid   = errors.New("oopsy, sender email is not valid")
+	ErrReceiverAddressNotValid = errors.New("oopsy, receiver email is not valid")
+	ErrContentEmpty            = errors.New("oopsy, email content is empty")
 )
 
 const (
@@ -40,11 +42,25 @@ func NewEmailService(ep provider.EmailProvider) *EmailService {
 }
 
 func (e *EmailService) Send(r *Request) (Response, error) {
-	response, err := e.provider.Send(
+	isSenderAddrValid := validateEmail(r.To)
+	if !isSenderAddrValid {
+		return Response{
+			Message: ErrSenderAddressNotValid.Error(),
+		}, ErrSenderAddressNotValid
+	}
+	isReceiverAddrValid := validateEmail(r.From)
+	if !isReceiverAddrValid {
+		return Response{
+			Message: ErrReceiverAddressNotValid.Error(),
+		}, ErrReceiverAddressNotValid
+	}
+
+	err := e.provider.Send(
 		provider.Request{
-			Addr:    r.Addr,
-			Header:  r.Header,
-			Content: r.Content,
+			From:    r.From,
+			To:      r.To,
+			Subject: r.Subject,
+			Text:    r.Text,
 		},
 	)
 	if err != nil {
@@ -53,7 +69,12 @@ func (e *EmailService) Send(r *Request) (Response, error) {
 		}, err
 	}
 	return Response{
-		Addr:    response.Addr,
 		Message: SUCCESS_MESSAGE,
 	}, nil
+}
+
+func validateEmail(email string) bool {
+	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
+	return !emailRegex.MatchString(email)
 }
