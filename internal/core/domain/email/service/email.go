@@ -42,27 +42,14 @@ func NewEmailService(ep provider.EmailProvider) *EmailService {
 }
 
 func (e *EmailService) Send(r *Request) (Response, error) {
-	isSenderAddrValid := validateEmail(r.From)
-	if !isSenderAddrValid {
+	err := validateEmail(r)
+	if err != nil {
 		return Response{
-			Message: ErrSenderAddressNotValid.Error(),
-		}, ErrSenderAddressNotValid
-	}
-	isReceiverAddrValid := validateEmail(r.To)
-	if !isReceiverAddrValid {
-		return Response{
-			Message: ErrReceiverAddressNotValid.Error(),
-		}, ErrReceiverAddressNotValid
+			Message: err.Error(),
+		}, err
 	}
 
-	isTextNotEmpty := validateMailContent(r.Text)
-	if !isTextNotEmpty {
-		return Response{
-			Message: ErrContentEmpty.Error(),
-		}, ErrContentEmpty
-	}
-
-	err := e.provider.Send(
+	err = e.provider.Send(
 		provider.Request{
 			From:    r.From,
 			To:      r.To,
@@ -75,12 +62,31 @@ func (e *EmailService) Send(r *Request) (Response, error) {
 			Message: err.Error(),
 		}, err
 	}
+
 	return Response{
 		Message: SUCCESS_MESSAGE,
 	}, nil
 }
 
-func validateEmail(email string) bool {
+func validateEmail(r *Request) error {
+	isSenderAddrValid := validateEmailAddr(r.From)
+	if !isSenderAddrValid {
+		return ErrSenderAddressNotValid
+	}
+
+	isReceiverAddrValid := validateEmailAddr(r.To)
+	if !isReceiverAddrValid {
+		return ErrReceiverAddressNotValid
+	}
+
+	isTextNotEmpty := validateMailContent(r.Text)
+	if !isTextNotEmpty {
+		return ErrContentEmpty
+	}
+	return nil
+}
+
+func validateEmailAddr(email string) bool {
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
 }
