@@ -42,17 +42,24 @@ func NewEmailService(ep provider.EmailProvider) *EmailService {
 }
 
 func (e *EmailService) Send(r *Request) (Response, error) {
-	isSenderAddrValid := validateEmail(r.To)
+	isSenderAddrValid := validateEmail(r.From)
 	if !isSenderAddrValid {
 		return Response{
 			Message: ErrSenderAddressNotValid.Error(),
 		}, ErrSenderAddressNotValid
 	}
-	isReceiverAddrValid := validateEmail(r.From)
+	isReceiverAddrValid := validateEmail(r.To)
 	if !isReceiverAddrValid {
 		return Response{
 			Message: ErrReceiverAddressNotValid.Error(),
 		}, ErrReceiverAddressNotValid
+	}
+
+	isTextNotEmpty := validateMailContent(r.Text)
+	if !isTextNotEmpty {
+		return Response{
+			Message: ErrContentEmpty.Error(),
+		}, ErrContentEmpty
 	}
 
 	err := e.provider.Send(
@@ -75,6 +82,9 @@ func (e *EmailService) Send(r *Request) (Response, error) {
 
 func validateEmail(email string) bool {
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
+}
 
-	return !emailRegex.MatchString(email)
+func validateMailContent(text string) bool {
+	return text != ""
 }
