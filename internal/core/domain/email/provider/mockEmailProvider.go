@@ -3,10 +3,8 @@ package email
 type MockEmailProvider struct {
 }
 
-func (m *MockEmailProvider) Send(e Request) (Response, error) {
-	return Response{
-		Addr: e.Addr,
-	}, nil
+func (m *MockEmailProvider) Send(e Request) error {
+	return nil
 }
 
 func NewMockEmailProvider() *MockEmailProvider {
