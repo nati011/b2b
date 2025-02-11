@@ -3,6 +3,8 @@ package email
 import (
 	"os"
 	"testing"
+
+	provider "b2b.nati011.github.com/internal/core/domain/email/provider"
 )
 
 const (
@@ -26,7 +28,7 @@ func Test_SendEmail_happyPath(t *testing.T) {
 		Message: SUCCESS_MESSAGE,
 	}
 
-	got, err := service.Send(in)
+	got, err := service.Send(&in)
 	if err != nil {
 		t.Errorf("Failed to send email err: %v", err)
 	}
@@ -46,7 +48,7 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 			Addr:    INVALID_EMAIL_ADDR,
 			Message: ErrAddressNotValid.Error(),
 		}
-		got, err := service.Send(in)
+		got, err := service.Send(&in)
 		if err != nil {
 			t.Errorf("Failed to send email err: %v", err)
 		}
@@ -66,7 +68,7 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 			Addr:    VALID_EMAIL_ADDR,
 			Message: ErrContentEmpty.Error(),
 		}
-		got, err := service.Send(in)
+		got, err := service.Send(&in)
 		if err != nil {
 			t.Errorf("Failed to send email err: %v", err)
 		}
@@ -83,5 +85,5 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewEmailService()
+	service = NewEmailService(provider.NewMockEmailProvider())
 }
