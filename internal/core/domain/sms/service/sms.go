@@ -2,8 +2,6 @@ package sms
 
 import (
 	"errors"
-	"regexp"
-	"strings"
 
 	smsProvider "b2b.nati011.github.com/internal/core/domain/sms/provider"
 )
@@ -66,23 +64,4 @@ func (t *SMSService) Send(r *Request) (Response, error) {
 		Phone:   r.Phone,
 		Message: SUCCESS_MESSAGE,
 	}, nil
-}
-
-func validateSMS(r *Request) error {
-	if !validatePhone(r.Phone) {
-		return ErrPhoneInvalid
-	}
-	if !validateContent(r.Content) {
-		return ErrTextInvalid
-	}
-	return nil
-}
-
-func validatePhone(p string) bool {
-	phoneRegex := regexp.MustCompile(`^\d{10}$`)
-	return phoneRegex.MatchString(p)
-}
-
-func validateContent(p string) bool {
-	return p != "" && (strings.Split(p, "") != nil)
 }
