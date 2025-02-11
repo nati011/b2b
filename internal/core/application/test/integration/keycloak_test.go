@@ -12,7 +12,7 @@ import (
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
 
-// var keycloakContainer *keycloak.KeycloakContainer
+var keycloakContainer *keycloak.KeycloakContainer
 var KeycloakProvider *provider.KeycloakProvider
 var authContainer *service.Container
 
@@ -60,13 +60,13 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	if got != want {
 		t.Errorf("Expected: %v, Got: %v", want, got)
 	}
-	// t.Cleanup(teardown)
+	t.Cleanup(teardown)
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateUsername", func(t *testing.T) {
-		// defer teardown()
+		t.Cleanup(teardown)
 
 		/* create a user with some username x and attempt
 		to create another user with the same username */
@@ -103,7 +103,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-		// defer teardown()
+		t.Cleanup(teardown)
 
 		/* create a user with some email x and attempt
 		to create another user with the same email */
@@ -152,8 +152,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	var err error
 	ctx := context.Background()
-	keycloakContainer, err := RunContainer(ctx)
+	keycloakContainer, err = RunContainer(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -185,19 +186,19 @@ func setup() {
 	authContainer = service.NewContainer(KeycloakProvider)
 }
 
-// func shutDown() {
-// 	ctx := context.Background()
-// 	err := keycloakContainer.Terminate(ctx)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
+func shutDown() {
+	ctx := context.Background()
+	err := keycloakContainer.Terminate(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
 
-// func teardown() {
-// 	//TODO: research if there is a more efficient way to do this
-// 	shutDown()
-// 	setup()
-// }
+func teardown() {
+	//TODO: research if there is a more efficient way to do this
+	shutDown()
+	setup()
+}
 
 const (
 	KEYCLOAK_VERSION            = "keycloak/keycloak:24.0"
