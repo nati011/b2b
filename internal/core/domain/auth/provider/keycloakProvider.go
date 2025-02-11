@@ -4,33 +4,59 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
 )
 
 const (
-	KeycloakInstanceURL      = "http://localhost:8080"
-	KeycloakUsername         = "admin"
-	KeycloakPassword         = "admin"
-	KeycloakRealm            = "master"
-	KeycloakApplicationRealm = "test"
-	KeycloakClientId         = "test"
-	KeycloakClientSecret     = "jQILbkSn6ywmVVYjxgSMHYOUfnlA7pMS"
+	MessageErrKeyCloakEmailTaken    = "User exists with same email"
+	MessageErrKeyCloakUsernameTaken = "User exists with same username"
+
+	MessageErrFailedLogin = "Invalid user credentials"
+
+	// KeycloakInstanceURL      = "http://localhost:8080"
+	// KeycloakUsername         = "admin"
+	// KeycloakPassword         = "admin"
+	// KeycloakRealm            = "master"
+	// KeycloakApplicationRealm = "test"
+	// KeycloakClientId         = "test"
+	// KeycloakClientSecret     = "jQILbkSn6ywmVVYjxgSMHYOUfnlA7pMS"
 )
 
-type (
-	KeycloakProvider struct{}
-)
-
-func NewKeycloakProvider() *KeycloakProvider {
-	return &KeycloakProvider{}
+type KeycloakProvider struct {
+	KeycloakInstanceURL      string
+	KeycloakUsername         string
+	KeycloakPassword         string
+	KeycloakRealm            string
+	KeycloakApplicationRealm string
+	KeycloakClientId         string
+	KeycloakClientSecret     string
 }
 
-func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (string, error) {
-	client := gocloak.NewClient(KeycloakInstanceURL)
+func NewKeycloakProvider(
+	keycloakInstanceURL string,
+	keycloakUsername string,
+	keycloakPassword string,
+	keycloakRealm string,
+	keycloakApplicationRealm string,
+	keycloakClientId string,
+) *KeycloakProvider {
+	return &KeycloakProvider{
+		KeycloakInstanceURL:      keycloakInstanceURL,
+		KeycloakUsername:         keycloakUsername,
+		KeycloakPassword:         keycloakPassword,
+		KeycloakRealm:            keycloakRealm,
+		KeycloakApplicationRealm: keycloakApplicationRealm,
+		KeycloakClientId:         keycloakClientId,
+	}
+}
+
+func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 
-	token, err := client.LoginAdmin(ctx, KeycloakUsername, KeycloakPassword, KeycloakRealm)
+	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
 		log.Fatalf("Something wrong with the credentials or URL: %v", err)
 	}
@@ -44,36 +70,92 @@ func (k *KeycloakProvider) CreateNewClient(firstName string, lastName string, em
 		ID:        gocloak.StringP(email),
 	}
 
-	userId, err := client.CreateUser(ctx, token.AccessToken, KeycloakApplicationRealm, user)
-	client.SendVerifyEmail(ctx, token.AccessToken, userId, KeycloakApplicationRealm)
-	client.SetPassword(ctx, token.AccessToken, userId, KeycloakApplicationRealm, password, false)
-
+	userId, err := client.CreateUser(ctx, token.AccessToken, k.KeycloakApplicationRealm, user)
 	if err != nil {
-		log.Fatalf("Oh no!, failed to create user: %v", err)
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.Code {
+			case 409:
+				switch {
+				case strings.Contains(apiErr.Message, MessageErrKeyCloakEmailTaken):
+					return CreateClientAuthResonse{}, ErrSysEmailTaken
+				case strings.Contains(apiErr.Message, MessageErrKeyCloakUsernameTaken):
+					return CreateClientAuthResonse{}, ErrSysUsernameTaken
+				}
+			default:
+				return CreateClientAuthResonse{}, ErrSysUnknown
+
+			}
+		}
 	}
 
-	return userId, nil
+	if email != "" {
+		client.SendVerifyEmail(ctx, token.AccessToken, userId, k.KeycloakApplicationRealm)
+	}
+	if password != "" {
+		client.SetPassword(ctx, token.AccessToken, userId, k.KeycloakApplicationRealm, password, false)
+	}
+
+	if err != nil {
+		return CreateClientAuthResonse{}, ErrSysUnknown
+	}
+
+	return CreateClientAuthResonse{
+		Username: username,
+	}, nil
 }
 
-func (k *KeycloakProvider) ClientLogin(email, password string) (string, error) {
-	client := gocloak.NewClient(KeycloakInstanceURL)
+func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
-	token, err := client.Login(ctx, KeycloakClientId, KeycloakClientSecret, KeycloakApplicationRealm, email, password)
+	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
-		return "", err
+		log.Fatalf("Something wrong with the credentials or URL: %v", err)
+	}
+	clientSecret, err := client.GetClientSecret(ctx, adminToken.AccessToken, k.KeycloakApplicationRealm, k.KeycloakClientId)
+	if err != nil {
+		log.Fatal("client secret fetching failed:" + err.Error())
+	}
+	token, err := client.Login(ctx, k.KeycloakClientId, *clientSecret.Value, k.KeycloakApplicationRealm, email, password)
+	if err != nil {
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.Code {
+			case 401:
+				switch {
+				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
+					return LoginAuthResonse{}, ErrSysFailedToLogin
+				}
+			default:
+				return LoginAuthResonse{}, ErrSysFailedToLogin
+
+			}
+		}
 	}
 
-	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, KeycloakClientId, KeycloakClientSecret, KeycloakApplicationRealm)
+	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
 	if err != nil {
 		log.Fatal("Inspection failed:" + err.Error())
-		return "", err
+		return LoginAuthResonse{}, err
 	}
 
 	if !*rptResult.Active {
 		err := errors.New("token is not active")
 		log.Fatal("token is not active:" + err.Error())
-		return "", err
+		return LoginAuthResonse{}, err
 	}
 
-	return token.AccessToken, err
+	return LoginAuthResonse{
+		JWT: JWT{
+			token.AccessToken,
+			token.IDToken,
+			token.ExpiresIn,
+			token.RefreshExpiresIn,
+			token.RefreshToken,
+			token.TokenType,
+			token.NotBeforePolicy,
+			token.SessionState,
+			token.Scope,
+		},
+	}, err
 }
