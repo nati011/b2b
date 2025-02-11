@@ -23,7 +23,7 @@ const (
 )
 
 type Emailer interface {
-	SendEmail(Request) (Response, error)
+	Send(Request) (Response, error)
 }
 
 type EmailService struct {
@@ -33,6 +33,6 @@ func NewEmailService() *EmailService {
 	return &EmailService{}
 }
 
-func (e *EmailService) SendEMail(Request) (Response, error) {
+func (e *EmailService) Send(Request) (Response, error) {
 	return Response{}, nil
 }
