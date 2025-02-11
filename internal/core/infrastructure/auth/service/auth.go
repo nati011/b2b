@@ -3,8 +3,8 @@ package auth
 import (
 	"errors"
 
-	authDTO "b2b.nati011.github.com/internal/core/domain/auth/model/dto"
-	provider "b2b.nati011.github.com/internal/core/domain/auth/provider"
+	authDTO "b2b.nati011.github.com/internal/core/infrastructure/auth/model/dto"
+	provider "b2b.nati011.github.com/internal/core/infrastructure/auth/provider"
 )
 
 // user readable errors
