@@ -7,6 +7,7 @@ var (
 	ErrSysUsernameTaken = errors.New("invalid username")
 	ErrSysEmailTaken    = errors.New("invalid email")
 	ErrSysFailedToLogin = errors.New("invalid email or password")
+	ErrSysUnknown       = errors.New("unknown error")
 )
 
 type LoginAuthResonse struct {

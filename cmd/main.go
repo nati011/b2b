@@ -11,7 +11,6 @@ type config struct {
 	keycloakRealm            string
 	keycloakApplicationRealm string
 	keycloakClientId         string
-	keycloakClientSecret     string
 }
 
 func main() {
@@ -26,7 +25,6 @@ func main() {
 	flag.StringVar(&cfg.keycloakRealm, "keycloak_realm", "keycloak realm", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.keycloakApplicationRealm, "keycloak_application_realm", "keycloak application realm", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.keycloakClientId, "keycloak_client_id", "keycloak ClientId", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakClientSecret, "keycloak_client_secret", "keycloak ClientSecret", "Environment (development|staging|production)")
 
 	flag.Parse()
 
