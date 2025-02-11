@@ -3,7 +3,7 @@ package email
 type MockEmailProvider struct {
 }
 
-func (m *MockEmailProvider) Send(e Request) error {
+func (m *MockEmailProvider) Send(r Request) error {
 	return nil
 }
 
