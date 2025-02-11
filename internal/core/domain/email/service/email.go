@@ -18,6 +18,10 @@ var (
 	ErrContentEmpty    = errors.New("oopsy, email content is empty")
 )
 
+const (
+	SUCCESS_MESSAGE = "Ahoy, mail received!"
+)
+
 type Emailer interface {
 	SendEmail(Request) (Response, error)
 }
