@@ -1,5 +1,11 @@
 package email
 
+import "errors"
+
+var (
+	ErrSysUnknown = errors.New("unknown error")
+)
+
 type Request struct {
 	From    string
 	To      string
