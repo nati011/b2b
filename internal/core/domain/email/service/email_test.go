@@ -6,10 +6,6 @@ import (
 )
 
 const (
-	SUCCESS_MESSAGE = "Ahoy, mail received!"
-)
-
-const (
 	VALID_EMAIL_ADDR   = "ruthtirusew944@mailpit.com"
 	INVALID_EMAIL_ADDR = "ruthtirusew944"
 	VALID_HEADER       = "test"
@@ -30,7 +26,7 @@ func Test_SendEmail_happyPath(t *testing.T) {
 		Message: SUCCESS_MESSAGE,
 	}
 
-	got, err := service.SendEMail(in)
+	got, err := service.Send(in)
 	if err != nil {
 		t.Errorf("Failed to send email err: %v", err)
 	}
@@ -50,7 +46,7 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 			Addr:    INVALID_EMAIL_ADDR,
 			Message: ErrAddressNotValid.Error(),
 		}
-		got, err := service.SendEMail(in)
+		got, err := service.Send(in)
 		if err != nil {
 			t.Errorf("Failed to send email err: %v", err)
 		}
@@ -70,7 +66,7 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 			Addr:    VALID_EMAIL_ADDR,
 			Message: ErrContentEmpty.Error(),
 		}
-		got, err := service.SendEMail(in)
+		got, err := service.Send(in)
 		if err != nil {
 			t.Errorf("Failed to send email err: %v", err)
 		}
