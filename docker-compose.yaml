@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env  
+    networks:
+      - backend
+
+
+networks:
+  backend:
+    driver: bridge
