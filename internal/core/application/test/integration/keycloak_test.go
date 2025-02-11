@@ -67,6 +67,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateUsername", func(t *testing.T) {
 		// defer teardown()
+
 		/* create a user with some username x and attempt
 		to create another user with the same username */
 		in_a := authDTO.RegisterUserRequest{
@@ -103,6 +104,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
 		// defer teardown()
+
 		/* create a user with some email x and attempt
 		to create another user with the same email */
 		ua := authDTO.RegisterUserRequest{
@@ -170,10 +172,6 @@ func setup() {
 	KeycloakRealm := keycloakAdminClient.Realm
 	keycloakApplicationRealm := keycloakAdminClient.Realm
 	keycloakClientId := keycloakAdminClient.ClientID
-	// keycloakClient, err := keycloakAdminClient.GetClient(KeycloakRealm, keycloakClientId)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	KeycloakProvider = provider.NewKeycloakProvider(
 		keycloakInstanceUrl,
