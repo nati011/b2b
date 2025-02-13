@@ -1,0 +1,18 @@
+package email
+
+import "regexp"
+
+type saveEmailResponse struct {
+}
+
+func save() (saveEmailResponse, error) {
+	return saveEmailResponse{}, nil
+}
+func validateEmailAddr(email string) bool {
+	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
+}
+
+func validateMailContent(text string) bool {
+	return text != ""
+}
