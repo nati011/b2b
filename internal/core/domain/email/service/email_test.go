@@ -6,8 +6,6 @@ import (
 
 	smtp "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
 	render "b2b.nati011.github.com/internal/core/domain/email/service/render"
-
-	db "b2b.nati011.github.com/internal/core/domain/email/provider/db/email"
 )
 
 const (
@@ -64,6 +62,12 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 	})
 }
 
+func Test_Get_happyPath(t *testing.T) {
+}
+
+func Test_Get_unhappyPath(t *testing.T) {
+}
+
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
@@ -71,5 +75,5 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewEmailService(smtp.NewMock(), render.NewMock(), db.NewMock())
+	service = NewEmailService(smtp.NewMock(), render.NewMock())
 }

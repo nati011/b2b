@@ -5,8 +5,6 @@ import (
 
 	smtp "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
 	render "b2b.nati011.github.com/internal/core/domain/email/service/render"
-
-	db_email "b2b.nati011.github.com/internal/core/domain/email/provider/db/email"
 )
 
 type SendRequest struct {
@@ -44,21 +42,17 @@ const (
 
 type Emailer interface {
 	Send(*SendRequest) (SendResponse, error)
-	Get(string) (GetResponse, error)
 }
 
 type EmailService struct {
 	smtp     smtp.Provider
 	renderer render.Renderer
-
-	db db_email.Provider
 }
 
-func NewEmailService(ep smtp.Provider, r render.Renderer, db db_email.Provider) *EmailService {
+func NewEmailService(ep smtp.Provider, r render.Renderer) *EmailService {
 	return &EmailService{
 		smtp:     ep,
 		renderer: r,
-		db:       db,
 	}
 }
 
@@ -95,7 +89,6 @@ func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
 		}
 	}
 
-	_, err = e.db.Create(db_email.CreateRequest{})
 	if err != nil {
 		return SendResponse{
 			Message: err.Error(),
