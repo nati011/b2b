@@ -4,15 +4,15 @@ import "errors"
 
 var (
 	ErrSysUnknown = errors.New("unknown error")
+	ErrFailed     = errors.New("failed to send")
 )
 
 type Request struct {
-	From    string
 	To      string
 	Subject string
 	Text    string
 }
 
-type EmailProvider interface {
+type Provider interface {
 	Send(Request) error
 }
