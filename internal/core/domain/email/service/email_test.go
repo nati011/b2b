@@ -40,7 +40,6 @@ func Test_SendEmail_happyPath(t *testing.T) {
 }
 
 func Test_SendEmail_unhappyPath(t *testing.T) {
-
 	t.Run("invalidRecepientEmail", func(t *testing.T) {
 		in := SendRequest{
 			To:      INVALID_EMAIL_ADDR,
@@ -60,12 +59,6 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 			t.Errorf("Expected: %q Got: %q", want, got)
 		}
 	})
-}
-
-func Test_Get_happyPath(t *testing.T) {
-}
-
-func Test_Get_unhappyPath(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
