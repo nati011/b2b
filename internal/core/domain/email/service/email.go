@@ -2,25 +2,38 @@ package email
 
 import (
 	"errors"
-	"regexp"
 
-	provider "b2b.nati011.github.com/internal/core/domain/email/provider"
+	smtp "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
+	render "b2b.nati011.github.com/internal/core/domain/email/service/render"
+
+	db_email "b2b.nati011.github.com/internal/core/domain/email/provider/db/email"
 )
 
-type Request struct {
+type SendRequest struct {
+	To         string
+	Subject    string
+	Args       map[string]string
+	ExternalId string
+}
+
+type SendResponse struct {
+	Message string
+}
+
+type GetResponse struct {
+	Id         string
+	ExternalId string
+	Email      Email
+}
+
+type Email struct {
 	From    string
 	To      string
 	Subject string
 	Text    string
 }
 
-type Response struct {
-	Message string
-}
-
-// exportable errors
 var (
-	ErrSenderAddressNotValid   = errors.New("oopsy, sender email is not valid")
 	ErrReceiverAddressNotValid = errors.New("oopsy, receiver email is not valid")
 	ErrContentEmpty            = errors.New("oopsy, email content is empty")
 )
@@ -30,67 +43,70 @@ const (
 )
 
 type Emailer interface {
-	Send(Request) (Response, error)
+	Send(*SendRequest) (SendResponse, error)
+	Get(string) (GetResponse, error)
 }
 
 type EmailService struct {
-	provider provider.EmailProvider
+	smtp     smtp.Provider
+	renderer render.Renderer
+
+	db db_email.Provider
 }
 
-func NewEmailService(ep provider.EmailProvider) *EmailService {
-	return &EmailService{provider: ep}
+func NewEmailService(ep smtp.Provider, r render.Renderer, db db_email.Provider) *EmailService {
+	return &EmailService{
+		smtp:     ep,
+		renderer: r,
+		db:       db,
+	}
 }
 
-func (e *EmailService) Send(r *Request) (Response, error) {
-	err := validateEmail(r)
-	if err != nil {
-		return Response{
-			Message: err.Error(),
-		}, err
+func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
+	isEmailValid := validateEmailAddr(r.To)
+	if !isEmailValid {
+		return SendResponse{
+			Message: ErrReceiverAddressNotValid.Error(),
+		}, ErrReceiverAddressNotValid
 	}
 
-	err = e.provider.Send(
-		provider.Request{
-			From:    r.From,
+	renderResponse, err := e.renderer.Create(&render.Request{})
+	if err != nil {
+		return SendResponse{
+			err.Error(),
+		}, err
+	}
+	isTextValid := validateMailContent(renderResponse.Text)
+	if !isTextValid {
+		return SendResponse{}, ErrContentEmpty
+	}
+
+	err = e.smtp.Send(
+		smtp.Request{
 			To:      r.To,
 			Subject: r.Subject,
-			Text:    r.Text,
+			Text:    renderResponse.Text,
 		},
 	)
 	if err != nil {
-		return Response{
+		switch err {
+		case smtp.ErrSysUnknown:
+			return SendResponse{}, err
+		}
+	}
+
+	_, err = e.db.Create(db_email.CreateRequest{})
+	if err != nil {
+		return SendResponse{
 			Message: err.Error(),
 		}, err
 	}
 
-	return Response{
+	return SendResponse{
 		Message: SUCCESS_MESSAGE,
 	}, nil
 }
 
-func validateEmail(r *Request) error {
-	isSenderAddrValid := validateEmailAddr(r.From)
-	if !isSenderAddrValid {
-		return ErrSenderAddressNotValid
-	}
-
-	isReceiverAddrValid := validateEmailAddr(r.To)
-	if !isReceiverAddrValid {
-		return ErrReceiverAddressNotValid
-	}
-
-	isTextNotEmpty := validateMailContent(r.Text)
-	if !isTextNotEmpty {
-		return ErrContentEmpty
-	}
-	return nil
-}
-
-func validateEmailAddr(email string) bool {
-	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return emailRegex.MatchString(email)
-}
-
-func validateMailContent(text string) bool {
-	return text != ""
+func (e EmailService) Get(s string) (GetResponse, error) {
+	return GetResponse{}, nil
 }

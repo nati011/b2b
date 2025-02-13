@@ -7,12 +7,11 @@ import (
 	"net/http"
 )
 
-type MailpitProvider struct {
+type Mailpit struct {
 	instanceURL string
 }
 
 type EmailRequest struct {
-	From    From   `json:"From"`
 	Subject string `json:"Subject"`
 	Text    string `json:"Text"`
 	To      []To   `json:"To"`
@@ -28,13 +27,9 @@ type To struct {
 	Name  string `json:"Name"`
 }
 
-func (m *MailpitProvider) Send(r Request) error {
+func (m *Mailpit) Send(r Request) error {
 
 	requestBody := EmailRequest{
-		From: From{
-			Email: r.From,
-			Name:  "",
-		},
 		Subject: r.Subject,
 		Text:    r.Text,
 		To: []To{
