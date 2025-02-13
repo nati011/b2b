@@ -3,6 +3,11 @@ package email
 import (
 	"os"
 	"testing"
+
+	smtp "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
+	render "b2b.nati011.github.com/internal/core/domain/email/service/render"
+
+	db "b2b.nati011.github.com/internal/core/domain/email/provider/db/email"
 )
 
 const (
@@ -13,18 +18,49 @@ const (
 	INVALID_TEXT          = ""
 )
 
-var service *EmailService
+var service Emailer
 
 func Test_SendEmail_happyPath(t *testing.T) {
+	in := SendRequest{
+		To:      VALID_EMAIL_RECEPIENT,
+		Subject: VALID_SUBJECT,
+		Args: map[string]string{
+			"test": "test",
+		},
+	}
+	want := SendResponse{
+		Message: SUCCESS_MESSAGE,
+	}
+
+	got, err := service.Send(&in)
+	if err != nil {
+		t.Errorf("Failed to send email err: %q", err)
+	}
+	if got != want {
+		t.Errorf("Expecetd: %q Got: %q", want, got)
+	}
 }
 
 func Test_SendEmail_unhappyPath(t *testing.T) {
 
 	t.Run("invalidRecepientEmail", func(t *testing.T) {
-
-	})
-
-	t.Run("emptyContent", func(t *testing.T) {
+		in := SendRequest{
+			To:      INVALID_EMAIL_ADDR,
+			Subject: VALID_SUBJECT,
+			Args: map[string]string{
+				"test": "test",
+			},
+		}
+		want := SendResponse{
+			Message: ErrReceiverAddressNotValid.Error(),
+		}
+		got, err := service.Send(&in)
+		if err != ErrReceiverAddressNotValid {
+			t.Errorf("Failed to send email %q", err)
+		}
+		if got != want {
+			t.Errorf("Expected: %q Got: %q", want, got)
+		}
 	})
 }
 
@@ -35,5 +71,5 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	// service = NewEmailService(smtp.NewMock(), db.NewMock(), er.mock)
+	service = NewEmailService(smtp.NewMock(), render.NewMock(), db.NewMock())
 }

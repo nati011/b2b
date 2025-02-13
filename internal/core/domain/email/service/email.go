@@ -5,19 +5,18 @@ import (
 
 	smtp "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
 	render "b2b.nati011.github.com/internal/core/domain/email/service/render"
-	template "b2b.nati011.github.com/internal/core/domain/email/service/template"
 
 	db_email "b2b.nati011.github.com/internal/core/domain/email/provider/db/email"
 )
 
 type SendRequest struct {
 	To         string
+	Subject    string
 	Args       map[string]string
 	ExternalId string
 }
 
 type SendResponse struct {
-	Id      string
 	Message string
 }
 
@@ -44,23 +43,22 @@ const (
 )
 
 type Emailer interface {
-	Send(SendRequest) (SendResponse, error)
+	Send(*SendRequest) (SendResponse, error)
 	Get(string) (GetResponse, error)
 }
 
 type EmailService struct {
 	smtp     smtp.Provider
 	renderer render.Renderer
-	template template.Templer
 
 	db db_email.Provider
 }
 
-func NewEmailService(ep smtp.Provider, t template.Templer, r render.Renderer) *EmailService {
+func NewEmailService(ep smtp.Provider, r render.Renderer, db db_email.Provider) *EmailService {
 	return &EmailService{
 		smtp:     ep,
 		renderer: r,
-		template: t,
+		db:       db,
 	}
 }
 
@@ -75,7 +73,6 @@ func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
 	renderResponse, err := e.renderer.Create(&render.Request{})
 	if err != nil {
 		return SendResponse{
-			"",
 			err.Error(),
 		}, err
 	}
@@ -87,7 +84,7 @@ func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
 	err = e.smtp.Send(
 		smtp.Request{
 			To:      r.To,
-			Subject: renderResponse.Subject,
+			Subject: r.Subject,
 			Text:    renderResponse.Text,
 		},
 	)
@@ -98,7 +95,7 @@ func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
 		}
 	}
 
-	createResp, err := e.db.Create(db_email.CreateRequest{})
+	_, err = e.db.Create(db_email.CreateRequest{})
 	if err != nil {
 		return SendResponse{
 			Message: err.Error(),
@@ -106,7 +103,6 @@ func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
 	}
 
 	return SendResponse{
-		Id:      createResp.Id,
 		Message: SUCCESS_MESSAGE,
 	}, nil
 }
