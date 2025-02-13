@@ -18,6 +18,6 @@ type GetAllResponse struct {
 
 type Provider interface {
 	Create(CreateRequest) (CreateResponse, error)
-	Get(string) GetResponse
-	GetAll() GetAllResponse
+	Get(string) (GetResponse, error)
+	GetAll() (GetAllResponse, error)
 }
