@@ -22,7 +22,10 @@ func (m *MockDB) Create(r *CreateRequest) (CreateResponse, error) {
 func (m *MockDB) Get(r string) (GetResponse, error) {
 	for _, i := range m.templates {
 		if i.name == r {
-			return GetResponse{}, nil
+			return GetResponse{
+				Name:         i.name,
+				HtmlTemplate: i.html,
+			}, nil
 		}
 	}
 	return GetResponse{}, nil
