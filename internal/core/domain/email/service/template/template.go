@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	ErrSysInvalidTemplate = errors.New("template empty")
-	ErrSysInvalidName     = errors.New("empty name")
+	ErrSysInvalidTemplate = errors.New("invalid template")
+	ErrSysInvalidName     = errors.New("invalid name")
 	ErrSysUnknown         = errors.New("unknown")
 	ErrSysDuplicateName   = errors.New("duplicate name")
 )
@@ -33,11 +33,7 @@ type GetResponse struct {
 }
 
 type GetAllResponse struct {
-	list []base
-}
-type base struct {
-	Name         string
-	HtmlTemplate string
+	List []GetResponse
 }
 
 type Templer interface {
@@ -59,17 +55,27 @@ func NewTemplateService(db_provider db.Provider) Templer {
 func (t *TemplateService) Create(req CreateRequest) (CreateResponse, error) {
 	isValid_Name := ValidateName(req.Name)
 	if !isValid_Name {
-		return CreateResponse{}, ErrSysInvalidName
+		return CreateResponse{
+			Message: ErrSysInvalidName.Error(),
+		}, ErrSysInvalidName
 	}
 	isValid_HTML := ValidateHTML(req.HtmlTemplate)
 	if !isValid_HTML {
-		return CreateResponse{}, ErrSysInvalidTemplate
+		return CreateResponse{
+			Message: ErrSysInvalidTemplate.Error(),
+		}, ErrSysInvalidTemplate
 	}
-	resp, err := t.db.Create(&db.CreateRequest{})
+	resp, err := t.db.Create(&db.CreateRequest{
+		Name:         req.Name,
+		HtmlTemplate: req.HtmlTemplate,
+	})
 	if err != nil {
 		switch err {
 		case db.ErrSysDuplicateName_L1:
-			return CreateResponse{}, ErrSysDuplicateName
+			return CreateResponse{
+				Name:    req.Name,
+				Message: ErrSysDuplicateName.Error(),
+			}, ErrSysDuplicateName
 		}
 	}
 	return CreateResponse{
@@ -83,7 +89,7 @@ func (t TemplateService) Get(r string) (GetResponse, error) {
 	if err != nil {
 		switch err {
 		case db.ErrSysUnknown_L1:
-			return GetResponse{}, nil
+			return GetResponse{}, ErrSysUnknown
 		}
 	}
 	return GetResponse{
@@ -100,8 +106,15 @@ func (t TemplateService) GetAll() (GetAllResponse, error) {
 			return GetAllResponse{}, db.ErrSysUnknown_L1
 		}
 	}
-	result := []base{}
-	for _, i := range rslt.List
+	result := []GetResponse{}
+	for _, i := range rslt.List {
+		result = append(result, GetResponse{
+			Name:         i.Name,
+			HtmlTemplate: i.HtmlTemplate,
+		})
+	}
 
-	return GetAllResponse{}, nil
+	return GetAllResponse{
+		List: result,
+	}, nil
 }
