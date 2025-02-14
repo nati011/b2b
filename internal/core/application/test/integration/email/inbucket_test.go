@@ -49,10 +49,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-const (
-	PORT = "4001"
-)
-
 func setup() {
 	var err error
 	ctx := context.Background()
