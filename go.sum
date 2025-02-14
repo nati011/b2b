@@ -47,6 +47,10 @@ github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeN
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/inbucket/inbucket v2.0.0+incompatible h1:o/8x3EVhub5Z4VMhX6u6Puaskv3GcD6oDfHlfK1Ea0M=
+github.com/inbucket/inbucket v2.0.0+incompatible/go.mod h1:61hO8wV7F8cd8mCAceG40EvJ1HAfBugqLDIHf5wtzHA=
+github.com/jhillyerd/inbucket v2.0.0+incompatible h1:gTmxV077ktqV4ZbFjB/0rjiTrdsKQGXWUqYKWjoNIrE=
+github.com/jhillyerd/inbucket v2.0.0+incompatible/go.mod h1:yVEPtM/7T2OWUGzu6wKm1xIrcVPzhI9IW2MzvqIWaYY=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.17.4 h1:Ej5ixsIri7BrIjBkRZLTo6ghwrEtHFk7ijlczPW4fZ4=
@@ -102,6 +106,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/testcontainers/testcontainers-go v0.35.0 h1:uADsZpTKFAtp8SLK+hMwSaa+X+JiERHtd4sQAFmXeMo=
 github.com/testcontainers/testcontainers-go v0.35.0/go.mod h1:oEVBj5zrfJTrgjwONs1SsRbnBtH9OKl+IGl3UMcr2B4=
+github.com/testcontainers/testcontainers-go/modules/inbucket v0.35.0 h1:TFBny7ymtv+MxFZvqXvR5dm1Im4hgb8YYVvUh/AFWcY=
+github.com/testcontainers/testcontainers-go/modules/inbucket v0.35.0/go.mod h1:EcxTEACX41/CXKgNNAt2wR2CByW5zGNkKpWNYw4/fE4=
 github.com/tklauser/go-sysconf v0.3.12 h1:0QaGUFOdQaIVdPgfITYzaTegZvdCjmYO52cSFAEVmqU=
 github.com/tklauser/go-sysconf v0.3.12/go.mod h1:Ho14jnntGE1fpdOqQEEaiKRpvIavV0hSfmBq8nJbHYI=
 github.com/tklauser/numcpus v0.6.1 h1:ng9scYS7az0Bk4OZLvrNXNSAO2Pxr1XXRAPyjhIx+Fk=
