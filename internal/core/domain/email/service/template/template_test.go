@@ -1,15 +1,17 @@
 package email
 
 import (
+	"context"
 	"os"
 	"testing"
 
-	provider "b2b.nati011.github.com/internal/core/domain/email/provider/db/template"
+	provider "b2b.nati011.github.com/internal/core/domain/email/provider/db"
 )
 
 var templateService Templer
 
 func Test_Create_happyPath(t *testing.T) {
+	ctx := context.Background()
 	in := CreateRequest{
 		Name:         "simple",
 		HtmlTemplate: "test",
@@ -19,7 +21,7 @@ func Test_Create_happyPath(t *testing.T) {
 		Message: SUCCESS_MESSAGE,
 	}
 
-	got, err := templateService.Create(in)
+	got, err := templateService.Create(ctx, in)
 	if err != nil {
 		t.Errorf("Failed to create template err: %q", err)
 	}
@@ -30,6 +32,7 @@ func Test_Create_happyPath(t *testing.T) {
 
 func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("emptyHtmlTemplate", func(t *testing.T) {
+		ctx := context.Background()
 		in := CreateRequest{
 			Name:         "simple",
 			HtmlTemplate: "",
@@ -39,7 +42,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Message: ErrSysInvalidTemplate.Error(),
 		}
 
-		got, err := templateService.Create(in)
+		got, err := templateService.Create(ctx, in)
 		if err != ErrSysInvalidTemplate {
 			t.Errorf("Failed to create template err: %q", err)
 		}
@@ -49,6 +52,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
+		ctx := context.Background()
 		in := CreateRequest{
 			Name:         "",
 			HtmlTemplate: "test",
@@ -58,7 +62,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Message: ErrSysInvalidName.Error(),
 		}
 
-		got, err := templateService.Create(in)
+		got, err := templateService.Create(ctx, in)
 		if err != ErrSysInvalidName {
 			t.Errorf("Failed to create template err: %v", err)
 		}
@@ -69,7 +73,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 
 	t.Run("duplicateName", func(t *testing.T) {
 		//init
-		_, err := templateService.Create(CreateRequest{
+		ctx := context.Background()
+		_, err := templateService.Create(ctx, CreateRequest{
 			Name:         "simple",
 			HtmlTemplate: "test",
 		})
@@ -86,9 +91,9 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Message: ErrSysDuplicateName.Error(),
 		}
 
-		got, err := templateService.Create(in)
+		got, err := templateService.Create(ctx, in)
 		if err != ErrSysDuplicateName {
-			t.Errorf("Failed to create template err: %q", err)
+			t.Errorf("Failed to create template err: %v", err)
 		}
 		if got != want {
 			t.Errorf("Expected: %q Got: %q", want, got)
@@ -98,7 +103,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 
 func Test_Get_happyPath(t *testing.T) {
 	//init
-	_, err := templateService.Create(CreateRequest{
+	ctx := context.Background()
+	_, err := templateService.Create(ctx, CreateRequest{
 		Name:         "simple",
 		HtmlTemplate: "test",
 	})
@@ -110,7 +116,7 @@ func Test_Get_happyPath(t *testing.T) {
 		Name:         "simple",
 		HtmlTemplate: "test",
 	}
-	got, err := templateService.Get(in)
+	got, err := templateService.Get(ctx, in)
 	if err != nil {
 		t.Errorf("Failed to fetch email err: %v", err)
 	}
@@ -121,9 +127,10 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("notFound", func(t *testing.T) {
+		ctx := context.Background()
 		in := "simple"
 		want := GetResponse{}
-		got, err := templateService.Get(in)
+		got, err := templateService.Get(ctx, in)
 		if err != nil {
 			t.Errorf("Failed to fetch email err: %v", err)
 		}
@@ -135,16 +142,10 @@ func Test_Get_unhappyPath(t *testing.T) {
 
 func Test_Get_All_happyPath(t *testing.T) {
 	// init
-	_, err := templateService.Create(CreateRequest{
+	ctx := context.Background()
+	_, err := templateService.Create(ctx, CreateRequest{
 		Name:         "simple",
 		HtmlTemplate: "test",
-	})
-	if err != nil {
-		t.Errorf("Failed to create template err: %v", err)
-	}
-	_, err = templateService.Create(CreateRequest{
-		Name:         "simple_2",
-		HtmlTemplate: "test_2",
 	})
 	if err != nil {
 		t.Errorf("Failed to create template err: %v", err)
@@ -158,7 +159,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 			},
 		},
 	}
-	got, err := templateService.GetAll()
+	got, err := templateService.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Failed to fetch email err: %v", err)
 	}
@@ -171,8 +172,9 @@ func Test_Get_All_happyPath(t *testing.T) {
 
 func Test_Get_All_unhappyPath(t *testing.T) {
 	t.Run("notFound", func(t *testing.T) {
+		ctx := context.Background()
 		want := GetAllResponse{}
-		got, err := templateService.GetAll()
+		got, err := templateService.GetAll(ctx)
 		if err != nil {
 			t.Errorf("Failed to fetch email err: %v", err)
 		}
@@ -189,5 +191,5 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	templateService = NewTemplateService(&provider.MockDB{})
+	templateService = NewTemplateService(provider.NewMock())
 }

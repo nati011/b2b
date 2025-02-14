@@ -1,10 +1,8 @@
 package email
 
 import (
-	templateProvider "b2b.nati011.github.com/internal/core/domain/email/provider/db/template"
 	smtp "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
 	render "b2b.nati011.github.com/internal/core/domain/email/service/render"
-	template "b2b.nati011.github.com/internal/core/domain/email/service/template"
 )
 
 type TestContainer struct {
@@ -14,7 +12,7 @@ type TestContainer struct {
 
 func NewTestContainer(s smtp.Provider) *TestContainer {
 	container := &TestContainer{}
-	container.renderer = initTestRenderService(template.NewTemplateService(&templateProvider.MockDB{}))
+	container.renderer = initTestRenderService()
 	container.Emailer = initTestEmailService(s, container.renderer)
 	return container
 }
@@ -26,6 +24,6 @@ func initTestEmailService(s smtp.Provider, r render.Renderer) Emailer {
 	}
 }
 
-func initTestRenderService(t template.Templer) render.Renderer {
+func initTestRenderService() render.Renderer {
 	return render.NewMock()
 }
