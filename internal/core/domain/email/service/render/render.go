@@ -28,17 +28,17 @@ type Renderer interface {
 }
 
 type RenderService struct {
-	templatService template.Templer
+	TemplateService template.Templer
 }
 
 func NewRenderService(tp template.Templer) Renderer {
 	return &RenderService{
-		templatService: tp,
+		TemplateService: tp,
 	}
 }
 
 func (s RenderService) Create(r *Request) (Response, error) {
-	queryResp, err := s.templatService.Get(r.Name)
+	queryResp, err := s.TemplateService.Get(r.Name)
 	if err != nil {
 		// switch err {
 		// case template.ErrSysUnknown:
