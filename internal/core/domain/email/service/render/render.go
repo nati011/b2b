@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	templ "html/template"
 
@@ -38,7 +39,8 @@ func NewRenderService(tp template.Templer) Renderer {
 }
 
 func (s RenderService) Create(r *Request) (Response, error) {
-	queryResp, err := s.TemplateService.Get(r.Name)
+	ctx := context.Background()
+	queryResp, err := s.TemplateService.Get(ctx, r.Name)
 	if err != nil {
 		// switch err {
 		// case template.ErrSysUnknown:
