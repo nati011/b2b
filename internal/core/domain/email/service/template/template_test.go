@@ -101,6 +101,12 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 }
 
+func Test_Update_happyPath(t *testing.T) {
+}
+
+func Test_Update_unhappyPath(t *testing.T) {
+}
+
 func Test_Get_happyPath(t *testing.T) {
 	//init
 	ctx := context.Background()

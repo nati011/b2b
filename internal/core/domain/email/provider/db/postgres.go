@@ -26,6 +26,10 @@ func (p *PostgresReaderWriter) Create(ctx context.Context, req *CreateRequest) (
 	return CreateResponse{Name: name}, nil
 }
 
+func (p *PostgresReaderWriter) Update(ctx context.Context, req *UpdateRequest) (UpdateResponse, error) {
+	return UpdateResponse{}, nil
+}
+
 func (p *PostgresReaderWriter) Get(ctx context.Context, r string) (GetResponse, error) {
 	return GetResponse{}, nil
 }

@@ -32,6 +32,14 @@ type base struct {
 	HtmlTemplate string
 }
 
+type UpdateRequest struct {
+	Name         string
+	HtmlTemplate string
+}
+
+type UpdateResponse struct {
+	Name string
+}
 type template struct {
 	name string
 	html string
@@ -44,6 +52,7 @@ type Reader interface {
 
 type Writer interface {
 	Create(context.Context, *CreateRequest) (CreateResponse, error)
+	Update(context.Context, *UpdateRequest) (UpdateResponse, error)
 }
 
 type ReaderWriter interface {
