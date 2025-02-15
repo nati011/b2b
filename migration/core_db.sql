@@ -1,3 +1,5 @@
+-- version 0.1
+
 CREATE TABLE IF NOT EXISTS public."base"
 (
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
