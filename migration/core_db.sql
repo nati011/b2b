@@ -31,13 +31,22 @@ CREATE TABLE IF NOT EXISTS public."users"
 
 COMMENT ON TABLE public."users" IS 'stores agent that interacts with the application.';
 
+CREATE TABLE IF NOT EXISTS public."r_actions"
+(
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(4),
+  description VARCHAR(255)
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."r_actions" IS 'stores resource actions';
+
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
   id SERIAL PRIMARY KEY,
   action VARCHAR(4),
   name VARCHAR(255),
-  role_id INT,
-  FOREIGN KEY (role_id) REFERENCES public."roles" (id) ON DELETE CASCADE
+  resource_action_id INT,
+  FOREIGN KEY (resource_action_id) REFERENCES public."r_action" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."resources" IS 'stores permissible resources for user agent role.';
