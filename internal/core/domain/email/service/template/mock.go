@@ -1,5 +1,7 @@
 package email
 
+import "context"
+
 type Mock struct {
 	templates []mockTemplates
 }
@@ -20,7 +22,7 @@ func NewMock() Templer {
 	}
 }
 
-func (t *Mock) Create(req CreateRequest) (CreateResponse, error) {
+func (t *Mock) Create(ctx context.Context, req CreateRequest) (CreateResponse, error) {
 	for _, i := range t.templates {
 		if i.Name == req.Name {
 			return CreateResponse{
@@ -32,7 +34,7 @@ func (t *Mock) Create(req CreateRequest) (CreateResponse, error) {
 	return CreateResponse{}, nil
 }
 
-func (t Mock) Get(r string) (GetResponse, error) {
+func (t Mock) Get(ctx context.Context, r string) (GetResponse, error) {
 	for _, i := range t.templates {
 		if i.Name == r {
 			return GetResponse{
@@ -44,7 +46,7 @@ func (t Mock) Get(r string) (GetResponse, error) {
 	return GetResponse{}, nil
 }
 
-func (t Mock) GetAll() (GetAllResponse, error) {
+func (t Mock) GetAll(ctx context.Context) (GetAllResponse, error) {
 
 	result := []GetResponse{}
 	return GetAllResponse{
