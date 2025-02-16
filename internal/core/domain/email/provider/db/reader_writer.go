@@ -1,6 +1,9 @@
 package email
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 var (
 	ErrSysDuplicateName_L1 = errors.New("duplicate name")
@@ -29,13 +32,30 @@ type base struct {
 	HtmlTemplate string
 }
 
+type UpdateRequest struct {
+	Name         string
+	HtmlTemplate string
+}
+
+type UpdateResponse struct {
+	Name string
+}
 type template struct {
 	name string
 	html string
 }
 
-type Provider interface {
-	Create(*CreateRequest) (CreateResponse, error)
-	Get(string) (GetResponse, error)
-	GetAll() (GetAllResponse, error)
+type Reader interface {
+	Get(context.Context, string) (GetResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
+}
+
+type Writer interface {
+	Create(context.Context, *CreateRequest) (CreateResponse, error)
+	Update(context.Context, *UpdateRequest) (UpdateResponse, error)
+}
+
+type ReaderWriter interface {
+	Reader
+	Writer
 }
