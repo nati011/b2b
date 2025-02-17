@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"testing"
+
+	db_mock "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
 )
 
 var service Provider
@@ -15,7 +17,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewResource()
+	service = NewResource(
+		db_mock.NewMock(),
+	)
 }
 
 func Test_create_happyPath(t *testing.T) {
