@@ -8,10 +8,13 @@ import (
 )
 
 var (
-	ErrDuplicateName = errors.New("oopsy, duplicate name")
-	ErrEmptyAction   = errors.New("oopsy, empty action")
-	ErrEmptyName     = errors.New("oopsy, empty name")
-	ErrIdNotFound    = errors.New("oopsy, id not found")
+	ErrDuplicateName      = errors.New("oopsy, duplicate name")
+	ErrEmptyAction        = errors.New("oopsy, empty action")
+	ErrEmptyName          = errors.New("oopsy, empty name")
+	ErrIdNotFound         = errors.New("oopsy, id not found")
+	ErrUnknown            = errors.New("oopsy, unknown error has occured")
+	ErrEmptyUpdateContent = errors.New("oopsy, update content empty")
+	ErrEmptyGetContent    = errors.New("oopsy, get content empty")
 )
 
 type CreateRequest struct {
@@ -58,23 +61,167 @@ func NewResource() Provider {
 }
 
 func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	return 0, nil
+	err := r.validateName(ctx, req.Name)
+	if err != nil {
+		return 0, err
+	}
+	id, err := r.db.Create(ctx, &port.CreateRequest{
+		Action: req.Action,
+		Name:   req.Name,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+	return id, nil
 }
 
 func (r *ResourceProvider) Update(ctx context.Context, req *UpdateRequest) (int, error) {
-	return 0, nil
+	err := r.validateId(ctx, req.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	//either id or action need tobe updated
+	if req.Action == "" && req.Name == "" {
+		return 0, ErrEmptyUpdateContent
+	}
+
+	//update name
+	if req.Action != "" {
+		err = r.validateAction(ctx, req.Name)
+		if err != nil {
+			return 0, err
+		}
+		_, err = r.db.UpdateAction(ctx, &port.UpdateActionRequest{
+			Id:     req.Id,
+			Action: req.Action,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	//update action
+	if req.Name != "" {
+		err = r.validateName(ctx, req.Name)
+		if err != nil {
+			return 0, err
+		}
+		_, err = r.db.UpdateName(ctx, &port.UpdateNameRequest{
+			Id:   req.Id,
+			Name: req.Name,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	return req.Id, nil
 }
 
 func (r *ResourceProvider) Delete(ctx context.Context, id int) error {
+	//validate Id
+	err := r.validateId(ctx, id)
+	if err != nil {
+		return err
+	}
+	err = r.db.Delete(ctx, id)
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
 }
 
 func (r *ResourceProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, error) {
+	//either id or name need tobe provided
+	if req.Id == 0 && req.Name == "" {
+		return GetResponse{}, ErrEmptyGetContent
+	}
+	//Get by Id
+	if req.Id != 0 && req.Name == "" {
+		resp, err := r.db.GetByID(ctx, req.Id)
+		if err != nil {
+			switch err {
+			default:
+				return GetResponse{}, ErrUnknown
+			}
+		}
+		return GetResponse{
+			Id:     resp.Id,
+			Action: resp.Action,
+			Name:   resp.Name,
+		}, nil
+	}
+	//Get by Name
+	if req.Name != "" && req.Id == 0 {
+		resp, err := r.db.GetByName(ctx, req.Name)
+		if err != nil {
+			switch err {
+			default:
+				return GetResponse{}, ErrUnknown
+			}
+		}
+		return GetResponse{
+			Id:     resp.Id,
+			Action: resp.Action,
+			Name:   resp.Name,
+		}, nil
+	}
+	//Get by Name and Id
+	if req.Name != "" && req.Id != 0 {
+		resultByName, err := r.db.GetByName(ctx, req.Name)
+		if err != nil {
+			switch err {
+			default:
+				return GetResponse{}, ErrUnknown
+			}
+		}
+
+		resultById, err := r.db.GetByID(ctx, req.Id)
+		if err != nil {
+			switch err {
+			default:
+				return GetResponse{}, ErrUnknown
+			}
+		}
+		if resultByName.Id == resultById.Id {
+			return GetResponse{
+				Id:     resultById.Id,
+				Action: resultById.Action,
+				Name:   resultById.Name,
+			}, nil
+		}
+	}
 	return GetResponse{}, nil
 }
 
 func (r *ResourceProvider) GetAll(ctx context.Context) (GetAllResponse, error) {
-	return GetAllResponse{
-		List: []GetResponse{},
-	}, nil
+	allResources, err := r.db.GetAll(ctx)
+	if err != nil {
+		switch err {
+		default:
+			return GetAllResponse{}, nil
+		}
+	}
+	var response GetAllResponse
+	for _, i := range allResources.List {
+		response.List = append(response.List, GetResponse{
+			Id:     i.Id,
+			Action: i.Action,
+			Name:   i.Name,
+		})
+	}
+	return response, nil
 }
