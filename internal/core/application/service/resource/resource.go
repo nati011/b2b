@@ -56,8 +56,10 @@ type ResourceProvider struct {
 	db port.DB
 }
 
-func NewResource() Provider {
-	return &ResourceProvider{}
+func NewResource(DB port.DB) Provider {
+	return &ResourceProvider{
+		db: DB,
+	}
 }
 
 func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int, error) {
