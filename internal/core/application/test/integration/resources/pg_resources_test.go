@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 
 var service resource.Provider
 var pgContainer *postgres.PostgresContainer
+var db *sql.DB
 
 func TestMain(m *testing.M) {
 	setup()
@@ -40,7 +42,7 @@ func setup() {
 		panic(err)
 	}
 
-	db, err := sql.Open("pgx", connectionString)
+	db, err = sql.Open("pgx", connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,6 +74,47 @@ func setup() {
 		log.Fatalf("Error running migration: %v", err)
 	}
 
+}
+
+func teardown() {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatalf("could not begin transaction: %v", err)
+	}
+
+	// Get all table names
+	var tables []string
+	rows, err := tx.Query("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
+	if err != nil {
+		tx.Rollback()
+		log.Fatalf("could not fetch table names: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			tx.Rollback()
+			log.Fatalf("could not scan table name: %v", err)
+		}
+		tables = append(tables, table)
+	}
+
+	// Prepare the TRUNCATE statement
+	if len(tables) > 0 {
+		truncateQuery := "TRUNCATE TABLE " + strings.Join(tables, ", ") + " RESTART IDENTITY CASCADE;"
+		_, err = tx.Exec(truncateQuery)
+		if err != nil {
+			tx.Rollback()
+			log.Fatalf("could not truncate tables: %v", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("could not commit transaction: %v", err)
+	}
 }
 
 func runMigration(db *sql.DB, filename string) error {
@@ -110,6 +153,7 @@ func Test_Timeout(t *testing.T) {
 }
 
 func Test_create_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := resource.CreateRequest{
 		Action: "test",
@@ -127,6 +171,7 @@ func Test_create_happyPath(t *testing.T) {
 
 func Test_create_unhappyPath(t *testing.T) {
 	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
 		in := resource.CreateRequest{
@@ -155,6 +200,7 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyAction", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := resource.CreateRequest{
 			Action: "",
@@ -177,6 +223,7 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := resource.CreateRequest{
 			Action: "test",
@@ -200,6 +247,7 @@ func Test_create_unhappyPath(t *testing.T) {
 }
 
 func Test_delete_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
 	in := resource.CreateRequest{
@@ -226,6 +274,7 @@ func Test_delete_happyPath(t *testing.T) {
 
 func Test_delete_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		err := service.Delete(ctx, 1010)
 		wantErr := resource.ErrIdNotFound
@@ -241,6 +290,7 @@ func Test_delete_unhappyPath(t *testing.T) {
 }
 
 func Test_update_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
 	id, _ := service.Create(ctx, &resource.CreateRequest{
@@ -265,6 +315,7 @@ func Test_update_happyPath(t *testing.T) {
 
 func Test_update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := resource.UpdateRequest{
 			Id:     1,
@@ -287,6 +338,7 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 
@@ -324,6 +376,7 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &resource.CreateRequest{
@@ -349,6 +402,7 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyAction", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &resource.CreateRequest{
@@ -379,6 +433,7 @@ func Test_update_unhappyPath(t *testing.T) {
 
 func Test_getResource_happyPath(t *testing.T) {
 	t.Run("getById", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &resource.CreateRequest{
@@ -400,6 +455,7 @@ func Test_getResource_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &resource.CreateRequest{
@@ -425,6 +481,7 @@ func Test_getResource_unhappyPath(t *testing.T) {
 }
 
 func Test_getAllResources_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
 	id, _ := service.Create(ctx, &resource.CreateRequest{
