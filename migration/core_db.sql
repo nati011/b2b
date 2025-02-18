@@ -34,7 +34,7 @@ COMMENT ON TABLE public."users" IS 'stores agent that interacts with the applica
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
   id SERIAL PRIMARY KEY,
-  action VARCHAR(4),
+  action VARCHAR(255),
   name VARCHAR(255),
   role_id INT,
   FOREIGN KEY (role_id) REFERENCES public."roles" (id) ON DELETE CASCADE
