@@ -67,6 +67,10 @@ func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int,
 	if err != nil {
 		return 0, err
 	}
+	err = r.validateAction(ctx, req.Action)
+	if err != nil {
+		return 0, err
+	}
 	id, err := r.db.Create(ctx, &port.CreateRequest{
 		Action: req.Action,
 		Name:   req.Name,
