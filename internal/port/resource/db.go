@@ -1,6 +1,13 @@
 package adapter
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+var (
+	ErrSysUnknown = errors.New("oopsy, duplicate name")
+)
 
 type CreateRequest struct {
 	Action string

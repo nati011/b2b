@@ -20,12 +20,19 @@ func NewPostgres(DB *sql.DB) port.DB {
 
 func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
-	query := "SELECT * FROM public.get_resources_by_id($1);"
 
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response)
+	// Adjust the query to select the appropriate fields
+	query := "SELECT id, name, action FROM public.get_resources_by_id($1);"
+
+	// Use Scan to match the number of returned columns
+	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Action)
 	if err != nil {
-		log.Printf("unable to execute search query: %q", err)
-		return port.GetResponse{}, err
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, nil
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
 	}
 
 	return response, nil
@@ -35,10 +42,14 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_resources_by_name($1);"
 
-	err := p.Pool.QueryRowContext(ctx, query, name).Scan(&response)
+	err := p.Pool.QueryRowContext(ctx, query, name).Scan(&response.Id, &response.Name, &response.Action)
 	if err != nil {
-		log.Printf("unable to execute search query: %q", err)
-		return port.GetResponse{}, err
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, nil
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
 	}
 
 	return response, nil
@@ -50,14 +61,19 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	query := "SELECT * FROM public.get_all_resources();"
 	rows, err := p.Pool.QueryContext(ctx, query)
 	if err != nil {
-		log.Printf("unable to execute search query: %q", err)
-		return port.GetAllResponse{}, err
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetAllResponse{}, nil
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var resource port.GetResponse
-		if err := rows.Scan(&resource); err != nil {
+		if err := rows.Scan(&resource.Id, &resource.Action, &resource.Name); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -66,7 +82,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, err
+		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
 
 	return response, nil
@@ -78,8 +94,12 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 	err := p.Pool.QueryRowContext(ctx, query, req.Name, req.Action).Scan(&resourceId)
 	if err != nil {
-		log.Printf("unable to execute create query: %q", err)
-		return 0, err
+		switch err {
+		case sql.ErrNoRows:
+			return 0, nil
+		default:
+			return 0, port.ErrSysUnknown
+		}
 	}
 
 	return resourceId, nil
@@ -91,8 +111,12 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 
 	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Action).Scan(&resourceId)
 	if err != nil {
-		log.Printf("unable to execute update query: %q", err)
-		return 0, err
+		switch err {
+		case sql.ErrNoRows:
+			return resourceId, nil
+		default:
+			return 0, port.ErrSysUnknown
+		}
 	}
 
 	return resourceId, nil
@@ -104,8 +128,12 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 
 	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Name).Scan(&resourceId)
 	if err != nil {
-		log.Printf("unable to execute update query: %q", err)
-		return 0, err
+		switch err {
+		case sql.ErrNoRows:
+			return 0, nil
+		default:
+			return 0, port.ErrSysUnknown
+		}
 	}
 
 	return resourceId, nil
@@ -116,8 +144,12 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 
 	err := p.Pool.QueryRowContext(ctx, query, id).Err()
 	if err != nil {
-		log.Printf("unable to execute update query: %q", err)
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return nil
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 	return nil
 }
