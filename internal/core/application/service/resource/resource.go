@@ -95,9 +95,9 @@ func (r *ResourceProvider) Update(ctx context.Context, req *UpdateRequest) (int,
 		return 0, ErrEmptyUpdateContent
 	}
 
-	//update name
+	//update action
 	if req.Action != "" {
-		err = r.validateAction(ctx, req.Name)
+		err = r.validateAction(ctx, req.Action)
 		if err != nil {
 			return 0, err
 		}
@@ -113,7 +113,7 @@ func (r *ResourceProvider) Update(ctx context.Context, req *UpdateRequest) (int,
 		}
 	}
 
-	//update action
+	//update name
 	if req.Name != "" {
 		err = r.validateName(ctx, req.Name)
 		if err != nil {
