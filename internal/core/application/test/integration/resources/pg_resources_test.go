@@ -3,14 +3,18 @@ package integration
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
 	resource "b2b.nati011.github.com/internal/core/application/service/resource"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 var service resource.Provider
@@ -56,7 +60,34 @@ func setup() {
 		panic(err)
 	}
 
-	// db.
+	// ddl
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
+	if err != nil {
+		log.Fatalf("Error running migration: %v", err)
+	}
+
+	// functions
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
+	if err != nil {
+		log.Fatalf("Error running migration: %v", err)
+	}
+
+}
+
+func runMigration(db *sql.DB, filename string) error {
+	// Read the SQL file
+	sqlBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("could not read file: %w", err)
+	}
+
+	// Execute the SQL
+	_, err = db.Exec(string(sqlBytes))
+	if err != nil {
+		return fmt.Errorf("could not execute SQL: %w", err)
+	}
+
+	return nil
 }
 
 func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
@@ -65,6 +96,12 @@ func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 		postgres.WithDatabase("test"),
 		postgres.WithUsername("user"),
 		postgres.WithPassword("password"),
+
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(30*time.Second),
+		),
 	)
 }
 
@@ -192,9 +229,9 @@ func Test_delete_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		err := service.Delete(ctx, 1010)
 		wantErr := resource.ErrIdNotFound
-		if err != nil {
+		if err != wantErr {
 			switch err {
-			case resource.ErrIdNotFound:
+			case nil:
 				t.Errorf("Expected err: %q Got err: %q", wantErr, err)
 			default:
 				t.Error("Failed to delete resource")
@@ -214,8 +251,8 @@ func Test_update_happyPath(t *testing.T) {
 	//update
 	in := resource.UpdateRequest{
 		Id:     id,
-		Action: "",
-		Name:   "",
+		Action: "test1",
+		Name:   "test1",
 	}
 	resp, err := service.Update(ctx, &in)
 	if err != nil {
@@ -236,9 +273,9 @@ func Test_update_unhappyPath(t *testing.T) {
 		}
 		wantErr := resource.ErrIdNotFound
 		resp, err := service.Update(ctx, &in)
-		if err != nil {
+		if err != wantErr {
 			switch err {
-			case wantErr:
+			case nil:
 				t.Errorf("Expected %v Got %v", wantErr, err)
 			default:
 				t.Errorf("Failed to update err %v", err)
@@ -260,28 +297,28 @@ func Test_update_unhappyPath(t *testing.T) {
 		})
 
 		// create resource
-		id, _ := service.Create(ctx, &resource.CreateRequest{
+		id, err := service.Create(ctx, &resource.CreateRequest{
 			Action: "test",
-			Name:   "test",
+			Name:   "name1212",
 		})
+		if err != nil {
+			t.Errorf("Failed to update err %v", err)
+		}
 		// update
 		in := resource.UpdateRequest{
 			Id:     id,
 			Action: "test",
-			Name:   "takenName",
+			Name:   "taken",
 		}
 		wantErr := resource.ErrDuplicateName
-		resp, err := service.Update(ctx, &in)
-		if err != nil {
+		_, err = service.Update(ctx, &in)
+		if err != wantErr {
 			switch err {
-			case wantErr:
+			case nil:
 				t.Errorf("Expected %v Got %v", wantErr, err)
 			default:
 				t.Errorf("Failed to update err %v", err)
 			}
-		}
-		if id != resp {
-			t.Errorf("Failed to update resource")
 		}
 
 	})
@@ -299,8 +336,8 @@ func Test_update_unhappyPath(t *testing.T) {
 			Action: "tets",
 			Name:   "",
 		}
-		wantErr := resource.ErrDuplicateName
-		resp, err := service.Update(ctx, &in)
+		wantErr := resource.ErrEmptyName
+		_, err := service.Update(ctx, &in)
 		if err != nil {
 			switch err {
 			case wantErr:
@@ -308,9 +345,6 @@ func Test_update_unhappyPath(t *testing.T) {
 			default:
 				t.Errorf("Failed to update err %v", err)
 			}
-		}
-		if id != resp {
-			t.Errorf("Failed to update resource")
 		}
 	})
 
