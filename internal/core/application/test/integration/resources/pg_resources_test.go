@@ -2,14 +2,19 @@ package integration
 
 import (
 	"context"
+	"database/sql"
+	"log"
 	"os"
 	"testing"
 
-	db_mock "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
 	resource "b2b.nati011.github.com/internal/core/application/service/resource"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 var service resource.Provider
+var pgContainer *postgres.PostgresContainer
 
 func TestMain(m *testing.M) {
 	setup()
@@ -18,9 +23,53 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	var err error
+	ctx := context.Background()
+
+	pgContainer, err = RunContainer(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	connectionString, err := pgContainer.ConnectionString(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	db, err := sql.Open("pgx", connectionString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		log.Fatal(err)
+	}
+
 	service = resource.NewResource(
-		db_mock.NewPostgres(),
+		db_adapter.NewPostgres(
+			db,
+		),
 	)
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	// db.
+}
+
+func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
+	return postgres.Run(ctx,
+		"postgres:16-alpine",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("user"),
+		postgres.WithPassword("password"),
+	)
+}
+
+func Test_Timeout(t *testing.T) {
+
 }
 
 func Test_create_happyPath(t *testing.T) {
