@@ -269,13 +269,13 @@ func Test_update_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &CreateRequest{
 			Action: "test",
-			Name:   "test",
+			Name:   "test1",
 		})
 		// update
 		in := UpdateRequest{
 			Id:     id,
 			Action: "",
-			Name:   "test",
+			Name:   "test2",
 		}
 		wantErr := ErrEmptyAction
 		resp, err := service.Update(ctx, &in)
