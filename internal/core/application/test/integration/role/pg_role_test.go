@@ -1,0 +1,455 @@
+package role
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/role/db"
+	role "b2b.nati011.github.com/internal/core/application/service/role"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
+)
+
+var service role.Provider
+var pgContainer *postgres.PostgresContainer
+var db *sql.DB
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	var err error
+	ctx := context.Background()
+
+	pgContainer, err = RunContainer(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	connectionString, err := pgContainer.ConnectionString(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	db, err = sql.Open("pgx", connectionString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	service = role.NewRole(
+		db_adapter.NewPostgres(
+			db,
+		),
+	)
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	// ddl
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
+	if err != nil {
+		log.Fatalf("Error running migration: %v", err)
+	}
+
+	// functions
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
+	if err != nil {
+		log.Fatalf("Error running migration: %v", err)
+	}
+
+}
+
+func teardown() {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatalf("could not begin transaction: %v", err)
+	}
+
+	// Get all table names
+	var tables []string
+	rows, err := tx.Query("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
+	if err != nil {
+		tx.Rollback()
+		log.Fatalf("could not fetch table names: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			tx.Rollback()
+			log.Fatalf("could not scan table name: %v", err)
+		}
+		tables = append(tables, table)
+	}
+
+	// Prepare the TRUNCATE statement
+	if len(tables) > 0 {
+		truncateQuery := "TRUNCATE TABLE " + strings.Join(tables, ", ") + " RESTART IDENTITY CASCADE;"
+		_, err = tx.Exec(truncateQuery)
+		if err != nil {
+			tx.Rollback()
+			log.Fatalf("could not truncate tables: %v", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("could not commit transaction: %v", err)
+	}
+}
+
+func runMigration(db *sql.DB, filename string) error {
+	// Read the SQL file
+	sqlBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("could not read file: %w", err)
+	}
+
+	// Execute the SQL
+	_, err = db.Exec(string(sqlBytes))
+	if err != nil {
+		return fmt.Errorf("could not execute SQL: %w", err)
+	}
+
+	return nil
+}
+
+func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
+	return postgres.Run(ctx,
+		"postgres:16-alpine",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("user"),
+		postgres.WithPassword("password"),
+
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(30*time.Second),
+		),
+	)
+}
+
+func Test_Timeout(t *testing.T) {
+
+}
+
+func Test_create_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	in := role.CreateRequest{
+		Desc: "test",
+		Name: "test",
+	}
+
+	got, err := service.Create(ctx, &in)
+	if err != nil {
+		t.Errorf("Failed to create resource err: %v", err)
+	}
+	if got == 0 {
+		t.Errorf("Expected id != from %v", got)
+	}
+}
+
+func Test_create_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := role.CreateRequest{
+			Desc: "test",
+			Name: "test",
+		}
+		_, err := service.Create(ctx, &in)
+		if err != nil {
+			t.Errorf("Failed to create resource err: %v", err)
+		}
+
+		//create duplicate
+		wantErr := role.ErrDuplicateName
+		got, err := service.Create(ctx, &in)
+		if err != wantErr {
+			switch err {
+			case nil:
+				t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+			default:
+				t.Errorf("Failed to create resource err: %v", err)
+			}
+		}
+		if got != 0 {
+			t.Errorf("Expected: %v, Got: %v", 0, got)
+		}
+	})
+
+	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := role.CreateRequest{
+			Desc: "test",
+			Name: "",
+		}
+
+		wantErr := role.ErrEmptyName
+		got, err := service.Create(ctx, &in)
+		if err != wantErr {
+			switch err {
+			case nil:
+				t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+			default:
+				t.Errorf("Failed to create resource err: %v", err)
+			}
+		}
+		if got != 0 {
+			t.Errorf("Expected: %v, Got: %v", 0, got)
+		}
+	})
+}
+
+func Test_delete_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	//setup
+	ctx := context.Background()
+	in := role.CreateRequest{
+		Desc: "test",
+		Name: "test",
+	}
+	id, _ := service.Create(ctx, &in)
+
+	//delete resource
+	err := service.Delete(ctx, id)
+	if err != nil {
+		t.Errorf("Failed to delete resource err: %v", err)
+	}
+
+	//verify deletion
+	resp, _ := service.Get(ctx, &role.GetRequest{
+		Id:   id,
+		Name: "",
+	})
+	if resp.Id == id {
+		t.Error("Failed to delete resource")
+	}
+}
+
+func Test_delete_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		err := service.Delete(ctx, 1010)
+		wantErr := role.ErrIdNotFound
+		if err != wantErr {
+			switch err {
+			case nil:
+				t.Errorf("Expected err: %q Got err: %q", wantErr, err)
+			default:
+				t.Error("Failed to delete resource")
+			}
+		}
+	})
+}
+
+func Test_update_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	//setup
+	ctx := context.Background()
+	id, _ := service.Create(ctx, &role.CreateRequest{
+		Desc: "test",
+		Name: "test",
+	})
+
+	//update
+	in := role.UpdateRequest{
+		Id:   id,
+		Desc: "test1",
+		Name: "test1",
+	}
+	resp, err := service.Update(ctx, &in)
+	if err != nil {
+		t.Errorf("Failed to update err %v", err)
+	}
+	if id != resp {
+		t.Errorf("Failed to update resource")
+	}
+}
+
+func Test_update_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := role.UpdateRequest{
+			Id:   1,
+			Desc: "test",
+			Name: "test",
+		}
+		wantErr := role.ErrIdNotFound
+		resp, err := service.Update(ctx, &in)
+		if err != wantErr {
+			switch err {
+			case nil:
+				t.Errorf("Expected %v Got %v", wantErr, err)
+			default:
+				t.Errorf("Failed to update err %v", err)
+			}
+		}
+		if resp != 0 {
+			t.Errorf("Failed to update resource")
+		}
+	})
+
+	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		// setup
+		ctx := context.Background()
+
+		//create resource with taken name
+		service.Create(ctx, &role.CreateRequest{
+			Desc: "test",
+			Name: "taken",
+		})
+
+		// create resource
+		id, err := service.Create(ctx, &role.CreateRequest{
+			Desc: "test",
+			Name: "name1212",
+		})
+		if err != nil {
+			t.Errorf("Failed to update err %v", err)
+		}
+		// update
+		in := role.UpdateRequest{
+			Id:   id,
+			Desc: "test",
+			Name: "taken",
+		}
+		wantErr := role.ErrDuplicateName
+		_, err = service.Update(ctx, &in)
+		if err != wantErr {
+			switch err {
+			case nil:
+				t.Errorf("Expected %v Got %v", wantErr, err)
+			default:
+				t.Errorf("Failed to update err %v", err)
+			}
+		}
+
+	})
+
+	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		// setup
+		ctx := context.Background()
+		id, _ := service.Create(ctx, &role.CreateRequest{
+			Desc: "test",
+			Name: "test",
+		})
+		// update
+		in := role.UpdateRequest{
+			Id:   id,
+			Desc: "tets",
+			Name: "",
+		}
+		wantErr := role.ErrEmptyName
+		_, err := service.Update(ctx, &in)
+		if err != nil {
+			switch err {
+			case wantErr:
+				t.Errorf("Expected %v Got %v", wantErr, err)
+			default:
+				t.Errorf("Failed to update err %v", err)
+			}
+		}
+	})
+}
+
+func Test_getResource_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	t.Run("getById", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		id, _ := service.Create(ctx, &role.CreateRequest{
+			Desc: "test",
+			Name: "test",
+		})
+
+		// Get by Id
+		in := role.GetRequest{
+			Id: id,
+		}
+		got, err := service.Get(ctx, &in)
+		if err != nil {
+			t.Errorf("Failed to get resource by Id err %v", err)
+		}
+		if got.Id != id {
+			t.Errorf("Failed to get resource by id")
+		}
+	})
+
+	t.Run("getByName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		id, _ := service.Create(ctx, &role.CreateRequest{
+			Desc: "test",
+			Name: "test",
+		})
+
+		// Get by Id
+		in := role.GetRequest{
+			Name: "test",
+		}
+		got, err := service.Get(ctx, &in)
+		if err != nil {
+			t.Errorf("Failed to get resource by Id err %v", err)
+		}
+		if got.Id != id {
+			t.Errorf("Failed to get resource by id")
+		}
+	})
+}
+
+func Test_getResource_unhappyPath(t *testing.T) {
+}
+
+func Test_getAllResources_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	//setup
+	ctx := context.Background()
+	id, _ := service.Create(ctx, &role.CreateRequest{
+		Desc: "test",
+		Name: "test",
+	})
+
+	// Get All
+	got, err := service.GetAll(ctx)
+	if err != nil {
+		t.Errorf("Failed to get resource by Id err %v", err)
+	}
+	if len(got.List) == 0 || got.List[0].Id != id {
+		t.Errorf("Failed to get resource by id")
+	}
+}
+
+func Test_getAllResources_unhappyPath(t *testing.T) {
+}
