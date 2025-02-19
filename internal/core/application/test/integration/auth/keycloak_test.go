@@ -200,10 +200,10 @@ func teardown() {
 }
 
 const (
-	KEYCLOAK_VERSION            = "keycloak/keycloak:24.0"
-	KEYCLOAK_ADMIN_USERNAME     = "admin"
-	KEYCLOAK_ADMIN_PASSWORD     = "admin"
-	KEYCLOAK_ADMIN_IMPORTFILE   = "../testdata/realm-export.json"
+	KEYCLOAK_VERSION        = "keycloak/keycloak:24.0"
+	KEYCLOAK_ADMIN_USERNAME = "admin"
+	KEYCLOAK_ADMIN_PASSWORD = "admin"
+	// KEYCLOAK_ADMIN_IMPORTFILE   = "../testdata/realm-export.json"
 	KEYCLOAK_ADMIN_CONTEXT_PATH = "/auth"
 )
 
@@ -211,7 +211,7 @@ func RunContainer(ctx context.Context) (*keycloak.KeycloakContainer, error) {
 	return keycloak.Run(ctx,
 		KEYCLOAK_VERSION,
 		keycloak.WithContextPath(KEYCLOAK_ADMIN_CONTEXT_PATH),
-		keycloak.WithRealmImportFile(KEYCLOAK_ADMIN_IMPORTFILE),
+		// keycloak.WithRealmImportFile(KEYCLOAK_ADMIN_IMPORTFILE),
 		keycloak.WithAdminUsername(KEYCLOAK_ADMIN_USERNAME),
 		keycloak.WithAdminPassword(KEYCLOAK_ADMIN_PASSWORD),
 	)
