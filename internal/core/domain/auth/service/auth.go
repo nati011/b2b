@@ -9,10 +9,11 @@ import (
 
 // user readable errors
 var (
-	ErrUsernameTaken = errors.New("oopsy, username already taken")
-	ErrEmailTaken    = errors.New("oopsy, email already taken")
-	ErrFailedToLogin = errors.New("oopsy, email or password incorrect")
-	ErrUnknown       = errors.New("oopsy, unknown error has occured")
+	ErrUsernameTaken   = errors.New("oopsy, username already taken")
+	ErrEmailTaken      = errors.New("oopsy, email already taken")
+	ErrFailedToLogin   = errors.New("oopsy, email or password incorrect")
+	ErrFailedToRefresh = errors.New("oopsy, invalid or expired token")
+	ErrUnknown         = errors.New("oopsy, unknown error has occured")
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 type Authorizer interface {
 	CreateClient(authDTO.RegisterUserRequest) (authDTO.RegisterUserResponse, error)
 	LoginClient(authDTO.LoginUserRequest) (authDTO.LoginUserResponse, error)
+	RefreshToken(authDTO.RefreshTokenRequest) (authDTO.LoginUserRequest, error)
 }
 
 type AuthService struct {
@@ -72,5 +74,22 @@ func (a *AuthService) LoginClient(rq authDTO.LoginUserRequest) (authDTO.LoginUse
 	}, nil
 }
 func (a *AuthService) RefreshToken(rq authDTO.RefreshTokenRequest) (authDTO.LoginUserResponse, error) {
-	return authDTO.LoginUserResponse{}, nil
+	resp, err := a.authProvider.RefreshToken(rq.RefreshToken)
+	if err != nil {
+		switch err {
+		case provider.ErrSysTokenExpired:
+			return authDTO.LoginUserResponse{
+				Message: ErrFailedToRefresh.Error(),
+			}, ErrFailedToRefresh
+
+		default:
+			return authDTO.LoginUserResponse{}, ErrUnknown
+		}
+	}
+
+	return authDTO.LoginUserResponse{
+		JWT:     authDTO.JWT(resp.JWT),
+		Message: SUCCESS_MESSAGE,
+	}, nil
+
 }
