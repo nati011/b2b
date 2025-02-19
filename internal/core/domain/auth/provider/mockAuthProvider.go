@@ -9,7 +9,8 @@ type MockClient struct {
 }
 
 type MockAuthProvider struct {
-	clients []MockClient
+	clients     []MockClient
+	validTokens []string
 }
 
 func NewMockAuthProvider() AuthProvider {
@@ -20,13 +21,13 @@ func (m *MockAuthProvider) FlushMockAuthProvider() {
 	m.clients = []MockClient{}
 }
 
-func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error) {
+func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResponse, error) {
 	// check if username or password is taken
 	for _, index := range m.clients {
 		if index.username == username {
-			return CreateClientAuthResonse{}, ErrSysUsernameTaken
+			return CreateClientAuthResponse{}, ErrSysUsernameTaken
 		} else if index.email == email {
-			return CreateClientAuthResonse{}, ErrSysEmailTaken
+			return CreateClientAuthResponse{}, ErrSysEmailTaken
 		}
 	}
 	m.clients = append(m.clients, MockClient{
@@ -37,12 +38,12 @@ func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, em
 		password:  password,
 	})
 
-	return CreateClientAuthResonse{
+	return CreateClientAuthResponse{
 		Username: username,
 	}, nil
 }
 
-func (m *MockAuthProvider) ClientLogin(email, password string) (LoginAuthResonse, error) {
+func (m *MockAuthProvider) ClientLogin(email, password string) (LoginAuthResponse, error) {
 	// check if username or password is taken
 	clientExists := false
 
@@ -52,8 +53,22 @@ func (m *MockAuthProvider) ClientLogin(email, password string) (LoginAuthResonse
 		}
 	}
 	if !clientExists {
-		return LoginAuthResonse{}, ErrSysFailedToLogin
+		return LoginAuthResponse{}, ErrSysFailedToLogin
 	}
 
-	return LoginAuthResonse{}, nil
+	return LoginAuthResponse{}, nil
+}
+
+func (m *MockAuthProvider) RefreshToken(token string) (LoginAuthResponse, error) {
+	validToken := false
+	for _, index := range m.validTokens {
+		if index == token {
+			validToken = true
+		}
+	}
+	if !validToken {
+		return LoginAuthResponse{}, ErrSysTokenExpired
+	}
+
+	return LoginAuthResponse{}, nil
 }
