@@ -4,6 +4,8 @@ go 1.23.4
 
 require github.com/Nerzal/gocloak/v13 v13.9.0
 
+require github.com/jhillyerd/inbucket v2.0.0+incompatible // indirect
+
 require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
@@ -38,6 +40,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/inbucket/inbucket v2.0.0+incompatible
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -61,6 +64,7 @@ require (
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/testcontainers/testcontainers-go v0.35.0 // indirect
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0
+	github.com/testcontainers/testcontainers-go/modules/inbucket v0.35.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
