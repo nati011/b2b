@@ -1,9 +1,10 @@
 package email
 
 import (
+	"context"
 	"errors"
 
-	db "b2b.nati011.github.com/internal/core/domain/email/provider/db/template"
+	db "b2b.nati011.github.com/internal/core/domain/email/provider/db"
 )
 
 var (
@@ -37,22 +38,22 @@ type GetAllResponse struct {
 }
 
 type Templer interface {
-	Create(CreateRequest) (CreateResponse, error)
-	GetAll() (GetAllResponse, error)
-	Get(string) (GetResponse, error)
+	Create(context.Context, CreateRequest) (CreateResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
+	Get(context.Context, string) (GetResponse, error)
 }
 
 type TemplateService struct {
-	db db.Provider
+	db db.ReaderWriter
 }
 
-func NewTemplateService(db_provider db.Provider) Templer {
+func NewTemplateService(db_provider db.ReaderWriter) Templer {
 	return &TemplateService{
 		db: db_provider,
 	}
 }
 
-func (t *TemplateService) Create(req CreateRequest) (CreateResponse, error) {
+func (t *TemplateService) Create(ctx context.Context, req CreateRequest) (CreateResponse, error) {
 	isValid_Name := ValidateName(req.Name)
 	if !isValid_Name {
 		return CreateResponse{
@@ -65,7 +66,7 @@ func (t *TemplateService) Create(req CreateRequest) (CreateResponse, error) {
 			Message: ErrSysInvalidTemplate.Error(),
 		}, ErrSysInvalidTemplate
 	}
-	resp, err := t.db.Create(&db.CreateRequest{
+	resp, err := t.db.Create(ctx, &db.CreateRequest{
 		Name:         req.Name,
 		HtmlTemplate: req.HtmlTemplate,
 	})
@@ -84,8 +85,8 @@ func (t *TemplateService) Create(req CreateRequest) (CreateResponse, error) {
 	}, nil
 }
 
-func (t TemplateService) Get(r string) (GetResponse, error) {
-	rslt, err := t.db.Get(r)
+func (t TemplateService) Get(ctx context.Context, r string) (GetResponse, error) {
+	rslt, err := t.db.Get(ctx, r)
 	if err != nil {
 		switch err {
 		case db.ErrSysUnknown_L1:
@@ -98,8 +99,8 @@ func (t TemplateService) Get(r string) (GetResponse, error) {
 	}, nil
 }
 
-func (t TemplateService) GetAll() (GetAllResponse, error) {
-	rslt, err := t.db.GetAll()
+func (t TemplateService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	rslt, err := t.db.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case db.ErrSysUnknown_L1:
