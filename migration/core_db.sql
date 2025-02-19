@@ -27,8 +27,6 @@ CREATE TABLE IF NOT EXISTS public."users"
   birth_date DATE,
   is_active BOOLEAN DEFAULT false,
   external_id VARCHAR(255),
-  role_id INT,
-  FOREIGN KEY (role_id) REFERENCES public."roles" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."users" IS 'stores agent that interacts with the application.';
