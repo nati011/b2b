@@ -18,7 +18,7 @@ type LoginUserRequest struct {
 	Password string `json:"password"`
 }
 
-type LoginUserResonse struct {
+type LoginUserResponse struct {
 	JWT     JWT
 	Message string
 }
@@ -33,4 +33,8 @@ type JWT struct {
 	NotBeforePolicy  int    `json:"not-before-policy"`
 	SessionState     string `json:"session_state"`
 	Scope            string `json:"scope"`
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token"`
 }

@@ -21,7 +21,7 @@ const (
 
 type Authorizer interface {
 	CreateClient(authDTO.RegisterUserRequest) (authDTO.RegisterUserResponse, error)
-	LoginClient(authDTO.LoginUserRequest) (authDTO.LoginUserResonse, error)
+	LoginClient(authDTO.LoginUserRequest) (authDTO.LoginUserResponse, error)
 }
 
 type AuthService struct {
@@ -54,20 +54,23 @@ func (a AuthService) CreateClient(rq authDTO.RegisterUserRequest) (authDTO.Regis
 	}, nil
 }
 
-func (a *AuthService) LoginClient(rq authDTO.LoginUserRequest) (authDTO.LoginUserResonse, error) {
+func (a *AuthService) LoginClient(rq authDTO.LoginUserRequest) (authDTO.LoginUserResponse, error) {
 	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
 	if err != nil {
 		switch err {
 		case provider.ErrSysFailedToLogin:
-			return authDTO.LoginUserResonse{
+			return authDTO.LoginUserResponse{
 				Message: ErrFailedToLogin.Error(),
 			}, ErrFailedToLogin
 		default:
-			return authDTO.LoginUserResonse{}, ErrUnknown
+			return authDTO.LoginUserResponse{}, ErrUnknown
 		}
 	}
-	return authDTO.LoginUserResonse{
+	return authDTO.LoginUserResponse{
 		JWT:     authDTO.JWT(resp.JWT),
 		Message: SUCCESS_MESSAGE,
 	}, nil
+}
+func (a *AuthService) RefreshToken(rq authDTO.RefreshTokenRequest) (authDTO.LoginUserResponse, error) {
+	return authDTO.LoginUserResponse{}, nil
 }

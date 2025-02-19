@@ -13,7 +13,7 @@ const (
 	VALID_EMAIL_A    = "ruthtirusew944@gmail.com"
 	VALID_EMAIL_B    = "ruthtirusew388@gmail.com"
 	VALID_USERNAME_A = "expired_pineapple"
-	VALID_USERNAME_B = "delila"
+	VALID_USERNAME_B = "delilah"
 
 	//INVALID
 	INVALID_username = ""

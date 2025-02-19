@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	authRouter "b2b.nati011.github.com/internal/core/application/routes/auth"
+	authRouter "b2b.nati011.github.com/internal/adapter/primary/routes/auth"
 	authService "b2b.nati011.github.com/internal/core/domain/auth/service"
 )
 
