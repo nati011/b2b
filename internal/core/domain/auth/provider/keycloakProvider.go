@@ -52,7 +52,7 @@ func NewKeycloakProvider(
 	}
 }
 
-func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error) {
+func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 
@@ -78,12 +78,12 @@ func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, ema
 			case 409:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakEmailTaken):
-					return CreateClientAuthResonse{}, ErrSysEmailTaken
+					return CreateClientAuthResponse{}, ErrSysEmailTaken
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakUsernameTaken):
-					return CreateClientAuthResonse{}, ErrSysUsernameTaken
+					return CreateClientAuthResponse{}, ErrSysUsernameTaken
 				}
 			default:
-				return CreateClientAuthResonse{}, ErrSysUnknown
+				return CreateClientAuthResponse{}, ErrSysUnknown
 
 			}
 		}
@@ -97,15 +97,15 @@ func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, ema
 	}
 
 	if err != nil {
-		return CreateClientAuthResonse{}, ErrSysUnknown
+		return CreateClientAuthResponse{}, ErrSysUnknown
 	}
 
-	return CreateClientAuthResonse{
+	return CreateClientAuthResponse{
 		Username: username,
 	}, nil
 }
 
-func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse, error) {
+func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
@@ -124,10 +124,10 @@ func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse,
 			case 401:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
-					return LoginAuthResonse{}, ErrSysFailedToLogin
+					return LoginAuthResponse{}, ErrSysFailedToLogin
 				}
 			default:
-				return LoginAuthResonse{}, ErrSysFailedToLogin
+				return LoginAuthResponse{}, ErrSysFailedToLogin
 
 			}
 		}
@@ -136,16 +136,59 @@ func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse,
 	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
 	if err != nil {
 		log.Fatal("Inspection failed:" + err.Error())
-		return LoginAuthResonse{}, err
+		return LoginAuthResponse{}, err
 	}
 
 	if !*rptResult.Active {
 		err := errors.New("token is not active")
 		log.Fatal("token is not active:" + err.Error())
-		return LoginAuthResonse{}, err
+		return LoginAuthResponse{}, err
 	}
 
-	return LoginAuthResonse{
+	return LoginAuthResponse{
+		JWT: JWT{
+			token.AccessToken,
+			token.IDToken,
+			token.ExpiresIn,
+			token.RefreshExpiresIn,
+			token.RefreshToken,
+			token.TokenType,
+			token.NotBeforePolicy,
+			token.SessionState,
+			token.Scope,
+		},
+	}, err
+}
+
+func (k KeycloakProvider) RefreshToken(refreshToken string) (LoginAuthResponse, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
+	ctx := context.Background()
+	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
+	if err != nil {
+		log.Fatalf("Something wrong with the credentials or URL: %v", err)
+	}
+	clientSecret, err := client.GetClientSecret(ctx, adminToken.AccessToken, k.KeycloakApplicationRealm, k.KeycloakClientId)
+	if err != nil {
+		log.Fatal("Client secret fetching failed:" + err.Error())
+	}
+	token, err := client.RefreshToken(ctx, k.KeycloakClientId, *clientSecret.Value, k.KeycloakApplicationRealm, refreshToken)
+	if err != nil {
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.Code {
+			case 401:
+				switch {
+				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
+					return LoginAuthResponse{}, ErrSysFailedToLogin
+				}
+			default:
+				return LoginAuthResponse{}, ErrSysFailedToLogin
+
+			}
+		}
+	}
+
+	return LoginAuthResponse{
 		JWT: JWT{
 			token.AccessToken,
 			token.IDToken,
