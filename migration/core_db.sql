@@ -1,3 +1,5 @@
+-- version 0.1
+
 CREATE TABLE IF NOT EXISTS public."base"
 (
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -34,13 +36,22 @@ COMMENT ON TABLE public."users" IS 'stores agent that interacts with the applica
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
   id SERIAL PRIMARY KEY,
-  action VARCHAR(255),
-  name VARCHAR(255),
-  role_id INT,
-  FOREIGN KEY (role_id) REFERENCES public."roles" (id) ON DELETE CASCADE
+  action VARCHAR(4),
+  name VARCHAR(255)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."resources" IS 'stores permissible resources for user agent role.';
+
+CREATE TABLE IF NOT EXISTS public."role_resources"
+(
+	role_id INT,
+	resource_id INT,
+	FOREIGN KEY (role_id) REFERENCES public."roles"(id) ON DELETE CASCADE,
+	FOREIGN KEY(resource_id) REFERENCES public."resources"(id) ON DELETE CASCADE
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."role_resources" IS 'stores role resource mappings';
+
 
 CREATE TABLE IF NOT EXISTS public."retailers" 
 (
