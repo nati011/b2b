@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"log"
 
-	port "b2b.nati011.github.com/internal/port/resource"
+	port "b2b.nati011.github.com/internal/port/role"
 )
 
 type Postgres struct {
@@ -22,10 +22,10 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	var response port.GetResponse
 
 	// Adjust the query to select the appropriate fields
-	query := "SELECT id, name, action FROM public.get_resources_by_id($1);"
+	query := "SELECT * FROM public.get_roles_by_id($1);"
 
 	// Use Scan to match the number of returned columns
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Action)
+	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Desc)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -40,9 +40,9 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
 	var response port.GetResponse
-	query := "SELECT * FROM public.get_resources_by_name($1);"
+	query := "SELECT * FROM public.get_roles_by_name($1);"
 
-	err := p.Pool.QueryRowContext(ctx, query, name).Scan(&response.Id, &response.Name, &response.Action)
+	err := p.Pool.QueryRowContext(ctx, query, name).Scan(&response.Id, &response.Name, &response.Desc)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -58,7 +58,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_resources();"
+	query := "SELECT * FROM public.get_all_roles();"
 	rows, err := p.Pool.QueryContext(ctx, query)
 	if err != nil {
 		switch err {
@@ -73,7 +73,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for rows.Next() {
 		var resource port.GetResponse
-		if err := rows.Scan(&resource.Id, &resource.Action, &resource.Name); err != nil {
+		if err := rows.Scan(&resource.Id, &resource.Desc, &resource.Name); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -90,9 +90,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.create_resource($1, $2);"
+	query := "SELECT * FROM public.create_role($1, $2);"
 
-	err := p.Pool.QueryRowContext(ctx, query, req.Name, req.Action).Scan(&resourceId)
+	err := p.Pool.QueryRowContext(ctx, query, req.Name, req.Desc).Scan(&resourceId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -105,11 +105,11 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	return resourceId, nil
 }
 
-func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionRequest) (int, error) {
+func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.update_resource_action($1, $2);"
+	query := "SELECT * FROM public.update_role_desc($1, $2);"
 
-	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Action).Scan(&resourceId)
+	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Desc).Scan(&resourceId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -124,7 +124,7 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 
 func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.update_resource_name($1, $2);"
+	query := "SELECT * FROM public.update_role_name($1, $2);"
 
 	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Name).Scan(&resourceId)
 	if err != nil {
@@ -140,7 +140,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 }
 
 func (p *Postgres) Delete(ctx context.Context, id int) error {
-	query := "SELECT * FROM public.delete_resource($1);"
+	query := "SELECT * FROM public.delete_role($1);"
 
 	err := p.Pool.QueryRowContext(ctx, query, id).Err()
 	if err != nil {

@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public."users"
   username VARCHAR(255) NOT NULL,
   birth_date DATE,
   is_active BOOLEAN DEFAULT false,
-  external_id VARCHAR(255),
+  external_id VARCHAR(255)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."users" IS 'stores agent that interacts with the application.';
@@ -34,7 +34,7 @@ COMMENT ON TABLE public."users" IS 'stores agent that interacts with the applica
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
   id SERIAL PRIMARY KEY,
-  action VARCHAR(4),
+  action VARCHAR(255),
   name VARCHAR(255)
 ) INHERITS (public."base");
 
