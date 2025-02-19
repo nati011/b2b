@@ -36,6 +36,7 @@ func Test_Timeout(t *testing.T) {
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
+
 	user := authDTO.RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
