@@ -5,19 +5,16 @@ import (
 	"database/sql"
 	"log"
 
-	resource "b2b.nati011.github.com/internal/core/application/service/resource"
 	port "b2b.nati011.github.com/internal/port/role"
 )
 
 type Postgres struct {
-	Pool             *sql.DB
-	resource_service resource.Provider
+	Pool *sql.DB
 }
 
-func NewPostgres(DB *sql.DB, resource_service resource.Provider) port.DB {
+func NewPostgres(DB *sql.DB) port.DB {
 	return &Postgres{
-		Pool:             DB,
-		resource_service: resource_service,
+		Pool: DB,
 	}
 }
 
@@ -188,9 +185,10 @@ func (p *Postgres) RemoveResource(ctx context.Context, role_id int, resource_id 
 }
 
 func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAllResourcesResponse, error) {
-	query := "SELECT * FROM public.remove_resource_from_role($1);"
+	var response port.GetAllResourcesResponse
 
-	err := p.Pool.QueryRowContext(ctx, query, role_id).Err()
+	query := "SELECT * FROM public.get_all_resource_by_role($1);"
+	rows, err := p.Pool.QueryContext(ctx, query, role_id)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -199,5 +197,21 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 			return port.GetAllResourcesResponse{}, port.ErrSysUnknown
 		}
 	}
-	return port.GetAllResourcesResponse{}, nil
+	defer rows.Close()
+
+	for rows.Next() {
+		var resourceID int                             // Declare a variable to hold the scanned resource_id
+		if err := rows.Scan(&resourceID); err != nil { // Use the address of resourceID
+			log.Printf("unable to scan row: %q", err)
+			return port.GetAllResourcesResponse{}, err
+		}
+		response.List = append(response.List, resourceID) // Append the scanned ID
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetAllResourcesResponse{}, port.ErrSysUnknown
+	}
+
+	return response, nil
 }

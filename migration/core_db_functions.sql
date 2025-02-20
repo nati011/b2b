@@ -227,5 +227,51 @@ BEGIN
 END;
 $$;
 
+-- role_resources
+
+CREATE OR REPLACE FUNCTION public.add_resource_to_role(
+   role_identifier BIGINT,
+   resource_identifier BIGINT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO public.role_resources (role_id, resource_id)
+    VALUES (role_identifier, resource_identifier);
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.remove_resource_from_role(
+   role_identifier BIGINT,
+   resource_identifier BIGINT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+   UPDATE public.role_resources
+   SET is_deleted = TRUE
+   WHERE role_id = role_identifier 
+       AND resource_id = resource_identifier
+       AND is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_resource_by_role(
+    role_identifier BIGINT
+)
+RETURNS TABLE(resource_id BIGINT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT r.resource_id
+    FROM public.role_resources r
+    WHERE r.role_id = role_identifier 
+        AND r.is_deleted = FALSE;
+END;
+$$;
 
 -- Users
