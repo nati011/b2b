@@ -42,8 +42,8 @@ COMMENT ON TABLE public."resources" IS 'stores permissible resources for user ag
 
 CREATE TABLE IF NOT EXISTS public."role_resources"
 (
-	role_id INT,
-	resource_id INT,
+	role_id BIGINT,
+	resource_id BIGINT,
 	FOREIGN KEY (role_id) REFERENCES public."roles"(id) ON DELETE CASCADE,
 	FOREIGN KEY(resource_id) REFERENCES public."resources"(id) ON DELETE CASCADE
 ) INHERITS (public."base");

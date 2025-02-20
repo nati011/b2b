@@ -360,7 +360,7 @@ func Test_hasResource_happyPath(t *testing.T) {
 		})
 
 		// create resource with taken name
-		resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+		resId, err := testContainer.ResourceService.Create(ctx, &resource.CreateRequest{
 			Action: "test",
 			Name:   "taken",
 		})
@@ -415,7 +415,7 @@ func Test_addResource_happyPath(t *testing.T) {
 	//setup
 	ctx := context.Background()
 	// create resource with taken name
-	resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+	resId, err := testContainer.ResourceService.Create(ctx, &resource.CreateRequest{
 		Action: "test",
 		Name:   "taken",
 	})
@@ -486,7 +486,7 @@ func Test_removeResource_happyPath(t *testing.T) {
 	ctx := context.Background()
 
 	// create resource
-	resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+	resId, err := testContainer.ResourceService.Create(ctx, &resource.CreateRequest{
 		Action: "test",
 		Name:   "test",
 	})
@@ -553,7 +553,7 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 
 		// create resource
-		resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+		resId, err := testContainer.ResourceService.Create(ctx, &resource.CreateRequest{
 			Action: "test",
 			Name:   "test",
 		})

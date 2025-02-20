@@ -1,6 +1,8 @@
 package role
 
 import (
+	"database/sql"
+
 	db_resource_mock "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
 	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/role/db"
 
@@ -10,15 +12,31 @@ import (
 type TestContainer struct {
 	RoleService Provider
 
-	resourceService resource.Provider
+	ResourceService resource.Provider
 }
 
 func NewTestContainer() TestContainer {
 	c := TestContainer{}
-	c.resourceService = initResourceService()
+	c.ResourceService = initResourceService()
 	c.RoleService = NewRole(
 		db_role_mock.NewMock(),
-		c.resourceService,
+		c.ResourceService,
+	)
+	return c
+}
+
+func NewIntegrationTestContainer(db *sql.DB) TestContainer {
+	c := TestContainer{}
+	c.ResourceService = resource.NewResource(
+		db_resource_mock.NewPostgres(
+			db,
+		),
+	)
+	c.RoleService = NewRole(
+		db_role_mock.NewPostgres(
+			db,
+		),
+		c.ResourceService,
 	)
 	return c
 }
