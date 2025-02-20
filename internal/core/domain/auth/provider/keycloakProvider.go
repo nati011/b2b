@@ -122,29 +122,14 @@ func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResponse
 		if errors.As(err, &apiErr) {
 			switch apiErr.Code {
 			case 401:
-				switch {
-				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
-					return LoginAuthResponse{}, ErrSysFailedToLogin
-				}
+				return LoginAuthResponse{}, ErrSysFailedToLogin
+
 			default:
 				return LoginAuthResponse{}, ErrSysFailedToLogin
 
 			}
 		}
 	}
-
-	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
-	if err != nil {
-		log.Fatal("Inspection failed:" + err.Error())
-		return LoginAuthResponse{}, err
-	}
-
-	if !*rptResult.Active {
-		err := errors.New("token is not active")
-		log.Fatal("token is not active:" + err.Error())
-		return LoginAuthResponse{}, err
-	}
-
 	return LoginAuthResponse{
 		JWT: JWT{
 			token.AccessToken,
