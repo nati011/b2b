@@ -11,7 +11,7 @@ import (
 
 func RegisterRoutes(router *http.ServeMux) {
 	appConfig := config.AppConfig
-	container := service.NewContainer(provider.NewKeycloakProvider(appConfig.KeycloakClientId, appConfig.KeycloakInstanceURL, appConfig.KeycloakRealm, appConfig.KeycloakUsername, appConfig.KeycloakPassword, appConfig.KeycloakApplicationRealm))
+	container := service.NewContainer(provider.NewKeycloakProvider(appConfig.KeycloakInstanceURL, appConfig.KeycloakUsername, appConfig.KeycloakPassword, appConfig.KeycloakRealm, appConfig.KeycloakApplicationRealm, appConfig.KeycloakClientId))
 	handler := authHandler.NewAuthHandler(container)
 
 	router.HandleFunc("/api/auth/login", handler.Login)
