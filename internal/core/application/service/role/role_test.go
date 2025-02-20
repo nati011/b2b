@@ -6,9 +6,10 @@ import (
 	"os"
 	"testing"
 
-	db_mock "b2b.nati011.github.com/internal/adapter/secondary/role/db"
+	"b2b.nati011.github.com/internal/core/application/service/resource"
 )
 
+var testContainer TestContainer
 var service Provider
 
 func TestMain(m *testing.M) {
@@ -18,9 +19,8 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewRole(
-		db_mock.NewMock(),
-	)
+	testContainer = NewTestContainer()
+	service = testContainer.RoleService
 }
 
 func Test_create_happyPath(t *testing.T) {
@@ -30,12 +30,15 @@ func Test_create_happyPath(t *testing.T) {
 		Desc: "test",
 	}
 
-	got, err := service.Create(ctx, &in)
+	_, err := service.Create(ctx, &in)
 	if err != nil {
 		t.Errorf("Failed to create role err: %v", err)
 	}
-	if got == 0 {
-		t.Errorf("Expected id != from %v", got)
+
+	//get resource
+	getResp, _ := service.GetAll(ctx)
+	if len(getResp.List) == 0 {
+		t.Errorf("No resources were created for role")
 	}
 }
 
@@ -121,7 +124,7 @@ func Test_delete_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		err := service.Delete(ctx, 1010)
 		wantErr := ErrIdNotFound
-		if err != ErrIdNotFound {
+		if err != wantErr {
 			switch err {
 			default:
 				t.Errorf("Expected err: %q Got err: %q", wantErr, err)
@@ -269,13 +272,17 @@ func Test_getRole_happyPath(t *testing.T) {
 			Name: "test",
 		})
 
-		// Get by Id
+		// Get by Name
 		in := GetRequest{
 			Name: "test",
 		}
 		got, err := service.Get(ctx, &in)
 		if err != nil {
-			t.Errorf("Failed to get role by Id err %v", err)
+			switch err {
+			case ErrIdNotFound:
+			default:
+				t.Errorf("Failed to get role by Id err %v", err)
+			}
 		}
 		if got.Id != id {
 			t.Errorf("Failed to get role by id")
@@ -284,6 +291,45 @@ func Test_getRole_happyPath(t *testing.T) {
 }
 
 func Test_getRole_unhappyPath(t *testing.T) {
+	t.Run("getById_notfound", func(t *testing.T) {
+		//setup
+		ctx := context.Background()
+
+		// Get by Id
+		in := GetRequest{
+			Id: rand.Int(),
+		}
+		wantErr := ErrEmptyGetContent
+		got, err := service.Get(ctx, &in)
+		if err != wantErr {
+			switch err {
+			case wantErr:
+			default:
+				t.Errorf("Expected err: %v Got err %v", wantErr, err)
+			}
+
+		}
+		if got.Id != 0 {
+			t.Errorf("Failed, non existing resource found")
+		}
+	})
+
+	t.Run("getByName", func(t *testing.T) {
+		//setup
+		ctx := context.Background()
+		// Get by Name
+		in := GetRequest{
+			Name: "test",
+		}
+		wantErr := ErrEmptyGetContent
+		got, err := service.Get(ctx, &in)
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err %v", wantErr, err)
+		}
+		if got.Id != 0 {
+			t.Errorf("Failed, non existing resource found")
+		}
+	})
 }
 
 func Test_getAllResources_happyPath(t *testing.T) {
@@ -304,11 +350,46 @@ func Test_getAllResources_happyPath(t *testing.T) {
 	}
 }
 
-func Test_getAllResources_unhappyPath(t *testing.T) {
+func Test_hasResource_happyPath(t *testing.T) {
+	t.Run("has", func(t *testing.T) {
+		//setup
+		ctx := context.Background()
+		roleId, _ := service.Create(ctx, &CreateRequest{
+			Desc: "test",
+			Name: "test",
+		})
+
+		// create resource with taken name
+		resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+			Action: "test",
+			Name:   "taken",
+		})
+		if err != nil {
+			t.Errorf("Failed")
+		}
+
+		err = service.AddResource(ctx, &AddResourceRequest{
+			ResourceId: resId,
+			RoleId:     roleId,
+		})
+		if err != nil {
+			t.Errorf("Failed to add resource")
+		}
+
+		in := HasResourceRequest{
+			ResourceId: resId,
+			RoleId:     roleId,
+		}
+		got, _ := service.HasResource(ctx, &in)
+		if got != true {
+			t.Errorf("Expected: %v Got: %v", true, got)
+		}
+	})
+
 }
 
-func Test_hasResource(t *testing.T) {
-	t.Run("has", func(t *testing.T) {
+func Test_hasResource_unhappyPath(t *testing.T) {
+	t.Run("has-not", func(t *testing.T) {
 		//setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &CreateRequest{
@@ -316,23 +397,233 @@ func Test_hasResource(t *testing.T) {
 			Name: "test",
 		})
 
-		got, err := service.HasResource(ctx, id)
-		if err != nil {
-			t.Errorf("Failed to check role resources %v", err)
+		in := HasResourceRequest{
+			ResourceId: rand.Intn(200),
+			RoleId:     id,
 		}
-		if got != true {
-			t.Errorf("Expected: %v Got: %v", true, got)
-		}
-	})
-
-	t.Run("has-not", func(t *testing.T) {
-		ctx := context.Background()
-		got, err := service.HasResource(ctx, rand.Intn(200))
+		got, err := service.HasResource(ctx, &in)
 		if err != nil {
 			t.Errorf("Failed to check role resources %v", err)
 		}
 		if got != false {
 			t.Errorf("Expected: %v Got: %v", false, got)
+		}
+	})
+}
+
+func Test_addResource_happyPath(t *testing.T) {
+	//setup
+	ctx := context.Background()
+	// create resource with taken name
+	resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+		Action: "test",
+		Name:   "taken",
+	})
+	if err != nil {
+		t.Errorf("Failed")
+	}
+
+	//create role
+	in := CreateRequest{
+		Name: "test2",
+		Desc: "test",
+	}
+	roleId, err := service.Create(ctx, &in)
+	if err != nil {
+		t.Errorf("Failed to add resource to role %v", err)
+	}
+
+	//add role to resource
+	req := AddResourceRequest{
+		ResourceId: resId,
+		RoleId:     roleId,
+	}
+	err = service.AddResource(ctx, &req)
+	if err != nil {
+		t.Errorf("Failed to add resource to role %v", err)
+	}
+	inRes := HasResourceRequest{
+		ResourceId: req.ResourceId,
+		RoleId:     req.RoleId,
+	}
+	hasResource, err := service.HasResource(ctx, &inRes)
+	if err != nil {
+		t.Errorf("Failed to add resource to role %v", err)
+	}
+	if !hasResource {
+		t.Errorf("Failed to add resource to role, resource not added in role")
+	}
+}
+
+func Test_addResource_unhappyPath(t *testing.T) {
+	t.Run("resourceNotFound", func(t *testing.T) {
+		ctx := context.Background()
+		//create role
+		in := CreateRequest{
+			Name: "test2",
+			Desc: "test",
+		}
+		roleId, err := service.Create(ctx, &in)
+		if err != nil {
+			t.Errorf("Failed to add resource to role %v", err)
+		}
+
+		//add role to resource
+		req := AddResourceRequest{
+			ResourceId: rand.Int(),
+			RoleId:     roleId,
+		}
+		err = service.AddResource(ctx, &req)
+		wantErr := ErrResourceNotFound
+		if err != ErrResourceNotFound {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_removeResource_happyPath(t *testing.T) {
+	// setup
+	ctx := context.Background()
+
+	// create resource
+	resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+		Action: "test",
+		Name:   "test",
+	})
+	if err != nil {
+		t.Errorf("Failed")
+	}
+
+	// create role
+	roleId, err := service.Create(ctx, &CreateRequest{
+		Name: "test2",
+		Desc: "test",
+	})
+	if err != nil {
+		t.Errorf("Failed to add resource to role %v", err)
+	}
+
+	// add role to resource
+	req := AddResourceRequest{
+		ResourceId: resId,
+		RoleId:     roleId,
+	}
+	err = service.AddResource(ctx, &req)
+	if err != nil {
+		t.Errorf("Failed to add resource to role %v", err)
+	}
+
+	// check if role has resource
+	hasResource, err := service.HasResource(ctx, &HasResourceRequest{
+		ResourceId: req.ResourceId,
+		RoleId:     req.RoleId,
+	})
+	if err != nil {
+		t.Errorf("Failed %v", err)
+	}
+	if !hasResource {
+		t.Errorf("Failed")
+	}
+
+	//remove resource
+	err = service.RemoveResource(ctx, &RemoveResourceRequest{
+		ResourceId: req.ResourceId,
+		RoleId:     req.RoleId,
+	})
+	if err != nil {
+		t.Errorf("Failed to remove resource from role %v", err)
+	}
+
+	//recheck
+	hasResource, err = service.HasResource(ctx, &HasResourceRequest{
+		ResourceId: req.ResourceId,
+		RoleId:     req.RoleId,
+	})
+	if err != nil {
+		t.Errorf("Failed %v", err)
+	}
+	if hasResource {
+		t.Errorf("Failed to remove resource from role")
+	}
+}
+
+func Test_removeResource_unhappyPath(t *testing.T) {
+	t.Run("resource_not_found", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+
+		// create resource
+		resId, err := testContainer.resourceService.Create(ctx, &resource.CreateRequest{
+			Action: "test",
+			Name:   "test",
+		})
+		if err != nil {
+			t.Errorf("Failed")
+		}
+
+		// create role
+		roleId, err := service.Create(ctx, &CreateRequest{
+			Name: "test2",
+			Desc: "test",
+		})
+		if err != nil {
+			t.Errorf("Failed to add resource to role %v", err)
+		}
+
+		// add role to resource
+		req := AddResourceRequest{
+			ResourceId: resId,
+			RoleId:     roleId,
+		}
+		err = service.AddResource(ctx, &req)
+		if err != nil {
+			t.Errorf("Failed to add resource to role %v", err)
+		}
+
+		// check if role has resource
+		hasResource, err := service.HasResource(ctx, &HasResourceRequest{
+			ResourceId: req.ResourceId,
+			RoleId:     req.RoleId,
+		})
+		if err != nil {
+			t.Errorf("Failed %v", err)
+		}
+		if !hasResource {
+			t.Errorf("Failed")
+		}
+
+		//remove resource
+		err = service.RemoveResource(ctx, &RemoveResourceRequest{
+			ResourceId: req.ResourceId,
+			RoleId:     req.RoleId,
+		})
+		if err != nil {
+			t.Errorf("Failed to remove resource from role %v", err)
+		}
+
+		//recheck
+		hasResource, err = service.HasResource(ctx, &HasResourceRequest{
+			ResourceId: req.ResourceId,
+			RoleId:     req.RoleId,
+		})
+		if err != nil {
+			t.Errorf("Failed %v", err)
+		}
+		if hasResource {
+			t.Errorf("Failed to remove resource from role")
+		}
+
+		//remove again
+		err = service.RemoveResource(ctx, &RemoveResourceRequest{
+			ResourceId: req.ResourceId,
+			RoleId:     req.RoleId,
+		})
+		if err != nil {
+			switch err {
+			case ErrResourceNotFound:
+			default:
+				t.Errorf("Failed to remove resource from role %v", err)
+			}
 		}
 	})
 }

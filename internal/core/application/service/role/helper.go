@@ -8,11 +8,16 @@ func (r *RoleProvider) validateName(ctx context.Context, name string) error {
 		return ErrEmptyName
 	}
 	//duplicate name
-	resp, err := r.Get(ctx, &GetRequest{Name: name})
+	res, err := r.Get(ctx, &GetRequest{Name: name})
 	if err != nil {
-		return err
+		switch err {
+		case ErrEmptyGetContent:
+			return nil
+		default:
+			return err
+		}
 	}
-	if resp.Id != 0 {
+	if res.Id != 0 {
 		return ErrDuplicateName
 	}
 	return nil
@@ -26,7 +31,12 @@ func (r *RoleProvider) validateId(ctx context.Context, id int) error {
 	//check if id exists
 	resp, err := r.Get(ctx, &GetRequest{Id: id})
 	if err != nil {
-		return err
+		switch err {
+		case ErrEmptyGetContent:
+			return ErrIdNotFound
+		default:
+			return err
+		}
 	}
 	if resp.Id == 0 {
 		return ErrIdNotFound
