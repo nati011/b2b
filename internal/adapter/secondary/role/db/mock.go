@@ -3,17 +3,25 @@ package adapter
 import (
 	"context"
 
+	resource "b2b.nati011.github.com/internal/port/resource"
 	port "b2b.nati011.github.com/internal/port/role"
 )
 
-type MockResource struct {
+type MockRole struct {
 	Id   int
 	Name string
 	Desc string
 }
 
+type MockResource struct {
+	roleId     int
+	resourceId int
+}
+
 type Mock struct {
-	resources []MockResource
+	roles       []MockRole
+	resource_db resource.DB
+	resources   []MockResource
 }
 
 func NewMock() port.DB {
@@ -21,7 +29,7 @@ func NewMock() port.DB {
 }
 
 func (p *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
-	for _, i := range p.resources {
+	for _, i := range p.roles {
 		if i.Id == id {
 			return port.GetResponse{
 				Id:   i.Id,
@@ -34,7 +42,7 @@ func (p *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 }
 
 func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
-	for _, i := range p.resources {
+	for _, i := range p.roles {
 		if i.Name == name {
 			return port.GetResponse{
 				Id:   i.Id,
@@ -48,7 +56,7 @@ func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 
 func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
-	for _, i := range p.resources {
+	for _, i := range p.roles {
 		response = append(response, port.GetResponse{
 			Id:   i.Id,
 			Name: i.Name,
@@ -61,28 +69,28 @@ func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 }
 
 func (p *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
-	newResourceId := len(p.resources) + 1
-	p.resources = append(p.resources, MockResource{
-		Id:   newResourceId,
+	newRoleId := len(p.roles) + 1
+	p.roles = append(p.roles, MockRole{
+		Id:   newRoleId,
 		Name: req.Name,
 		Desc: req.Desc,
 	})
-	return newResourceId, nil
+	return newRoleId, nil
 }
 
 func (p *Mock) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) (int, error) {
-	updatedResources := []MockResource{}
+	updatedRoles := []MockRole{}
 	var updatedResourceId int
-	for _, i := range p.resources {
+	for _, i := range p.roles {
 		if req.Id == i.Id {
 			updatedResourceId = i.Id
-			updatedResources = append(updatedResources, MockResource{
+			updatedRoles = append(updatedRoles, MockRole{
 				Id:   req.Id,
 				Desc: req.Desc,
 				Name: i.Name,
 			})
 		} else {
-			updatedResources = append(updatedResources, MockResource{
+			updatedRoles = append(updatedRoles, MockRole{
 				Id:   i.Id,
 				Name: i.Name,
 				Desc: i.Desc,
@@ -90,23 +98,23 @@ func (p *Mock) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) (int
 		}
 
 	}
-	p.resources = updatedResources
+	p.roles = updatedRoles
 	return updatedResourceId, nil
 }
 
 func (p *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) (int, error) {
-	updatedResources := []MockResource{}
+	updatedResources := []MockRole{}
 	var updatedResourceId int
-	for _, i := range p.resources {
+	for _, i := range p.roles {
 		if req.Id == i.Id {
 			updatedResourceId = i.Id
-			updatedResources = append(updatedResources, MockResource{
+			updatedResources = append(updatedResources, MockRole{
 				Id:   req.Id,
 				Desc: i.Desc,
 				Name: req.Name,
 			})
 		} else {
-			updatedResources = append(updatedResources, MockResource{
+			updatedResources = append(updatedResources, MockRole{
 				Id:   i.Id,
 				Name: i.Name,
 				Desc: i.Desc,
@@ -114,15 +122,15 @@ func (p *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) (int
 		}
 
 	}
-	p.resources = updatedResources
+	p.roles = updatedResources
 	return updatedResourceId, nil
 }
 
 func (p *Mock) Delete(ctx context.Context, id int) error {
-	updatedResources := []MockResource{}
-	for _, i := range p.resources {
+	updatedResources := []MockRole{}
+	for _, i := range p.roles {
 		if i.Id != id {
-			updatedResources = append(updatedResources, MockResource{
+			updatedResources = append(updatedResources, MockRole{
 				Id:   i.Id,
 				Name: i.Name,
 				Desc: i.Desc,
@@ -130,6 +138,40 @@ func (p *Mock) Delete(ctx context.Context, id int) error {
 		}
 
 	}
-	p.resources = updatedResources
+	p.roles = updatedResources
 	return nil
+}
+
+func (p *Mock) AddResource(ctx context.Context, role_id int, resource_id int) error {
+	p.resources = append(p.resources, MockResource{
+		roleId:     role_id,
+		resourceId: resource_id,
+	})
+	return nil
+}
+
+func (p *Mock) RemoveResource(ctx context.Context, role_id int, resource_id int) error {
+	newResources := []MockResource{}
+	for _, i := range p.resources {
+		if i.resourceId != resource_id {
+			newResources = append(newResources, MockResource{
+				roleId:     i.roleId,
+				resourceId: i.resourceId,
+			})
+		}
+	}
+	p.resources = newResources
+	return nil
+}
+
+func (p *Mock) GetAllResources(ctx context.Context, role_id int) (port.GetAllResourcesResponse, error) {
+	var resp []int
+	for _, i := range p.resources {
+		if i.roleId == role_id {
+			resp = append(resp, i.resourceId)
+		}
+	}
+	return port.GetAllResourcesResponse{
+		List: resp,
+	}, nil
 }

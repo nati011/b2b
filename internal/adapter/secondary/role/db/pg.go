@@ -5,16 +5,19 @@ import (
 	"database/sql"
 	"log"
 
+	resource "b2b.nati011.github.com/internal/core/application/service/resource"
 	port "b2b.nati011.github.com/internal/port/role"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool             *sql.DB
+	resource_service resource.Provider
 }
 
-func NewPostgres(DB *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, resource_service resource.Provider) port.DB {
 	return &Postgres{
-		Pool: DB,
+		Pool:             DB,
+		resource_service: resource_service,
 	}
 }
 
@@ -152,4 +155,49 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 		}
 	}
 	return nil
+}
+
+func (p *Postgres) AddResource(ctx context.Context, role_id int, resource_id int) error {
+	query := "SELECT * FROM public.add_resource_to_role($1, $2);"
+
+	err := p.Pool.QueryRowContext(ctx, query, role_id, resource_id).Err()
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil
+		default:
+			return port.ErrSysUnknown
+		}
+	}
+	return nil
+}
+
+func (p *Postgres) RemoveResource(ctx context.Context, role_id int, resource_id int) error {
+	query := "SELECT * FROM public.remove_resource_from_role($1, $2);"
+
+	err := p.Pool.QueryRowContext(ctx, query, role_id, resource_id).Err()
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil
+		default:
+			return port.ErrSysUnknown
+		}
+	}
+	return nil
+}
+
+func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAllResourcesResponse, error) {
+	query := "SELECT * FROM public.remove_resource_from_role($1);"
+
+	err := p.Pool.QueryRowContext(ctx, query, role_id).Err()
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetAllResourcesResponse{}, nil
+		default:
+			return port.GetAllResourcesResponse{}, port.ErrSysUnknown
+		}
+	}
+	return port.GetAllResourcesResponse{}, nil
 }
