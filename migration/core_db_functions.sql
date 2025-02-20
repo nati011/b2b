@@ -7,11 +7,11 @@ CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
    r_action VARCHAR(255)
 )
-RETURNS INT
+RETURNS BIGINT
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    new_id INT;
+    new_id BIGINT;
 BEGIN
     INSERT INTO public.resources (name, action)
     VALUES (r_name, r_action) 
@@ -22,10 +22,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_resource_name(
-    resource_id INT,
+    resource_id BIGINT,
     new_name TEXT
 )
-RETURNS INT
+RETURNS BIGINT
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -39,10 +39,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_resource_action(
-    resource_id INT,
+    resource_id BIGINT,
     new_action TEXT
 )
-RETURNS INT
+RETURNS BIGINT
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -57,7 +57,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION public.delete_resource(
-   r_id INT
+   r_id BIGINT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -70,9 +70,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_resources_by_id(
-    resource_id INT
+    resource_id BIGINT
 )
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -88,7 +88,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_resources_by_name(
     resource_name VARCHAR(255)
 )
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -102,7 +102,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_resources()
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -120,11 +120,11 @@ CREATE OR REPLACE FUNCTION public.create_role(
    r_name VARCHAR(255),
    r_desc VARCHAR(255)
 )
-RETURNS INT
+RETURNS BIGINT
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    new_id INT;
+    new_id BIGINT;
 BEGIN
     INSERT INTO public.roles (name, description)
     VALUES (r_name, r_desc) 
@@ -135,10 +135,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_role_name(
-    role_id INT,
+    role_id BIGINT,
     new_name TEXT
 )
-RETURNS INT
+RETURNS BIGINT
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -153,10 +153,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_role_desc(
-    role_id INT,
+    role_id BIGINT,
     new_desc TEXT
 )
-RETURNS INT
+RETURNS BIGINT
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -171,7 +171,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION public.delete_role(
-   r_id INT
+   r_id BIGINT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -184,9 +184,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_roles_by_id(
-    role_id INT
+    role_id BIGINT
 )
-RETURNS TABLE(id INT, description VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id BIGINT, description VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -202,7 +202,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_roles_by_name(
     role_name VARCHAR(255)
 )
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -216,7 +216,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_roles()
-RETURNS TABLE(id INT, description VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id BIGINT, description VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
