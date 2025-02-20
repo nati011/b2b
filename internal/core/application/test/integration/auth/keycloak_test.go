@@ -60,13 +60,13 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	if got != want {
 		t.Errorf("Expected: %v, Got: %v", want, got)
 	}
-	t.Cleanup(teardown)
+	// t.Cleanup(teardown)
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateUsername", func(t *testing.T) {
-		t.Cleanup(teardown)
+		// t.Cleanup(teardown)
 
 		/* create a user with some username x and attempt
 		to create another user with the same username */
@@ -103,7 +103,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-		t.Cleanup(teardown)
+		// t.Cleanup(teardown)
 
 		/* create a user with some email x and attempt
 		to create another user with the same email */
@@ -152,27 +152,28 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	var err error
-	ctx := context.Background()
-	keycloakContainer, err = RunContainer(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// var err error
+	// ctx := context.Background()
+	// keycloakContainer, err = RunContainer(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
-	if err != nil {
-		panic(err)
-	}
-	KeycloakUsername := keycloakAdminClient.Username
-	KeycloakPassword := keycloakAdminClient.Password
-	KeycloakRealm := keycloakAdminClient.Realm
-	keycloakApplicationRealm := keycloakAdminClient.Realm
-	keycloakClientId := keycloakAdminClient.ClientID
+	// keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	KeycloakUsername := "ruthtirusew944@gmail.com"
+	KeycloakPassword := "W>-553:F?XWXpmV"
+	KeycloakRealm := "b2b"
+	keycloakApplicationRealm := "b2b"
+	keycloakClientId := "test"
+	keycloakInstanceUrl := "https://euc1.auth.ac/auth"
 
 	KeycloakProvider = provider.NewKeycloakProvider(
 		keycloakInstanceUrl,
