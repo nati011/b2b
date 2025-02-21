@@ -829,5 +829,46 @@ func Test_has_access_to_resource_happyPath(t *testing.T) {
 
 func Test_has_access_to_resource_unhappyPath(t *testing.T) {
 	t.Run("resource_not_found", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName:   "natnael jemaneh asefa",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			IsActive:   true,
+			ExternalId: "123",
+		}
+		user_id, err := test_container.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		//create role
+		role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
+			Name: "test",
+			Desc: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to create role err: %v", err)
+		}
+
+		//assign
+		err = test_container.UserService.AssignRole(ctx, user_id, role_id)
+		if err != nil {
+			t.Errorf("Expected err: %v Got err: %v", nil, err)
+		}
+
+		//check access to resource
+		expectedErr := ErrResourceDoesNotExist
+		hasAccess, err := test_container.UserService.HasAccessToResource(ctx, user_id, resource_id)
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
+		expectedStatus := true
+		if !hasAccess {
+			t.Errorf("Expected has access status: %v Got err: %v", expectedStatus, hasAccess)
+		}
 	})
 }
