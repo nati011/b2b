@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"b2b.nati011.github.com/internal/core/application/service/resource"
 	role "b2b.nati011.github.com/internal/core/application/service/role"
 )
 
-var test_container TestContainer
+var testContainer TestContainer
+var service Provider
 
 func TestMain(m *testing.M) {
 	setup()
@@ -20,6 +20,8 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	testContainer = NewTestContainer()
+	service = testContainer.UserService
 }
 
 func Test_create_happyPath(t *testing.T) {
@@ -33,16 +35,17 @@ func Test_create_happyPath(t *testing.T) {
 			Phone:      "+251949184879",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
 			ExternalId: "123",
 		}
-		id, err := test_container.UserService.Create(ctx, &in)
+		id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		_, err = test_container.UserService.Get(ctx, id)
-		if err != ErrIdNotFound {
-			t.Errorf("Expected err: %v Got err: %v", ErrIdNotFound, err)
+		_, err = testContainer.UserService.GetByParam(ctx, &GetByParam{
+			ID: id,
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
 	})
 
@@ -55,22 +58,19 @@ func Test_create_happyPath(t *testing.T) {
 			Phone:      "+251949184879",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
 			ExternalId: "123",
 		}
-		id, err := test_container.UserService.Create(ctx, &in)
+		id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		user, err := test_container.UserService.Get(ctx, id)
+		user, err := testContainer.UserService.GetByParam(ctx, &GetByParam{
+			ID: id,
+		})
 		if err != nil {
-			switch err {
-			case ErrIdNotFound:
-			default:
-				t.Fatalf("Failed to get err: %v", err)
-			}
+			t.Fatalf("Failed to get err: %v", err)
 		}
-		if user.IsActive != true {
+		if user.List[0].IsActive != true {
 			t.Errorf("Expected user active status: %v Got: %v", true, false)
 		}
 	})
@@ -85,10 +85,9 @@ func Test_create_unhappyPath(t *testing.T) {
 			Phone:      "+251949184879",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != ErrFullNameMandatory {
 			t.Errorf("Expected Err: %v Got: %v", ErrFullNameMandatory, err)
 		}
@@ -101,10 +100,9 @@ func Test_create_unhappyPath(t *testing.T) {
 			FullName:   "natnael jemaneh asefa",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != ErrPhoneOrEmailMandatory {
 			t.Errorf("Expected Err: %v Got: %v", ErrPhoneOrEmailMandatory, err)
 		}
@@ -113,10 +111,10 @@ func Test_create_unhappyPath(t *testing.T) {
 			FullName:   "natnael jemaneh asefa",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
+			Phone:      "+251949184879",
 			ExternalId: "123",
 		}
-		_, err = test_container.UserService.Create(ctx, &in_only_phone)
+		_, err = testContainer.UserService.Create(ctx, &in_only_phone)
 		if err != nil {
 			t.Errorf("Expected Err: %v Got: %v", nil, err)
 		}
@@ -125,12 +123,46 @@ func Test_create_unhappyPath(t *testing.T) {
 			FullName:   "natnael jemaneh asefa",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
+			Phone:      "+251949184879",
 			ExternalId: "123",
 		}
-		_, err = test_container.UserService.Create(ctx, &in_only_email)
+		_, err = testContainer.UserService.Create(ctx, &in_only_email)
 		if err != nil {
 			t.Errorf("Expected Err: %v Got: %v", nil, err)
+		}
+	})
+
+	t.Run("phone_validation", func(t *testing.T) {
+		ctx := context.Background()
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName:   "natnael jemaneh asefa",
+			Username:   "test",
+			DOB:        parsedTime,
+			Phone:      "011",
+			ExternalId: "123",
+		}
+		_, err := testContainer.UserService.Create(ctx, &in)
+		wantErr := ErrPhoneNotValid
+		if err != wantErr {
+			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
+		}
+	})
+
+	t.Run("email_validation", func(t *testing.T) {
+		ctx := context.Background()
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName:   "natnael jemaneh asefa",
+			Username:   "test",
+			DOB:        parsedTime,
+			Email:      "natnaeljemaneh001gmail.com",
+			ExternalId: "123",
+		}
+		_, err := testContainer.UserService.Create(ctx, &in)
+		wantErr := ErrEmailNotValid
+		if err != wantErr {
+			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
 	})
 }
@@ -141,20 +173,20 @@ func Test_getAll_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		//get
-		resp, err := test_container.UserService.GetAll(ctx)
+		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to getAll err: %v", err)
 		}
@@ -168,11 +200,11 @@ func Test_getAll_happyPath(t *testing.T) {
 func Test_getAll_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
 		ctx := context.Background()
-		resp, err := test_container.UserService.GetAll(ctx)
+		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != ErrEmptyGetContent {
 			t.Errorf("Expected err: %v Got err: %v", ErrEmptyGetContent, err)
 		}
-		expecetdLen := 1
+		expecetdLen := 0
 		if len(resp.List) != expecetdLen {
 			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(resp.List))
 		}
@@ -192,17 +224,16 @@ func Test_getByParam_happyPath(t *testing.T) {
 			Phone:      "+251949184879",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   true,
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		inParam := &GetByParam{
 			Email: email,
 		}
-		response, err := test_container.UserService.GetByParam(ctx, inParam)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -218,22 +249,22 @@ func Test_getByParam_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      phone_number,
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    phone_number,
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		inParam := &GetByParam{
 			Phone: phone_number,
 		}
-		response, err := test_container.UserService.GetByParam(ctx, inParam)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -249,22 +280,22 @@ func Test_getByParam_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   username,
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: username,
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		inParam := &GetByParam{
 			Username: username,
 		}
-		response, err := test_container.UserService.GetByParam(ctx, inParam)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -280,22 +311,22 @@ func Test_getByParam_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   status,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		inParam := &GetByParam{
 			IsActive: status,
 		}
-		response, err := test_container.UserService.GetByParam(ctx, inParam)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -308,7 +339,6 @@ func Test_getByParam_happyPath(t *testing.T) {
 	t.Run("aggregate_fetch", func(t *testing.T) {
 		ctx := context.Background()
 		//setup
-		status := true
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FullName:   "natnael jemaneh asefa",
@@ -316,33 +346,31 @@ func Test_getByParam_happyPath(t *testing.T) {
 			Phone:      "+251949184879",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   status,
 			ExternalId: "123",
 		}
-		_, err := test_container.UserService.Create(ctx, &in)
+		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
 		parsedTime, _ = time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
-		in = CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh011@gmail.com",
-			Phone:      "+251949184880",
+		in_new := &CreateRequest{
+			FullName:   "eyoel jemaneh asefa",
+			Email:      "eyoeljemaneh011@gmail.com",
+			Phone:      "+251933184880",
 			Username:   "test",
 			DOB:        parsedTime,
-			IsActive:   status,
 			ExternalId: "123",
 		}
-		_, err = test_container.UserService.Create(ctx, &in)
+		_, err = testContainer.UserService.Create(ctx, in_new)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
 		inParam := &GetByParam{
-			IsActive: status,
+			Username: "test",
 		}
-		response, err := test_container.UserService.GetByParam(ctx, inParam)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -359,7 +387,7 @@ func Test_getByParam_unhappyPath(t *testing.T) {
 		inParam := &GetByParam{
 			Email: "test",
 		}
-		response, err := test_container.UserService.GetByParam(ctx, inParam)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != ErrEmptyGetContent {
 			t.Fatalf("Expected err: %v Got err: %v", ErrEmptyGetContent, err)
 		}
@@ -380,15 +408,19 @@ func Test_activate_happyPath(t *testing.T) {
 		Phone:      "+251949184879",
 		Username:   "test",
 		DOB:        parsedTime,
-		IsActive:   false,
 		ExternalId: "123",
 	}
-	id, err := test_container.UserService.Create(ctx, &in)
+	id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
-	err = test_container.UserService.Activate(ctx, id)
+	err = testContainer.UserService.Deactivate(ctx, id)
+	if err != nil {
+		t.Fatalf("Expected err: %v Got err: %v", nil, err)
+	}
+
+	err = testContainer.UserService.Activate(ctx, id)
 	if err != nil {
 		t.Fatalf("Expected err: %v Got err: %v", nil, err)
 	}
@@ -399,25 +431,30 @@ func Test_activate_unhappyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   false,
+		FullName: "natnael jemaneh asefa",
+		Email:    "natnaeljemaneh001@gmail.com",
+		Phone:    "+251949184879",
+		Username: "test",
+		DOB:      parsedTime,
+
 		ExternalId: "123",
 	}
-	id, err := test_container.UserService.Create(ctx, &in)
+	id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
-	err = test_container.UserService.Activate(ctx, id)
+	err = testContainer.UserService.Deactivate(ctx, id)
+	if err != nil {
+		t.Fatalf("Expected err: %v Got err: %v", nil, err)
+	}
+
+	err = testContainer.UserService.Activate(ctx, id)
 	if err != nil {
 		t.Fatalf("Expected err: %v Got err: %v", nil, err)
 	}
 	expectedErr := ErrUserAlreadyActive
-	err = test_container.UserService.Activate(ctx, id)
+	err = testContainer.UserService.Activate(ctx, id)
 	if err != expectedErr {
 		t.Fatalf("Expected err: %v Got err: %v", expectedErr, err)
 	}
@@ -433,15 +470,14 @@ func Test_deactivate_happyPath(t *testing.T) {
 		Phone:      "+251949184879",
 		Username:   "test",
 		DOB:        parsedTime,
-		IsActive:   true,
 		ExternalId: "123",
 	}
-	id, err := test_container.UserService.Create(ctx, &in)
+	id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
-	err = test_container.UserService.Deactivate(ctx, id)
+	err = testContainer.UserService.Deactivate(ctx, id)
 	if err != nil {
 		t.Fatalf("Expected err: %v Got err: %v", nil, err)
 	}
@@ -452,25 +488,72 @@ func Test_deactivate_unhappyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   true,
+		FullName: "natnael jemaneh asefa",
+		Email:    "natnaeljemaneh001@gmail.com",
+		Phone:    "+251949184879",
+		Username: "test",
+		DOB:      parsedTime,
+
 		ExternalId: "123",
 	}
-	id, err := test_container.UserService.Create(ctx, &in)
+	id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
-	err = test_container.UserService.Deactivate(ctx, id)
+	err = testContainer.UserService.Deactivate(ctx, id)
 	if err != nil {
 		t.Fatalf("Expected err: %v Got err: %v", nil, err)
 	}
-	expectedErr := ErrUserAlreadyActive
-	err = test_container.UserService.Deactivate(ctx, id)
+	expectedErr := ErrUserAlreadyInactive
+	err = testContainer.UserService.Deactivate(ctx, id)
+	if err != expectedErr {
+		t.Fatalf("Expected err: %v Got err: %v", expectedErr, err)
+	}
+}
+
+func Test_isActive_happyPath(t *testing.T) {
+	ctx := context.Background()
+	//setup
+	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+	in := CreateRequest{
+		FullName: "natnael jemaneh asefa",
+		Email:    "natnaeljemaneh001@gmail.com",
+		Phone:    "+251949184879",
+		Username: "test",
+		DOB:      parsedTime,
+
+		ExternalId: "123",
+	}
+	user_id, err := testContainer.UserService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	isActive, err := testContainer.UserService.IsActive(ctx, user_id)
+	if err != nil {
+		t.Fatalf("Expected err: %v Got err: %v", nil, err)
+	}
+	expectedStatus := true
+	if !isActive {
+		t.Fatalf("Expected: %v Got: %v", expectedStatus, err)
+	}
+
+	//deactivate
+	err = testContainer.UserService.Deactivate(ctx, user_id)
+	if err != nil {
+		t.Fatalf("Expected err: %v Got err: %v", nil, err)
+	}
+
+	expectedStatus = false
+	if !isActive {
+		t.Fatalf("Expected: %v Got: %v", expectedStatus, err)
+	}
+}
+
+func Test_isActive_unhappyPath(t *testing.T) {
+	ctx := context.Background()
+	expectedErr := ErrIdNotFound
+	_, err := testContainer.UserService.IsActive(ctx, rand.Int())
 	if err != expectedErr {
 		t.Fatalf("Expected err: %v Got err: %v", expectedErr, err)
 	}
@@ -481,20 +564,20 @@ func Test_assignRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   true,
+		FullName: "natnael jemaneh asefa",
+		Email:    "natnaeljemaneh001@gmail.com",
+		Phone:    "+251949184879",
+		Username: "test",
+		DOB:      parsedTime,
+
 		ExternalId: "123",
 	}
-	user_id, err := test_container.UserService.Create(ctx, &in)
+	user_id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 	//create role
-	role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
+	role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
 		Name: "test",
 		Desc: "test",
 	})
@@ -503,36 +586,80 @@ func Test_assignRole_happyPath(t *testing.T) {
 	}
 
 	//assign
-	err = test_container.UserService.AssignRole(ctx, user_id, role_id)
+	err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
 	if err != nil {
 		t.Errorf("Expected err: %v Got err: %v", nil, err)
 	}
 }
 
 func Test_assignRole_unhappyPath(t *testing.T) {
-	ctx := context.Background()
-	//setup
-	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
-	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   true,
-		ExternalId: "123",
-	}
-	user_id, err := test_container.UserService.Create(ctx, &in)
-	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
-	}
+	t.Run("roleDoesNotExist", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
 
-	//assign
-	err = test_container.UserService.AssignRole(ctx, user_id, rand.Int())
-	expectedErr := ErrRoleDoesNotExist
-	if err != expectedErr {
-		t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
-	}
+			ExternalId: "123",
+		}
+		user_id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//assign
+		err = testContainer.UserService.AssignRole(ctx, user_id, rand.Int())
+		expectedErr := ErrRoleDoesNotExist
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
+	})
+
+	t.Run("alreadyAssigned", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
+			ExternalId: "123",
+		}
+		user_id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//create role
+		role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
+			Name: "test",
+			Desc: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to create role err: %v", err)
+		}
+
+		//assign
+		err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
+		if err != nil {
+			t.Errorf("Expected err: %v Got err: %v", nil, err)
+		}
+
+		//reassign
+		err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
+		expectedErr := ErrRoleAlreadyAssigned
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
+	})
+
 }
 
 func Test_removeAssignedRole_happyPath(t *testing.T) {
@@ -540,20 +667,20 @@ func Test_removeAssignedRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   true,
+		FullName: "natnael jemaneh asefa",
+		Email:    "natnaeljemaneh001@gmail.com",
+		Phone:    "+251949184879",
+		Username: "test",
+		DOB:      parsedTime,
+
 		ExternalId: "123",
 	}
-	user_id, err := test_container.UserService.Create(ctx, &in)
+	user_id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 	//create role
-	role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
+	role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
 		Name: "test",
 		Desc: "test",
 	})
@@ -562,56 +689,80 @@ func Test_removeAssignedRole_happyPath(t *testing.T) {
 	}
 
 	//assign
-	err = test_container.UserService.AssignRole(ctx, user_id, role_id)
+	err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
 	if err != nil {
 		t.Errorf("Expected err: %v Got err: %v", nil, err)
 	}
 
 	//remove
-	err = test_container.UserService.RemoveAssignedRole(ctx, user_id, role_id)
+	err = testContainer.UserService.RemoveAssignedRole(ctx, user_id, role_id)
 	if err != nil {
 		t.Errorf("Expected err: %v Got err: %v", nil, err)
 	}
 }
 
 func Test_removeAssignedRole_unhappyPath(t *testing.T) {
-	ctx := context.Background()
-	//setup
-	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
-	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   true,
-		ExternalId: "123",
-	}
-	user_id, err := test_container.UserService.Create(ctx, &in)
-	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
-	}
-	//create role
-	role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
-		Name: "test",
-		Desc: "test",
+	t.Run("roleNotAssigned", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
+			ExternalId: "123",
+		}
+		user_id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//create role
+		role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
+			Name: "test",
+			Desc: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to create role err: %v", err)
+		}
+
+		//remove
+		expectedErr := ErrRoleNotAssigned
+		err = testContainer.UserService.RemoveAssignedRole(ctx, user_id, role_id)
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
 	})
-	if err != nil {
-		t.Fatalf("Failed to create role err: %v", err)
-	}
 
-	//assign
-	err = test_container.UserService.AssignRole(ctx, user_id, role_id)
-	if err != nil {
-		t.Errorf("Expected err: %v Got err: %v", nil, err)
-	}
+	t.Run("roleNotFound", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
 
-	//remove
-	expectedErr := ErrRoleNotAssigned
-	err = test_container.UserService.RemoveAssignedRole(ctx, user_id, role_id)
-	if err != expectedErr {
-		t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
-	}
+			ExternalId: "123",
+		}
+		user_id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//remove
+		expectedErr := ErrRoleDoesNotExist
+		err = testContainer.UserService.RemoveAssignedRole(ctx, user_id, rand.Int())
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
+	})
+
 }
 
 func Test_getAllRole_happyPath(t *testing.T) {
@@ -619,20 +770,20 @@ func Test_getAllRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		IsActive:   true,
+		FullName: "natnael jemaneh asefa",
+		Email:    "natnaeljemaneh001@gmail.com",
+		Phone:    "+251949184879",
+		Username: "test",
+		DOB:      parsedTime,
+
 		ExternalId: "123",
 	}
-	user_id, err := test_container.UserService.Create(ctx, &in)
+	user_id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 	//create role
-	role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
+	role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
 		Name: "test",
 		Desc: "test",
 	})
@@ -641,13 +792,13 @@ func Test_getAllRole_happyPath(t *testing.T) {
 	}
 
 	//assign
-	err = test_container.UserService.AssignRole(ctx, user_id, role_id)
+	err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
 	if err != nil {
 		t.Errorf("Expected err: %v Got err: %v", nil, err)
 	}
 
 	//get all assignment
-	resp, err := test_container.UserService.GetAllAssignedRoles(ctx, user_id)
+	resp, err := testContainer.UserService.GetAllAssignedRoles(ctx, user_id)
 	if err != nil {
 		t.Errorf("Expected err: %v Got err: %v", nil, err)
 	}
@@ -663,20 +814,20 @@ func Test_getAllRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		user_id, err := test_container.UserService.Create(ctx, &in)
+		user_id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		//create role
-		_, err = test_container.RoleService.Create(ctx, &role.CreateRequest{
+		_, err = testContainer.RoleService.Create(ctx, &role.CreateRequest{
 			Name: "test",
 			Desc: "test",
 		})
@@ -686,7 +837,7 @@ func Test_getAllRole_unhappyPath(t *testing.T) {
 
 		//get all assignment
 		wantErr := ErrNoRoleAssigned
-		resp, err := test_container.UserService.GetAllAssignedRoles(ctx, user_id)
+		resp, err := testContainer.UserService.GetAllAssignedRoles(ctx, user_id)
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
@@ -697,26 +848,26 @@ func Test_getAllRole_unhappyPath(t *testing.T) {
 	})
 }
 
-func Test_has_access_to_resource_happyPath(t *testing.T) {
+func Test_has_role_happyPath(t *testing.T) {
 	t.Run("has", func(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		user_id, err := test_container.UserService.Create(ctx, &in)
+		user_id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		//create role
-		role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
+		role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
 			Name: "test",
 			Desc: "test",
 		})
@@ -724,32 +875,14 @@ func Test_has_access_to_resource_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create role err: %v", err)
 		}
 
-		//create resource
-		resource_id, err := test_container.ResourceService.Create(ctx, &resource.CreateRequest{
-			Name:   "test",
-			Action: "test",
-		})
-		if err != nil {
-			t.Fatalf("Failed to create role err: %v", err)
-		}
-
-		//assign resource
-		err = test_container.RoleService.AddResource(ctx, &role.AddResourceRequest{
-			ResourceId: resource_id,
-			RoleId:     role_id,
-		})
-		if err != nil {
-			t.Fatalf("Failed to assign resource to role err: %v", err)
-		}
-
 		//assign
-		err = test_container.UserService.AssignRole(ctx, user_id, role_id)
+		err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
 		if err != nil {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
 
 		//check access to resource
-		hasAccess, err := test_container.UserService.HasAccessToResource(ctx, user_id, resource_id)
+		hasAccess, err := testContainer.UserService.HasRole(ctx, user_id, role_id)
 		if err != nil {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
@@ -764,20 +897,20 @@ func Test_has_access_to_resource_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		user_id, err := test_container.UserService.Create(ctx, &in)
+		user_id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		//create role
-		role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
+		role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
 			Name: "test",
 			Desc: "test",
 		})
@@ -785,90 +918,147 @@ func Test_has_access_to_resource_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create role err: %v", err)
 		}
 
-		//create resource
-		resource_id, err := test_container.ResourceService.Create(ctx, &resource.CreateRequest{
-			Name:   "test",
-			Action: "test",
-		})
-		if err != nil {
-			t.Fatalf("Failed to create role err: %v", err)
-		}
-
-		//assign resource
-		err = test_container.RoleService.AddResource(ctx, &role.AddResourceRequest{
-			ResourceId: resource_id,
-			RoleId:     role_id,
-		})
-		if err != nil {
-			t.Fatalf("Failed to assign resource to role err: %v", err)
-		}
-
-		//assign
-		err = test_container.UserService.AssignRole(ctx, user_id, role_id)
+		//check access to role
+		got, err := testContainer.UserService.HasRole(ctx, user_id, role_id)
 		if err != nil {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
-
-		//remove
-		err = test_container.UserService.RemoveAssignedRole(ctx, user_id, role_id)
-		if err != nil {
-			t.Errorf("Expected err: %v Got err: %v", nil, err)
-		}
-
-		//check access to resource
-		hasAccess, err := test_container.UserService.HasAccessToResource(ctx, user_id, resource_id)
-		if err != nil {
-			t.Errorf("Expected err: %v Got err: %v", nil, err)
-		}
-		expectedStatus := false
-		if !hasAccess {
-			t.Errorf("Expected has access status: %v Got err: %v", expectedStatus, hasAccess)
+		want := false
+		if got != want {
+			t.Errorf("Expected has access status: %v Got err: %v", want, got)
 		}
 	})
 }
 
-func Test_has_access_to_resource_unhappyPath(t *testing.T) {
-	t.Run("resource_not_found", func(t *testing.T) {
+func Test_has_role_unhappyPath(t *testing.T) {
+	t.Run("roleDoesNotExist", func(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FullName:   "natnael jemaneh asefa",
-			Email:      "natnaeljemaneh001@gmail.com",
-			Phone:      "+251949184879",
-			Username:   "test",
-			DOB:        parsedTime,
-			IsActive:   true,
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
 			ExternalId: "123",
 		}
-		user_id, err := test_container.UserService.Create(ctx, &in)
+		user_id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		//create role
-		role_id, err := test_container.RoleService.Create(ctx, &role.CreateRequest{
-			Name: "test",
-			Desc: "test",
-		})
-		if err != nil {
-			t.Fatalf("Failed to create role err: %v", err)
-		}
-
-		//assign
-		err = test_container.UserService.AssignRole(ctx, user_id, role_id)
-		if err != nil {
-			t.Errorf("Expected err: %v Got err: %v", nil, err)
-		}
 
 		//check access to resource
-		expectedErr := ErrResourceDoesNotExist
-		hasAccess, err := test_container.UserService.HasAccessToResource(ctx, user_id, resource_id)
+		expectedErr := ErrRoleDoesNotExist
+		got, err := testContainer.UserService.HasRole(ctx, user_id, rand.Int())
 		if err != expectedErr {
 			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
 		}
-		expectedStatus := true
-		if !hasAccess {
-			t.Errorf("Expected has access status: %v Got err: %v", expectedStatus, hasAccess)
+		want := false
+		if got != want {
+			t.Errorf("Expected has access status: %v Got: %v", want, got)
 		}
 	})
+}
+
+func Test_update_user_happyPath(t *testing.T) {
+	ctx := context.Background()
+	//setup
+	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+	in := CreateRequest{
+		FullName:   "natnael jemaneh asefa",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		ExternalId: "123",
+	}
+	user_id, err := testContainer.UserService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	in_update := &UpdateRequest{
+		Id:         user_id,
+		FullName:   "test",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		ExternalId: "123",
+	}
+	got, err := testContainer.UserService.Update(ctx, in_update)
+	if err != nil {
+		t.Errorf("Expected err: %v Got err: %v", nil, err)
+	}
+	if got.FullName != in_update.FullName {
+		t.Errorf("Expected : %v Got: %v", in_update.DOB, got.DOB)
+	}
+	if got.Email != in_update.Email {
+		t.Errorf("Expected : %v Got: %v", in_update.Email, got.Email)
+	}
+	if got.Phone != in_update.Phone {
+		t.Errorf("Expected : %v Got: %v", in_update.Phone, got.Phone)
+	}
+	if got.Username != in_update.Username {
+		t.Errorf("Expected : %v Got: %v", in_update.Username, got.Username)
+	}
+	if got.DOB != in_update.DOB {
+		t.Errorf("Expected : %v Got: %v", in_update.DOB, got.DOB)
+	}
+	if got.ExternalId != in_update.ExternalId {
+		t.Errorf("Expected : %v Got: %v", in_update.ExternalId, got.ExternalId)
+	}
+}
+
+func Test_update_user_unhappyPath(t *testing.T) {
+	ctx := context.Background()
+	//setup
+	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+
+	in_update := &UpdateRequest{
+		Id:         rand.Int(),
+		FullName:   "test",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		ExternalId: "123",
+	}
+	_, err := testContainer.UserService.Update(ctx, in_update)
+	expectedErr := ErrIdNotFound
+	if err != expectedErr {
+		t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+	}
+}
+
+func Test_remove_user_happyPath(t *testing.T) {
+	ctx := context.Background()
+	//setup
+	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+	in := CreateRequest{
+		FullName:   "natnael jemaneh asefa",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		ExternalId: "123",
+	}
+	user_id, err := testContainer.UserService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	err = testContainer.UserService.Remove(ctx, user_id)
+	if err != nil {
+		t.Errorf("Expected err: %v Got err: %v", nil, err)
+	}
+}
+
+func Test_remove_user_unhappyPath(t *testing.T) {
+	ctx := context.Background()
+	err := testContainer.UserService.Remove(ctx, rand.Int())
+	expectedErr := ErrIdNotFound
+	if err != expectedErr {
+		t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+	}
 }

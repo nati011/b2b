@@ -46,3 +46,6 @@ func initResourceService() resource.Provider {
 		db_resource_mock.NewMock(),
 	)
 }
+
+//update user info
+//remove
