@@ -3,7 +3,6 @@ package adapter
 import (
 	"context"
 
-	resource "b2b.nati011.github.com/internal/port/resource"
 	port "b2b.nati011.github.com/internal/port/role"
 )
 
@@ -19,9 +18,8 @@ type MockResource struct {
 }
 
 type Mock struct {
-	roles       []MockRole
-	resource_db resource.DB
-	resources   []MockResource
+	roles     []MockRole
+	resources []MockResource
 }
 
 func NewMock() port.DB {
