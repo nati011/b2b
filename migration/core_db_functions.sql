@@ -1,6 +1,6 @@
 -- v 0.1
 
--- Resources
+-- Resources ----------------------------------------
 
     -- writers
 CREATE OR REPLACE FUNCTION public.create_resource(
@@ -69,6 +69,8 @@ BEGIN
 END;
 $$;
 
+    --readers
+
 CREATE OR REPLACE FUNCTION public.get_resources_by_id(
     resource_id BIGINT
 )
@@ -113,7 +115,7 @@ BEGIN
 END;
 $$;
 
--- Roles
+-- Roles ----------------------------------------
 
     -- writers
 CREATE OR REPLACE FUNCTION public.create_role(
@@ -169,7 +171,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION public.delete_role(
    r_id BIGINT
 )
@@ -183,6 +184,7 @@ BEGIN
 END;
 $$;
 
+    -- readers
 CREATE OR REPLACE FUNCTION public.get_roles_by_id(
     role_id BIGINT
 )
@@ -227,8 +229,9 @@ BEGIN
 END;
 $$;
 
--- role_resources
+-- role_resources ----------------------------------------
 
+    -- writers
 CREATE OR REPLACE FUNCTION public.add_resource_to_role(
    role_identifier BIGINT,
    resource_identifier BIGINT
@@ -241,7 +244,6 @@ BEGIN
     VALUES (role_identifier, resource_identifier);
 END;
 $$;
-
 
 CREATE OR REPLACE FUNCTION public.remove_resource_from_role(
    role_identifier BIGINT,
@@ -259,6 +261,7 @@ BEGIN
 END;
 $$;
 
+    -- readers
 CREATE OR REPLACE FUNCTION public.get_all_resource_by_role(
     role_identifier BIGINT
 )
@@ -274,4 +277,8 @@ BEGIN
 END;
 $$;
 
--- Users
+-- Users ----------------------------------------
+    
+    --writers
+    
+    --readers
