@@ -406,7 +406,7 @@ func (p *Postgres) UpdateUsername(ctx context.Context, req *port.UpdateUsernameR
 func (p *Postgres) AssignRole(ctx context.Context, id int, role_id int) error {
 	query := "SELECT * FROM public.add_role_to_user($1, $2);"
 
-	err := p.db.QueryRowContext(ctx, query, id, role_id).Err()
+	_, err := p.db.QueryContext(ctx, query, id, role_id)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -451,7 +451,7 @@ func (p *Postgres) GetAllAssignedRole(ctx context.Context, id int) (port.GetAllA
 
 	for rows.Next() {
 		var role port.GetAssignedRoleResponse
-		if err := rows.Scan(&role.Id, &role.Name); err != nil {
+		if err := rows.Scan(&role.Id); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllAssignedRoleResponse{}, err
 		}
