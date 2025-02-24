@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	smsProvider "b2b.nati011.github.com/internal/core/domain/sms/provider"
+	smsProvider "b2b.nati011.github.com/internal/core/application/util/sms/provider"
 )
 
 const (
