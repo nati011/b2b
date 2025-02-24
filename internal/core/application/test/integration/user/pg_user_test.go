@@ -13,16 +13,16 @@ import (
 	db_resource_adapter "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
 	db_role_adapter "b2b.nati011.github.com/internal/adapter/secondary/role/db"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/user/db"
-	"b2b.nati011.github.com/internal/core/application/service/resource"
+	resource "b2b.nati011.github.com/internal/core/application/service/resource"
 	role "b2b.nati011.github.com/internal/core/application/service/role"
 	user "b2b.nati011.github.com/internal/core/application/service/user"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 var testContainer user.TestContainer
-var service user.Provider
 var pgContainer *postgres.PostgresContainer
 var db *sql.DB
 
@@ -55,7 +55,9 @@ func setup() {
 		log.Fatal(err)
 	}
 
-	service = user.NewUser(
+	testContainer = user.NewIntegrationTestContainer(db)
+
+	testContainer.UserService = user.NewUser(
 		db_adapter.NewPostgres(
 			db,
 		),
@@ -70,7 +72,15 @@ func setup() {
 		),
 	)
 
-	testContainer = user.NewIntegrationTestContainer(db)
+	testContainer.RoleService = role.NewRole(
+		db_role_adapter.NewPostgres(
+			db,
+		), resource.NewResource(
+			db_resource_adapter.NewPostgres(
+				db,
+			),
+		),
+	)
 
 	err = db.Ping()
 	if err != nil {
@@ -163,9 +173,4 @@ func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 	)
 }
 
-func Test_Timeout(t *testing.T) {
-
-}
-
-// run unit tests
-func Test_Unit_with_db(t *testing.T) {}
+func Test_Timeout(t *testing.T) {}
