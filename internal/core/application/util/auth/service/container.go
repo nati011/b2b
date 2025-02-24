@@ -1,7 +1,7 @@
 package auth
 
 import (
-	provider "b2b.nati011.github.com/internal/core/domain/auth/provider"
+	provider "b2b.nati011.github.com/internal/core/application/util/auth/provider"
 )
 
 type Container struct {
