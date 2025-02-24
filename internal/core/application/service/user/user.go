@@ -645,7 +645,10 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 	}
 
 	if req.Email != "" {
-		_, err := u.db.UpdateEmail(ctx, &port.UpdateEmailRequest{})
+		_, err := u.db.UpdateEmail(ctx, &port.UpdateEmailRequest{
+			Id:    req.Id,
+			Email: req.Email,
+		})
 		if err != nil {
 			switch err {
 			default:
@@ -655,7 +658,10 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 	}
 
 	if req.Phone != "" {
-		_, err := u.db.UpdatePhone(ctx, &port.UpdatePhoneRequest{})
+		_, err := u.db.UpdatePhone(ctx, &port.UpdatePhoneRequest{
+			Id:    req.Id,
+			Phone: req.Phone,
+		})
 		if err != nil {
 			switch err {
 			default:
@@ -665,7 +671,10 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 	}
 
 	if req.Username != "" {
-		_, err := u.db.UpdateUsername(ctx, &port.UpdateUsernameRequest{})
+		_, err := u.db.UpdateUsername(ctx, &port.UpdateUsernameRequest{
+			Id:       req.Id,
+			Username: req.Username,
+		})
 		if err != nil {
 			switch err {
 			default:
@@ -674,7 +683,10 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 		}
 	}
 	if !req.DOB.IsZero() {
-		_, err = u.db.UpdateDOB(ctx, &port.UpdateDOBRequest{})
+		_, err = u.db.UpdateDOB(ctx, &port.UpdateDOBRequest{
+			Id:  req.Id,
+			DOB: req.DOB,
+		})
 		if err != nil {
 			switch err {
 			default:
