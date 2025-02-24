@@ -19,7 +19,7 @@ COMMENT ON TABLE public."roles" IS 'stores role definition of user agent.';
 
 CREATE TABLE IF NOT EXISTS public."users" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   fullName VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   phone_number VARCHAR(255) NOT NULL,
@@ -30,6 +30,17 @@ CREATE TABLE IF NOT EXISTS public."users"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."users" IS 'stores agent that interacts with the application.';
+
+CREATE TABLE IF NOT EXISTS public."user_roles"
+(
+	user_id INT,
+	role_id INT,
+	FOREIGN KEY (role_id) REFERENCES public."roles"(id) ON DELETE CASCADE,
+	FOREIGN KEY(user_id) REFERENCES public."users"(id) ON DELETE CASCADE
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."user_roles" IS 'stores role user mappings';
+
 
 CREATE TABLE IF NOT EXISTS public."resources" 
 (

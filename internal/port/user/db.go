@@ -67,8 +67,7 @@ type UpdateIsActiveRequest struct {
 }
 
 type GetAssignedRoleResponse struct {
-	Id   int
-	Name string
+	Id int
 }
 
 type GetAllAssignedRoleResponse struct {

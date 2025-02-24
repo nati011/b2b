@@ -549,14 +549,14 @@ BEGIN
 
     RETURN user_id;
 END;
-$$
+$$;
 
 -- user-roles ----------------------------------
 
     --writers
 CREATE OR REPLACE FUNCTION public.add_role_to_user(
-   user_identifier BIGINT,
-   role_identifier BIGINT
+   user_identifier INT,
+   role_identifier INT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -567,10 +567,9 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION public.remove_role_from_user(
-   user_identifier BIGINT,
-   role_identifier BIGINT
+   user_identifier INT,
+   role_identifier INT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -586,9 +585,9 @@ $$;
 
     -- readers
 CREATE OR REPLACE FUNCTION public.get_all_role_by_user(
-    user_identifier BIGINT
+    user_identifier INT
 )
-RETURNS TABLE(resource_id BIGINT)
+RETURNS TABLE(role_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
