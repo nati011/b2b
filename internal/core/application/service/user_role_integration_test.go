@@ -17,6 +17,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/service/resource"
 	"b2b.nati011.github.com/internal/core/application/service/role"
 	"b2b.nati011.github.com/internal/core/application/service/user"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -56,7 +57,8 @@ func setup() {
 		log.Fatal(err)
 	}
 
-	service = user.NewUser(
+	testContainer = user.NewIntegrationTestContainer(db)
+	testContainer.UserService = user.NewUser(
 		db_adapter.NewPostgres(
 			db,
 		),
@@ -71,7 +73,15 @@ func setup() {
 		),
 	)
 
-	testContainer = user.NewIntegrationTestContainer(db)
+	testContainer.RoleService = role.NewRole(
+		db_role_adapter.NewPostgres(
+			db,
+		), resource.NewResource(
+			db_resource_adapter.NewPostgres(
+				db,
+			),
+		),
+	)
 
 	err = db.Ping()
 	if err != nil {
@@ -81,13 +91,13 @@ func setup() {
 	// ddl
 	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
 	if err != nil {
-		log.Fatalf("Error running migration: %v", err)
+		log.Fatalf("Error running ddl migration: %v", err)
 	}
 
 	// functions
 	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
 	if err != nil {
-		log.Fatalf("Error running migration: %v", err)
+		log.Fatalf("Error running stored func migration: %v", err)
 	}
 
 }
@@ -165,6 +175,7 @@ func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 }
 
 func Test_assignRole_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -198,7 +209,9 @@ func Test_assignRole_happyPath(t *testing.T) {
 }
 
 func Test_assignRole_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("roleDoesNotExist", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -225,6 +238,7 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("alreadyAssigned", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -268,6 +282,7 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 }
 
 func Test_removeAssignedRole_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -307,7 +322,9 @@ func Test_removeAssignedRole_happyPath(t *testing.T) {
 }
 
 func Test_removeAssignedRole_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("roleNotAssigned", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -343,6 +360,7 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("roleNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -371,6 +389,7 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 }
 
 func Test_getAllRole_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -414,7 +433,9 @@ func Test_getAllRole_happyPath(t *testing.T) {
 }
 
 func Test_getAllRole_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("emptyRoleList", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -454,7 +475,9 @@ func Test_getAllRole_unhappyPath(t *testing.T) {
 }
 
 func Test_has_role_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("has", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -498,6 +521,7 @@ func Test_has_role_happyPath(t *testing.T) {
 	})
 
 	t.Run("has-not", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -536,7 +560,9 @@ func Test_has_role_happyPath(t *testing.T) {
 }
 
 func Test_has_role_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("roleDoesNotExist", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")

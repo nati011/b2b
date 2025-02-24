@@ -63,8 +63,7 @@ type GetByParam struct {
 }
 
 type GetAssignedRoleResponse struct {
-	Id   int
-	Name string
+	Id int
 }
 
 type GetAllAssignedRoleResponse struct {
@@ -490,9 +489,12 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 	resp := GetAllAssignedRoleResponse{}
 	for _, i := range assigend_roles.List {
 		resp.List = append(resp.List, GetAssignedRoleResponse{
-			Id:   i.Id,
-			Name: i.Name,
+			Id: i.Id,
 		})
+	}
+
+	if len(resp.List) == 0 {
+		return resp, ErrNoRoleAssigned
 	}
 	return resp, nil
 }
