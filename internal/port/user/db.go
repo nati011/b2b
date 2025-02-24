@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrSysNoRows = errors.New("no rows")
+	ErrSysNoRows  = errors.New("no rows")
+	ErrSysUnknown = errors.New("unknown error")
 )
 
 type CreateRequest struct {
@@ -98,7 +99,6 @@ type Writer interface {
 	AssignRole(ctx context.Context, id int, roleId int) error
 	RemoveAssignedRole(ctx context.Context, id int, roleId int) error
 	GetAllAssignedRole(ctx context.Context, id int) (GetAllAssignedRoleResponse, error)
-	HasAccessToResource(ctx context.Context, id int, roleId int) (bool, error)
 }
 
 type DB interface {

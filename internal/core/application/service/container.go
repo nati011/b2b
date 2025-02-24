@@ -1,4 +1,4 @@
-package container
+package user
 
 type TestContainer interface {
 	NewTestContainer() *TestContainer
