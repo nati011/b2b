@@ -13,13 +13,13 @@ import (
 var testContainer TestContainer
 var service Provider
 
-func TestMain(m *testing.M) {
-	setup()
+func TestMain(m *testing.M, testContainer TestContainer, service Provider) {
+	setup(testContainer, service)
 	code := m.Run()
 	os.Exit(code)
 }
 
-func setup() {
+func setup(testContainer TestContainer, service Provider) {
 	testContainer = NewTestContainer()
 	service = testContainer.UserService
 }
