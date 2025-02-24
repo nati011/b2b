@@ -1,42 +1,40 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Navbar } from './components/Navbar';
-import { ProductGrid } from './components/ProductGrid';
-import { ProductDetail } from './pages/ProductDetail.tsx';
-import { Login } from './pages/Login.tsx';
-import { Cart } from './pages/Cart.tsx';
-import { CartProvider } from './context/CartContext';
 
-function App() {
-  return (
-    <CartProvider>
-      <BrowserRouter>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <Navbar />
-          <main className="py-10 flex-grow">
-            <Routes>
-              <Route path="/" element={
-                <>
-                  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-8">Featured Products</h1>
-                  </div>
-                  <ProductGrid />
-                </>
-              } />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/cart" element={<Cart />} />
-            </Routes>
-          </main>
-          <footer className="bg-white mt-auto">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-              <p className="text-center text-gray-500">© 2024 Store. All rights reserved.</p>
-            </div>
-          </footer>
-        </div>
-      </BrowserRouter>
-    </CartProvider>
-  );
-}
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from "./contexts/CartContext";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <CartProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Products />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
