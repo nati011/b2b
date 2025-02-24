@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	template "b2b.nati011.github.com/internal/core/domain/email/service/template"
+	template "b2b.nati011.github.com/internal/core/application/util/email/service/template"
 )
 
 var service Renderer
