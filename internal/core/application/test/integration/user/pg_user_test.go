@@ -174,3 +174,139 @@ func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 }
 
 func Test_Timeout(t *testing.T) {}
+
+func Test_read(t *testing.T) {
+	t.Run("create", func(t *testing.T) {
+		ctx := context.Background()
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := user.CreateRequest{
+			FullName:   "natnael jemaneh asefa",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			ExternalId: "123",
+		}
+		id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		_, err = testContainer.UserService.GetByParam(ctx, &user.GetByParam{
+			ID: id,
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v Got err: %v", nil, err)
+		}
+	})
+}
+
+func Test_write(t *testing.T) {
+	t.Run("get_all", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := user.CreateRequest{
+			FullName: "natnael jemaneh asefa",
+			Email:    "natnaeljemaneh001@gmail.com",
+			Phone:    "+251949184879",
+			Username: "test",
+			DOB:      parsedTime,
+
+			ExternalId: "123",
+		}
+		_, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		//get
+		resp, err := testContainer.UserService.GetAll(ctx)
+		if err != nil {
+			t.Fatalf("Failed to getAll err: %v", err)
+		}
+		expecetdLen := 1
+		if len(resp.List) == 0 {
+			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(resp.List))
+		}
+	})
+
+	t.Run("get_by_param", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := user.CreateRequest{
+			FullName:   "natnael jemaneh asefa",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			ExternalId: "123",
+		}
+		_, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		inParam := &user.GetByParam{
+			Username: "test",
+		}
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
+		if err != nil {
+			t.Fatalf("Failed to get user by param err: %v", err)
+		}
+		expecetdLen := 1
+		if len(response.List) != expecetdLen {
+			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(response.List))
+		}
+	})
+
+	t.Run("update", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02", "2024-09-20")
+		in := user.CreateRequest{
+			FullName:   "natnael jemaneh asefa",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			ExternalId: "123",
+		}
+		user_id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		in_updateParsedTime, _ := time.Parse("2006-01-02", "2024-09-19")
+		in_update := &user.UpdateRequest{
+			Id:         user_id,
+			FullName:   "test",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        in_updateParsedTime,
+			ExternalId: "123",
+		}
+		got, err := testContainer.UserService.Update(ctx, in_update)
+		if err != nil {
+			t.Errorf("Expected err: %v Got err: %v", nil, err)
+		}
+		if got.FullName != in_update.FullName {
+			t.Errorf("Expected : %v Got: %v", in_update.DOB, got.DOB)
+		}
+		if got.Email != in_update.Email {
+			t.Errorf("Expected : %v Got: %v", in_update.Email, got.Email)
+		}
+		if got.Phone != in_update.Phone {
+			t.Errorf("Expected : %v Got: %v", in_update.Phone, got.Phone)
+		}
+		if got.Username != in_update.Username {
+			t.Errorf("Expected : %v Got: %v", in_update.Username, got.Username)
+		}
+		if got.DOB != in_update.DOB {
+			t.Errorf("Expected : %v Got: %v", in_update.DOB, got.DOB)
+		}
+		if got.ExternalId != in_update.ExternalId {
+			t.Errorf("Expected : %v Got: %v", in_update.ExternalId, got.ExternalId)
+		}
+	})
+
+}
