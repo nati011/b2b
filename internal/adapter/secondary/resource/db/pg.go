@@ -107,7 +107,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.update_action($1, $2);"
+	query := "SELECT * FROM public.update_resource_action($1, $2);"
 
 	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Action).Scan(&resourceId)
 	if err != nil {
@@ -124,7 +124,7 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 
 func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.update_name($1, $2);"
+	query := "SELECT * FROM public.update_resource_name($1, $2);"
 
 	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Name).Scan(&resourceId)
 	if err != nil {
