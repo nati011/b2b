@@ -451,6 +451,48 @@ func (m *Mock) UpdateImages(ctx context.Context, req *port.UpdateImagesRequest) 
 	return nil
 }
 
+func (m *Mock) UpdateCategoryId(ctx context.Context, req *port.UpdateCategoryIdRequest) error {
+	responses := []MockProduct{}
+	for _, i := range m.products {
+		if req.Id == i.Id {
+			responses = append(responses,
+				MockProduct{
+					Id:            i.Id,
+					Name:          i.Name,
+					Desc:          i.Desc,
+					ExternalID:    i.ExternalID,
+					Images:        i.Images,
+					Price:         i.Price,
+					Attributes:    i.Attributes,
+					DistributorId: i.DistributorId,
+					CategoryId:    req.CategoryId,
+					Stock:         i.Stock,
+					IsActive:      i.IsActive,
+				},
+			)
+		} else {
+			responses = append(responses,
+				MockProduct{
+					Id:            i.Id,
+					Name:          i.Name,
+					Desc:          i.Desc,
+					ExternalID:    i.ExternalID,
+					Images:        i.Images,
+					Price:         i.Price,
+					Attributes:    i.Attributes,
+					DistributorId: i.DistributorId,
+					CategoryId:    i.CategoryId,
+					Stock:         i.Stock,
+					IsActive:      i.IsActive,
+				},
+			)
+		}
+
+	}
+	m.products = responses
+	return nil
+}
+
 func (m *Mock) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingRequest) error {
 	resp := []MockProduct{}
 	for _, i := range m.products {

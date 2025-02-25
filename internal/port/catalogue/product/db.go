@@ -90,6 +90,11 @@ type UpdateActiveStatusRequest struct {
 	Status bool
 }
 
+type UpdateCategoryIdRequest struct {
+	Id         int
+	CategoryId []int
+}
+
 type GoodsReceivingRequest struct {
 	Id     int
 	Amount int
@@ -118,6 +123,7 @@ type Writer interface {
 	UpdateDesc(ctx context.Context, req *UpdateDescRequest) error
 	UpdateImages(ctx context.Context, req *UpdateImagesRequest) error
 	UpdateActiveStatus(ctx context.Context, req *UpdateActiveStatusRequest) error
+	UpdateCategoryId(ctx context.Context, req *UpdateCategoryIdRequest) error
 	GoodsReceiving(ctx context.Context, req *GoodsReceivingRequest) error
 	Dispatch(ctx context.Context, req *DispatchRequest) error
 }
