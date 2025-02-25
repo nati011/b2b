@@ -3,6 +3,9 @@ package product
 import (
 	"context"
 	"errors"
+	"math"
+
+	port "b2b.nati011.github.com/internal/port/catalogue/product"
 )
 
 var (
@@ -17,10 +20,10 @@ var (
 	ErrPriceNotSupplied             = errors.New("oopsy, price is not supplied")
 	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
 	ErrDuplicateNameNotAllowed      = errors.New("oopsy, duplicate name not allowed")
-	ErrPriceCannotBeZero            = errors.New("oopsy, price cannot be zero")
+	ErrUnknown                      = errors.New("oopsy, unkown error")
 )
 
-type CreateProductRequest struct {
+type CreateRequest struct {
 	Name          string
 	Desc          string
 	ExternalID    string
@@ -31,7 +34,7 @@ type CreateProductRequest struct {
 	CategoryId    []int
 }
 
-type GetProductResponse struct {
+type GetResponse struct {
 	Id            int
 	Name          string
 	Desc          string
@@ -46,7 +49,7 @@ type GetProductResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetProductResponse
+	List []GetResponse
 }
 
 type GetByParamRequest struct {
@@ -59,10 +62,12 @@ type GetByParamRequest struct {
 }
 
 type UpdateRequest struct {
+	Id         int
 	Name       string
 	ExternalID string
-	CategoryId int
 	Price      int
+	Desc       string
+	Images     []string
 }
 
 type GoodsReceivingRequest struct {
@@ -76,8 +81,8 @@ type DispatchRequest struct {
 }
 
 type Provider interface {
-	Create(ctx context.Context, req *CreateProductRequest) (id int, err error)
-	Get(ctx context.Context, id int) (GetProductResponse, error)
+	Create(ctx context.Context, req *CreateRequest) (id int, err error)
+	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
@@ -85,47 +90,376 @@ type Provider interface {
 	Dispatch(ctx context.Context, req *DispatchRequest) error
 	Activate(ctx context.Context, id int) error
 	Deactivate(ctx context.Context, id int) error
+	IsActive(ctx context.Context, id int) (bool, error)
 }
 
 type ProductService struct {
+	db port.DB
 }
 
-func NewProduct() Provider {
-	return &ProductService{}
+func NewProduct(db port.DB) Provider {
+	return &ProductService{
+		db: db,
+	}
 }
 
-func (p *ProductService) Create(ctx context.Context, req *CreateProductRequest) (int, error) {
-	return 0, nil
+func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, error) {
+	//validate
+	err := p.validateName(ctx, req.Name)
+	if err != nil {
+		return 0, err
+	}
+	err = validateDesc(req.Desc)
+	if err != nil {
+		return 0, err
+	}
+	err = validateImages(req.Images)
+	if err != nil {
+		return 0, err
+	}
+	err = validatePrice(int(req.Price))
+	if err != nil {
+		return 0, err
+	}
+	err = validateAttributes(req.Attributes)
+	if err != nil {
+		return 0, err
+	}
+
+	//create
+	id, err := p.db.Create(ctx, &port.CreateRequest{
+		Name:       req.Name,
+		Desc:       req.Desc,
+		ExternalID: req.ExternalID,
+		Images:     req.Images,
+		Price:      req.Price,
+		Attributes: req.Attributes,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	return id, nil
 }
 
-func (p *ProductService) Get(ctx context.Context, id int) (GetProductResponse, error) {
-	return GetProductResponse{}, nil
+func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
+	resp, err := p.db.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+		default:
+			return GetResponse{}, ErrUnknown
+		}
+	}
+	if resp.Id != id {
+		return GetResponse{}, ErrIdNotFound
+	}
+	return GetResponse(resp), nil
 }
 
 func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+	resp := GetAllResponse{}
+	if req.Name != "" {
+		resp_getByName, err := p.db.GetByName(ctx, &port.GetByNameRequest{
+			Name: req.Name,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		for _, i := range resp_getByName.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+
+	if req.ExternalID != "" {
+		resp_getByExtId, err := p.db.GetByExternalId(ctx, &port.GetByExternalIdRequest{
+			ExternalId: req.ExternalID,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_getByExtId.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+
+	if req.PriceMax != 0 && req.PriceMin != 0 {
+		resp_getByName, err := p.db.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
+			PriceMin: req.PriceMin,
+			PriceMax: req.PriceMax,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_getByName.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	} else if req.PriceMax != 0 && req.PriceMin == 0 {
+		resp_getByName, err := p.db.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
+			PriceMin: 0,
+			PriceMax: req.PriceMax,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_getByName.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	} else if req.PriceMax == 0 && req.PriceMin != 0 {
+		resp_getByName, err := p.db.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
+			PriceMin: req.PriceMin,
+			PriceMax: math.MaxInt,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_getByName.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+	if len(resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+
+	return resp, nil
 }
 
 func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+	resp, err := p.db.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	resp_val := GetAllResponse{}
+	for _, i := range resp.List {
+		resp_val.List = append(resp_val.List, GetResponse(i))
+	}
+	return resp_val, nil
 }
 
 func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, error) {
-	return 0, nil
+	//validate Id
+	_, err := p.Get(ctx, req.Id)
+	if err != nil {
+		return 0, ErrIdNotFound
+	}
+	//validate req
+	err = p.validateName(ctx, req.Name)
+	if err != nil {
+		return 0, err
+	}
+	err = validateDesc(req.Desc)
+	if err != nil {
+		return 0, err
+	}
+	err = validateImages(req.Images)
+	if err != nil {
+		return 0, err
+	}
+	err = validatePrice(int(req.Price))
+	if err != nil {
+		return 0, err
+	}
+
+	//update
+	if req.ExternalID != "" {
+		err = p.db.UpdateExternalID(ctx, &port.UpdateExternalIDRequest{
+			Id:         req.Id,
+			ExternalId: req.ExternalID,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return 0, ErrUnknown
+			}
+
+		}
+	}
+
+	if req.Name != "" {
+		err = p.db.UpdateName(ctx, &port.UpdateNameRequest{
+			Id:   req.Id,
+			Name: req.Name,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	if req.Price != 0 {
+		err = p.db.UpdatePrice(ctx, &port.UpdatePriceRequest{
+			Id:    req.Id,
+			Price: req.Price,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return 0, ErrUnknown
+			}
+
+		}
+	}
+
+	if req.Desc != "" {
+		err = p.db.UpdateDesc(ctx, &port.UpdateDescRequest{
+			Id:   req.Id,
+			Desc: req.Desc,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	if req.Images != nil {
+		err = p.db.UpdateImages(ctx, &port.UpdateImagesRequest{
+			Id:     req.Id,
+			Images: req.Images,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+	return req.Id, nil
 }
 
 func (p *ProductService) ReceiveGoods(ctx context.Context, req *GoodsReceivingRequest) error {
+	//validate Id
+	_, err := p.Get(ctx, req.Id)
+	if err != nil {
+		return ErrIdNotFound
+	}
+
+	err = p.db.GoodsReceiving(ctx, &port.GoodsReceivingRequest{
+		Id:     req.Id,
+		Amount: req.Amount,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
 }
 
 func (p *ProductService) Dispatch(ctx context.Context, req *DispatchRequest) error {
+	//validate Id
+	_, err := p.Get(ctx, req.Id)
+	if err != nil {
+		return ErrIdNotFound
+	}
+
+	err = p.db.Dispatch(ctx, &port.DispatchRequest{
+		Id:     req.Id,
+		Amount: req.Amount,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
 }
 
 func (p *ProductService) Activate(ctx context.Context, id int) error {
+	//validate Id
+	resp, err := p.Get(ctx, id)
+	if err != nil {
+		return ErrIdNotFound
+	}
+
+	//check if alreay active
+	if resp.IsActive {
+		return ErrAlreadyActive
+	}
+
+	err = p.db.UpdateActiveStatus(ctx, &port.UpdateActiveStatusRequest{
+		Id:     id,
+		Status: true,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
 }
 
 func (p *ProductService) Deactivate(ctx context.Context, id int) error {
+	//validate Id
+	resp, err := p.Get(ctx, id)
+	if err != nil {
+		return ErrIdNotFound
+	}
+
+	//check if already inactive
+	if !resp.IsActive {
+		return ErrAlreadyInactive
+	}
+
+	err = p.db.UpdateActiveStatus(ctx, &port.UpdateActiveStatusRequest{
+		Id:     id,
+		Status: false,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
+}
+
+func (p *ProductService) IsActive(ctx context.Context, id int) (bool, error) {
+	//validate Id
+	resp, err := p.Get(ctx, id)
+	if err != nil {
+		return false, ErrIdNotFound
+	}
+	return resp.IsActive, nil
 }
