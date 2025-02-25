@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 
+	category "b2b.nati011.github.com/internal/core/application/service/catalogue/category"
 	port "b2b.nati011.github.com/internal/port/catalogue/product"
 )
 
@@ -21,6 +22,7 @@ var (
 	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
 	ErrDuplicateNameNotAllowed      = errors.New("oopsy, duplicate name not allowed")
 	ErrUnknown                      = errors.New("oopsy, unkown error")
+	ErrCategoryNotFound             = errors.New("oopsy, category not found")
 )
 
 type CreateRequest struct {
@@ -68,6 +70,7 @@ type UpdateRequest struct {
 	Price      int
 	Desc       string
 	Images     []string
+	CategoryId []int
 }
 
 type GoodsReceivingRequest struct {
@@ -78,6 +81,10 @@ type GoodsReceivingRequest struct {
 type DispatchRequest struct {
 	Id     int
 	Amount int
+}
+
+type GetProductsWithCategoriesRequest struct {
+	List []int
 }
 
 type Provider interface {
@@ -94,12 +101,14 @@ type Provider interface {
 }
 
 type ProductService struct {
-	db port.DB
+	db              port.DB
+	categoryService category.Provider
 }
 
-func NewProduct(db port.DB) Provider {
+func NewProduct(db port.DB, categoryService category.Provider) Provider {
 	return &ProductService{
-		db: db,
+		db:              db,
+		categoryService: categoryService,
 	}
 }
 
@@ -126,6 +135,19 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 		return 0, err
 	}
 
+	//validate categories
+	for _, i := range req.CategoryId {
+		_, err := p.categoryService.Get(ctx, i)
+		if err != nil {
+			switch err {
+			case category.ErrIdNotFound:
+				return 0, ErrCategoryNotFound
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
 	//create
 	id, err := p.db.Create(ctx, &port.CreateRequest{
 		Name:       req.Name,
@@ -134,6 +156,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 		Images:     req.Images,
 		Price:      req.Price,
 		Attributes: req.Attributes,
+		CategoryId: req.CategoryId,
 	})
 	if err != nil {
 		switch err {
@@ -191,6 +214,35 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			}
 		}
 		for _, i := range resp_getByExtId.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+
+	if req.CategoryId != nil {
+		//validate category
+		for _, i := range req.CategoryId {
+			_, err := p.categoryService.Get(ctx, i)
+			if err != nil {
+				switch err {
+				case category.ErrIdNotFound:
+					return GetAllResponse{}, ErrCategoryNotFound
+				default:
+					return GetAllResponse{}, ErrUnknown
+				}
+			}
+		}
+
+		resp_getByCategoryId, err := p.db.GetByCategory(ctx, &port.GetByCategoryRequest{
+			CategoryId: req.CategoryId,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_getByCategoryId.List {
 			resp.List = append(resp.List, GetResponse(i))
 		}
 	}
@@ -353,6 +405,32 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		err = p.db.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
 			Images: req.Images,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	if req.CategoryId != nil {
+		//validate categories
+		for _, i := range req.CategoryId {
+			_, err := p.categoryService.Get(ctx, i)
+			if err != nil {
+				switch err {
+				case category.ErrIdNotFound:
+					return 0, ErrCategoryNotFound
+				default:
+					return 0, ErrUnknown
+				}
+			}
+		}
+		err = p.db.UpdateCategoryId(ctx, &port.UpdateCategoryIdRequest{
+			Id:         req.Id,
+			CategoryId: req.CategoryId,
 		})
 		if err != nil {
 			switch err {
