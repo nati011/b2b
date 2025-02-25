@@ -49,7 +49,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.Categories {
 		resp = port.GetResponse(i)
 	}
-	if resp.Id == 0 {
+	if resp.Id != id {
 		return resp, port.ErrSysNoRows
 	}
 	return resp, nil
