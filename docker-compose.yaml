@@ -10,7 +10,25 @@ services:
       - .env  
     networks:
       - backend
+    command: 
+      - ./main
+      - --port=${PORT}
+      - --env=${ENV}
+      - --keycloak_base_url=${KEYCLOAK_BASE_URL}
+      - --keycloak_user_name=${KEYCLOAK_USERNAME}
+      - --keycloak_password=${KEYCLOAK_PASSWORD}
+      - --keycloak_realm=${KEYCLOAK_REALM}
+      - --keycloak_application_realm=${KEYCLOAK_APPLICATION_REALM}
+      - --keycloak_client_id=${KEYCLOAK_CLIENT_ID}
 
+  inbucket:
+    image: inbucket/inbucket:latest
+    ports:
+      - "9000:9000"  
+      - "2500:2500"
+      - "1100:1100" 
+    networks:
+      - backend
 
 networks:
   backend:
