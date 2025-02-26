@@ -110,11 +110,13 @@ func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResponse
 	ctx := context.Background()
 	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
-		log.Fatalf("Something wrong with the credentials or URL: %v", err)
+		log.Printf("Something wrong with the credentials or URL: %v", err)
+		return LoginAuthResponse{}, ErrSysUnknown
 	}
 	clientSecret, err := client.GetClientSecret(ctx, adminToken.AccessToken, k.KeycloakApplicationRealm, k.KeycloakClientId)
 	if err != nil {
-		log.Fatal("client secret fetching failed:" + err.Error())
+		log.Printf("client secret fetching failed: %v", err.Error())
+		return LoginAuthResponse{}, ErrSysUnknown
 	}
 	token, err := client.Login(ctx, k.KeycloakClientId, *clientSecret.Value, k.KeycloakApplicationRealm, email, password)
 	if err != nil {

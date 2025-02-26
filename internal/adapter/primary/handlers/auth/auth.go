@@ -32,7 +32,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	loginResponse, err := h.authContainer.AuthService.LoginClient(req)
 	if err != nil {
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
