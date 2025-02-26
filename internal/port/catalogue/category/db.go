@@ -25,12 +25,12 @@ type GetAllResponse struct {
 }
 
 type Reader interface {
-	Create(ctx context.Context, req *CreateRequest) (int, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 }
 
 type Writer interface {
+	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Remove(ctx context.Context, id int) error
 }
 
