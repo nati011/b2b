@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	authDTO "b2b.nati011.github.com/internal/core/application/util/auth/model/dto"
-	provider "b2b.nati011.github.com/internal/core/application/util/auth/provider"
-	service "b2b.nati011.github.com/internal/core/application/util/auth/service"
+	authDTO "b2b.nati011.github.com/pkg/auth/model/dto"
+	provider "b2b.nati011.github.com/pkg/auth/provider"
+	service "b2b.nati011.github.com/pkg/auth/service"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
