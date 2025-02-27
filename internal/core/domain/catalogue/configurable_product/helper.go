@@ -8,7 +8,7 @@ func (p *ConfigurableProductService) validateName(ctx context.Context, name stri
 	}
 
 	//validate uniqueness
-	_, err := p.GetByParam(ctx, &GetByParamRequest{
+	resp, err := p.GetByParam(ctx, &GetByParamRequest{
 		Name: name,
 	})
 	if err != nil {
@@ -17,6 +17,10 @@ func (p *ConfigurableProductService) validateName(ctx context.Context, name stri
 		default:
 			return ErrUnknown
 		}
+	}
+	wantLen := 0
+	if len(resp.List) != wantLen {
+		return ErrNameDuplicate
 	}
 	return nil
 }

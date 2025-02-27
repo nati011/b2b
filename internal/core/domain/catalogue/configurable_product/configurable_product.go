@@ -109,7 +109,14 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 		return 0, err
 	}
 
-	id, err := c.db.Create(ctx, &port.CreateRequest{})
+	id, err := c.db.Create(ctx, &port.CreateRequest{
+		Name:              req.Name,
+		Desc:              req.Desc,
+		ExternalId:        req.ExternalId,
+		IsAvailableStatus: false,
+		Products:          req.Products,
+		Images:            req.Images,
+	})
 	if err != nil {
 		switch err {
 		default:
@@ -285,7 +292,7 @@ func (c *ConfigurableProductService) Disable(ctx context.Context, id int) error 
 
 	err = c.db.UpdateIsAvailableStatus(ctx, &port.UpdateIsAvailableStatusRequest{
 		Id:     id,
-		Status: true,
+		Status: false,
 	})
 	if err != nil {
 		switch err {
