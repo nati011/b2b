@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math"
 
-	category "b2b.nati011.github.com/internal/core/application/service/catalogue/category"
+	category "b2b.nati011.github.com/internal/core/domain/catalogue/category"
 	port "b2b.nati011.github.com/internal/port/catalogue/product"
 )
 
