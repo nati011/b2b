@@ -1,6 +1,10 @@
 package configurable_product
 
-import "context"
+import (
+	"context"
+
+	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
+)
 
 func (p *ConfigurableProductService) validateName(ctx context.Context, name string) error {
 	if name == "" {
@@ -32,7 +36,7 @@ func validateDesc(desc string) error {
 	return nil
 }
 
-func (p *ConfigurableProductService) validateAttributekeys(ctx context.Context, attributeKeys []string) error {
+func (p *ConfigurableProductService) validateAttributekeys(ctx context.Context, attributeKeys []string, products []int) error {
 	//altease one attribute
 	count := 0
 	for range attributeKeys {
@@ -42,6 +46,22 @@ func (p *ConfigurableProductService) validateAttributekeys(ctx context.Context, 
 		return ErrAttributeKeysMustBeAtleastOne
 	}
 	//validate attributes exist in all products
+	for _, i := range attributeKeys {
+		notFound := true
+		for _, j := range products {
+			resp, err := p.ProductService.Get(ctx, j)
+			if err != nil {
+				continue
+			}
+			if resp.Attributes[i] != "" {
+				notFound = false
+			}
+		}
+		if notFound {
+			return ErrAttributeKeysDoNotExistInProduct
+		}
+	}
+
 	return nil
 }
 
@@ -64,5 +84,17 @@ func (p *ConfigurableProductService) validateProducts(ctx context.Context, produ
 	if count < 1 {
 		return ErrProductsMustBeAtleastOne
 	}
+
+	//check if products exist
+	for _, i := range products {
+		_, err := p.ProductService.Get(ctx, i)
+		if err != nil {
+			switch err {
+			case product.ErrIdNotFound:
+				return ErrProductNotFound
+			}
+		}
+	}
+
 	return nil
 }
