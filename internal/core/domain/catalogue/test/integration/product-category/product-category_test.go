@@ -1,4 +1,4 @@
-package product_category
+package catalogue
 
 import (
 	"context"

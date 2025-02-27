@@ -4,21 +4,24 @@ import (
 	"context"
 	"errors"
 
+	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
 	port "b2b.nati011.github.com/internal/port/catalogue/configurable_product"
 )
 
 var (
-	ErrNameIsNotSupplied             = errors.New("oopsy, name is mandatory")
-	ErrNameDuplicate                 = errors.New("oopsy, name already in use")
-	ErrEmptyGetContent               = errors.New("oopsy, empty get content")
-	ErrUnknown                       = errors.New("oopsy, error unknown")
-	ErrDescIsNotSupplied             = errors.New("oopsy, desc is mandatory")
-	ErrImagesMustBeAtleastTwo        = errors.New("oopsy, atleast two images mandatory")
-	ErrAttributeKeysMustBeAtleastOne = errors.New("oopsy, atleast one attribute key mandatory")
-	ErrProductsMustBeAtleastOne      = errors.New("oopsy, atleast product mandatory")
-	ErrAlreadyAvailable              = errors.New("oopsy, product already available")
-	ErrAlreadyUnavailable            = errors.New("oopsy, product already unavailable")
-	ErrIdNotFound                    = errors.New("oopsy, id not found")
+	ErrNameIsNotSupplied                = errors.New("oopsy, name is mandatory")
+	ErrNameDuplicate                    = errors.New("oopsy, name already in use")
+	ErrEmptyGetContent                  = errors.New("oopsy, empty get content")
+	ErrUnknown                          = errors.New("oopsy, error unknown")
+	ErrDescIsNotSupplied                = errors.New("oopsy, desc is mandatory")
+	ErrImagesMustBeAtleastTwo           = errors.New("oopsy, atleast two images mandatory")
+	ErrAttributeKeysMustBeAtleastOne    = errors.New("oopsy, atleast one attribute key mandatory")
+	ErrProductsMustBeAtleastOne         = errors.New("oopsy, atleast product mandatory")
+	ErrAlreadyAvailable                 = errors.New("oopsy, product already available")
+	ErrAlreadyUnavailable               = errors.New("oopsy, product already unavailable")
+	ErrIdNotFound                       = errors.New("oopsy, id not found")
+	ErrProductNotFound                  = errors.New("oopsy, product not found")
+	ErrAttributeKeysDoNotExistInProduct = errors.New("oopsy, attributes not found in products")
 )
 
 type CreateRequest struct {
@@ -58,6 +61,14 @@ type GetByParamRequest struct {
 }
 
 type UpdateRequest struct {
+	Id                int
+	Name              string
+	Desc              string
+	ExternalId        string
+	Product           []int
+	IsAvailableStatus bool
+	Images            []string
+	AttributeKeys     []string
 }
 
 type Provider interface {
@@ -71,12 +82,14 @@ type Provider interface {
 }
 
 type ConfigurableProductService struct {
-	db port.DB
+	DB             port.DB
+	ProductService product.Provider
 }
 
-func NewConfigurableProductService(db port.DB) Provider {
+func NewConfigurableProductService(db port.DB, ps product.Provider) Provider {
 	return &ConfigurableProductService{
-		db: db,
+		DB:             db,
+		ProductService: ps,
 	}
 }
 
@@ -104,17 +117,24 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 	if err != nil {
 		return 0, err
 	}
-	err = c.validateAttributekeys(ctx, req.AttributeKeys)
+	err = c.validateAttributekeys(ctx, req.AttributeKeys, req.Products)
 	if err != nil {
 		return 0, err
 	}
-
-	id, err := c.db.Create(ctx, &port.CreateRequest{
+	//get vals
+	attributes := map[string]string{}
+	for _, i := range req.AttributeKeys {
+		attributes = map[string]string{
+			i: "created",
+		}
+	}
+	id, err := c.DB.Create(ctx, &port.CreateRequest{
 		Name:              req.Name,
 		Desc:              req.Desc,
 		ExternalId:        req.ExternalId,
 		IsAvailableStatus: false,
 		Products:          req.Products,
+		AttributeKeys:     attributes,
 		Images:            req.Images,
 	})
 	if err != nil {
@@ -127,7 +147,7 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 }
 
 func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetResponse, error) {
-	resp, err := c.db.Get(ctx, id)
+	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -148,13 +168,14 @@ func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetRespon
 		CategoryId:    resp.CategoryId,
 		DistributorId: resp.DistributorId,
 		Images:        resp.Images,
+		Attributes:    resp.Attributes,
 	}, nil
 }
 
 func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	resp := []GetResponse{}
 	if req.Name != "" {
-		get_by_name_resp, err := c.db.GetByName(ctx, req.Name)
+		get_by_name_resp, err := c.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
@@ -179,7 +200,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 	}
 
 	if req.ExternalId != "" {
-		get_by_name_resp, err := c.db.GetByExternalId(ctx, req.ExternalId)
+		get_by_name_resp, err := c.DB.GetByExternalId(ctx, req.ExternalId)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
@@ -212,7 +233,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 
 func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp := []GetResponse{}
-	get_by_name_resp, err := c.db.GetAll(ctx)
+	get_by_name_resp, err := c.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -245,7 +266,7 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 
 func (c *ConfigurableProductService) Avail(ctx context.Context, id int) error {
 	//validate
-	resp, err := c.db.Get(ctx, id)
+	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -260,7 +281,7 @@ func (c *ConfigurableProductService) Avail(ctx context.Context, id int) error {
 		return ErrAlreadyAvailable
 	}
 
-	err = c.db.UpdateIsAvailableStatus(ctx, &port.UpdateIsAvailableStatusRequest{
+	err = c.DB.UpdateIsAvailableStatus(ctx, &port.UpdateIsAvailableStatusRequest{
 		Id:     id,
 		Status: true,
 	})
@@ -275,7 +296,7 @@ func (c *ConfigurableProductService) Avail(ctx context.Context, id int) error {
 
 func (c *ConfigurableProductService) Disable(ctx context.Context, id int) error {
 	//validate
-	resp, err := c.db.Get(ctx, id)
+	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -290,7 +311,7 @@ func (c *ConfigurableProductService) Disable(ctx context.Context, id int) error 
 		return ErrAlreadyUnavailable
 	}
 
-	err = c.db.UpdateIsAvailableStatus(ctx, &port.UpdateIsAvailableStatusRequest{
+	err = c.DB.UpdateIsAvailableStatus(ctx, &port.UpdateIsAvailableStatusRequest{
 		Id:     id,
 		Status: false,
 	})
@@ -305,15 +326,126 @@ func (c *ConfigurableProductService) Disable(ctx context.Context, id int) error 
 
 func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequest) error {
 	//validate
-	// resp, err := c.db.Get(ctx, req.)
-	// if err != nil {
-	// 	switch err {
-	// 	case port.ErrSysNoRows:
-	// 		return ErrIdNotFound
-	// 	default:
-	// 		return ErrUnknown
-	// 	}
-	// }
+	_, err := c.DB.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return ErrIdNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+
+	/*
+		validate products before validating attribute keys
+		because attribute validation relies on the products..
+		we fetch the attributes in our products and ensure that the
+		attributes exist
+	*/
+	if req.Name != "" {
+		err = c.validateName(ctx, req.Name)
+		if err != nil {
+			return err
+		}
+		err := c.DB.UpdateName(ctx, &port.UpdateNameRequest{
+			Id:   req.Id,
+			Name: req.Name,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
+	if req.Desc != "" {
+		err = validateDesc(req.Desc)
+		if err != nil {
+			return err
+		}
+		err := c.DB.UpdateDesc(ctx, &port.UpdateDescRequest{
+			Id:   req.Id,
+			Desc: req.Desc,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
+	if req.Product != nil {
+		err = c.validateProducts(ctx, req.Product)
+		if err != nil {
+			return err
+		}
+		err := c.DB.UpdateProducts(ctx, &port.UpdateProductRequest{
+			Id:         req.Id,
+			ProductIds: req.Product,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
+	if req.AttributeKeys != nil {
+		err = c.validateAttributekeys(ctx, req.AttributeKeys, req.Product)
+		if err != nil {
+			return err
+		}
+		//build attributes
+		attributes := map[string]string{}
+		for _, i := range req.AttributeKeys {
+			attributes = map[string]string{
+				i: "updated",
+			}
+		}
+		err := c.DB.UpdateAttributes(ctx, &port.UpdateAttributes{
+			Id:         req.Id,
+			Attributes: attributes,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
+	if req.Images != nil {
+		err = validateImages(req.Images)
+		if err != nil {
+			return err
+		}
+		err = c.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
+			Id:     req.Id,
+			Images: req.Images,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
+	if req.ExternalId != "" {
+		err := c.DB.UpdateExternalId(ctx, &port.UpdateExternalIdRequest{
+			Id:         req.Id,
+			ExternalId: req.ExternalId,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
 
 	return nil
 }

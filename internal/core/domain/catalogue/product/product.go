@@ -101,14 +101,14 @@ type Provider interface {
 }
 
 type ProductService struct {
-	db              port.DB
-	categoryService category.Provider
+	DB              port.DB
+	CategoryService category.Provider
 }
 
 func NewProduct(db port.DB, categoryService category.Provider) Provider {
 	return &ProductService{
-		db:              db,
-		categoryService: categoryService,
+		DB:              db,
+		CategoryService: categoryService,
 	}
 }
 
@@ -137,7 +137,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 
 	//validate categories
 	for _, i := range req.CategoryId {
-		_, err := p.categoryService.Get(ctx, i)
+		_, err := p.CategoryService.Get(ctx, i)
 		if err != nil {
 			switch err {
 			case category.ErrIdNotFound:
@@ -149,7 +149,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 	}
 
 	//create
-	id, err := p.db.Create(ctx, &port.CreateRequest{
+	id, err := p.DB.Create(ctx, &port.CreateRequest{
 		Name:       req.Name,
 		Desc:       req.Desc,
 		ExternalID: req.ExternalID,
@@ -169,7 +169,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 }
 
 func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
-	resp, err := p.db.Get(ctx, id)
+	resp, err := p.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -186,7 +186,7 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	resp := GetAllResponse{}
 	if req.Name != "" {
-		resp_getByName, err := p.db.GetByName(ctx, &port.GetByNameRequest{
+		resp_getByName, err := p.DB.GetByName(ctx, &port.GetByNameRequest{
 			Name: req.Name,
 		})
 		if err != nil {
@@ -203,7 +203,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 	}
 
 	if req.ExternalID != "" {
-		resp_getByExtId, err := p.db.GetByExternalId(ctx, &port.GetByExternalIdRequest{
+		resp_getByExtId, err := p.DB.GetByExternalId(ctx, &port.GetByExternalIdRequest{
 			ExternalId: req.ExternalID,
 		})
 		if err != nil {
@@ -221,7 +221,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 	if req.CategoryId != nil {
 		//validate category
 		for _, i := range req.CategoryId {
-			_, err := p.categoryService.Get(ctx, i)
+			_, err := p.CategoryService.Get(ctx, i)
 			if err != nil {
 				switch err {
 				case category.ErrIdNotFound:
@@ -232,7 +232,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			}
 		}
 
-		resp_getByCategoryId, err := p.db.GetByCategory(ctx, &port.GetByCategoryRequest{
+		resp_getByCategoryId, err := p.DB.GetByCategory(ctx, &port.GetByCategoryRequest{
 			CategoryId: req.CategoryId,
 		})
 		if err != nil {
@@ -248,7 +248,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 	}
 
 	if req.PriceMax != 0 && req.PriceMin != 0 {
-		resp_getByName, err := p.db.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
+		resp_getByName, err := p.DB.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
 			PriceMin: req.PriceMin,
 			PriceMax: req.PriceMax,
 		})
@@ -263,7 +263,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			resp.List = append(resp.List, GetResponse(i))
 		}
 	} else if req.PriceMax != 0 && req.PriceMin == 0 {
-		resp_getByName, err := p.db.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
+		resp_getByName, err := p.DB.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
 			PriceMin: 0,
 			PriceMax: req.PriceMax,
 		})
@@ -278,7 +278,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			resp.List = append(resp.List, GetResponse(i))
 		}
 	} else if req.PriceMax == 0 && req.PriceMin != 0 {
-		resp_getByName, err := p.db.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
+		resp_getByName, err := p.DB.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
 			PriceMin: req.PriceMin,
 			PriceMax: math.MaxInt,
 		})
@@ -301,7 +301,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 }
 
 func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
-	resp, err := p.db.GetAll(ctx)
+	resp, err := p.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -344,7 +344,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 
 	//update
 	if req.ExternalID != "" {
-		err = p.db.UpdateExternalID(ctx, &port.UpdateExternalIDRequest{
+		err = p.DB.UpdateExternalID(ctx, &port.UpdateExternalIDRequest{
 			Id:         req.Id,
 			ExternalId: req.ExternalID,
 		})
@@ -359,7 +359,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Name != "" {
-		err = p.db.UpdateName(ctx, &port.UpdateNameRequest{
+		err = p.DB.UpdateName(ctx, &port.UpdateNameRequest{
 			Id:   req.Id,
 			Name: req.Name,
 		})
@@ -373,7 +373,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Price != 0 {
-		err = p.db.UpdatePrice(ctx, &port.UpdatePriceRequest{
+		err = p.DB.UpdatePrice(ctx, &port.UpdatePriceRequest{
 			Id:    req.Id,
 			Price: req.Price,
 		})
@@ -388,7 +388,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Desc != "" {
-		err = p.db.UpdateDesc(ctx, &port.UpdateDescRequest{
+		err = p.DB.UpdateDesc(ctx, &port.UpdateDescRequest{
 			Id:   req.Id,
 			Desc: req.Desc,
 		})
@@ -402,7 +402,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Images != nil {
-		err = p.db.UpdateImages(ctx, &port.UpdateImagesRequest{
+		err = p.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
 			Images: req.Images,
 		})
@@ -418,7 +418,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	if req.CategoryId != nil {
 		//validate categories
 		for _, i := range req.CategoryId {
-			_, err := p.categoryService.Get(ctx, i)
+			_, err := p.CategoryService.Get(ctx, i)
 			if err != nil {
 				switch err {
 				case category.ErrIdNotFound:
@@ -428,7 +428,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 				}
 			}
 		}
-		err = p.db.UpdateCategoryId(ctx, &port.UpdateCategoryIdRequest{
+		err = p.DB.UpdateCategoryId(ctx, &port.UpdateCategoryIdRequest{
 			Id:         req.Id,
 			CategoryId: req.CategoryId,
 		})
@@ -450,7 +450,7 @@ func (p *ProductService) ReceiveGoods(ctx context.Context, req *GoodsReceivingRe
 		return ErrIdNotFound
 	}
 
-	err = p.db.GoodsReceiving(ctx, &port.GoodsReceivingRequest{
+	err = p.DB.GoodsReceiving(ctx, &port.GoodsReceivingRequest{
 		Id:     req.Id,
 		Amount: req.Amount,
 	})
@@ -470,7 +470,7 @@ func (p *ProductService) Dispatch(ctx context.Context, req *DispatchRequest) err
 		return ErrIdNotFound
 	}
 
-	err = p.db.Dispatch(ctx, &port.DispatchRequest{
+	err = p.DB.Dispatch(ctx, &port.DispatchRequest{
 		Id:     req.Id,
 		Amount: req.Amount,
 	})
@@ -495,7 +495,7 @@ func (p *ProductService) Activate(ctx context.Context, id int) error {
 		return ErrAlreadyActive
 	}
 
-	err = p.db.UpdateActiveStatus(ctx, &port.UpdateActiveStatusRequest{
+	err = p.DB.UpdateActiveStatus(ctx, &port.UpdateActiveStatusRequest{
 		Id:     id,
 		Status: true,
 	})
@@ -520,7 +520,7 @@ func (p *ProductService) Deactivate(ctx context.Context, id int) error {
 		return ErrAlreadyInactive
 	}
 
-	err = p.db.UpdateActiveStatus(ctx, &port.UpdateActiveStatusRequest{
+	err = p.DB.UpdateActiveStatus(ctx, &port.UpdateActiveStatusRequest{
 		Id:     id,
 		Status: false,
 	})

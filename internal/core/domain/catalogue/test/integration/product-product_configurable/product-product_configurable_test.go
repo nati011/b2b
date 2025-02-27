@@ -1,0 +1,296 @@
+package catalogue
+
+import (
+	"context"
+	"os"
+	"testing"
+
+	"b2b.nati011.github.com/internal/core/domain/catalogue"
+	"b2b.nati011.github.com/internal/core/domain/catalogue/configurable_product"
+	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
+)
+
+var testContainer catalogue.TestContainer
+var productService product.Provider
+var configurableProductService configurable_product.Provider
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	testContainer = catalogue.NewPackageIntegrationTestContainer()
+	productService = testContainer.ProductService
+	configurableProductService = testContainer.ConfigurableProductService
+}
+
+func Test_Create_ValidateProduct_happyPath(t *testing.T) {
+	//create product
+	ctx := context.Background()
+	in := &product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"test",
+			"test",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+	}
+
+	id, err := productService.Create(ctx, in)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+	//create configurable product
+	in_cp := &configurable_product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"test",
+			"test",
+		},
+		Products: []int{
+			id,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	_, err = configurableProductService.Create(ctx, in_cp)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+}
+
+func Test_Create_ValidateProduct_unhappyPath(t *testing.T) {
+	// create configurable product
+	ctx := context.Background()
+	in_cp := &configurable_product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"test",
+			"test",
+		},
+		Products: []int{
+			99,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	_, err := configurableProductService.Create(ctx, in_cp)
+	wantErr := configurable_product.ErrProductNotFound
+	if err != wantErr {
+		t.Errorf("Expcetd err: %v Got err: %v", wantErr, err)
+	}
+}
+func Test_Create_ValidateAttribute_keys_happyPath(t *testing.T) {
+	//create product
+	ctx := context.Background()
+	in := &product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"test",
+			"test",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+	}
+
+	id, err := productService.Create(ctx, in)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+
+	//create configurable product
+	in_cp := &configurable_product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"test",
+		},
+		Products: []int{
+			id,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	_, err = configurableProductService.Create(ctx, in_cp)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+}
+
+func Test_Create_PopulateAttributeValues(t *testing.T) {
+	//create product
+	ctx := context.Background()
+	in := &product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"test",
+			"test",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+	}
+
+	id, err := productService.Create(ctx, in)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+
+	//create configurable product
+	in_cp := &configurable_product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"unknownKey",
+		},
+		Products: []int{
+			id,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	_, err = configurableProductService.Create(ctx, in_cp)
+	wantErr := configurable_product.ErrAttributeKeysDoNotExistInProduct
+	if err != wantErr {
+		t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
+	}
+}
+
+func Test_Update_ValidateProduct_happyPath(t *testing.T) {
+	// create product
+	ctx := context.Background()
+	in := &product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"test",
+			"test",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+	}
+
+	id, err := productService.Create(ctx, in)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+	// create configurable product
+	in_cp := &configurable_product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"test",
+			"test",
+		},
+		Products: []int{
+			id,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	config_product_id, err := configurableProductService.Create(ctx, in_cp)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+	// create configurable product
+	updated_cp := &configurable_product.UpdateRequest{
+		Id: config_product_id,
+		Product: []int{
+			id,
+		},
+	}
+	err = configurableProductService.Update(ctx, updated_cp)
+	if err != nil {
+		t.Fatalf("Failed to update product err: %v", err)
+	}
+}
+
+func Test_Update_ValidateProduct_unhappyPath(t *testing.T) {
+	// create product
+	ctx := context.Background()
+	in := &product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"test",
+			"test",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+	}
+
+	id, err := productService.Create(ctx, in)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+	// create configurable product
+	in_cp := &configurable_product.CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"test",
+			"test",
+		},
+		Products: []int{
+			id,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	config_product_id, err := configurableProductService.Create(ctx, in_cp)
+	if err != nil {
+		t.Errorf("Failed to create product err: %v", err)
+	}
+	// create configurable product
+	updated_cp := &configurable_product.UpdateRequest{
+		Id: config_product_id,
+		Product: []int{
+			99,
+		},
+	}
+	err = configurableProductService.Update(ctx, updated_cp)
+	wantErr := configurable_product.ErrProductNotFound
+	if err != wantErr {
+		t.Errorf("Expected err: %v Got err %v", wantErr, err)
+	}
+}
