@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	provider "b2b.nati011.github.com/internal/core/application/util/email/provider/db"
+	provider "b2b.nati011.github.com/pkg/email/provider/db"
 )
 
 var templateService Templer
