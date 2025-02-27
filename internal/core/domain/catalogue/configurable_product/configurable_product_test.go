@@ -290,7 +290,12 @@ func Test_Avail_happyPath(t *testing.T) {
 
 func Test_Avail_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
-
+		ctx := context.Background()
+		err := service.Avail(ctx, 99)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
 	})
 
 	t.Run("already_available", func(t *testing.T) {
@@ -307,6 +312,7 @@ func Test_Avail_unhappyPath(t *testing.T) {
 				1,
 			},
 			Images: []string{
+				"test",
 				"test",
 			},
 		}
@@ -373,9 +379,13 @@ func Test_Disable_happyPath(t *testing.T) {
 }
 
 func Test_Disable_unhappyPath(t *testing.T) {
-
 	t.Run("id_not_found", func(t *testing.T) {
-
+		ctx := context.Background()
+		err := service.Disable(ctx, 99)
+		expectedErr := ErrIdNotFound
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
 	})
 
 	t.Run("already_disabled", func(t *testing.T) {
@@ -409,7 +419,7 @@ func Test_Disable_unhappyPath(t *testing.T) {
 	})
 }
 
-func Test_Get(t *testing.T) {
+func Test_Get_happyPath(t *testing.T) {
 	//setup
 	ctx := context.Background()
 	in := &CreateRequest{
@@ -444,10 +454,172 @@ func Test_Get(t *testing.T) {
 	}
 }
 
-func Test_GetByParam(t *testing.T) {
+func Test_Get_unhappyPath(t *testing.T) {
+	t.Run("get", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				1,
+			},
+			Images: []string{
+				"test",
+				"test",
+			},
+		}
+		id, err := service.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		// Get
+		got, err := service.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get err: %v", err)
+		}
+
+		if got.Id != id {
+			t.Errorf("Expected resp Id: %v Got: %v", id, got.Id)
+		}
+	})
+
+	t.Run("idNotFound", func(t *testing.T) {
+		ctx := context.Background()
+		// Get
+		wantErr := ErrIdNotFound
+		_, err := service.Get(ctx, 99)
+		if err != wantErr {
+			t.Fatalf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
 
 }
 
-func Test_GetAll(t *testing.T) {
+func Test_GetByParam_happyPath(t *testing.T) {
+	t.Run("byName", func(t *testing.T) {
+		//setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				1,
+			},
+			Images: []string{
+				"test",
+				"test",
+			},
+		}
+		id, err := service.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
 
+		//get
+		got, err := service.GetByParam(ctx, &GetByParamRequest{
+			Name: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if got.List[0].Id != id {
+			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+	})
+
+	t.Run("byExtId", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				1,
+			},
+			Images: []string{
+				"test",
+				"test",
+			},
+		}
+		id, err := service.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		// get
+		got, err := service.GetByParam(ctx, &GetByParamRequest{
+			ExternalId: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if got.List[0].Id != id {
+			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+	})
+}
+
+func Test_GetByParam_unhappyPath(t *testing.T) {
+	t.Run("emptyGetContent", func(t *testing.T) {
+		ctx := context.Background()
+		_, err := service.GetByParam(ctx, &GetByParamRequest{
+			Name: "test",
+		})
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Fatalf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_GetAll(t *testing.T) {
+	// setup
+	ctx := context.Background()
+	in := &CreateRequest{
+		Name:       "test",
+		Desc:       "test",
+		ExternalId: "test",
+		AttributeKeys: []string{
+			"test",
+			"test",
+		},
+		Products: []int{
+			1,
+		},
+		Images: []string{
+			"test",
+			"test",
+		},
+	}
+	_, err := service.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+
+	// get
+	got, err := service.GetAll(ctx)
+	if err != nil {
+		t.Fatalf("Failed to get by param err: %v", err)
+	}
+	wantLen := 1
+	if len(got.List) != wantLen {
+		t.Errorf("Expected len: %v Got len: %v", wantLen, len(got.List))
+	}
 }
