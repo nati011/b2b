@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"testing"
+
+	db "b2b.nati011.github.com/internal/adapter/secondary/invoice"
 )
 
 var invoiceService Provider
@@ -15,7 +17,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	invoiceService = NewInvoice()
+	invoiceService = NewInvoice(
+		db.NewMock(),
+	)
 }
 
 func Test_CreateInvoice_happyPath(t *testing.T) {
@@ -66,11 +70,12 @@ func Test_Update_happyPath(t *testing.T) {
 
 	//update
 	err = invoiceService.Update(ctx, &UpdateByParamRequest{
+		Id:         id,
 		Status:     "new_status",
 		ExternalId: "new_externalId",
 	})
 	if err != nil {
-		t.Fatalf("Failed to update invoice status")
+		t.Fatalf("Failed to update invoice status err: %v", err)
 	}
 
 	//check
