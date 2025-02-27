@@ -3,8 +3,8 @@ package auth
 import (
 	"testing"
 
-	authDTO "b2b.nati011.github.com/internal/core/application/util/auth/model/dto"
 	"b2b.nati011.github.com/internal/core/application/util/auth/provider"
+	authDTO "b2b.nati011.github.com/pkg/auth/model/dto"
 )
 
 const (

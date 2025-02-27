@@ -3,7 +3,7 @@ package sms
 import (
 	"errors"
 
-	smsProvider "b2b.nati011.github.com/internal/core/application/util/sms/provider"
+	smsProvider "b2b.nati011.github.com/pkg/sms/provider"
 )
 
 var (
