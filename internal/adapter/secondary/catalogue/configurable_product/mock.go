@@ -16,7 +16,7 @@ type MockConfigurableProduct struct {
 	IsAvailableStatus bool
 	Products          []int
 	Images            []string
-	AttributeKeys     []string
+	AttributeKeys     map[string]string
 	CategoryId        []int
 	DistributorId     int
 }
@@ -40,6 +40,7 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 		IsAvailableStatus: req.IsAvailableStatus,
 		Products:          req.Products,
 		Images:            req.Images,
+		AttributeKeys:     req.AttributeKeys,
 	})
 	return id, nil
 }
@@ -58,6 +59,7 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 				IsAvailableStatus: i.IsAvailableStatus,
 				Products:          i.Products,
 				Images:            i.Images,
+				AttributeKeys:     i.AttributeKeys,
 			})
 		}
 	}
@@ -79,6 +81,7 @@ func (m *Mock) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) erro
 				IsAvailableStatus: i.IsAvailableStatus,
 				Products:          i.Products,
 				Images:            i.Images,
+				AttributeKeys:     i.AttributeKeys,
 			})
 		}
 	}
@@ -100,6 +103,7 @@ func (m *Mock) UpdateProducts(ctx context.Context, req *port.UpdateProductReques
 				IsAvailableStatus: i.IsAvailableStatus,
 				Products:          req.ProductIds,
 				Images:            i.Images,
+				AttributeKeys:     i.AttributeKeys,
 			})
 		}
 	}
@@ -121,6 +125,7 @@ func (m *Mock) UpdateImages(ctx context.Context, req *port.UpdateImagesRequest) 
 				IsAvailableStatus: i.IsAvailableStatus,
 				Products:          i.Products,
 				Images:            req.Images,
+				AttributeKeys:     i.AttributeKeys,
 			})
 		}
 	}
@@ -142,6 +147,7 @@ func (m *Mock) UpdateExternalId(ctx context.Context, req *port.UpdateExternalIdR
 				IsAvailableStatus: i.IsAvailableStatus,
 				Products:          i.Products,
 				Images:            i.Images,
+				AttributeKeys:     i.AttributeKeys,
 			})
 		}
 	}
@@ -161,6 +167,29 @@ func (m *Mock) UpdateIsAvailableStatus(ctx context.Context, req *port.UpdateIsAv
 				Desc:              i.Desc,
 				ExternalId:        i.ExternalId,
 				IsAvailableStatus: req.Status,
+				Products:          i.Products,
+				Images:            i.Images,
+				AttributeKeys:     i.AttributeKeys,
+			})
+		}
+	}
+	m.configurables = new_list
+	return nil
+}
+
+func (m *Mock) UpdateAttributes(ctx context.Context, req *port.UpdateAttributes) error {
+	new_list := []MockConfigurableProduct{}
+	for _, i := range m.configurables {
+		if i.Id != req.Id {
+			new_list = append(new_list, i)
+		} else {
+			new_list = append(new_list, MockConfigurableProduct{
+				Id:                i.Id,
+				Name:              i.Name,
+				Desc:              i.Desc,
+				ExternalId:        i.ExternalId,
+				IsAvailableStatus: i.IsAvailableStatus,
+				AttributeKeys:     req.Attributes,
 				Products:          i.Products,
 				Images:            i.Images,
 			})
@@ -184,6 +213,7 @@ func (m *Mock) Disable(ctx context.Context, id int) error {
 				IsAvailableStatus: false,
 				Products:          i.Products,
 				Images:            i.Images,
+				AttributeKeys:     i.AttributeKeys,
 			})
 		}
 	}

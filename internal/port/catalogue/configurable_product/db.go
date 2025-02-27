@@ -13,7 +13,7 @@ type CreateRequest struct {
 	Name              string
 	Desc              string
 	ExternalId        string
-	AttributeKeys     []string
+	AttributeKeys     map[string]string
 	Products          []int
 	Images            []string
 	IsAvailableStatus bool
@@ -29,7 +29,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalId    string
-	Attributes    []string
+	Attributes    map[string]string
 	Products      []int
 	IsAvailable   bool
 	PriceRange    PriceRangeResponse
@@ -72,6 +72,11 @@ type UpdateImagesRequest struct {
 	Images []string
 }
 
+type UpdateAttributes struct {
+	Id         int
+	Attributes map[string]string
+}
+
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
@@ -87,6 +92,7 @@ type Writer interface {
 	UpdateIsAvailableStatus(ctx context.Context, req *UpdateIsAvailableStatusRequest) error
 	UpdateProducts(ctx context.Context, req *UpdateProductRequest) error
 	UpdateImages(ctx context.Context, req *UpdateImagesRequest) error
+	UpdateAttributes(ctx context.Context, req *UpdateAttributes) error
 }
 
 type DB interface {
