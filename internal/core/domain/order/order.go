@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"b2b.nati011.github.com/internal/core/domain/invoice"
 	port "b2b.nati011.github.com/internal/port/order"
 )
 
@@ -58,12 +59,14 @@ type Provider interface {
 }
 
 type OrderService struct {
-	DB port.DB
+	DB             port.DB
+	InvoiceService invoice.Provider
 }
 
-func NewOrderService(db port.DB) Provider {
+func NewOrderService(db port.DB, is invoice.Provider) Provider {
 	return &OrderService{
-		DB: db,
+		DB:             db,
+		InvoiceService: is,
 	}
 }
 

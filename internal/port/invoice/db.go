@@ -10,11 +10,20 @@ var (
 	ErrSysNoRows = errors.New("no rows found")
 )
 
+type Item struct {
+	ProductId int
+	Quantity  int
+}
+
 type GetResponse struct {
 	Id           int
 	Created_Date time.Time
 	ExternalId   string
 	Status       string
+	OrderId      int
+	SubTotal     float64
+	LineItems    []Item
+	TaxAmount    float64
 }
 
 type GetAllResponse struct {
@@ -24,6 +33,7 @@ type GetAllResponse struct {
 type CreateRequest struct {
 	ExternalId string
 	Status     string
+	OrderId    int
 }
 
 type UpdateExternalIdRequest struct {
@@ -41,6 +51,7 @@ type Reader interface {
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByExternalId(ctx context.Context, extId string) (GetAllResponse, error)
 	GetByStatus(ctx context.Context, extId string) (GetAllResponse, error)
+	GetByOrderId(ctx context.Context, orderId int) (GetResponse, error)
 }
 
 type Writer interface {

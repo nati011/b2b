@@ -25,8 +25,10 @@ func setup() {
 func Test_CreateInvoice_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &CreateRequest{
+		OrderId:    1,
 		ExternalId: "test",
 		Status:     "test",
+		SubTotal:   1,
 	}
 	id, err := invoiceService.Create(ctx, in)
 	if err != nil {
@@ -38,7 +40,16 @@ func Test_CreateInvoice_happyPath(t *testing.T) {
 		t.Fatalf("Failed to get invocie err: %v", err)
 	}
 	if resp.Id != id {
-		t.Errorf("Expected id: %v Got id: %v", id, resp.Id)
+		t.Errorf("Expected id: %v Got: %v", id, resp.Id)
+	}
+	if resp.OrderId != 1 {
+		t.Errorf("Expected OrderId: %v Got: %v", id, resp.Id)
+	}
+	if resp.ExternalId != "test" {
+		t.Errorf("Expected ExternalId: %v Got: %v", id, resp.Id)
+	}
+	if resp.Status != "test" {
+		t.Errorf("Expected ExternalId: %v Got: %v", id, resp.Id)
 	}
 }
 
@@ -47,9 +58,25 @@ func Test_CreateInvoice_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
 			ExternalId: "test",
+			OrderId:    1,
+			SubTotal:   1,
 		}
 		_, err := invoiceService.Create(ctx, in)
 		expectedErr := ErrSysStatusNotSupplied
+		if err != expectedErr {
+			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
+		}
+	})
+
+	t.Run("orderId_mandatory", func(t *testing.T) {
+		ctx := context.Background()
+		in := &CreateRequest{
+			ExternalId: "test",
+			Status:     "test",
+			SubTotal:   1,
+		}
+		_, err := invoiceService.Create(ctx, in)
+		expectedErr := ErrSysOrderIdNotSupplied
 		if err != expectedErr {
 			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
 		}
@@ -62,6 +89,7 @@ func Test_Update_happyPath(t *testing.T) {
 	in := &CreateRequest{
 		ExternalId: "test",
 		Status:     "test",
+		OrderId:    1,
 	}
 	id, err := invoiceService.Create(ctx, in)
 	if err != nil {
@@ -113,6 +141,7 @@ func Test_GetInvoice_happyPath(t *testing.T) {
 	in := &CreateRequest{
 		ExternalId: "test",
 		Status:     "test",
+		OrderId:    1,
 	}
 	id, err := invoiceService.Create(ctx, in)
 	if err != nil {
@@ -149,6 +178,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		in := &CreateRequest{
 			ExternalId: "test",
 			Status:     "test",
+			OrderId:    1,
 		}
 		_, err := invoiceService.Create(ctx, in)
 		if err != nil {
@@ -173,6 +203,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		in := &CreateRequest{
 			ExternalId: "test",
 			Status:     "test",
+			OrderId:    1,
 		}
 		_, err := invoiceService.Create(ctx, in)
 		if err != nil {
@@ -180,6 +211,31 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		}
 		resp, err := invoiceService.GetByParam(ctx, &GetByParamRequest{
 			ExternalId: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
+		}
+	})
+
+	t.Run("getByOrderId", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			ExternalId: "test",
+			Status:     "test",
+			OrderId:    1,
+		}
+		_, err := invoiceService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create invoice err: %v", err)
+		}
+		resp, err := invoiceService.GetByParam(ctx, &GetByParamRequest{
+			OrderId: 1,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get by param err: %v", err)
@@ -212,6 +268,7 @@ func Test_GetAll_happyPath(t *testing.T) {
 	in := &CreateRequest{
 		ExternalId: "test",
 		Status:     "test",
+		OrderId:    1,
 	}
 	_, err := invoiceService.Create(ctx, in)
 	if err != nil {
