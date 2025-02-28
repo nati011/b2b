@@ -245,6 +245,10 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		if len(resp.List) != wantLen {
 			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
 		}
+		wantOrderId := 1
+		if resp.List[0].OrderId != wantOrderId {
+			t.Errorf("Expected orderId: %v Got: %v", wantOrderId, resp.List[0].OrderId)
+		}
 	})
 }
 
