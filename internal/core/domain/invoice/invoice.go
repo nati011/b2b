@@ -17,6 +17,10 @@ var (
 	ErrSysSubTotalMandatory  = errors.New("subtotal mandatory")
 )
 
+const (
+	DRAFT_STATUS = "DRAFT"
+)
+
 type Item struct {
 	ProductId int
 	Quantity  int
@@ -285,25 +289,25 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				return GetAllResponse{}, ErrSysUnknown
 			}
 		}
-
-		items := []Item{}
-		for _, i := range db_resp.LineItems {
-			items = append(items, Item{
-				ProductId: i.ProductId,
-				Quantity:  i.Quantity,
+		if db_resp.Id != 0 {
+			items := []Item{}
+			for _, i := range db_resp.LineItems {
+				items = append(items, Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			resp = append(resp, GetResponse{
+				Id:           db_resp.Id,
+				Created_Date: db_resp.Created_Date,
+				ExternalId:   db_resp.ExternalId,
+				Status:       db_resp.Status,
+				OrderId:      db_resp.OrderId,
+				SubTotal:     db_resp.SubTotal,
+				LineItems:    items,
+				TaxAmount:    db_resp.TaxAmount,
 			})
 		}
-		resp = append(resp, GetResponse{
-			Id:           db_resp.Id,
-			Created_Date: db_resp.Created_Date,
-			ExternalId:   db_resp.ExternalId,
-			Status:       db_resp.Status,
-			OrderId:      db_resp.OrderId,
-			SubTotal:     db_resp.SubTotal,
-			LineItems:    items,
-			TaxAmount:    db_resp.TaxAmount,
-		})
-
 	}
 
 	if len(resp) == 0 {

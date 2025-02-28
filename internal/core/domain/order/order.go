@@ -81,7 +81,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		return 0, err
 	}
 
-	//save data
+	//persist
 	items := []port.Item{}
 	for _, i := range req.Items {
 		items = append(items, port.Item{
@@ -104,6 +104,30 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
 		Id:     id,
 		Status: PENDING_STATUS,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//create invoice
+	lineItems := []invoice.Item{}
+	for _, i := range req.Items {
+		lineItems = append(lineItems, invoice.Item{
+			ProductId: i.ProductId,
+			Quantity:  i.Quantity,
+		})
+	}
+
+	//set status to DRAFT upon creation
+	_, err = o.InvoiceService.Create(ctx, &invoice.CreateRequest{
+		Status:    invoice.DRAFT_STATUS,
+		OrderId:   id,
+		SubTotal:  0,
+		LineItems: lineItems,
+		TaxAmount: 0,
 	})
 	if err != nil {
 		switch err {
