@@ -2,15 +2,29 @@ package role
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
-	"b2b.nati011.github.com/internal/core/application/service/resource"
+	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/role/db"
+	resource "b2b.nati011.github.com/internal/core/application/service/resource"
+	role "b2b.nati011.github.com/internal/core/application/service/role"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-var testContainer TestContainer
-var service Provider
+var testContainer role.TestContainer
+var service role.Provider
+var pgContainer *postgres.PostgresContainer
+var db *sql.DB
 
 func TestMain(m *testing.M) {
 	setup()
@@ -19,13 +33,139 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	testContainer = NewTestContainer()
-	service = testContainer.RoleService
+	var err error
+	ctx := context.Background()
+
+	pgContainer, err = RunContainer(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	connectionString, err := pgContainer.ConnectionString(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	db, err = sql.Open("pgx", connectionString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	service = role.NewRole(
+		db_adapter.NewPostgres(
+			db,
+		), resource.NewResource(
+			resource_db_adapter.NewPostgres(
+				db,
+			),
+		),
+	)
+
+	testContainer = role.NewIntegrationTestContainer(db)
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	// ddl
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
+	if err != nil {
+		log.Fatalf("Error running migration: %v", err)
+	}
+
+	// functions
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
+	if err != nil {
+		log.Fatalf("Error running migration: %v", err)
+	}
+
+}
+
+func teardown() {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatalf("could not begin transaction: %v", err)
+	}
+
+	// Get all table names
+	var tables []string
+	rows, err := tx.Query("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
+	if err != nil {
+		tx.Rollback()
+		log.Fatalf("could not fetch table names: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			tx.Rollback()
+			log.Fatalf("could not scan table name: %v", err)
+		}
+		tables = append(tables, table)
+	}
+
+	// Prepare the TRUNCATE statement
+	if len(tables) > 0 {
+		truncateQuery := "TRUNCATE TABLE " + strings.Join(tables, ", ") + " RESTART IDENTITY CASCADE;"
+		_, err = tx.Exec(truncateQuery)
+		if err != nil {
+			tx.Rollback()
+			log.Fatalf("could not truncate tables: %v", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("could not commit transaction: %v", err)
+	}
+}
+
+func runMigration(db *sql.DB, filename string) error {
+	// Read the SQL file
+	sqlBytes, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("could not read file: %w", err)
+	}
+
+	// Execute the SQL
+	_, err = db.Exec(string(sqlBytes))
+	if err != nil {
+		return fmt.Errorf("could not execute SQL: %w", err)
+	}
+
+	return nil
+}
+
+func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
+	return postgres.Run(ctx,
+		"postgres:16-alpine",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("user"),
+		postgres.WithPassword("password"),
+
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(30*time.Second),
+		),
+	)
+}
+
+func Test_Timeout(t *testing.T) {
+
 }
 
 func Test_create_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
-	in := CreateRequest{
+	in := role.CreateRequest{
 		Name: "test",
 		Desc: "test",
 	}
@@ -43,10 +183,12 @@ func Test_create_happyPath(t *testing.T) {
 }
 
 func Test_create_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
-		in := CreateRequest{
+		in := role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		}
@@ -56,7 +198,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		}
 
 		//create duplicate
-		wantErr := ErrDuplicateName
+		wantErr := role.ErrDuplicateName
 		got, err := service.Create(ctx, &in)
 		if err != wantErr {
 			switch err {
@@ -72,13 +214,14 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
-		in := CreateRequest{
+		in := role.CreateRequest{
 			Desc: "test",
 			Name: "",
 		}
 
-		wantErr := ErrEmptyName
+		wantErr := role.ErrEmptyName
 		got, err := service.Create(ctx, &in)
 		if err != wantErr {
 			switch err {
@@ -95,9 +238,10 @@ func Test_create_unhappyPath(t *testing.T) {
 }
 
 func Test_delete_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
-	in := CreateRequest{
+	in := role.CreateRequest{
 		Desc: "test",
 		Name: "test",
 	}
@@ -110,7 +254,7 @@ func Test_delete_happyPath(t *testing.T) {
 	}
 
 	//verify deletion
-	resp, _ := service.Get(ctx, &GetRequest{
+	resp, _ := service.Get(ctx, &role.GetRequest{
 		Id:   id,
 		Name: "",
 	})
@@ -120,10 +264,12 @@ func Test_delete_happyPath(t *testing.T) {
 }
 
 func Test_delete_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		err := service.Delete(ctx, 1010)
-		wantErr := ErrIdNotFound
+		wantErr := role.ErrIdNotFound
 		if err != wantErr {
 			switch err {
 			default:
@@ -134,15 +280,16 @@ func Test_delete_unhappyPath(t *testing.T) {
 }
 
 func Test_update_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
-	id, _ := service.Create(ctx, &CreateRequest{
+	id, _ := service.Create(ctx, &role.CreateRequest{
 		Desc: "test",
 		Name: "test",
 	})
 
 	//update
-	in := UpdateRequest{
+	in := role.UpdateRequest{
 		Id:   id,
 		Desc: "test",
 		Name: "tests",
@@ -157,14 +304,16 @@ func Test_update_happyPath(t *testing.T) {
 }
 
 func Test_update_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
-		in := UpdateRequest{
+		in := role.UpdateRequest{
 			Id:   1,
 			Desc: "test",
 			Name: "test",
 		}
-		wantErr := ErrIdNotFound
+		wantErr := role.ErrIdNotFound
 		resp, err := service.Update(ctx, &in)
 		if err != wantErr {
 			switch err {
@@ -178,27 +327,28 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 
 		//create resource with taken name
-		service.Create(ctx, &CreateRequest{
+		service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "taken",
 		})
 
 		// create resource
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		})
 		// update
-		in := UpdateRequest{
+		in := role.UpdateRequest{
 			Id:   id,
 			Desc: "test",
 			Name: "taken",
 		}
-		wantErr := ErrDuplicateName
+		wantErr := role.ErrDuplicateName
 		got, err := service.Update(ctx, &in)
 		if err != wantErr {
 			switch err {
@@ -213,19 +363,20 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		})
 		// update
-		in := UpdateRequest{
+		in := role.UpdateRequest{
 			Id:   id,
 			Desc: "tets",
 			Name: "",
 		}
-		wantErr := ErrDuplicateName
+		wantErr := role.ErrDuplicateName
 		resp, err := service.Update(ctx, &in)
 		if err != nil {
 			switch err {
@@ -243,16 +394,18 @@ func Test_update_unhappyPath(t *testing.T) {
 }
 
 func Test_getRole_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("getById", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		})
 
 		// Get by Id
-		in := GetRequest{
+		in := role.GetRequest{
 			Id: id,
 		}
 		got, err := service.Get(ctx, &in)
@@ -265,21 +418,22 @@ func Test_getRole_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		})
 
 		// Get by Name
-		in := GetRequest{
+		in := role.GetRequest{
 			Name: "test",
 		}
 		got, err := service.Get(ctx, &in)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case role.ErrIdNotFound:
 			default:
 				t.Errorf("Failed to get role by Id err %v", err)
 			}
@@ -291,15 +445,16 @@ func Test_getRole_happyPath(t *testing.T) {
 }
 
 func Test_getRole_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("getById_notfound", func(t *testing.T) {
 		//setup
 		ctx := context.Background()
 
 		// Get by Id
-		in := GetRequest{
+		in := role.GetRequest{
 			Id: rand.Int(),
 		}
-		wantErr := ErrEmptyGetContent
+		wantErr := role.ErrEmptyGetContent
 		got, err := service.Get(ctx, &in)
 		if err != wantErr {
 			switch err {
@@ -315,13 +470,14 @@ func Test_getRole_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("getByName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
 		// Get by Name
-		in := GetRequest{
+		in := role.GetRequest{
 			Name: "test",
 		}
-		wantErr := ErrEmptyGetContent
+		wantErr := role.ErrEmptyGetContent
 		got, err := service.Get(ctx, &in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)
@@ -333,9 +489,10 @@ func Test_getRole_unhappyPath(t *testing.T) {
 }
 
 func Test_getAllResources_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
-	id, _ := service.Create(ctx, &CreateRequest{
+	id, _ := service.Create(ctx, &role.CreateRequest{
 		Desc: "test",
 		Name: "test",
 	})
@@ -351,10 +508,12 @@ func Test_getAllResources_happyPath(t *testing.T) {
 }
 
 func Test_hasResource_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("has", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
-		roleId, _ := service.Create(ctx, &CreateRequest{
+		roleId, _ := service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		})
@@ -368,7 +527,7 @@ func Test_hasResource_happyPath(t *testing.T) {
 			t.Errorf("Failed")
 		}
 
-		err = service.AddResource(ctx, &AddResourceRequest{
+		err = service.AddResource(ctx, &role.AddResourceRequest{
 			ResourceId: resId,
 			RoleId:     roleId,
 		})
@@ -376,7 +535,7 @@ func Test_hasResource_happyPath(t *testing.T) {
 			t.Errorf("Failed to add resource")
 		}
 
-		in := HasResourceRequest{
+		in := role.HasResourceRequest{
 			ResourceId: resId,
 			RoleId:     roleId,
 		}
@@ -389,15 +548,16 @@ func Test_hasResource_happyPath(t *testing.T) {
 }
 
 func Test_hasResource_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("has-not", func(t *testing.T) {
 		//setup
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := service.Create(ctx, &role.CreateRequest{
 			Desc: "test",
 			Name: "test",
 		})
 
-		in := HasResourceRequest{
+		in := role.HasResourceRequest{
 			ResourceId: rand.Intn(200),
 			RoleId:     id,
 		}
@@ -412,6 +572,7 @@ func Test_hasResource_unhappyPath(t *testing.T) {
 }
 
 func Test_addResource_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
 	// create resource with taken name
@@ -424,7 +585,7 @@ func Test_addResource_happyPath(t *testing.T) {
 	}
 
 	//create role
-	in := CreateRequest{
+	in := role.CreateRequest{
 		Name: "test2",
 		Desc: "test",
 	}
@@ -434,7 +595,7 @@ func Test_addResource_happyPath(t *testing.T) {
 	}
 
 	//add role to resource
-	req := AddResourceRequest{
+	req := role.AddResourceRequest{
 		ResourceId: resId,
 		RoleId:     roleId,
 	}
@@ -442,7 +603,7 @@ func Test_addResource_happyPath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to add resource to role %v", err)
 	}
-	inRes := HasResourceRequest{
+	inRes := role.HasResourceRequest{
 		ResourceId: req.ResourceId,
 		RoleId:     req.RoleId,
 	}
@@ -451,15 +612,16 @@ func Test_addResource_happyPath(t *testing.T) {
 		t.Errorf("Failed to add resource to role %v", err)
 	}
 	if !hasResource {
-		t.Errorf("Failed to add resource to role, resource not added in role")
+		t.Errorf("Failed to add resource to role")
 	}
 }
 
 func Test_addResource_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("resourceNotFound", func(t *testing.T) {
 		ctx := context.Background()
 		//create role
-		in := CreateRequest{
+		in := role.CreateRequest{
 			Name: "test2",
 			Desc: "test",
 		}
@@ -469,19 +631,20 @@ func Test_addResource_unhappyPath(t *testing.T) {
 		}
 
 		//add role to resource
-		req := AddResourceRequest{
+		req := role.AddResourceRequest{
 			ResourceId: rand.Int(),
 			RoleId:     roleId,
 		}
 		err = service.AddResource(ctx, &req)
-		wantErr := ErrResourceNotFound
-		if err != ErrResourceNotFound {
+		wantErr := role.ErrResourceNotFound
+		if err != role.ErrResourceNotFound {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
 }
 
 func Test_removeResource_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	// setup
 	ctx := context.Background()
 
@@ -495,7 +658,7 @@ func Test_removeResource_happyPath(t *testing.T) {
 	}
 
 	// create role
-	roleId, err := service.Create(ctx, &CreateRequest{
+	roleId, err := service.Create(ctx, &role.CreateRequest{
 		Name: "test2",
 		Desc: "test",
 	})
@@ -504,7 +667,7 @@ func Test_removeResource_happyPath(t *testing.T) {
 	}
 
 	// add role to resource
-	req := AddResourceRequest{
+	req := role.AddResourceRequest{
 		ResourceId: resId,
 		RoleId:     roleId,
 	}
@@ -514,7 +677,7 @@ func Test_removeResource_happyPath(t *testing.T) {
 	}
 
 	// check if role has resource
-	hasResource, err := service.HasResource(ctx, &HasResourceRequest{
+	hasResource, err := service.HasResource(ctx, &role.HasResourceRequest{
 		ResourceId: req.ResourceId,
 		RoleId:     req.RoleId,
 	})
@@ -526,7 +689,7 @@ func Test_removeResource_happyPath(t *testing.T) {
 	}
 
 	//remove resource
-	err = service.RemoveResource(ctx, &RemoveResourceRequest{
+	err = service.RemoveResource(ctx, &role.RemoveResourceRequest{
 		ResourceId: req.ResourceId,
 		RoleId:     req.RoleId,
 	})
@@ -535,7 +698,7 @@ func Test_removeResource_happyPath(t *testing.T) {
 	}
 
 	//recheck
-	hasResource, err = service.HasResource(ctx, &HasResourceRequest{
+	hasResource, err = service.HasResource(ctx, &role.HasResourceRequest{
 		ResourceId: req.ResourceId,
 		RoleId:     req.RoleId,
 	})
@@ -548,7 +711,9 @@ func Test_removeResource_happyPath(t *testing.T) {
 }
 
 func Test_removeResource_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	t.Run("resource_not_found", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 
@@ -562,7 +727,7 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		}
 
 		// create role
-		roleId, err := service.Create(ctx, &CreateRequest{
+		roleId, err := service.Create(ctx, &role.CreateRequest{
 			Name: "test2",
 			Desc: "test",
 		})
@@ -571,7 +736,7 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		}
 
 		// add role to resource
-		req := AddResourceRequest{
+		req := role.AddResourceRequest{
 			ResourceId: resId,
 			RoleId:     roleId,
 		}
@@ -581,7 +746,7 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		}
 
 		// check if role has resource
-		hasResource, err := service.HasResource(ctx, &HasResourceRequest{
+		hasResource, err := service.HasResource(ctx, &role.HasResourceRequest{
 			ResourceId: req.ResourceId,
 			RoleId:     req.RoleId,
 		})
@@ -593,7 +758,7 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		}
 
 		//remove resource
-		err = service.RemoveResource(ctx, &RemoveResourceRequest{
+		err = service.RemoveResource(ctx, &role.RemoveResourceRequest{
 			ResourceId: req.ResourceId,
 			RoleId:     req.RoleId,
 		})
@@ -602,7 +767,7 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		}
 
 		//recheck
-		hasResource, err = service.HasResource(ctx, &HasResourceRequest{
+		hasResource, err = service.HasResource(ctx, &role.HasResourceRequest{
 			ResourceId: req.ResourceId,
 			RoleId:     req.RoleId,
 		})
@@ -614,13 +779,13 @@ func Test_removeResource_unhappyPath(t *testing.T) {
 		}
 
 		//remove again
-		err = service.RemoveResource(ctx, &RemoveResourceRequest{
+		err = service.RemoveResource(ctx, &role.RemoveResourceRequest{
 			ResourceId: req.ResourceId,
 			RoleId:     req.RoleId,
 		})
 		if err != nil {
 			switch err {
-			case ErrResourceNotFound:
+			case role.ErrResourceNotFound:
 			default:
 				t.Errorf("Failed to remove resource from role %v", err)
 			}

@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	emailProvider "b2b.nati011.github.com/internal/core/domain/email/provider/smtp"
-	email "b2b.nati011.github.com/internal/core/domain/email/service"
+	emailProvider "b2b.nati011.github.com/pkg/email/provider/smtp"
+	email "b2b.nati011.github.com/pkg/email/service"
 	"github.com/testcontainers/testcontainers-go/modules/inbucket"
 )
 
