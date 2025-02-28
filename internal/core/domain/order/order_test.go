@@ -19,6 +19,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	service = NewOrderService(
 		db.NewMock(),
+		nil,
 	)
 }
 
