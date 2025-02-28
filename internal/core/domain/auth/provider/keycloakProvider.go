@@ -58,7 +58,8 @@ func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, ema
 
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
-		log.Fatalf("Something wrong with the credentials or URL: %v", err)
+		log.Printf("Something wrong with the credentials or URL: %v", err)
+		return CreateClientAuthResponse{}, ErrSysUnknown
 	}
 
 	user := gocloak.User{
@@ -74,6 +75,7 @@ func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, ema
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
+			print(apiErr.Message)
 			switch apiErr.Code {
 			case 409:
 				switch {
