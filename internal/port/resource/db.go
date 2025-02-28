@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrSysUnknown = errors.New("oopsy, duplicate name")
+	ErrSysUnknown = errors.New("unknown error")
 )
 
 type CreateRequest struct {
