@@ -54,7 +54,7 @@ func (h *AuthHandler) RegisterRetailer(w http.ResponseWriter, r *http.Request) {
 
 	registerResponse, err := h.authContainer.AuthService.CreateClient(req)
 	if err != nil {
-		http.Error(w, "Registration failed", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
