@@ -1,0 +1,167 @@
+package order
+
+import (
+	"context"
+
+	port "b2b.nati011.github.com/internal/port/order"
+)
+
+type Item struct {
+	ProductId int
+	Quantity  int
+}
+type MockOrder struct {
+	Id         int
+	RetailerId int
+	Items      []Item
+	Total      float32
+	Status     string
+}
+
+type Mock struct {
+	orders []MockOrder
+}
+
+func NewMock() port.DB {
+	return &Mock{}
+}
+
+func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
+	for _, i := range m.orders {
+		if i.Id == id {
+			items := []port.Item{}
+			for _, i := range i.Items {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			return port.GetResponse{
+				Id:         i.Id,
+				RetailerId: i.RetailerId,
+				Total:      i.Total,
+				Items:      items,
+				Status:     i.Status,
+			}, nil
+		}
+	}
+	return port.GetResponse{}, port.ErrSysNoRows
+}
+
+func (m *Mock) GetByRetailerID(ctx context.Context, id int) (port.GetAllResponse, error) {
+	var resp []port.GetResponse
+	for _, i := range m.orders {
+		if i.Id == id {
+			items := []port.Item{}
+			for _, i := range i.Items {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			resp = append(resp, port.GetResponse{
+				Id:         i.Id,
+				RetailerId: i.RetailerId,
+				Total:      i.Total,
+				Items:      items,
+			})
+		}
+	}
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	var resp []port.GetResponse
+	for _, i := range m.orders {
+		if i.Status == status {
+			items := []port.Item{}
+			for _, i := range i.Items {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			resp = append(resp, port.GetResponse{
+				Id:         i.Id,
+				RetailerId: i.RetailerId,
+				Total:      i.Total,
+				Items:      items,
+			})
+		}
+	}
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
+	var resp []port.GetResponse
+	for _, i := range m.orders {
+		items := []port.Item{}
+		for _, i := range i.Items {
+			items = append(items, port.Item{
+				ProductId: i.ProductId,
+				Quantity:  i.Quantity,
+			})
+		}
+		resp = append(resp, port.GetResponse{
+			Id:         i.Id,
+			RetailerId: i.RetailerId,
+			Total:      i.Total,
+			Items:      items,
+		})
+	}
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
+	newResourceId := len(m.orders) + 1
+	items := []Item{}
+	for _, i := range req.Items {
+		items = append(items, Item{
+			ProductId: i.ProductId,
+			Quantity:  i.Quantity,
+		})
+	}
+	m.orders = append(m.orders, MockOrder{
+		Id:         newResourceId,
+		RetailerId: req.RetailerId,
+		Items:      items,
+	})
+	return newResourceId, nil
+}
+
+func (m *Mock) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderStatusRequest) error {
+	updatedResources := []MockOrder{}
+	for _, i := range m.orders {
+		if req.Id == i.Id {
+			updatedResources = append(updatedResources, MockOrder{
+				Id:     req.Id,
+				Status: req.Status,
+			})
+		} else {
+			updatedResources = append(updatedResources, MockOrder{
+				Id:         i.Id,
+				RetailerId: i.RetailerId,
+				Items:      i.Items,
+				Status:     i.Status,
+			})
+		}
+
+	}
+	m.orders = updatedResources
+	return nil
+}
