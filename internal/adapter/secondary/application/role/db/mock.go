@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 
-	port "b2b.nati011.github.com/internal/port/role"
+	port "b2b.nati011.github.com/internal/port/application/role"
 )
 
 type MockRole struct {
