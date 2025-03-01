@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	db "b2b.nati011.github.com/pkg/email/provider/db"
+	db "b2b.nati011.github.com/internal/adapter/secondary/application/email/db"
 )
 
 var (
