@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	port "b2b.nati011.github.com/internal/port/user"
+	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
 type MockUser struct {
