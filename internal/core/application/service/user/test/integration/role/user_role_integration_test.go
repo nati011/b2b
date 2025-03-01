@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	db_resource_adapter "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
-	db_role_adapter "b2b.nati011.github.com/internal/adapter/secondary/role/db"
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/user/db"
+	db_resource_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
+	db_role_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
 	"b2b.nati011.github.com/internal/core/application/service/resource"
 	"b2b.nati011.github.com/internal/core/application/service/role"
 	"b2b.nati011.github.com/internal/core/application/service/user"

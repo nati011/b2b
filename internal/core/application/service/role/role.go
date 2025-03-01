@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	resource "b2b.nati011.github.com/internal/core/application/service/resource"
-	port "b2b.nati011.github.com/internal/port/role"
+	port "b2b.nati011.github.com/internal/port/application/role"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	role "b2b.nati011.github.com/internal/core/application/service/role"
-	port "b2b.nati011.github.com/internal/port/user"
+	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
 var (
