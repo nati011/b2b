@@ -3,8 +3,8 @@ package role
 import (
 	"database/sql"
 
-	db_resource_mock "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
-	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/role/db"
+	db_resource_mock "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
+	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 
 	resource "b2b.nati011.github.com/internal/core/application/service/resource"
 )
