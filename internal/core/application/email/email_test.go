@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	smtp "b2b.nati011.github.com/pkg/email/provider/smtp"
-	render "b2b.nati011.github.com/pkg/email/service/render"
+	smtp "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
+	render "b2b.nati011.github.com/internal/core/application/email/render"
 )
 
 const (
