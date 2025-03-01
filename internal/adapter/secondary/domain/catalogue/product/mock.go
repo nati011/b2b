@@ -6,7 +6,7 @@ import (
 
 	"math/rand"
 
-	port "b2b.nati011.github.com/internal/port/catalogue/product"
+	port "b2b.nati011.github.com/internal/port/domain/catalogue/product"
 )
 
 type MockProduct struct {

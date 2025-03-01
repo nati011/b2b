@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/resource/db"
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/role/db"
+	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	resource "b2b.nati011.github.com/internal/core/application/service/resource"
 	role "b2b.nati011.github.com/internal/core/application/service/role"
 	_ "github.com/jackc/pgx/v4/stdlib"

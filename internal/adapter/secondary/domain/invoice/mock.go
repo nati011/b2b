@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	port "b2b.nati011.github.com/internal/port/invoice"
+	port "b2b.nati011.github.com/internal/port/domain/invoice"
 )
 
 type Item struct {

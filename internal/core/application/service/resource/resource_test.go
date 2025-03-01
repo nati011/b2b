@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	db_mock "b2b.nati011.github.com/internal/adapter/secondary/resource/application/db"
+	db_mock "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 )
 
 var service Provider
