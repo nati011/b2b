@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	port "b2b.nati011.github.com/internal/port/resource"
+	port "b2b.nati011.github.com/internal/port/application/resource"
 )
 
 var (
