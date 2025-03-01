@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
+
+	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 const (
@@ -52,7 +54,7 @@ func NewKeycloakProvider(
 	}
 }
 
-func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error) {
+func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (port.CreateClientAuthResonse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 
@@ -78,12 +80,12 @@ func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, ema
 			case 409:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakEmailTaken):
-					return CreateClientAuthResonse{}, ErrSysEmailTaken
+					return port.CreateClientAuthResonse{}, port.ErrSysEmailTaken
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakUsernameTaken):
-					return CreateClientAuthResonse{}, ErrSysUsernameTaken
+					return port.CreateClientAuthResonse{}, port.ErrSysUsernameTaken
 				}
 			default:
-				return CreateClientAuthResonse{}, ErrSysUnknown
+				return port.CreateClientAuthResonse{}, port.ErrSysUnknown
 
 			}
 		}
@@ -97,15 +99,15 @@ func (k KeycloakProvider) CreateNewClient(firstName string, lastName string, ema
 	}
 
 	if err != nil {
-		return CreateClientAuthResonse{}, ErrSysUnknown
+		return port.CreateClientAuthResonse{}, port.ErrSysUnknown
 	}
 
-	return CreateClientAuthResonse{
+	return port.CreateClientAuthResonse{
 		Username: username,
 	}, nil
 }
 
-func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse, error) {
+func (k KeycloakProvider) ClientLogin(email, password string) (port.LoginAuthResonse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	ctx := context.Background()
 	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
@@ -124,10 +126,10 @@ func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse,
 			case 401:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrFailedLogin):
-					return LoginAuthResonse{}, ErrSysFailedToLogin
+					return port.LoginAuthResonse{}, port.ErrSysFailedToLogin
 				}
 			default:
-				return LoginAuthResonse{}, ErrSysFailedToLogin
+				return port.LoginAuthResonse{}, port.ErrSysFailedToLogin
 
 			}
 		}
@@ -136,17 +138,17 @@ func (k KeycloakProvider) ClientLogin(email, password string) (LoginAuthResonse,
 	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
 	if err != nil {
 		log.Fatal("Inspection failed:" + err.Error())
-		return LoginAuthResonse{}, err
+		return port.LoginAuthResonse{}, err
 	}
 
 	if !*rptResult.Active {
 		err := errors.New("token is not active")
 		log.Fatal("token is not active:" + err.Error())
-		return LoginAuthResonse{}, err
+		return port.LoginAuthResonse{}, err
 	}
 
-	return LoginAuthResonse{
-		JWT: JWT{
+	return port.LoginAuthResonse{
+		JWT: port.JWT{
 			token.AccessToken,
 			token.IDToken,
 			token.ExpiresIn,

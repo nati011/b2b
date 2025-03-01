@@ -1,7 +1,7 @@
 package auth
 
 import (
-	provider "b2b.nati011.github.com/pkg/auth/provider"
+	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 type Container struct {
@@ -9,17 +9,17 @@ type Container struct {
 	AuthService *AuthService
 
 	//non exportables
-	authProvider provider.AuthProvider
+	authProvider port.AuthProvider
 }
 
-func NewContainer(ap provider.AuthProvider) *Container {
+func NewContainer(ap port.AuthProvider) *Container {
 	c := new(Container)
 	c.initAuthProvider(ap)
 	c.initAuthService()
 	return c
 }
 
-func (c *Container) initAuthProvider(ap provider.AuthProvider) {
+func (c *Container) initAuthProvider(ap port.AuthProvider) {
 	c.authProvider = ap
 }
 

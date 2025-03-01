@@ -1,5 +1,9 @@
 package provider
 
+import (
+	port "b2b.nati011.github.com/internal/port/application/auth/provider"
+)
+
 type MockClient struct {
 	firstName string
 	lastName  string
@@ -12,7 +16,7 @@ type MockAuthProvider struct {
 	clients []MockClient
 }
 
-func NewMockAuthProvider() AuthProvider {
+func NewMockAuthProvider() port.AuthProvider {
 	return &MockAuthProvider{}
 }
 
@@ -20,13 +24,13 @@ func (m *MockAuthProvider) FlushMockAuthProvider() {
 	m.clients = []MockClient{}
 }
 
-func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error) {
+func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (port.CreateClientAuthResonse, error) {
 	// check if username or password is taken
 	for _, index := range m.clients {
 		if index.username == username {
-			return CreateClientAuthResonse{}, ErrSysUsernameTaken
+			return port.CreateClientAuthResonse{}, port.ErrSysUsernameTaken
 		} else if index.email == email {
-			return CreateClientAuthResonse{}, ErrSysEmailTaken
+			return port.CreateClientAuthResonse{}, port.ErrSysEmailTaken
 		}
 	}
 	m.clients = append(m.clients, MockClient{
@@ -37,12 +41,12 @@ func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, em
 		password:  password,
 	})
 
-	return CreateClientAuthResonse{
+	return port.CreateClientAuthResonse{
 		Username: username,
 	}, nil
 }
 
-func (m *MockAuthProvider) ClientLogin(email, password string) (LoginAuthResonse, error) {
+func (m *MockAuthProvider) ClientLogin(email, password string) (port.LoginAuthResonse, error) {
 	// check if username or password is taken
 	clientExists := false
 
@@ -52,8 +56,8 @@ func (m *MockAuthProvider) ClientLogin(email, password string) (LoginAuthResonse
 		}
 	}
 	if !clientExists {
-		return LoginAuthResonse{}, ErrSysFailedToLogin
+		return port.LoginAuthResonse{}, port.ErrSysFailedToLogin
 	}
 
-	return LoginAuthResonse{}, nil
+	return port.LoginAuthResonse{}, nil
 }
