@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"testing"
+
+	db "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 )
 
 var service Provider
@@ -15,7 +17,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewPartner()
+	service = NewPartner(
+		db.NewMock(),
+	)
 }
 
 func Test_Create_Payment_Option_happyPath(t *testing.T) {
@@ -113,8 +117,9 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 func Test_Activate_Payment_Option_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &CreateRequest{
-		Name: "test",
-		Icon: "test",
+		Name:             "test",
+		Icon:             "test",
+		Init_payment_url: "test",
 	}
 
 	id, err := service.Create(ctx, in)
@@ -151,8 +156,9 @@ func Test_Activate_Payment_Option_unhappyPath(t *testing.T) {
 	t.Run("alreadyActive", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name: "test",
-			Icon: "test",
+			Name:             "test",
+			Icon:             "test",
+			Init_payment_url: "test",
 		}
 
 		id, err := service.Create(ctx, in)
@@ -177,8 +183,9 @@ func Test_Activate_Payment_Option_unhappyPath(t *testing.T) {
 func Test_Deactivate_Payment_Option_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &CreateRequest{
-		Name: "test",
-		Icon: "test",
+		Name:             "test",
+		Icon:             "test",
+		Init_payment_url: "test",
 	}
 
 	id, err := service.Create(ctx, in)
@@ -209,8 +216,9 @@ func Test_Deactivate_Payment_Option_unhappyPath(t *testing.T) {
 	t.Run("alreadyInactive", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name: "test",
-			Icon: "test",
+			Name:             "test",
+			Icon:             "test",
+			Init_payment_url: "test",
 		}
 
 		id, err := service.Create(ctx, in)
@@ -239,8 +247,9 @@ func Test_Get_All_Payment_Options_happyPath(t *testing.T) {
 	ctx := context.Background()
 	//setup
 	in := &CreateRequest{
-		Name: "test",
-		Icon: "test",
+		Name:             "test",
+		Icon:             "test",
+		Init_payment_url: "test",
 	}
 
 	_, err := service.Create(ctx, in)
@@ -274,8 +283,9 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			Name: "test",
-			Icon: "test",
+			Name:             "test",
+			Icon:             "test",
+			Init_payment_url: "test",
 		}
 
 		id, err := service.Create(ctx, in)
@@ -325,8 +335,9 @@ func Test_Get_Payment_Options_ByParam_happyPath(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			Name: "test",
-			Icon: "test",
+			Name:             "test",
+			Icon:             "test",
+			Init_payment_url: "test",
 		}
 
 		id, err := service.Create(ctx, in)
