@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	port "b2b.nati011.github.com/internal/port/catalogue/category"
+	port "b2b.nati011.github.com/internal/port/domain/catalogue/category"
 )
 
 type MockCategory struct {
