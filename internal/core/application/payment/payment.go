@@ -7,3 +7,7 @@ type CheckoutRequest struct {
 	// Return_url   string
 	// Callback_url string
 }
+
+type CheckoutResponse struct {
+	Checkout_url string
+}
