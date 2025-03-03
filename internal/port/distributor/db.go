@@ -3,6 +3,7 @@ package distributor
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var (
@@ -11,10 +12,23 @@ var (
 )
 
 type CreateRequest struct {
+	FullName   string
+	Email      string
+	Phone      string
+	Username   string
+	DOB        time.Time
+	ExternalId string
+	Password   string
 }
 
 type GetResponse struct {
-	Id int
+	Id         int
+	FullName   string
+	Email      string
+	Phone      string
+	Username   string
+	DOB        time.Time
+	ExternalId string
 }
 
 type GetAllResponse struct {
@@ -26,9 +40,8 @@ type GetByIdRequest struct {
 }
 
 type Reader interface {
-	Get(ctx context.Context, id int) (GetResponse, error)
+	GetById(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
-	GetById(ctx context.Context, req *GetByIdRequest) (GetAllResponse, error)
 }
 
 type Writer interface {
