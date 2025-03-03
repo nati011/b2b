@@ -3,6 +3,8 @@ package partner
 import (
 	"context"
 	"errors"
+
+	port "b2b.nati011.github.com/internal/port/application/payment/db"
 )
 
 const (
@@ -20,6 +22,7 @@ var (
 	ErrPaymentOptionaAlreadyActive  = errors.New("oopsy, payment option already active")
 	ErrPaymentOptionAlreadyInactive = errors.New("oopsy, payment option alreadt active")
 	ErrEmptyGetContent              = errors.New("oopsy, empty get content")
+	ErrUnknown                      = errors.New("oopsy, unknown error has occured")
 )
 
 type CreateRequest struct {
@@ -44,10 +47,6 @@ type GetByParamRequest struct {
 	Status string
 }
 
-type CheckoutResponse struct {
-	Checkout_url string
-}
-
 type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	Get(context.Context, int) (GetResponse, error)
@@ -59,36 +58,182 @@ type Provider interface {
 }
 
 type PartnerService struct {
+	DB port.DB
 }
 
-func NewPartner() Provider {
-	return &PartnerService{}
+func NewPartner(db port.DB) Provider {
+	return &PartnerService{
+		DB: db,
+	}
 }
 
-func (p *PartnerService) Create(context.Context, *CreateRequest) (int, error) {
-	return 0, nil
+func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
+	err := validateName(req.Name)
+	if err != nil {
+		return 0, err
+	}
+	err = validateIcon(req.Icon)
+	if err != nil {
+		return 0, err
+	}
+	err = validateInitPaymentURL(req.Init_payment_url)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := p.DB.Create(ctx, &port.CreateRequest{
+		Name:             req.Name,
+		Icon:             req.Icon,
+		Init_payment_url: req.Init_payment_url,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//set status to INACTIVE
+	_, err = p.DB.UpdateStatus(ctx, id, INACTIVE_STATUS)
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+	return id, nil
 }
 
-func (p *PartnerService) Get(context.Context, int) (GetResponse, error) {
-	return GetResponse{}, nil
+func (p *PartnerService) Get(ctx context.Context, id int) (GetResponse, error) {
+	resp, err := p.DB.GetByID(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, nil
+		}
+	}
+	return GetResponse(resp), nil
 }
 
-func (p *PartnerService) Activate(context.Context, int) error {
+func (p *PartnerService) Activate(ctx context.Context, id int) error {
+	//check if id exists
+	got, err := p.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+	//check if already active
+	if got.Status == ACTIVE_STATUS {
+		return ErrPaymentOptionaAlreadyActive
+	}
+
+	_, err = p.DB.UpdateStatus(ctx, id, ACTIVE_STATUS)
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
 }
 
-func (p *PartnerService) Deactivate(context.Context, int) error {
+func (p *PartnerService) Deactivate(ctx context.Context, id int) error {
+	//check if id exists
+	got, err := p.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+	//check if already active
+	if got.Status == INACTIVE_STATUS {
+		return ErrPaymentOptionAlreadyInactive
+	}
+
+	_, err = p.DB.UpdateStatus(ctx, id, INACTIVE_STATUS)
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
 	return nil
 }
 
-func (p *PartnerService) GetAll(context.Context) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+func (p *PartnerService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp, err := p.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	var resp_val GetAllResponse
+	for _, i := range resp.List {
+		resp_val.List = append(resp_val.List, GetResponse(i))
+	}
+	return resp_val, nil
 }
 
-func (p *PartnerService) GetActive(context.Context) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+func (p *PartnerService) GetActive(ctx context.Context) (GetAllResponse, error) {
+	resp, err := p.DB.GetByStatus(ctx, ACTIVE_STATUS)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	var resp_val GetAllResponse
+	for _, i := range resp.List {
+		resp_val.List = append(resp_val.List, GetResponse(i))
+	}
+	return resp_val, nil
 }
 
-func (p *PartnerService) GetByParam(context.Context, *GetByParamRequest) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
+	var resp GetAllResponse
+	if req.Name != "" {
+		resp_name, err := p.DB.GetByName(ctx, req.Name)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_name.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+
+	if req.Status != "" {
+		resp_name, err := p.DB.GetByStatus(ctx, req.Status)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_name.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+	if len(resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return resp, nil
 }
