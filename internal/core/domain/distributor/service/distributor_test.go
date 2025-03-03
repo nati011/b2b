@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	db "b2b.nati011.github.com/internal/adapter/secondary/distributor/db"
+	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
 )
 
 var service Provider
@@ -26,7 +27,7 @@ func setup() {
 func Test_Create_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		ctx := context.Background()
-		in := &RegisterDistributorRequest{
+		in := &distributorDTO.RegisterDistributorRequest{
 			FullName:        "Test User",
 			Email:           "test@email.com",
 			Password:        "test@123",
@@ -35,6 +36,7 @@ func Test_Create_happyPath(t *testing.T) {
 		}
 
 		_, err := service.Create(ctx, in)
+
 		if err != nil {
 			log.Fatalf("Create distributor test failed %v", err)
 		}
@@ -43,6 +45,19 @@ func Test_Create_happyPath(t *testing.T) {
 
 func Test_Get_All_happyPath(t *testing.T) {
 	ctx := context.Background()
+
+	in := &distributorDTO.RegisterDistributorRequest{
+		FullName:        "Test User",
+		Email:           "test11@email.com",
+		Password:        "test@123",
+		ConfirmPassword: "test@123",
+		Username:        "username11",
+	}
+
+	_, err := service.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create distributor %v", err)
+	}
 	got, err := service.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Expected err:%v Got err: %v", nil, err)
@@ -53,9 +68,21 @@ func Test_Get_All_happyPath(t *testing.T) {
 	}
 }
 
+func Test_Get_All_unhappyPath(t *testing.T) {
+	t.Run("no_distributor_found", func(t *testing.T) {
+		ctx := context.Background()
+		//get
+		wantErr := ErrEmptyGetContent
+		_, err := service.GetAll(ctx)
+		if err != wantErr {
+			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
+		}
+	})
+}
+
 func Test_Get_happyPath(t *testing.T) {
 	ctx := context.Background()
-	in := &RegisterDistributorRequest{
+	in := &distributorDTO.RegisterDistributorRequest{
 		FullName:        "Test User",
 		Email:           "test11@email.com",
 		Password:        "test@123",
@@ -75,20 +102,9 @@ func Test_Get_happyPath(t *testing.T) {
 	}
 }
 
-func Test_Get_unhappyPath(t *testing.T) {
-	t.Run("no_distributor_found", func(t *testing.T) {
-		ctx := context.Background()
-		//get
-		wantErr := ErrEmptyGetContent
-		_, err := service.Get(ctx, 99)
-		if err != wantErr {
-			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
-		}
-	})
-}
 func Test_Add_Business_Information_happyPath(t *testing.T) {
 	ctx := context.Background()
-	createRequest := &RegisterDistributorRequest{
+	createRequest := &distributorDTO.RegisterDistributorRequest{
 		FullName:        "Test User",
 		Email:           "test11@email.com",
 		Password:        "test@123",
@@ -101,13 +117,13 @@ func Test_Add_Business_Information_happyPath(t *testing.T) {
 		t.Fatalf("Failed to create distributor %v", err)
 	}
 
-	region := &BusinessLocation{
+	region := &distributorDTO.BusinessLocation{
 		GeneralZone: "Test Zone",
 		Region:      "Test Region",
 		Woreda:      "Test Woreda",
 	}
 
-	in := &UpdateBusinessRequest{
+	in := &distributorDTO.UpdateBusinessRequest{
 		DistributorId: id,
 		Name:          "Test location",
 		Tin:           127897024567,
@@ -119,5 +135,4 @@ func Test_Add_Business_Information_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to add business info. Error: %v", err)
 	}
-
 }
