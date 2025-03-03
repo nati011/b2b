@@ -1,11 +1,11 @@
-package auth
+package handlers
 
 import (
 	"encoding/json"
 	"net/http"
 
-	authDTO "b2b.nati011.github.com/internal/core/domain/auth/model/dto"
-	service "b2b.nati011.github.com/internal/core/domain/auth/service"
+	authDTO "b2b.nati011.github.com/pkg/auth/model/dto"
+	service "b2b.nati011.github.com/pkg/auth/service"
 )
 
 type AuthHandler struct {
@@ -39,7 +39,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(loginResponse)
 }
 
-func (h *AuthHandler) RegisterRetailer(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request) {
 	print("In handler")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
