@@ -11,7 +11,7 @@ import (
 	"time"
 
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
-	resource "b2b.nati011.github.com/internal/core/application/service/resource"
+	resource "b2b.nati011.github.com/internal/core/application/resource"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
