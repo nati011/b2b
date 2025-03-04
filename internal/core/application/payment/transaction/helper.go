@@ -45,6 +45,8 @@ func (t *TransactionService) validatePartnerId(ctx context.Context, partnerId in
 func validateAmount(amount int64) error {
 	if amount == 0 {
 		return ErrAmountIsNotSupplied
+	} else if amount < 0 {
+		return ErrAmountMustBeGreaterThanZero
 	}
 	return nil
 }

@@ -11,14 +11,15 @@ import (
 )
 
 var (
-	ErrUserIdNotSupplied    = errors.New("oopsy, user id mandatory")
-	ErrPartnerIdNotSupplied = errors.New("oopsy, partnerId mandatory")
-	ErrAmountIsNotSupplied  = errors.New("oopsy, amount mandatory")
-	ErrIdNotFound           = errors.New("oopsy, id not found")
-	ErrEmptyGetContent      = errors.New("oopsy, empty get content")
-	ErrUnknown              = errors.New("oopsy, unkown error")
-	ErrPartnerDoesNotExist  = errors.New("oopsy, partner does not exist")
-	ErrUserDoesNotExist     = errors.New("oopsy, user does not exist")
+	ErrUserIdNotSupplied           = errors.New("oopsy, user id mandatory")
+	ErrPartnerIdNotSupplied        = errors.New("oopsy, partnerId mandatory")
+	ErrAmountIsNotSupplied         = errors.New("oopsy, amount mandatory")
+	ErrAmountMustBeGreaterThanZero = errors.New("oopsy, amount must be greater than zero")
+	ErrIdNotFound                  = errors.New("oopsy, id not found")
+	ErrEmptyGetContent             = errors.New("oopsy, empty get content")
+	ErrUnknown                     = errors.New("oopsy, unkown error")
+	ErrPartnerDoesNotExist         = errors.New("oopsy, partner does not exist")
+	ErrUserDoesNotExist            = errors.New("oopsy, user does not exist")
 )
 
 type GetResponse struct {
