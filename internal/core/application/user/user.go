@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	role "b2b.nati011.github.com/internal/core/application/service/role"
+	role "b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/user"
 )
 

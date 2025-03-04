@@ -21,6 +21,7 @@ func setup() {
 	service = NewTransactionService(
 		db.NewMock(),
 		nil,
+		nil,
 	)
 }
 

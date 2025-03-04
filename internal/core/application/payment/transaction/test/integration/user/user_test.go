@@ -1,4 +1,4 @@
-package partner
+package user
 
 import (
 	"context"
@@ -24,10 +24,10 @@ func setup() {
 	testContainer = integration.NewPackageIntegrationTestContainer()
 }
 
-func Test_Validate_PartnerId_Upon_Transaction_Create_happyPath(t *testing.T) {
+func Test_Validate_UserId_Upon_Transaction_Create_happyPath(t *testing.T) {
 	ctx := context.Background()
 	//create partner
-	id, err := testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
+	partner_id, err := testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
 		Name:             "test",
 		Icon:             "test",
 		Init_payment_url: "test",
@@ -50,43 +50,37 @@ func Test_Validate_PartnerId_Upon_Transaction_Create_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
-
 	//create transaction
 	_, err = testContainer.TransactionService.Create(ctx, &transaction.CreateRequest{
 		User_Id:    user_id,
+		Partner_Id: partner_id,
 		Amount:     100,
-		Partner_Id: id,
 	})
 	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
+		t.Fatalf("Failed to create transaction err:%v", err)
 	}
 }
 
-func Test_Validate_PartnerId_Upon_Transaction_Create_unhappyPath(t *testing.T) {
+func Test_Validate_UserId_Upon_Transaction_Create_unhappyPath(t *testing.T) {
 	ctx := context.Background()
-	//setup
-	//create user
-	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
-	in := user.CreateRequest{
-		FullName:   "natnael jemaneh asefa",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		ExternalId: "123",
-	}
-	user_id, err := testContainer.UserService.Create(ctx, &in)
+	//create partner
+	partner_id, err := testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
+		Name:             "test",
+		Icon:             "test",
+		Init_payment_url: "test",
+	})
 	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
+		t.Fatalf("Failed to create err:%v", err)
 	}
+
 	//create transaction
 	_, err = testContainer.TransactionService.Create(ctx, &transaction.CreateRequest{
-		User_Id:    user_id,
+		User_Id:    1,
+		Partner_Id: partner_id,
 		Amount:     100,
-		Partner_Id: 99,
 	})
-	wantErr := transaction.ErrPartnerDoesNotExist
+	wantErr := transaction.ErrUserDoesNotExist
 	if err != wantErr {
-		t.Errorf("Expected err: %v Got : %v", wantErr, err)
+		t.Errorf("Expectec err:%v Got err:%v", wantErr, err)
 	}
 }
