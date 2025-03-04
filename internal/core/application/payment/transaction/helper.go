@@ -1,6 +1,10 @@
 package transaction
 
-import "context"
+import (
+	"context"
+
+	"b2b.nati011.github.com/internal/core/application/payment/partner"
+)
 
 func (t *TransactionService) validateUserId(ctx context.Context, userId int) error {
 	if userId == 0 {
@@ -13,6 +17,16 @@ func (t *TransactionService) validatePartnerId(ctx context.Context, partnerId in
 	if partnerId == 0 {
 		return ErrPartnerIdNotSupplied
 	}
+	_, err := t.PartnerService.Get(ctx, partnerId)
+	if err != nil {
+		switch err {
+		case partner.ErrIdNotFound:
+			return ErrPartnerNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+
 	return nil
 }
 
