@@ -1,1 +1,6 @@
 package transaction
+
+import "testing"
+
+func TestMain(m *testing.M) {
+}
