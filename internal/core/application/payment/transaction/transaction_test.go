@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	service = NewTransactionService(
 		db.NewMock(),
+		nil,
 	)
 }
 
