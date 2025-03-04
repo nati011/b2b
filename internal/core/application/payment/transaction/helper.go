@@ -4,11 +4,23 @@ import (
 	"context"
 
 	"b2b.nati011.github.com/internal/core/application/payment/partner"
+	"b2b.nati011.github.com/internal/core/application/user"
 )
 
 func (t *TransactionService) validateUserId(ctx context.Context, userId int) error {
 	if userId == 0 {
 		return ErrUserIdNotSupplied
+	}
+	_, err := t.UserService.GetByParam(ctx, &user.GetByParam{
+		ID: userId,
+	})
+	if err != nil {
+		switch err {
+		case user.ErrEmptyGetContent:
+			return ErrUserDoesNotExist
+		default:
+			return ErrUnknown
+		}
 	}
 	return nil
 }
@@ -21,7 +33,7 @@ func (t *TransactionService) validatePartnerId(ctx context.Context, partnerId in
 	if err != nil {
 		switch err {
 		case partner.ErrIdNotFound:
-			return ErrPartnerNotFound
+			return ErrPartnerDoesNotExist
 		default:
 			return ErrUnknown
 		}

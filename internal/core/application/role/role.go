@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	resource "b2b.nati011.github.com/internal/core/application/service/resource"
+	resource "b2b.nati011.github.com/internal/core/application/resource"
 	port "b2b.nati011.github.com/internal/port/application/role"
 )
 

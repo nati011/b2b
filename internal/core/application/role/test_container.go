@@ -6,7 +6,7 @@ import (
 	db_resource_mock "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 
-	resource "b2b.nati011.github.com/internal/core/application/service/resource"
+	resource "b2b.nati011.github.com/internal/core/application/resource"
 )
 
 type TestContainer struct {
