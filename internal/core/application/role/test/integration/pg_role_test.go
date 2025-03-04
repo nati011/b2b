@@ -13,8 +13,8 @@ import (
 
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
-	resource "b2b.nati011.github.com/internal/core/application/service/resource"
-	role "b2b.nati011.github.com/internal/core/application/service/role"
+	resource "b2b.nati011.github.com/internal/core/application/resource"
+	role "b2b.nati011.github.com/internal/core/application/role"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"

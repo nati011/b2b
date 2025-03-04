@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	port "b2b.nati011.github.com/internal/port/application/payment/db"
+	port "b2b.nati011.github.com/internal/port/application/partner/db"
 )
 
 const (
