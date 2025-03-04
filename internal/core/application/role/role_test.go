@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"b2b.nati011.github.com/internal/core/application/service/resource"
+	"b2b.nati011.github.com/internal/core/application/resource"
 )
 
 var testContainer TestContainer

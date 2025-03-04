@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/payment/partner"
+	"b2b.nati011.github.com/internal/core/application/user"
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
 )
 
@@ -16,7 +17,8 @@ var (
 	ErrIdNotFound           = errors.New("oopsy, id not found")
 	ErrEmptyGetContent      = errors.New("oopsy, empty get content")
 	ErrUnknown              = errors.New("oopsy, unkown error")
-	ErrPartnerNotFound      = errors.New("oopsy, partner not found")
+	ErrPartnerDoesNotExist  = errors.New("oopsy, partner does not exist")
+	ErrUserDoesNotExist     = errors.New("oopsy, user does not exist")
 )
 
 type GetResponse struct {
@@ -53,12 +55,17 @@ type Provider interface {
 type TransactionService struct {
 	DB             port.DB
 	PartnerService partner.Provider
+	UserService    user.Provider
 }
 
-func NewTransactionService(db port.DB, ps partner.Provider) Provider {
+func NewTransactionService(db port.DB,
+	ps partner.Provider,
+	us user.Provider,
+) Provider {
 	return &TransactionService{
 		DB:             db,
 		PartnerService: ps,
+		UserService:    us,
 	}
 }
 
