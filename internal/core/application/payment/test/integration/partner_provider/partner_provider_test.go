@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 func setup() {
 }
 
-func Test_Checkout(t *testing.T) {
+func Test_Init_On_Checkout(t *testing.T) {
 }
 
 func Test_Handle_Webhook_Payment_Confirmation(t *testing.T) {

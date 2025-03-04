@@ -3,7 +3,6 @@ package payment
 import (
 	"context"
 	"errors"
-	"time"
 )
 
 var (
@@ -11,15 +10,16 @@ var (
 )
 
 type CreateRequest struct {
-	User_Id int
-	Amount  int
+	Name             string
+	Icon             string
+	Init_payment_url string
 }
 
 type GetResponse struct {
-	Id           int
-	User_Id      int
-	Amount       int
-	Created_Date time.Time
+	Id     int
+	Name   string
+	Icon   string
+	Status string
 }
 
 type GetAllResponse struct {
@@ -27,12 +27,16 @@ type GetAllResponse struct {
 }
 
 type Reader interface {
+	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
+	GetByStatus(context.Context, string) (GetAllResponse, error)
+	GetByName(context.Context, string) (GetAllResponse, error)
 }
 
 type Writer interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	UpdateStatus(context.Context, int, string) (int, error)
+	UpdateName(context.Context, int, string) (int, error)
 	Delete(context.Context, int) error
 }
 
