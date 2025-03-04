@@ -8,11 +8,10 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/payment/partner"
 	"b2b.nati011.github.com/internal/core/application/payment/transaction"
-	"b2b.nati011.github.com/internal/core/application/payment/transaction/test/integration"
 	"b2b.nati011.github.com/internal/core/application/user"
 )
 
-var testContainer integration.TestContainer
+var testContainer transaction.TestContainer
 
 func TestMain(m *testing.M) {
 	setup()
@@ -21,7 +20,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	testContainer = integration.NewPackageIntegrationTestContainer()
+	testContainer = transaction.NewPackageIntegrationTestContainer()
 }
 
 func Test_Validate_PartnerId_Upon_Transaction_Create_happyPath(t *testing.T) {
