@@ -8,11 +8,20 @@ import (
 	port "b2b.nati011.github.com/internal/port/invoice"
 )
 
+type Item struct {
+	ProductId int
+	Quantity  int
+}
+
 type MockInvoice struct {
 	Id           int
 	Created_Date time.Time
 	ExternalId   string
 	Status       string
+	OrderId      int
+	SubTotal     float64
+	LineItems    []Item
+	TaxAmount    float64
 }
 
 type Mock struct {
@@ -26,7 +35,23 @@ func NewMock() port.DB {
 func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.invoices {
 		if i.Id == id {
-			return port.GetResponse(i), nil
+			items := []port.Item{}
+			for _, i := range i.LineItems {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			return port.GetResponse{
+				Id:           i.Id,
+				Created_Date: i.Created_Date,
+				ExternalId:   i.ExternalId,
+				Status:       i.Status,
+				OrderId:      i.OrderId,
+				SubTotal:     i.SubTotal,
+				LineItems:    items,
+				TaxAmount:    i.TaxAmount,
+			}, nil
 		}
 	}
 	return port.GetResponse{}, port.ErrSysNoRows
@@ -35,7 +60,23 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	res := port.GetAllResponse{}
 	for _, i := range m.invoices {
-		res.List = append(res.List, port.GetResponse(i))
+		items := []port.Item{}
+		for _, i := range i.LineItems {
+			items = append(items, port.Item{
+				ProductId: i.ProductId,
+				Quantity:  i.Quantity,
+			})
+		}
+		res.List = append(res.List, port.GetResponse{
+			Id:           i.Id,
+			Created_Date: i.Created_Date,
+			ExternalId:   i.ExternalId,
+			Status:       i.Status,
+			OrderId:      i.OrderId,
+			SubTotal:     i.SubTotal,
+			LineItems:    items,
+			TaxAmount:    i.TaxAmount,
+		})
 
 	}
 	if len(res.List) == 0 {
@@ -48,7 +89,23 @@ func (m *Mock) GetByExternalId(ctx context.Context, extId string) (port.GetAllRe
 	res := port.GetAllResponse{}
 	for _, i := range m.invoices {
 		if i.ExternalId == extId {
-			res.List = append(res.List, port.GetResponse(i))
+			items := []port.Item{}
+			for _, i := range i.LineItems {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			res.List = append(res.List, port.GetResponse{
+				Id:           i.Id,
+				Created_Date: i.Created_Date,
+				ExternalId:   i.ExternalId,
+				Status:       i.Status,
+				OrderId:      i.OrderId,
+				SubTotal:     i.SubTotal,
+				LineItems:    items,
+				TaxAmount:    i.TaxAmount,
+			})
 		}
 	}
 	if len(res.List) == 0 {
@@ -61,7 +118,23 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 	res := port.GetAllResponse{}
 	for _, i := range m.invoices {
 		if i.Status == status {
-			res.List = append(res.List, port.GetResponse(i))
+			items := []port.Item{}
+			for _, i := range i.LineItems {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			res.List = append(res.List, port.GetResponse{
+				Id:           i.Id,
+				Created_Date: i.Created_Date,
+				ExternalId:   i.ExternalId,
+				Status:       i.Status,
+				OrderId:      i.OrderId,
+				SubTotal:     i.SubTotal,
+				LineItems:    items,
+				TaxAmount:    i.TaxAmount,
+			})
 		}
 	}
 	if len(res.List) == 0 {
@@ -70,14 +143,40 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 	return res, nil
 }
 
+func (m *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetResponse, error) {
+	for _, i := range m.invoices {
+		if i.OrderId == orderId {
+			items := []port.Item{}
+			for _, i := range i.LineItems {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			return port.GetResponse{
+				Id:           i.Id,
+				Created_Date: i.Created_Date,
+				ExternalId:   i.ExternalId,
+				Status:       i.Status,
+				OrderId:      i.OrderId,
+				SubTotal:     i.SubTotal,
+				LineItems:    items,
+				TaxAmount:    i.TaxAmount,
+			}, nil
+		}
+	}
+	return port.GetResponse{}, port.ErrSysNoRows
+}
+
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
-	rand.Seed(time.Now().UnixNano()) // Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
 	id := rand.Intn(1000-10+1) + 10
 	m.invoices = append(m.invoices, MockInvoice{
 		Id:           id,
 		Created_Date: time.Now(),
 		ExternalId:   req.ExternalId,
 		Status:       req.Status,
+		OrderId:      req.OrderId,
 	})
 	return id, nil
 }
@@ -91,6 +190,7 @@ func (m *Mock) UpdateExternalId(ctx context.Context, req *port.UpdateExternalIdR
 				Created_Date: i.Created_Date,
 				ExternalId:   req.ExternalId,
 				Status:       i.Status,
+				OrderId:      i.OrderId,
 			})
 		} else {
 			res = append(res, MockInvoice(i))
@@ -109,6 +209,7 @@ func (m *Mock) UpdateStatus(ctx context.Context, req *port.UpdateStatusRequest) 
 				Created_Date: i.Created_Date,
 				ExternalId:   i.ExternalId,
 				Status:       req.Status,
+				OrderId:      i.OrderId,
 			})
 		} else {
 			res = append(res, MockInvoice(i))
