@@ -5,16 +5,17 @@ import (
 	"encoding/json"
 	"net/http"
 
-	distributor "b2b.nati011.github.com/internal/core/domain/distributor"
+	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
+	service "b2b.nati011.github.com/internal/core/domain/distributor/service"
 )
 
 type DistributorHandler struct {
-	distributorService *distributor.DistributorService
+	distributorContainer *service.Container
 }
 
-func NewDistributorHandler(distributorService *distributor.DistributorService) *DistributorHandler {
+func NewDistributorHandler(distributorContainer *service.Container) *DistributorHandler {
 	return &DistributorHandler{
-		distributorService: distributorService,
+		distributorContainer: distributorContainer,
 	}
 }
 
@@ -25,13 +26,14 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var req distributor.RegisterDistributorRequest
+	var req distributorDTO.RegisterDistributorRequest
+	registerResponse, err := h.distributorContainer.DistributorProvider.Create(ctx, &req)
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	registerResponse, err := h.distributorService.Create(ctx, &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

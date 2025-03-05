@@ -2,20 +2,21 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5"
 
 	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
 type Postgres struct {
-	db *sql.DB
+	db *pgx.Conn
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
 
-	err := p.db.QueryRowContext(ctx, query,
+	err := p.db.QueryRow(ctx, query,
 		req.FullName,
 		req.Email,
 		req.Phone,
@@ -25,7 +26,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	).Scan(&resourceId)
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case pgx.ErrNoRows:
 			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
@@ -40,10 +41,10 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_distributors();"
 
-	err := p.db.QueryRowContext(ctx, query).Scan()
+	err := p.db.QueryRow(ctx, query).Scan()
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case pgx.ErrNoRows:
 			return port.GetAllResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetAllResponse{}, port.ErrSysUnknown
@@ -58,10 +59,10 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_distributor_by_id($1);"
 
-	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id)
+	err := p.db.QueryRow(ctx, query, id).Scan(&response.Id)
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case pgx.ErrNoRows:
 			return port.GetResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetResponse{}, port.ErrSysUnknown
@@ -71,7 +72,7 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func NewPostgres(db *sql.DB) port.DB {
+func NewPostgres(db *pgx.Conn) port.DB {
 	return &Postgres{
 		db: db,
 	}
