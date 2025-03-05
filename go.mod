@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	golang.org/x/text v0.21.0 // indirect
@@ -41,6 +41,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inbucket/inbucket v2.0.0+incompatible
+	github.com/jackc/pgx/v5 v5.7.2
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -63,8 +64,8 @@ require (
 	github.com/stillya/testcontainers-keycloak v0.3.1 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/testcontainers/testcontainers-go v0.35.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0
 	github.com/testcontainers/testcontainers-go/modules/inbucket v0.35.0 // indirect
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
