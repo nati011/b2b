@@ -58,6 +58,7 @@ func (a AuthService) CreateClient(rq authDTO.RegisterUserRequest) (authDTO.Regis
 
 func (a *AuthService) LoginClient(rq authDTO.LoginUserRequest) (authDTO.LoginUserResponse, error) {
 	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
+	print(err)
 	if err != nil {
 		switch err {
 		case provider.ErrSysFailedToLogin:
