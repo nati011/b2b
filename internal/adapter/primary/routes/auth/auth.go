@@ -3,15 +3,17 @@ package routes
 import (
 	"net/http"
 
+	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
+
 	config "b2b.nati011.github.com/config"
 	authHandler "b2b.nati011.github.com/internal/adapter/primary/handlers/auth"
-	"b2b.nati011.github.com/pkg/auth/provider"
-	service "b2b.nati011.github.com/pkg/auth/service"
+	service "b2b.nati011.github.com/internal/core/application/auth"
 )
 
 func RegisterRoutes(router *http.ServeMux) {
 	appConfig := config.AppConfig
-	container := service.NewContainer(provider.NewKeycloakProvider(appConfig.KeycloakInstanceURL, appConfig.KeycloakUsername, appConfig.KeycloakPassword, appConfig.KeycloakRealm, appConfig.KeycloakApplicationRealm, appConfig.KeycloakClientId))
+	keyCloakProvider := provider.NewKeycloakProvider(appConfig.KeycloakInstanceURL, appConfig.KeycloakUsername, appConfig.KeycloakPassword, appConfig.KeycloakRealm, appConfig.KeycloakApplicationRealm, appConfig.KeycloakClientId)
+	container := service.NewContainer(keyCloakProvider)
 	handler := authHandler.NewAuthHandler(container)
 
 	router.HandleFunc("/api/auth/login", handler.Login)

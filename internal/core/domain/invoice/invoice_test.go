@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/invoice"
+	db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice"
 )
 
 var invoiceService Provider
