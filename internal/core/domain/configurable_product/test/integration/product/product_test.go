@@ -184,7 +184,7 @@ func Test_Create_ValidateAttribute_keys_unhappyPath(t *testing.T) {
 	}
 }
 
-func Test_Create_PopulateAttributeValues_happyPath(t *testing.T) {
+func Test_Create_PopulateAttributeValues(t *testing.T) {
 	//create product
 	ctx := context.Background()
 	in := &product.CreateRequest{
@@ -238,10 +238,6 @@ func Test_Create_PopulateAttributeValues_happyPath(t *testing.T) {
 			t.Errorf("Failed to populate attributes")
 		}
 	}
-}
-
-func Test_Create_PopulateAttributeValues_unhappyPath(t *testing.T) {
-
 }
 
 func Test_Update_ValidateProduct_happyPath(t *testing.T) {
