@@ -43,7 +43,7 @@ func NewKeycloakProvider(
 	keycloakRealm string,
 	keycloakApplicationRealm string,
 	keycloakClientId string,
-) *KeycloakProvider {
+) port.AuthProvider {
 	return &KeycloakProvider{
 		KeycloakInstanceURL:      keycloakInstanceURL,
 		KeycloakUsername:         keycloakUsername,
@@ -149,15 +149,15 @@ func (k KeycloakProvider) ClientLogin(email, password string) (port.LoginAuthRes
 
 	return port.LoginAuthResonse{
 		JWT: port.JWT{
-			token.AccessToken,
-			token.IDToken,
-			token.ExpiresIn,
-			token.RefreshExpiresIn,
-			token.RefreshToken,
-			token.TokenType,
-			token.NotBeforePolicy,
-			token.SessionState,
-			token.Scope,
+			AccessToken:      token.AccessToken,
+			IDToken:          token.IDToken,
+			ExpiresIn:        token.ExpiresIn,
+			RefreshExpiresIn: token.RefreshExpiresIn,
+			RefreshToken:     token.RefreshToken,
+			TokenType:        token.TokenType,
+			NotBeforePolicy:  token.NotBeforePolicy,
+			SessionState:     token.SessionState,
+			Scope:            token.Scope,
 		},
 	}, err
 }

@@ -45,7 +45,6 @@ func Test_CreateClient_happyPath(t *testing.T) {
 
 	userRegistrationSuccessResponse := RegisterUserResponse{
 		Username: VALID_USERNAME_A,
-		Message:  SUCCESS_MESSAGE,
 	}
 
 	in := user
@@ -62,9 +61,8 @@ func Test_CreateClient_happyPath(t *testing.T) {
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
-
 	t.Run("DuplicateUsername", func(t *testing.T) {
-		//init
+		//setup
 		in_a := RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
@@ -88,7 +86,6 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		want := RegisterUserResponse{
 			Username: "",
-			Message:  ErrUsernameTaken.Error(),
 		}
 
 		got, _ := service.CreateClient(in_b)
@@ -119,7 +116,6 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		want := RegisterUserResponse{
 			Username: "",
-			Message:  ErrEmailTaken.Error(),
 		}
 
 		got, err := service.CreateClient(ub)

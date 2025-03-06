@@ -24,7 +24,6 @@ type RegisterUserRequest struct {
 
 type RegisterUserResponse struct {
 	Username string `json:"username"`
-	Message  string `json:"message"`
 }
 
 type LoginUserRequest struct {
@@ -33,8 +32,7 @@ type LoginUserRequest struct {
 }
 
 type LoginUserResonse struct {
-	JWT     JWT
-	Message string
+	JWT JWT
 }
 
 type JWT struct {
@@ -71,20 +69,15 @@ func (a AuthService) CreateClient(rq RegisterUserRequest) (RegisterUserResponse,
 	if err != nil {
 		switch err {
 		case port.ErrSysUsernameTaken:
-			return RegisterUserResponse{
-				Message: ErrUsernameTaken.Error(),
-			}, ErrUsernameTaken
+			return RegisterUserResponse{}, ErrUsernameTaken
 		case port.ErrSysEmailTaken:
-			return RegisterUserResponse{
-				Message: ErrEmailTaken.Error(),
-			}, ErrEmailTaken
+			return RegisterUserResponse{}, ErrEmailTaken
 		default:
 			return RegisterUserResponse{}, ErrUnknown
 		}
 	}
 	return RegisterUserResponse{
 		Username: resp.Username,
-		Message:  SUCCESS_MESSAGE,
 	}, nil
 }
 
@@ -93,15 +86,12 @@ func (a *AuthService) LoginClient(rq LoginUserRequest) (LoginUserResonse, error)
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
-			return LoginUserResonse{
-				Message: ErrFailedToLogin.Error(),
-			}, ErrFailedToLogin
+			return LoginUserResonse{}, ErrFailedToLogin
 		default:
 			return LoginUserResonse{}, ErrUnknown
 		}
 	}
 	return LoginUserResonse{
-		JWT:     JWT(resp.JWT),
-		Message: SUCCESS_MESSAGE,
+		JWT: JWT(resp.JWT),
 	}, nil
 }
