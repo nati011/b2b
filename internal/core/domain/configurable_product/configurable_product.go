@@ -123,11 +123,15 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 	}
 	//get vals
 	attributes := map[string]string{}
-	for _, i := range req.AttributeKeys {
-		attributes = map[string]string{
-			i: "created",
+	for _, i := range req.Products {
+		prod, _ := c.ProductService.Get(ctx, i)
+		for _, i := range req.AttributeKeys {
+			attributes = map[string]string{
+				i: prod.Attributes[i],
+			}
 		}
 	}
+
 	id, err := c.DB.Create(ctx, &port.CreateRequest{
 		Name:              req.Name,
 		Desc:              req.Desc,
