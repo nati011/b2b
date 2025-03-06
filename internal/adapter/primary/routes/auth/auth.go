@@ -15,7 +15,5 @@ func RegisterRoutes(router *http.ServeMux) {
 	handler := authHandler.NewAuthHandler(container)
 
 	router.HandleFunc("/api/auth/login", handler.Login)
-	// router.HandleFunc("/api/auth/logout", handler.Logout)
 	router.HandleFunc("/api/auth/refresh", handler.RefreshToken)
-	// router.HandleFunc("/api/auth/register/distributor", handler.RegisterDistributor)
 }
