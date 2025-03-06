@@ -58,10 +58,10 @@ type Provider interface {
 }
 
 type AuthService struct {
-	authProvider port.AuthProvider
+	authProvider port.Provider
 }
 
-func NewAuthService(ap port.AuthProvider) Provider {
+func NewAuthService(ap port.Provider) Provider {
 	return &AuthService{authProvider: ap}
 }
 
