@@ -13,7 +13,7 @@ import (
 )
 
 var keycloakContainer *keycloak.KeycloakContainer
-var KeycloakProvider port.AuthProvider
+var KeycloakProvider port.Provider
 var authService auth.Provider
 
 const (
