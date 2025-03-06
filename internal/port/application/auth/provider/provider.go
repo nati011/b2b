@@ -30,7 +30,7 @@ type CreateClientAuthResonse struct {
 	Username string
 }
 
-type AuthProvider interface {
+type Provider interface {
 	CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error)
 	ClientLogin(email, password string) (LoginAuthResonse, error)
 }
