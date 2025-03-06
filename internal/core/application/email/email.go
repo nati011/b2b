@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	smtp "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
-	render "b2b.nati011.github.com/internal/core/application/email/render"
+	render "b2b.nati011.github.com/internal/core/application/render"
 )
 
 type SendRequest struct {
