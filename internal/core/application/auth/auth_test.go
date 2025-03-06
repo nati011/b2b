@@ -54,7 +54,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	got, err := service.CreateClient(in)
 
 	if err != nil {
-		t.Errorf("Failed to create client err: %v", err)
+		t.Fatalf("Failed to create client err: %v", err)
 	}
 	if got != want {
 		t.Errorf("Expected: %v, Got: %v", want, got)
@@ -75,7 +75,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		_, err := service.CreateClient(in_a)
 		if err != nil {
-			t.Errorf("Failed to create client err: %v", err)
+			t.Fatalf("Failed to create client err: %v", err)
 		}
 
 		in_b := RegisterUserRequest{
