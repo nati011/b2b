@@ -43,7 +43,7 @@ func NewKeycloakProvider(
 	keycloakRealm string,
 	keycloakApplicationRealm string,
 	keycloakClientId string,
-) port.AuthProvider {
+) port.Provider {
 	return &KeycloakProvider{
 		KeycloakInstanceURL:      keycloakInstanceURL,
 		KeycloakUsername:         keycloakUsername,
