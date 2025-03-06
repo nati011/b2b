@@ -7,12 +7,13 @@ import (
 
 	provider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	"b2b.nati011.github.com/internal/core/application/auth"
+	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
 
 var keycloakContainer *keycloak.KeycloakContainer
-var KeycloakProvider *provider.KeycloakProvider
+var KeycloakProvider port.AuthProvider
 var authService auth.Provider
 
 const (
@@ -46,7 +47,6 @@ func Test_CreateClient_happyPath(t *testing.T) {
 
 	userRegistrationSuccessResponse := auth.RegisterUserResponse{
 		Username: VALID_USERNAME_A,
-		Message:  auth.SUCCESS_MESSAGE,
 	}
 
 	in := user
@@ -92,7 +92,6 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		want := auth.RegisterUserResponse{
 			Username: "",
-			Message:  auth.ErrUsernameTaken.Error(),
 		}
 		got, _ := authService.CreateClient(in_b)
 		if got != want {
@@ -125,7 +124,6 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		want := auth.RegisterUserResponse{
 			Username: "",
-			Message:  auth.ErrEmailTaken.Error(),
 		}
 
 		got, err := authService.CreateClient(ub)
