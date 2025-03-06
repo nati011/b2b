@@ -29,16 +29,9 @@ func Test_Send_Email(t *testing.T) {
 			"test": "test",
 		},
 	}
-	want := email.SendResponse{
-		Message: email.SUCCESS_MESSAGE,
-	}
-
-	got, err := container.Emailer.Send(&in)
+	err := container.Emailer.Send(&in)
 	if err != nil {
-		t.Errorf("Failed to send email err: %q", err)
-	}
-	if got != want {
-		t.Errorf("Expected: %q Got: %q", want, got)
+		t.Fatalf("Failed to send email err: %q", err)
 	}
 }
 

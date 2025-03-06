@@ -14,10 +14,6 @@ type SendRequest struct {
 	ExternalId string
 }
 
-type SendResponse struct {
-	Message string
-}
-
 type GetResponse struct {
 	Id         string
 	ExternalId string
@@ -34,6 +30,7 @@ type Email struct {
 var (
 	ErrReceiverAddressNotValid = errors.New("oopsy, receiver email is not valid")
 	ErrContentEmpty            = errors.New("oopsy, email content is empty")
+	ErrUnknown                 = errors.New("oopsy, unknown error")
 )
 
 const (
@@ -41,7 +38,7 @@ const (
 )
 
 type Emailer interface {
-	Send(*SendRequest) (SendResponse, error)
+	Send(*SendRequest) error
 }
 
 type EmailService struct {
@@ -56,23 +53,19 @@ func NewEmailService(ep smtp.Provider, r render.Renderer) *EmailService {
 	}
 }
 
-func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
-	isEmailValid := validateEmailAddr(r.To)
-	if !isEmailValid {
-		return SendResponse{
-			Message: ErrReceiverAddressNotValid.Error(),
-		}, ErrReceiverAddressNotValid
+func (e EmailService) Send(r *SendRequest) error {
+	err := validateEmailAddr(r.To)
+	if err != nil {
+		return err
 	}
 
 	renderResponse, err := e.renderer.Create(&render.Request{})
 	if err != nil {
-		return SendResponse{
-			err.Error(),
-		}, err
+		return err
 	}
-	isTextValid := validateMailContent(renderResponse.Text)
-	if !isTextValid {
-		return SendResponse{}, ErrContentEmpty
+	err = validateMailContent(renderResponse.Text)
+	if err != nil {
+		return err
 	}
 
 	err = e.smtp.Send(
@@ -85,19 +78,12 @@ func (e EmailService) Send(r *SendRequest) (SendResponse, error) {
 	if err != nil {
 		switch err {
 		case smtp.ErrSysUnknown:
-			return SendResponse{}, err
+			return err
+		default:
+			return ErrUnknown
 		}
 	}
-
-	if err != nil {
-		return SendResponse{
-			Message: err.Error(),
-		}, err
-	}
-
-	return SendResponse{
-		Message: SUCCESS_MESSAGE,
-	}, nil
+	return nil
 }
 
 func (e EmailService) Get(s string) (GetResponse, error) {

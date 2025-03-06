@@ -26,16 +26,10 @@ func Test_SendEmail_happyPath(t *testing.T) {
 			"test": "test",
 		},
 	}
-	want := SendResponse{
-		Message: SUCCESS_MESSAGE,
-	}
 
-	got, err := service.Send(&in)
+	err := service.Send(&in)
 	if err != nil {
-		t.Errorf("Failed to send email err: %q", err)
-	}
-	if got != want {
-		t.Errorf("Expecetd: %q Got: %q", want, got)
+		t.Fatalf("Failed to send err: %v", err)
 	}
 }
 
@@ -48,15 +42,11 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		want := SendResponse{
-			Message: ErrReceiverAddressNotValid.Error(),
-		}
-		got, err := service.Send(&in)
-		if err != ErrReceiverAddressNotValid {
-			t.Errorf("Failed to send email %q", err)
-		}
-		if got != want {
-			t.Errorf("Expected: %q Got: %q", want, got)
+
+		err := service.Send(&in)
+		wantErr := ErrReceiverAddressNotValid
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
 }
