@@ -3,7 +3,7 @@ package configurable_product
 import (
 	"context"
 
-	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
+	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 func (p *ConfigurableProductService) validateName(ctx context.Context, name string) error {

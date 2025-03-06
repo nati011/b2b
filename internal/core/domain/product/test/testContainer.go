@@ -1,9 +1,9 @@
 package catalogue
 
 import (
-	"b2b.nati011.github.com/internal/core/domain/catalogue/category"
-	"b2b.nati011.github.com/internal/core/domain/catalogue/configurable_product"
-	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
+	"b2b.nati011.github.com/internal/core/domain/category"
+	"b2b.nati011.github.com/internal/core/domain/configurable_product"
+	"b2b.nati011.github.com/internal/core/domain/product"
 
 	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/category"
 	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/configurable_product"
