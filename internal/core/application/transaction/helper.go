@@ -3,7 +3,7 @@ package transaction
 import (
 	"context"
 
-	"b2b.nati011.github.com/internal/core/application/payment/partner"
+	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/user"
 )
 

@@ -1,9 +1,9 @@
 package transaction
 
 import (
-	partner_db "b2b.nati011.github.com/internal/adapter/secondary/application/partner/db"
+	partner_db "b2b.nati011.github.com/internal/adapter/secondary/application/payment-partner/db"
 	transaction_db "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
-	"b2b.nati011.github.com/internal/core/application/payment/partner"
+	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/user"
 )
 
