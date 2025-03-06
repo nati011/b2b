@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	authDTO "b2b.nati011.github.com/pkg/auth/model/dto"
-	service "b2b.nati011.github.com/pkg/auth/service"
+	service "b2b.nati011.github.com/internal/core/application/auth"
+	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 type AuthHandler struct {
@@ -24,7 +24,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req authDTO.LoginUserRequest
+	var req port.LoginUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -46,7 +46,7 @@ func (h *AuthHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var req authDTO.RegisterUserRequest
+	var req port.RegisterUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -67,7 +67,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req authDTO.RefreshTokenRequest
+	var req port.RefreshTokenRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
