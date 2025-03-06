@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	provider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
+	"b2b.nati011.github.com/internal/core/application/auth"
 	service "b2b.nati011.github.com/internal/core/application/auth"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
@@ -13,7 +14,7 @@ import (
 
 var keycloakContainer *keycloak.KeycloakContainer
 var KeycloakProvider *provider.KeycloakProvider
-var authContainer *service.Container
+var authService auth.Provider
 
 const (
 	VALID_PASSWORD   = "test@123"
@@ -52,7 +53,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	in := user
 	want := userRegistrationSuccessResponse
 
-	got, err := authContainer.AuthService.CreateClient(in)
+	got, err := authService.CreateClient(in)
 	if err != nil {
 		t.Errorf("Failed to create client err: %v", err)
 	}
@@ -77,7 +78,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authContainer.AuthService.CreateClient(in_a)
+		_, err := authService.CreateClient(in_a)
 		if err != nil {
 			t.Errorf("Failed to create client err: %v", err)
 		}
@@ -94,7 +95,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Username: "",
 			Message:  service.ErrUsernameTaken.Error(),
 		}
-		got, _ := authContainer.AuthService.CreateClient(in_b)
+		got, _ := authService.CreateClient(in_b)
 		if got != want {
 			t.Errorf("Expected: %v, Got: %v", want, got)
 		}
@@ -114,7 +115,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		authContainer.AuthService.CreateClient(ua)
+		authService.CreateClient(ua)
 		ub := service.RegisterUserRequest{
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
@@ -128,7 +129,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Message:  service.ErrEmailTaken.Error(),
 		}
 
-		got, err := authContainer.AuthService.CreateClient(ub)
+		got, err := authService.CreateClient(ub)
 		if err != nil {
 			if got != want {
 				t.Errorf("Expected: %v, Got: %v", want, got)
@@ -182,7 +183,7 @@ func setup() {
 		keycloakClientId,
 	)
 
-	authContainer = service.NewContainer(KeycloakProvider)
+	authService = auth.NewAuthService(KeycloakProvider)
 }
 
 func shutDown() {
