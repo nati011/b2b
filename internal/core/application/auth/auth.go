@@ -53,7 +53,7 @@ const (
 	SUCCESS_MESSAGE = "Ahoy!"
 )
 
-type Authenticator interface {
+type Provider interface {
 	CreateClient(RegisterUserRequest) (RegisterUserResponse, error)
 	LoginClient(LoginUserRequest) (LoginUserResonse, error)
 }
