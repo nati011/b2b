@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	template_db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
-	"b2b.nati011.github.com/internal/core/application/email/template"
+	"b2b.nati011.github.com/internal/core/application/template"
 )
 
 var service Renderer

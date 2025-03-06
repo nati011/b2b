@@ -6,7 +6,7 @@ import (
 	"errors"
 	templ "html/template"
 
-	template "b2b.nati011.github.com/internal/core/application/email/template"
+	template "b2b.nati011.github.com/internal/core/application/template"
 )
 
 var (
