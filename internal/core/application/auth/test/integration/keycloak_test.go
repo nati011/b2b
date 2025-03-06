@@ -36,7 +36,7 @@ func Test_Timeout(t *testing.T) {
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
-
+	ctx := context.Background()
 	user := auth.RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
@@ -52,7 +52,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	in := user
 	want := userRegistrationSuccessResponse
 
-	got, err := authService.CreateClient(in)
+	got, err := authService.CreateClient(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create client err: %v", err)
 	}
@@ -63,7 +63,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
-
+	ctx := context.Background()
 	t.Run("DuplicateUsername", func(t *testing.T) {
 		t.Cleanup(teardown)
 
@@ -77,7 +77,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateClient(in_a)
+		_, err := authService.CreateClient(ctx, in_a)
 		if err != nil {
 			t.Fatalf("Failed to create client err: %v", err)
 		}
@@ -90,12 +90,10 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_B,
 		}
 
-		want := auth.RegisterUserResponse{
-			Username: "",
-		}
-		got, _ := authService.CreateClient(in_b)
-		if got != want {
-			t.Errorf("Expected: %v, Got: %v", want, got)
+		_, err = authService.CreateClient(ctx, in_b)
+		wantErr := auth.ErrUsernameTaken
+		if err != wantErr {
+			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
 		}
 
 	})
@@ -113,7 +111,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		authService.CreateClient(ua)
+		authService.CreateClient(ctx, ua)
 		ub := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
@@ -122,30 +120,19 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		want := auth.RegisterUserResponse{
-			Username: "",
-		}
-
-		got, err := authService.CreateClient(ub)
-		if err != nil {
-			if got != want {
-				t.Errorf("Expected: %v, Got: %v", want, got)
-			}
+		_, err := authService.CreateClient(ctx, ub)
+		wantErr := auth.ErrEmailTaken
+		if err != wantErr {
+			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
 		}
 	})
 }
 
 func TestMain(m *testing.M) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		shutDown()
-	// 		fmt.Println("Panic")
-	// 	}
-	// }()
 	setup()
 	code := m.Run()
-	// shutDown()
 	os.Exit(code)
+	shutDown()
 }
 
 func setup() {
@@ -192,7 +179,6 @@ func shutDown() {
 }
 
 func teardown() {
-	//TODO: research if there is a more efficient way to do this
 	shutDown()
 	setup()
 }

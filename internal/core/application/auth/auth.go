@@ -1,17 +1,22 @@
 package auth
 
 import (
+	"context"
 	"errors"
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
-// user readable errors
 var (
-	ErrUsernameTaken = errors.New("oopsy, username already taken")
-	ErrEmailTaken    = errors.New("oopsy, email already taken")
-	ErrFailedToLogin = errors.New("oopsy, email or password incorrect")
-	ErrUnknown       = errors.New("oopsy, unknown error has occured")
+	ErrUsernameTaken                   = errors.New("oopsy, username already taken")
+	ErrEmailTaken                      = errors.New("oopsy, email already taken")
+	ErrFailedToLogin                   = errors.New("oopsy, email or password incorrect")
+	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
+	ErrEmailNotSupplied                = errors.New("oopsy, email mandatory")
+	ErrPasswordNotSupplied             = errors.New("oopsy, password mandatory")
+	ErrConfirmationPasswordNotSupplied = errors.New("oopsy, confirmation password mandatory")
+	ErrFullNameNotSupplied             = errors.New("oopsy, fullname mandatory")
+	ErrPasswordsDontMatch              = errors.New("oopsy, passwords dont match")
 )
 
 type RegisterUserRequest struct {
@@ -47,25 +52,34 @@ type JWT struct {
 	Scope            string `json:"scope"`
 }
 
-const (
-	SUCCESS_MESSAGE = "Ahoy!"
-)
-
 type Provider interface {
-	CreateClient(RegisterUserRequest) (RegisterUserResponse, error)
-	LoginClient(LoginUserRequest) (LoginUserResonse, error)
+	CreateClient(context.Context, RegisterUserRequest) (RegisterUserResponse, error)
+	LoginClient(context.Context, LoginUserRequest) (LoginUserResonse, error)
 }
 
 type AuthService struct {
 	authProvider port.AuthProvider
 }
 
-func NewAuthService(ap port.AuthProvider) *AuthService {
+func NewAuthService(ap port.AuthProvider) Provider {
 	return &AuthService{authProvider: ap}
 }
 
-func (a AuthService) CreateClient(rq RegisterUserRequest) (RegisterUserResponse, error) {
-	resp, err := a.authProvider.CreateNewClient(rq.FullName, rq.FullName, rq.Email, rq.Username, rq.Password)
+func (a AuthService) CreateClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
+	err := validatePasswords(req.Password, req.ConfirmPassword)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
+	err = validateEmail(req.Email)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
+	err = validateFullName(req.FullName)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
+
+	resp, err := a.authProvider.CreateNewClient(req.FullName, req.FullName, req.Email, req.Username, req.Password)
 	if err != nil {
 		switch err {
 		case port.ErrSysUsernameTaken:
@@ -81,7 +95,7 @@ func (a AuthService) CreateClient(rq RegisterUserRequest) (RegisterUserResponse,
 	}, nil
 }
 
-func (a *AuthService) LoginClient(rq LoginUserRequest) (LoginUserResonse, error) {
+func (a *AuthService) LoginClient(ctx context.Context, rq LoginUserRequest) (LoginUserResonse, error) {
 	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
 	if err != nil {
 		switch err {
