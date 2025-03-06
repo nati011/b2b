@@ -7,7 +7,6 @@ import (
 
 	provider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	"b2b.nati011.github.com/internal/core/application/auth"
-	service "b2b.nati011.github.com/internal/core/application/auth"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
@@ -37,7 +36,7 @@ func Test_Timeout(t *testing.T) {
 
 func Test_CreateClient_happyPath(t *testing.T) {
 
-	user := service.RegisterUserRequest{
+	user := auth.RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
@@ -45,9 +44,9 @@ func Test_CreateClient_happyPath(t *testing.T) {
 		Email:           VALID_EMAIL_A,
 	}
 
-	userRegistrationSuccessResponse := service.RegisterUserResponse{
+	userRegistrationSuccessResponse := auth.RegisterUserResponse{
 		Username: VALID_USERNAME_A,
-		Message:  service.SUCCESS_MESSAGE,
+		Message:  auth.SUCCESS_MESSAGE,
 	}
 
 	in := user
@@ -70,7 +69,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		/* create a user with some username x and attempt
 		to create another user with the same username */
-		in_a := service.RegisterUserRequest{
+		in_a := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -83,7 +82,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			t.Errorf("Failed to create client err: %v", err)
 		}
 
-		in_b := service.RegisterUserRequest{
+		in_b := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -91,9 +90,9 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_B,
 		}
 
-		want := service.RegisterUserResponse{
+		want := auth.RegisterUserResponse{
 			Username: "",
-			Message:  service.ErrUsernameTaken.Error(),
+			Message:  auth.ErrUsernameTaken.Error(),
 		}
 		got, _ := authService.CreateClient(in_b)
 		if got != want {
@@ -107,7 +106,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		/* create a user with some email x and attempt
 		to create another user with the same email */
-		ua := service.RegisterUserRequest{
+		ua := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -116,7 +115,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		}
 
 		authService.CreateClient(ua)
-		ub := service.RegisterUserRequest{
+		ub := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -124,9 +123,9 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		want := service.RegisterUserResponse{
+		want := auth.RegisterUserResponse{
 			Username: "",
-			Message:  service.ErrEmailTaken.Error(),
+			Message:  auth.ErrEmailTaken.Error(),
 		}
 
 		got, err := authService.CreateClient(ub)
