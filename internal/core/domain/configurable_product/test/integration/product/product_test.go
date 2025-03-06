@@ -1,16 +1,16 @@
-package catalogue
+package configurable_product
 
 import (
 	"context"
 	"os"
 	"testing"
 
-	"b2b.nati011.github.com/internal/core/domain/catalogue"
-	"b2b.nati011.github.com/internal/core/domain/catalogue/configurable_product"
-	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
+	"b2b.nati011.github.com/internal/core/domain/configurable_product"
+
+	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
-var testContainer catalogue.TestContainer
+var testContainer configurable_product.TestContainer
 var productService product.Provider
 var configurableProductService configurable_product.Provider
 
@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	testContainer = catalogue.NewPackageIntegrationTestContainer()
+	testContainer = configurable_product.NewPackageIntegrationTestContainer()
 	productService = testContainer.ProductService
 	configurableProductService = testContainer.ConfigurableProductService
 }

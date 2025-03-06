@@ -3,7 +3,7 @@ package product
 import (
 	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/category"
 	db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/product"
-	category "b2b.nati011.github.com/internal/core/domain/catalogue/category"
+	category "b2b.nati011.github.com/internal/core/domain/category"
 )
 
 type TestContainer struct {
