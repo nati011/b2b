@@ -14,10 +14,10 @@ func TestMain(m *testing.M) {
 func setup() {
 }
 
-func Test_Init_On_Checkout(t *testing.T) {
+func Test_Init_Payment_On_Checkout(t *testing.T) {
 }
 
-func Test_Handle_Webhook_Payment_Confirmation(t *testing.T) {
+func Test_Handle_Webhook_Payment_Notification(t *testing.T) {
 }
 
 func Test_Payment_Verification(t *testing.T) {
