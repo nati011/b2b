@@ -23,6 +23,7 @@ const (
 )
 
 var service Provider
+var mock = provider.NewMockAuthProvider()
 
 func TestMain(m *testing.M) {
 	setup()
@@ -31,7 +32,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewAuthService(provider.NewMockAuthProvider())
+	service = NewAuthService(&mock)
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
@@ -58,6 +59,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	if got != want {
 		t.Errorf("Expected: %v, Got: %v", want, got)
 	}
+	mock.Cleanup()
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
@@ -92,7 +94,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		if got != want {
 			t.Errorf("Expected: %v, Got: %v", want, got)
 		}
-
+		mock.Cleanup()
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
@@ -124,5 +126,6 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 				t.Errorf("Expected: %v, Got: %v", want, got)
 			}
 		}
+		mock.Cleanup()
 	})
 }

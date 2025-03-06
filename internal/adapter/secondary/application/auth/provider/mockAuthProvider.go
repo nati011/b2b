@@ -16,11 +16,11 @@ type MockAuthProvider struct {
 	clients []MockClient
 }
 
-func NewMockAuthProvider() port.AuthProvider {
-	return &MockAuthProvider{}
+func NewMockAuthProvider() MockAuthProvider {
+	return MockAuthProvider{}
 }
 
-func (m *MockAuthProvider) FlushMockAuthProvider() {
+func (m *MockAuthProvider) Cleanup() {
 	m.clients = []MockClient{}
 }
 
