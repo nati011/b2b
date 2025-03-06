@@ -17,7 +17,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	USERID = 0
+	USERID = 1
 	testContainer = NewPackageIntegrationTestContainer()
 }
 
@@ -38,10 +38,9 @@ func Test_Checkout_happyPath(t *testing.T) {
 }
 
 func Test_Checkout_unhappyPath(t *testing.T) {
-	t.Run("userNotFound", func(t *testing.T) {
+	t.Run("userNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			User_Id:           99,
 			Amount:            1,
 			PaymentPartner_Id: PaymentPartnerId,
 		}
@@ -86,7 +85,7 @@ func Test_Checkout_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &CheckoutRequest{
 			User_Id: USERID,
-			Amount:  -1,
+			Amount:  1,
 		}
 
 		_, err := testContainer.PaymentService.Checkout(ctx, in)
@@ -97,5 +96,18 @@ func Test_Checkout_unhappyPath(t *testing.T) {
 	})
 }
 
-func Test_Verify_Payment(t *testing.T) {
+func Test_Verify_Payment_happyPath(t *testing.T) {
+
+}
+
+func Test_Verify_Payment_unhappyPath(t *testing.T) {
+	t.Run("TransactionRefNotSupplied", func(t *testing.T) {
+		ctx := context.Background()
+		in_tx_ref := ""
+		_, err := testContainer.PaymentService.Verify(ctx, in_tx_ref)
+		wantErr := ErrTransactionReferenceNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
 }
