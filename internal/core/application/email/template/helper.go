@@ -1,4 +1,4 @@
-package email
+package template
 
 func ValidateName(r string) bool {
 	return r != ""

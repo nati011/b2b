@@ -1,11 +1,11 @@
-package email
+package template
 
 import (
 	"context"
 	"os"
 	"testing"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/application/email/db"
+	db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 )
 
 var templateService Templer

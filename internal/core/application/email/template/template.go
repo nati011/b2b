@@ -1,10 +1,10 @@
-package email
+package template
 
 import (
 	"context"
 	"errors"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/application/email/db"
+	db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 )
 
 var (
