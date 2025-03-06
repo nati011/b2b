@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"os"
 	"testing"
 
-	adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
+	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 )
 
 const (
@@ -21,7 +22,17 @@ const (
 	INVALID_EMAIL    = ""
 )
 
-var container = NewContainer(adapter.NewMockAuthProvider())
+var service Provider
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	service = NewAuthService(provider.NewMockAuthProvider())
+}
 
 func Test_CreateClient_happyPath(t *testing.T) {
 	user := RegisterUserRequest{
@@ -40,7 +51,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	in := user
 	want := userRegistrationSuccessResponse
 
-	got, err := container.AuthService.CreateClient(in)
+	got, err := service.CreateClient(in)
 
 	if err != nil {
 		t.Errorf("Failed to create client err: %v", err)
@@ -62,7 +73,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := container.AuthService.CreateClient(in_a)
+		_, err := service.CreateClient(in_a)
 		if err != nil {
 			t.Errorf("Failed to create client err: %v", err)
 		}
@@ -80,7 +91,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Message:  ErrUsernameTaken.Error(),
 		}
 
-		got, _ := container.AuthService.CreateClient(in_b)
+		got, _ := service.CreateClient(in_b)
 		if got != want {
 			t.Errorf("Expected: %v, Got: %v", want, got)
 		}
@@ -88,8 +99,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-
-		//init
+		//setup
 		ua := RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
@@ -98,7 +108,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		container.AuthService.CreateClient(ua)
+		service.CreateClient(ua)
 		ub := RegisterUserRequest{
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
@@ -112,12 +122,11 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Message:  ErrEmailTaken.Error(),
 		}
 
-		got, err := container.AuthService.CreateClient(ub)
+		got, err := service.CreateClient(ub)
 		if err != nil {
 			if got != want {
 				t.Errorf("Expected: %v, Got: %v", want, got)
 			}
 		}
-
 	})
 }
