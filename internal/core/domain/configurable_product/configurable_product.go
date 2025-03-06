@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"b2b.nati011.github.com/internal/core/domain/catalogue/product"
+	"b2b.nati011.github.com/internal/core/domain/product"
 	port "b2b.nati011.github.com/internal/port/domain/catalogue/configurable_product"
 )
 

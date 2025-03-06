@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"b2b.nati011.github.com/internal/core/domain/catalogue/category"
-	product "b2b.nati011.github.com/internal/core/domain/catalogue/product"
+	"b2b.nati011.github.com/internal/core/domain/category"
+	product "b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var testContainer product.TestContainer
