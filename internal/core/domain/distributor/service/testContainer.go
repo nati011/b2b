@@ -1,7 +1,7 @@
 package distributor
 
 import (
-	user "b2b.nati011.github.com/internal/core/application/service/user"
+	user "b2b.nati011.github.com/internal/core/application/user"
 )
 
 type TestContainer struct {
