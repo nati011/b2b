@@ -1,10 +1,11 @@
-package email
+package render
 
 import (
 	"os"
 	"testing"
 
-	template "b2b.nati011.github.com/internal/core/application/email/template"
+	template_db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
+	"b2b.nati011.github.com/internal/core/application/email/template"
 )
 
 var service Renderer
@@ -63,5 +64,5 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewRenderService(template.NewMock())
+	service = NewRenderService(template.NewTemplateService(template_db.NewMock()))
 }

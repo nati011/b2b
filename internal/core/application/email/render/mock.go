@@ -1,4 +1,4 @@
-package email
+package render
 
 type Mock struct {
 }
