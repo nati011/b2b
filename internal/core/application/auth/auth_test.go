@@ -23,7 +23,7 @@ const (
 
 var container = NewContainer(adapter.NewMockAuthProvider())
 
-func TestCreateClient_happyPath(t *testing.T) {
+func Test_CreateClient_happyPath(t *testing.T) {
 	user := RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
@@ -50,7 +50,7 @@ func TestCreateClient_happyPath(t *testing.T) {
 	}
 }
 
-func TestCreateClient_UnhappyPath(t *testing.T) {
+func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 	t.Run("DuplicateUsername", func(t *testing.T) {
 		//init
