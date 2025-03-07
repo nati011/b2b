@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public."users"
   phone_number VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
   birth_date DATE,
-  is_active BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT FALSE,
   external_id VARCHAR(255)
 ) INHERITS (public."base");
 
