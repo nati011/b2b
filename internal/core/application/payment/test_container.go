@@ -1,8 +1,8 @@
 package payment
 
 import (
-	"b2b.nati011.github.com/internal/core/application/payment/partner"
-	"b2b.nati011.github.com/internal/core/application/payment/transaction"
+	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/application/transaction"
 )
 
 type TestContainer struct {
