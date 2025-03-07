@@ -11,18 +11,19 @@ import (
 	authRouter "b2b.nati011.github.com/internal/adapter/primary/routes/auth"
 	distributorRouter "b2b.nati011.github.com/internal/adapter/primary/routes/distributor"
 	healthRouter "b2b.nati011.github.com/internal/adapter/primary/routes/health"
-	"github.com/jackc/pgx/v5"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
 	cfg := *config.LoadConfig()
 
-	DB, err := pgx.Connect(context.Background(), cfg.DB_URL)
+	DB, err := pgxpool.New(context.Background(), cfg.DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer DB.Close(context.Background())
+	defer DB.Close()
 	router := http.NewServeMux()
 	authRouter.RegisterRoutes(router)
 	healthRouter.RegisterRoutes(router)

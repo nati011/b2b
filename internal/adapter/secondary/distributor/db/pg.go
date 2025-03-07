@@ -4,18 +4,19 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
 type Postgres struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
+	print("Here_______________________________")
 	var resourceId int
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
-
 	err := p.db.QueryRow(ctx, query,
 		req.FullName,
 		req.Email,
@@ -24,6 +25,8 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.DOB,
 		req.ExternalId,
 	).Scan(&resourceId)
+	print("HERE2________________")
+	print(err, query)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -72,7 +75,7 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func NewPostgres(db *pgx.Conn) port.DB {
+func NewPostgres(db *pgxpool.Pool) port.DB {
 	return &Postgres{
 		db: db,
 	}

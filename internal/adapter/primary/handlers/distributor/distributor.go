@@ -27,12 +27,13 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 	}
 
 	var req distributorDTO.RegisterDistributorRequest
-	registerResponse, err := h.distributorContainer.DistributorProvider.Create(ctx, &req)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
+	registerResponse, err := h.distributorContainer.DistributorProvider.Create(ctx, &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
