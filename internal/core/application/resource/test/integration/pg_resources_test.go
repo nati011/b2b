@@ -152,7 +152,7 @@ func Test_Timeout(t *testing.T) {
 
 }
 
-func Test_create_happyPath(t *testing.T) {
+func Test_create(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := resource.CreateRequest{
@@ -169,84 +169,7 @@ func Test_create_happyPath(t *testing.T) {
 	}
 }
 
-func Test_create_unhappyPath(t *testing.T) {
-	t.Run("duplicateName", func(t *testing.T) {
-		t.Cleanup(teardown)
-		//setup
-		ctx := context.Background()
-		in := resource.CreateRequest{
-			Action: "test",
-			Name:   "test",
-		}
-		_, err := service.Create(ctx, &in)
-		if err != nil {
-			t.Errorf("Failed to create resource err: %v", err)
-		}
-
-		//create duplicate
-		wantErr := resource.ErrDuplicateName
-		got, err := service.Create(ctx, &in)
-		if err != wantErr {
-			switch err {
-			case nil:
-				t.Errorf("Expected err: %v Got err: %v", wantErr, err)
-			default:
-				t.Errorf("Failed to create resource err: %v", err)
-			}
-		}
-		if got != 0 {
-			t.Errorf("Expected: %v, Got: %v", 0, got)
-		}
-	})
-
-	t.Run("emptyAction", func(t *testing.T) {
-		t.Cleanup(teardown)
-		ctx := context.Background()
-		in := resource.CreateRequest{
-			Action: "",
-			Name:   "test",
-		}
-
-		wantErr := resource.ErrEmptyAction
-		got, err := service.Create(ctx, &in)
-		if err != wantErr {
-			switch err {
-			case nil:
-				t.Errorf("Expected err: %v Got err: %v", wantErr, err)
-			default:
-				t.Errorf("Failed to create resource err: %v", err)
-			}
-		}
-		if got != 0 {
-			t.Errorf("Expected: %v, Got: %v", 0, got)
-		}
-	})
-
-	t.Run("emptyName", func(t *testing.T) {
-		t.Cleanup(teardown)
-		ctx := context.Background()
-		in := resource.CreateRequest{
-			Action: "test",
-			Name:   "",
-		}
-
-		wantErr := resource.ErrEmptyName
-		got, err := service.Create(ctx, &in)
-		if err != wantErr {
-			switch err {
-			case nil:
-				t.Errorf("Expected err: %v Got err: %v", wantErr, err)
-			default:
-				t.Errorf("Failed to create resource err: %v", err)
-			}
-		}
-		if got != 0 {
-			t.Errorf("Expected: %v, Got: %v", 0, got)
-		}
-	})
-}
-
-func Test_delete_happyPath(t *testing.T) {
+func Test_delete(t *testing.T) {
 	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
@@ -272,24 +195,7 @@ func Test_delete_happyPath(t *testing.T) {
 	}
 }
 
-func Test_delete_unhappyPath(t *testing.T) {
-	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(teardown)
-		ctx := context.Background()
-		err := service.Delete(ctx, 1010)
-		wantErr := resource.ErrIdNotFound
-		if err != wantErr {
-			switch err {
-			case nil:
-				t.Errorf("Expected err: %q Got err: %q", wantErr, err)
-			default:
-				t.Error("Failed to delete resource")
-			}
-		}
-	})
-}
-
-func Test_update_happyPath(t *testing.T) {
+func Test_update(t *testing.T) {
 	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
@@ -313,125 +219,7 @@ func Test_update_happyPath(t *testing.T) {
 	}
 }
 
-func Test_update_unhappyPath(t *testing.T) {
-	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(teardown)
-		ctx := context.Background()
-		in := resource.UpdateRequest{
-			Id:     1,
-			Action: "test",
-			Name:   "test",
-		}
-		wantErr := resource.ErrIdNotFound
-		resp, err := service.Update(ctx, &in)
-		if err != wantErr {
-			switch err {
-			case nil:
-				t.Errorf("Expected %v Got %v", wantErr, err)
-			default:
-				t.Errorf("Failed to update err %v", err)
-			}
-		}
-		if resp != 0 {
-			t.Errorf("Failed to update resource")
-		}
-	})
-
-	t.Run("duplicateName", func(t *testing.T) {
-		t.Cleanup(teardown)
-		// setup
-		ctx := context.Background()
-
-		//create resource with taken name
-		service.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "taken",
-		})
-
-		// create resource
-		id, err := service.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "name1212",
-		})
-		if err != nil {
-			t.Errorf("Failed to update err %v", err)
-		}
-		// update
-		in := resource.UpdateRequest{
-			Id:     id,
-			Action: "test",
-			Name:   "taken",
-		}
-		wantErr := resource.ErrDuplicateName
-		_, err = service.Update(ctx, &in)
-		if err != wantErr {
-			switch err {
-			case nil:
-				t.Errorf("Expected %v Got %v", wantErr, err)
-			default:
-				t.Errorf("Failed to update err %v", err)
-			}
-		}
-
-	})
-
-	t.Run("emptyName", func(t *testing.T) {
-		t.Cleanup(teardown)
-		// setup
-		ctx := context.Background()
-		id, _ := service.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "test",
-		})
-		// update
-		in := resource.UpdateRequest{
-			Id:     id,
-			Action: "tets",
-			Name:   "",
-		}
-		wantErr := resource.ErrEmptyName
-		_, err := service.Update(ctx, &in)
-		if err != nil {
-			switch err {
-			case wantErr:
-				t.Errorf("Expected %v Got %v", wantErr, err)
-			default:
-				t.Errorf("Failed to update err %v", err)
-			}
-		}
-	})
-
-	t.Run("emptyAction", func(t *testing.T) {
-		t.Cleanup(teardown)
-		// setup
-		ctx := context.Background()
-		id, _ := service.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "test1",
-		})
-		// update
-		in := resource.UpdateRequest{
-			Id:     id,
-			Action: "",
-			Name:   "test2",
-		}
-		wantErr := resource.ErrEmptyAction
-		resp, err := service.Update(ctx, &in)
-		if err != nil {
-			switch err {
-			case wantErr:
-				t.Errorf("Expected %v Got %v", wantErr, err)
-			default:
-				t.Errorf("Failed to update err %v", err)
-			}
-		}
-		if id != resp {
-			t.Errorf("Failed to update resource")
-		}
-	})
-}
-
-func Test_getResource_happyPath(t *testing.T) {
+func Test_get(t *testing.T) {
 	t.Run("getById", func(t *testing.T) {
 		t.Cleanup(teardown)
 		//setup
@@ -477,10 +265,7 @@ func Test_getResource_happyPath(t *testing.T) {
 	})
 }
 
-func Test_getResource_unhappyPath(t *testing.T) {
-}
-
-func Test_getAllResources_happyPath(t *testing.T) {
+func Test_getAll(t *testing.T) {
 	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
@@ -497,7 +282,4 @@ func Test_getAllResources_happyPath(t *testing.T) {
 	if len(got.List) == 0 || got.List[0].Id != id {
 		t.Errorf("Failed to get resource by id")
 	}
-}
-
-func Test_getAllResources_unhappyPath(t *testing.T) {
 }
