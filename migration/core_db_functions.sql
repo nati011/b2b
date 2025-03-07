@@ -344,7 +344,6 @@ create or replace function public.create_user (
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
   u_dob DATE,
-  u_is_active BOOLEAN,
   u_external_id VARCHAR(255)
 ) RETURNS INT LANGUAGE plpgsql as $$
     DECLARE
@@ -355,8 +354,7 @@ create or replace function public.create_user (
         email, 
         phone_number, 
         username, 
-        birth_date, 
-        is_active, 
+        birth_date,
         external_id)
         VALUES 	
         (u_fullname, 
@@ -364,7 +362,6 @@ create or replace function public.create_user (
         u_phone, 
         u_username, 
         u_dob, 
-        u_is_active, 
         u_external_id)
 
         RETURNING id INTO new_id;
@@ -629,9 +626,7 @@ create or replace function public.create_distributor_user (
   u_dob DATE,
   u_external_id VARCHAR(255)
 ) RETURNS BIGINT LANGUAGE plpgsql as $$
-    DECLARE
-        new_id BIGINT;
-
+    DECLARE new_id BIGINT;
     DECLARE new_user_id INT;
     DECLARE new_distributor_id INT;
 
@@ -642,16 +637,15 @@ create or replace function public.create_distributor_user (
     u_phone,
     u_username,
     u_dob,
-    u_external_id
-        );
+    u_external_id );
 
-        new_distributor_id := create_distributor();
+    new_distributor_id := create_distributor();
 
-        INSERT INTO public.distributor_user (new_user_id, new_distributor_id)
-        VALUES 	
-        (user_id, distributor_id)
-        RETURNING id INTO new_id;
+    INSERT INTO public.distributor_user (new_user_id, new_distributor_id)
+    VALUES 	
+    (user_id, distributor_id)
+    RETURNING id INTO new_id;
 
-        RETURN new_id;
-    END;
-    $$;
+    RETURN new_id;
+END;
+$$;
