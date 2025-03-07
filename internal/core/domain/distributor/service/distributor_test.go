@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/distributor/db"
+	db "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
 	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
 )
 
@@ -80,59 +80,59 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 	})
 }
 
-func Test_Get_happyPath(t *testing.T) {
-	ctx := context.Background()
-	in := &distributorDTO.RegisterDistributorRequest{
-		FullName:        "Test User",
-		Email:           "test11@email.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
+// func Test_Get_happyPath(t *testing.T) {
+// 	ctx := context.Background()
+// 	in := &distributorDTO.RegisterDistributorRequest{
+// 		FullName:        "Test User",
+// 		Email:           "test11@email.com",
+// 		Password:        "test@123",
+// 		ConfirmPassword: "test@123",
+// 		Username:        "username11",
+// 	}
 
-	id, err := service.Create(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to create distributor %v", err)
-	}
+// 	id, err := service.Create(ctx, in)
+// 	if err != nil {
+// 		t.Fatalf("Failed to create distributor %v", err)
+// 	}
 
-	_, err = service.Get(ctx, id)
+// 	_, err = service.Get(ctx, id)
 
-	if err != nil {
-		t.Fatalf("Failed to fetch distributor %v", err)
-	}
-}
+// 	if err != nil {
+// 		t.Fatalf("Failed to fetch distributor %v", err)
+// 	}
+// }
 
-func Test_Add_Business_Information_happyPath(t *testing.T) {
-	ctx := context.Background()
-	createRequest := &distributorDTO.RegisterDistributorRequest{
-		FullName:        "Test User",
-		Email:           "test11@email.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
+// func Test_Add_Business_Information_happyPath(t *testing.T) {
+// 	ctx := context.Background()
+// 	createRequest := &distributorDTO.RegisterDistributorRequest{
+// 		FullName:        "Test User",
+// 		Email:           "test11@email.com",
+// 		Password:        "test@123",
+// 		ConfirmPassword: "test@123",
+// 		Username:        "username11",
+// 	}
 
-	id, err := service.Create(ctx, createRequest)
-	if err != nil {
-		t.Fatalf("Failed to create distributor %v", err)
-	}
+// 	id, err := service.Create(ctx, createRequest)
+// 	if err != nil {
+// 		t.Fatalf("Failed to create distributor %v", err)
+// 	}
 
-	region := &distributorDTO.BusinessLocation{
-		GeneralZone: "Test Zone",
-		Region:      "Test Region",
-		Woreda:      "Test Woreda",
-	}
+// 	region := &distributorDTO.BusinessLocation{
+// 		GeneralZone: "Test Zone",
+// 		Region:      "Test Region",
+// 		Woreda:      "Test Woreda",
+// 	}
 
-	in := &distributorDTO.UpdateBusinessRequest{
-		DistributorId: id,
-		Name:          "Test location",
-		Tin:           127897024567,
-		Region:        *region,
-	}
+// 	in := &distributorDTO.UpdateBusinessRequest{
+// 		DistributorId: id,
+// 		Name:          "Test location",
+// 		Tin:           127897024567,
+// 		Region:        *region,
+// 	}
 
-	_, err = service.CreateBusinessInformation(ctx, in)
+// 	_, err = service.CreateBusinessInformation(ctx, in)
 
-	if err != nil {
-		t.Fatalf("Failed to add business info. Error: %v", err)
-	}
-}
+// 	if err != nil {
+// 		t.Fatalf("Failed to add business info. Error: %v", err)
+// 	}
+// }

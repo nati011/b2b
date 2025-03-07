@@ -3,35 +3,20 @@ package db
 import (
 	"context"
 
-<<<<<<< HEAD
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-=======
 	"database/sql"
->>>>>>> dec51710 (+ resplve sql.db issue)
 
 	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
 type Postgres struct {
-<<<<<<< HEAD
-	db *pgxpool.Pool
-=======
 	db *sql.DB
->>>>>>> dec51710 (+ resplve sql.db issue)
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
-	print("Here_______________________________")
 	var resourceId int
-<<<<<<< HEAD
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
-	err := p.db.QueryRow(ctx, query,
-=======
-	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6);"
 
 	err := p.db.QueryRowContext(ctx, query,
->>>>>>> dec51710 (+ resplve sql.db issue)
 		req.FullName,
 		req.Email,
 		req.Phone,
@@ -39,9 +24,9 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.DOB,
 		req.ExternalId,
 	).Scan(&resourceId)
-	print("HERE2________________")
-	print(err, query)
+
 	if err != nil {
+		print(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return 0, port.ErrSysNoRows
@@ -89,11 +74,7 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-<<<<<<< HEAD
-func NewPostgres(db *pgxpool.Pool) port.DB {
-=======
 func NewPostgres(db *sql.DB) port.DB {
->>>>>>> dec51710 (+ resplve sql.db issue)
 	return &Postgres{
 		db: db,
 	}

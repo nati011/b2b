@@ -626,7 +626,6 @@ create or replace function public.create_distributor_user (
   u_dob DATE,
   u_external_id VARCHAR(255)
 ) RETURNS BIGINT LANGUAGE plpgsql as $$
-    DECLARE new_id BIGINT;
     DECLARE new_user_id INT;
     DECLARE new_distributor_id INT;
 
@@ -641,11 +640,10 @@ create or replace function public.create_distributor_user (
 
     new_distributor_id := create_distributor();
 
-    INSERT INTO public.distributor_user (new_user_id, new_distributor_id)
+    INSERT INTO public.distributor_users (user_id, distributor_id)
     VALUES 	
-    (user_id, distributor_id)
-    RETURNING id INTO new_id;
+    (new_user_id, new_distributor_id)
 
-    RETURN new_id;
+    RETURN new_distributor_id;
 END;
 $$;
