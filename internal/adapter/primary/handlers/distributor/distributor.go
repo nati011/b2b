@@ -13,8 +13,8 @@ type DistributorHandler struct {
 	distributorContainer *service.Container
 }
 
-func NewDistributorHandler(distributorContainer *service.Container) *DistributorHandler {
-	return &DistributorHandler{
+func NewDistributorHandler(distributorContainer *service.Container) DistributorHandler {
+	return DistributorHandler{
 		distributorContainer: distributorContainer,
 	}
 }

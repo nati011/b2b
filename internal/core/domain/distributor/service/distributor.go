@@ -36,6 +36,7 @@ func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.Reg
 		Phone:      req.Password,
 		Password:   req.Password,
 		DOB:        req.DOB,
+		IsActive:   false,
 		Username:   req.Username,
 		ExternalId: req.ExternalId,
 	})

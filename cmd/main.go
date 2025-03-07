@@ -2,32 +2,35 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net/http"
-	"os"
 
 	config "b2b.nati011.github.com/config"
 	authRouter "b2b.nati011.github.com/internal/adapter/primary/routes/auth"
 	distributorRouter "b2b.nati011.github.com/internal/adapter/primary/routes/distributor"
 	healthRouter "b2b.nati011.github.com/internal/adapter/primary/routes/health"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 func main() {
 	cfg := *config.LoadConfig()
 
-	DB, err := pgxpool.New(context.Background(), cfg.DB_URL)
+	var err error
+	ctx := context.Background()
+
+	db, err := sql.Open("pgx", cfg.DB_URL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	defer DB.Close()
+
+	if err = db.PingContext(ctx); err != nil {
+		log.Fatal(err)
+	}
 	router := http.NewServeMux()
 	authRouter.RegisterRoutes(router)
 	healthRouter.RegisterRoutes(router)
-	distributorRouter.RegisterRoutes(router, DB)
+	distributorRouter.RegisterRoutes(router, db)
 	log.Printf("Starting server on %s", cfg.Port)
 	if err := http.ListenAndServe(cfg.Port, router); err != nil {
 		log.Fatal(err)
