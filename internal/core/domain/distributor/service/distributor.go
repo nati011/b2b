@@ -45,6 +45,9 @@ func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.Reg
 			return 0, ErrUnknown
 		}
 	}
+
+	print(id)
+	print("_____________________________")
 	return id, nil
 }
 

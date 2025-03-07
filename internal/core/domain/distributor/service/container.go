@@ -2,16 +2,16 @@ package distributor
 
 import (
 	db "b2b.nati011.github.com/internal/adapter/secondary/distributor/db"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Container struct {
 	//exportable
 	DistributorProvider Provider
-	dbPool              *pgx.Conn
+	dbPool              *pgxpool.Pool
 }
 
-func NewContainer(*pgx.Conn) *Container {
+func NewContainer(*pgxpool.Pool) *Container {
 	c := new(Container)
 	c.initDistributorProvider()
 	return c
