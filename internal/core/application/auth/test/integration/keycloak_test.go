@@ -6,15 +6,15 @@ import (
 	"testing"
 
 	provider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	service "b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/auth"
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
 
 var keycloakContainer *keycloak.KeycloakContainer
-var KeycloakProvider *provider.KeycloakProvider
-var authContainer *service.Container
+var KeycloakProvider port.Provider
+var authService auth.Provider
 
 const (
 	VALID_PASSWORD   = "test@123"
@@ -36,8 +36,8 @@ func Test_Timeout(t *testing.T) {
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
-
-	user := port.RegisterUserRequest{
+	ctx := context.Background()
+	user := auth.RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
@@ -45,17 +45,16 @@ func Test_CreateClient_happyPath(t *testing.T) {
 		Email:           VALID_EMAIL_A,
 	}
 
-	userRegistrationSuccessResponse := port.RegisterUserResponse{
+	userRegistrationSuccessResponse := auth.RegisterUserResponse{
 		Username: VALID_USERNAME_A,
-		Message:  service.SUCCESS_MESSAGE,
 	}
 
 	in := user
 	want := userRegistrationSuccessResponse
 
-	got, err := authContainer.AuthService.CreateClient(in)
+	got, err := authService.CreateClient(ctx, in)
 	if err != nil {
-		t.Errorf("Failed to create client err: %v", err)
+		t.Fatalf("Failed to create client err: %v", err)
 	}
 	if got != want {
 		t.Errorf("Expected: %v, Got: %v", want, got)
@@ -64,13 +63,13 @@ func Test_CreateClient_happyPath(t *testing.T) {
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
-
+	ctx := context.Background()
 	t.Run("DuplicateUsername", func(t *testing.T) {
 		// t.Cleanup(teardown)
 
 		/* create a user with some username x and attempt
 		to create another user with the same username */
-		in_a := port.RegisterUserRequest{
+		in_a := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -78,12 +77,12 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authContainer.AuthService.CreateClient(in_a)
+		_, err := authService.CreateClient(ctx, in_a)
 		if err != nil {
-			t.Errorf("Failed to create client err: %v", err)
+			t.Fatalf("Failed to create client err: %v", err)
 		}
 
-		in_b := port.RegisterUserRequest{
+		in_b := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -91,13 +90,10 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_B,
 		}
 
-		want := port.RegisterUserResponse{
-			Username: "",
-			Message:  service.ErrUsernameTaken.Error(),
-		}
-		got, _ := authContainer.AuthService.CreateClient(in_b)
-		if got != want {
-			t.Errorf("Expected: %v, Got: %v", want, got)
+		_, err = authService.CreateClient(ctx, in_b)
+		wantErr := auth.ErrUsernameTaken
+		if err != wantErr {
+			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
 		}
 
 	})
@@ -107,7 +103,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		/* create a user with some email x and attempt
 		to create another user with the same email */
-		ua := port.RegisterUserRequest{
+		ua := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -115,8 +111,8 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		authContainer.AuthService.CreateClient(ua)
-		ub := port.RegisterUserRequest{
+		authService.CreateClient(ctx, ua)
+		ub := auth.RegisterUserRequest{
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -124,31 +120,19 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		want := port.RegisterUserResponse{
-			Username: "",
-			Message:  service.ErrEmailTaken.Error(),
-		}
-
-		got, err := authContainer.AuthService.CreateClient(ub)
-		if err != nil {
-			if got != want {
-				t.Errorf("Expected: %v, Got: %v", want, got)
-			}
+		_, err := authService.CreateClient(ctx, ub)
+		wantErr := auth.ErrEmailTaken
+		if err != wantErr {
+			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
 		}
 	})
 }
 
 func TestMain(m *testing.M) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		shutDown()
-	// 		fmt.Println("Panic")
-	// 	}
-	// }()
 	setup()
 	code := m.Run()
-	// shutDown()
 	os.Exit(code)
+	shutDown()
 }
 
 func setup() {
@@ -184,7 +168,7 @@ func setup() {
 		keycloakClientId,
 	)
 
-	authContainer = service.NewContainer(KeycloakProvider)
+	authService = auth.NewAuthService(KeycloakProvider)
 }
 
 func shutDown() {
@@ -196,7 +180,6 @@ func shutDown() {
 }
 
 func teardown() {
-	//TODO: research if there is a more efficient way to do this
 	shutDown()
 	setup()
 }
