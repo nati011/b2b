@@ -1,14 +1,16 @@
 package auth
 
 import (
+	"context"
+	"os"
 	"testing"
 
-	adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	port "b2b.nati011.github.com/internal/port/application/auth/provider"
+	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 )
 
 const (
 	VALID_PASSWORD   = "test@123"
+	VALID_PASSWORD_B = "yesy"
 	VALID_FULLNAME   = "ruth tirusew"
 	VALID_EMAIL_A    = "ruthtirusew944@gmail.com"
 	VALID_EMAIL_B    = "ruthtirusew388@gmail.com"
@@ -22,103 +24,114 @@ const (
 	INVALID_EMAIL    = ""
 )
 
-var container = NewContainer(adapter.NewMockAuthProvider())
+var service Provider
+var mock = provider.NewMockAuthProvider()
 
-func TestCreateClient_happyPath(t *testing.T) {
-	user := port.RegisterUserRequest{
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	service = NewAuthService(&mock)
+}
+
+func Test_CreateClient_happyPath(t *testing.T) {
+	t.Cleanup(mock.Cleanup)
+	ctx := context.Background()
+	in := RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
 		FullName:        VALID_FULLNAME,
 		Email:           VALID_EMAIL_A,
 	}
-
-	userRegistrationSuccessResponse := port.RegisterUserResponse{
-		Username: VALID_USERNAME_A,
-		Message:  SUCCESS_MESSAGE,
-	}
-
-	in := user
-	want := userRegistrationSuccessResponse
-
-	got, err := container.AuthService.CreateClient(in)
-
+	_, err := service.CreateClient(ctx, in)
 	if err != nil {
-		t.Errorf("Failed to create client err: %v", err)
-	}
-	if got != want {
-		t.Errorf("Expected: %v, Got: %v", want, got)
+		t.Errorf("Failed to create err: %v", err)
 	}
 }
 
-func TestCreateClient_UnhappyPath(t *testing.T) {
-
-	t.Run("DuplicateUsername", func(t *testing.T) {
-		//init
-		in_a := port.RegisterUserRequest{
+func Test_CreateClient_UnhappyPath(t *testing.T) {
+	t.Run("email_not_supplied", func(t *testing.T) {
+		t.Cleanup(mock.Cleanup)
+		ctx := context.Background()
+		in := RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL_A,
 		}
-
-		_, err := container.AuthService.CreateClient(in_a)
-		if err != nil {
-			t.Errorf("Failed to create client err: %v", err)
+		_, err := service.CreateClient(ctx, in)
+		wantErr := ErrEmailNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}
-
-		in_b := port.RegisterUserRequest{
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL_B,
-		}
-
-		want := port.RegisterUserResponse{
-			Username: "",
-			Message:  ErrUsernameTaken.Error(),
-		}
-
-		got, _ := container.AuthService.CreateClient(in_b)
-		if got != want {
-			t.Errorf("Expected: %v, Got: %v", want, got)
-		}
-
 	})
 
-	t.Run("DuplicateEmail", func(t *testing.T) {
+	t.Run("password_not_supplied", func(t *testing.T) {
+		t.Cleanup(mock.Cleanup)
+		ctx := context.Background()
+		in := RegisterUserRequest{
+			Email:           VALID_EMAIL_A,
+			Username:        VALID_USERNAME_A,
+			ConfirmPassword: VALID_PASSWORD,
+			FullName:        VALID_FULLNAME,
+		}
+		_, err := service.CreateClient(ctx, in)
+		wantErr := ErrPasswordNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got : %v", wantErr, err)
+		}
+	})
 
-		//init
-		ua := port.RegisterUserRequest{
+	t.Run("confirmation_password_not_supplied", func(t *testing.T) {
+		t.Cleanup(mock.Cleanup)
+		ctx := context.Background()
+		in := RegisterUserRequest{
+			Email:    VALID_EMAIL_A,
+			Username: VALID_USERNAME_A,
+			Password: VALID_PASSWORD,
+			FullName: VALID_FULLNAME,
+		}
+		_, err := service.CreateClient(ctx, in)
+		wantErr := ErrConfirmationPasswordNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got : %v", wantErr, err)
+		}
+	})
+
+	t.Run("passwords_dont_match", func(t *testing.T) {
+		t.Cleanup(mock.Cleanup)
+		ctx := context.Background()
+		in := RegisterUserRequest{
+			Email:           VALID_EMAIL_A,
+			Username:        VALID_USERNAME_A,
+			Password:        VALID_PASSWORD,
+			ConfirmPassword: VALID_PASSWORD_B,
+			FullName:        VALID_FULLNAME,
+		}
+		_, err := service.CreateClient(ctx, in)
+		wantErr := ErrPasswordsDontMatch
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got : %v", wantErr, err)
+		}
+	})
+
+	t.Run("fullName_not_supplied", func(t *testing.T) {
+		t.Cleanup(mock.Cleanup)
+		ctx := context.Background()
+		in := RegisterUserRequest{
+			Email:           VALID_EMAIL_A,
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL_A,
 		}
-
-		container.AuthService.CreateClient(ua)
-		ub := port.RegisterUserRequest{
-			Username:        VALID_USERNAME_B,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
-			Email:           VALID_EMAIL_A,
+		_, err := service.CreateClient(ctx, in)
+		wantErr := ErrFullNameNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}
-
-		want := port.RegisterUserResponse{
-			Username: "",
-			Message:  ErrEmailTaken.Error(),
-		}
-
-		got, err := container.AuthService.CreateClient(ub)
-		if err != nil {
-			if got != want {
-				t.Errorf("Expected: %v, Got: %v", want, got)
-			}
-		}
-
 	})
 }
