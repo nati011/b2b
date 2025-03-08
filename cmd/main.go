@@ -1,33 +1,43 @@
 package main
 
-import "flag"
+import (
+	"flag"
 
-type config struct {
-	port                     int
-	env                      string
-	keycloakInstanceURL      string
-	keycloakUsername         string
-	keycloakPassword         string
-	keycloakRealm            string
-	keycloakApplicationRealm string
-	keycloakClientId         string
-}
+	"b2b.nati011.github.com/config"
+)
 
 func main() {
 	print("hello")
-	var cfg config
-
-	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakInstanceURL, "keycloak_base_url", "keycloak Instance Base URL", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakUsername, "keycloak_user_name", "keycloak Instance Base URL", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakPassword, "keycloak_password", "keycloak password", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakRealm, "keycloak_realm", "keycloak realm", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakApplicationRealm, "keycloak_application_realm", "keycloak application realm", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakClientId, "keycloak_client_id", "keycloak ClientId", "Environment (development|staging|production)")
-
-	flag.Parse()
+	configFlag()
 
 	//create test containers
 	// _ = MasterTestContainer.NewMasterTestContainer()
+}
+
+func configFlag() {
+	var cfg config.Config
+
+	//keycloak
+	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
+	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakInstanceURL, "keycloak_base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakUsername, "keycloak_user_name", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakPassword, "keycloak_password", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakRealm, "keycloak_realm", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakApplicationRealm, "keycloak_application_realm", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
+
+	//email
+	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
+
+	//db
+	flag.StringVar(&cfg.CoreDBConnectionString, "core_db_connection_string", "", "Environment (development|staging|production)")
+	flag.Parse()
+
+	connection_pool := InitDB(cfg.CoreDBConnectionString)
+	InitREST(connection_pool)
+	InitEmail(cfg.Email, cfg.SMTP)
+	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
+	InitSMS()
 }
