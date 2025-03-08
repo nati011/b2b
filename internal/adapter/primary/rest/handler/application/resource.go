@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	"b2b.nati011.github.com/internal/core/application/resource"
 )
 
@@ -29,21 +30,24 @@ type GetAllResponse struct {
 	List []GetResponse `json:"resources"`
 }
 
-type ResourceHandler struct {
+type Resource struct {
 	service resource.Provider
 }
 
-func NewResourceHandler(rp resource.Provider) ResourceHandler {
-	return ResourceHandler{
-		service: rp,
-	}
+func init() {
+	handler.Register(new(Resource))
 }
 
-func CreateResourceHandler(w http.ResponseWriter, r *http.Request) {}
-func UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {}
-func DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {}
+func (r *Resource) Init() error {
+	// r.service = rp
+	return nil
+}
 
-func (rh *ResourceHandler) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
+func (r *Resource) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/resource", r.GetResourceHandler)
+}
+
+func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	paramValues := r.URL.Query()
 	paramIdValue := paramValues.Get(ParamId)
@@ -51,33 +55,42 @@ func (rh *ResourceHandler) GetResourceHandler(w http.ResponseWriter, r *http.Req
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			handler.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, r, err)
 			return
 		}
-		resp, err := rh.service.Get(r.Context(), &resource.GetRequest{
+		resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
 			Id: typedParamId,
 		})
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				handler.NotFoundResponse(w, r)
+				util.NotFoundResponse(w, r)
 			default:
-				handler.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, r, err)
 			}
 		}
 
-		handler.WriteJSON(w, handler.Envelope{"resource": resp}, nil)
+		util.WriteJSON(w, util.Envelope{"resource": resp}, nil)
 	} else {
-		resp, err := rh.service.GetAll(r.Context())
+		resp, err := rs.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				handler.NotFoundResponse(w, r)
+				util.NotFoundResponse(w, r)
 			default:
-				handler.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, r, err)
 			}
 		}
 
-		handler.WriteJSON(w, handler.Envelope{"resources": resp}, nil)
+		util.WriteJSON(w, util.Envelope{"resources": resp}, nil)
 	}
+}
+
+func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {
 }
