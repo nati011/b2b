@@ -200,7 +200,7 @@ create or replace function public.get_all_resource_by_role (role_identifier INT)
 --readers
 create or replace function public.get_users_by_id (user_id INT) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -210,7 +210,7 @@ create or replace function public.get_users_by_id (user_id INT) RETURNS table (
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.id = user_id
         AND u.is_deleted = FALSE
@@ -220,7 +220,7 @@ create or replace function public.get_users_by_id (user_id INT) RETURNS table (
 
 create or replace function public.get_users_by_email (user_email VARCHAR(255)) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -230,7 +230,7 @@ create or replace function public.get_users_by_email (user_email VARCHAR(255)) R
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.email = user_email
         AND u.is_deleted = FALSE
@@ -240,7 +240,7 @@ create or replace function public.get_users_by_email (user_email VARCHAR(255)) R
 
 create or replace function public.get_users_by_phone (user_phone VARCHAR(255)) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -250,7 +250,7 @@ create or replace function public.get_users_by_phone (user_phone VARCHAR(255)) R
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.phone_number = user_phone
         AND u.is_deleted = FALSE
@@ -260,7 +260,7 @@ create or replace function public.get_users_by_phone (user_phone VARCHAR(255)) R
 
 create or replace function public.get_users_by_username (user_username VARCHAR(255)) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -270,7 +270,7 @@ create or replace function public.get_users_by_username (user_username VARCHAR(2
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.username = user_username
         AND u.is_deleted = FALSE
@@ -280,7 +280,7 @@ create or replace function public.get_users_by_username (user_username VARCHAR(2
 
 create or replace function public.get_users_by_active_status (user_active_status BOOLEAN) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -290,7 +290,7 @@ create or replace function public.get_users_by_active_status (user_active_status
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.is_active = user_active_status
         AND u.is_deleted = FALSE
@@ -300,7 +300,7 @@ create or replace function public.get_users_by_active_status (user_active_status
 
 create or replace function public.get_users_by_external_id (user_external_id VARCHAR(255)) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -310,7 +310,7 @@ create or replace function public.get_users_by_external_id (user_external_id VAR
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.external_id = user_external_id
         AND u.is_deleted = FALSE
@@ -320,7 +320,7 @@ create or replace function public.get_users_by_external_id (user_external_id VAR
 
 create or replace function public.get_all () RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -330,7 +330,7 @@ create or replace function public.get_all () RETURNS table (
 ) LANGUAGE plpgsql as $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.is_deleted = FALSE
         LIMIT 1;
@@ -339,7 +339,7 @@ create or replace function public.get_all () RETURNS table (
 
 --writers
 create or replace function public.create_user (
-  u_fullname VARCHAR(255),
+  u_FirstName VARCHAR(255),
   u_email VARCHAR(255),
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
@@ -350,14 +350,14 @@ create or replace function public.create_user (
         new_id INT;
     BEGIN
         INSERT INTO public.users 
-        (fullname, 
+        (FirstName, 
         email, 
         phone_number, 
         username, 
         birth_date,
         external_id)
         VALUES 	
-        (u_fullname, 
+        (u_FirstName, 
         u_email, 
         u_phone, 
         u_username, 
@@ -378,10 +378,10 @@ create or replace function public.delete_user (u_id INT) RETURNS VOID LANGUAGE p
     END;
     $$;
 
-create or replace function public.update_user_fullname (user_id INT, new_fullname VARCHAR(255)) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_FirstName (user_id INT, new_FirstName VARCHAR(255)) RETURNS INT LANGUAGE plpgsql as $$
     BEGIN
         UPDATE public.users
-        SET fullname = new_fullname
+        SET FirstName = new_FirstName
         WHERE id = user_id
         AND is_deleted = FALSE;
 
@@ -519,7 +519,7 @@ create or replace function public.delete_distributor(distributor_identifier INT)
 ---readers
 create or replace function public.get_distributor_by_id (distributor_id INT) RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -530,7 +530,7 @@ create or replace function public.get_distributor_by_id (distributor_id INT) RET
     BEGIN
         RETURN QUERY
 
-        SELECT  t2.id, t3.fullName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
+        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
         from public.distributor_users t1
         INNER JOIN public.distributors t2 on t1.distributor_id
         INNER JOIN public.users t3 on t2.user_id=t3.id
@@ -541,7 +541,7 @@ $$;
 
 create or replace function public.get_all_distributors() RETURNS table (
   id INT,
-  fullname VARCHAR(255),
+  FirstName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -552,7 +552,7 @@ create or replace function public.get_all_distributors() RETURNS table (
     BEGIN
         RETURN QUERY
 
-        SELECT  t2.id, t3.fullName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
+        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
         from public.distributor_users t1
         INNER JOIN public.distributors t2 on t1.distributor_id
         INNER JOIN public.users t3 on t2.user_id=t3.id
@@ -619,7 +619,7 @@ create or replace function public.get_distributor_business (distributor_id INT) 
 -- Distributor User ----------------------------------------
 -- writers
 create or replace function public.create_distributor_user (
-  u_fullname VARCHAR(255),
+  u_FirstName VARCHAR(255),
   u_email VARCHAR(255),
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
@@ -631,7 +631,7 @@ create or replace function public.create_distributor_user (
 
     BEGIN
     new_user_id := create_user(
-    u_fullname,
+    u_FirstName,
     u_email,
     u_phone,
     u_username,

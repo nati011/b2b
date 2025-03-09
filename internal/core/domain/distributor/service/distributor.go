@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
+	authPort "b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
@@ -23,7 +24,8 @@ type Provider interface {
 }
 
 type DistributorService struct {
-	db port.DB
+	db          port.DB
+	authService authPort.Provider
 }
 
 func (d *DistributorService) CreateBusinessInformation(ctx context.Context, req *distributorDTO.UpdateBusinessRequest) (id int, err error) {
@@ -31,21 +33,32 @@ func (d *DistributorService) CreateBusinessInformation(ctx context.Context, req 
 }
 
 func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response string, err error) {
-	_, err = d.db.Create(ctx, &port.CreateRequest{
-		FullName:   req.FullName,
+	distribtor := port.CreateRequest{
+		FirstName:  req.FirstName,
 		Email:      req.Email,
-		Phone:      req.Password,
-		Password:   req.Password,
 		DOB:        req.DOB,
 		Username:   req.Username,
 		ExternalId: req.ExternalId,
-	})
+	}
+	_, err = d.db.Create(ctx, &distribtor)
 	if err != nil {
-		print(err.Error())
-		switch err {
-		default:
-			return "", ErrUnknown
-		}
+
+		return "", err
+
+	}
+
+	user := authPort.RegisterUserRequest{
+		FirstName:   req.FirstName,
+		Email:       req.Email,
+		BirthDate:   req.DOB,
+		PhoneNumber: req.PhoneNumber,
+		Username:    req.Username,
+		ExternalId:  req.ExternalId,
+	}
+	_, err = d.authService.CreateNewClient(ctx, user)
+	if err != nil {
+		return "", err
+
 	}
 	return SUCCESS_MESSAGE, nil
 }
@@ -76,8 +89,9 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *distributorDTO
 	panic("unimplemented")
 }
 
-func NewDistributorService(db port.DB) Provider {
+func NewDistributorService(db port.DB, authService authPort.Provider) Provider {
 	return &DistributorService{
-		db: db,
+		db:          db,
+		authService: authService,
 	}
 }

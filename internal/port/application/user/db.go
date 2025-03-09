@@ -12,7 +12,7 @@ var (
 )
 
 type CreateRequest struct {
-	FullName   string
+	FirstName  string
 	Email      string
 	Phone      string
 	Username   string
@@ -23,7 +23,7 @@ type CreateRequest struct {
 
 type GetResponse struct {
 	Id         int
-	FullName   string
+	FirstName  string
 	Email      string
 	Phone      string
 	Username   string
@@ -34,6 +34,15 @@ type GetResponse struct {
 
 type GetAllResponse struct {
 	List []GetResponse
+}
+
+type GetByParam struct {
+	ID         int
+	Email      string
+	Phone      string
+	Username   string
+	IsActive   bool
+	ExternalId string
 }
 
 type UpdateEmailRequest struct {
@@ -56,9 +65,9 @@ type UpdateDOBRequest struct {
 	DOB time.Time
 }
 
-type UpdateFullNameRequest struct {
-	Id       int
-	FullName string
+type UpdateFirstNameRequest struct {
+	Id        int
+	FirstName string
 }
 
 type UpdateIsActiveRequest struct {
@@ -87,7 +96,7 @@ type Reader interface {
 type Writer interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	CreateAndActivate(context.Context, *CreateRequest) (int, error)
-	UpdateFullName(context.Context, *UpdateFullNameRequest) (int, error)
+	UpdateFirstName(context.Context, *UpdateFirstNameRequest) (int, error)
 	UpdateEmail(context.Context, *UpdateEmailRequest) (int, error)
 	UpdatePhone(context.Context, *UpdatePhoneRequest) (int, error)
 	UpdateUsername(context.Context, *UpdateUsernameRequest) (int, error)

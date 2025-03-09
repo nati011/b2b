@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"context"
+
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
@@ -18,7 +20,7 @@ type MockAuthProvider struct {
 }
 
 // RefreshToken implements provider.AuthProvider.
-func (m *MockAuthProvider) RefreshToken(token string) (port.LoginAuthResponse, error) {
+func (m *MockAuthProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
 	panic("unimplemented")
 }
 
@@ -30,34 +32,34 @@ func (m *MockAuthProvider) Cleanup() {
 	m.clients = []MockClient{}
 }
 
-func (m *MockAuthProvider) CreateNewClient(firstName string, lastName string, email string, username string, password string) (port.CreateClientAuthResponse, error) {
+func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.CreateClientAuthResponse, error) {
 	// check if username or password is taken
 	for _, index := range m.clients {
-		if index.username == username {
+		if index.username == req.Username {
 			return port.CreateClientAuthResponse{}, port.ErrSysUsernameTaken
-		} else if index.email == email {
+		} else if index.email == req.Email {
 			return port.CreateClientAuthResponse{}, port.ErrSysEmailTaken
 		}
 	}
 	m.clients = append(m.clients, MockClient{
-		firstName: firstName,
-		lastName:  lastName,
-		email:     email,
-		username:  username,
-		password:  password,
+		firstName: req.FirstName,
+		lastName:  req.LastName,
+		email:     req.Email,
+		username:  req.Username,
+		password:  req.Password,
 	})
 
 	return port.CreateClientAuthResponse{
-		Username: username,
+		Username: req.Username,
 	}, nil
 }
 
-func (m *MockAuthProvider) ClientLogin(email, password string) (port.LoginAuthResponse, error) {
+func (m *MockAuthProvider) ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	// check if username or password is taken
 	clientExists := false
 
 	for _, index := range m.clients {
-		if index.email == email {
+		if index.email == req.Email {
 			clientExists = true
 		}
 	}

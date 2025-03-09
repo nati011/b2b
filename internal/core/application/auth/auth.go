@@ -13,48 +13,20 @@ var (
 	ErrFailedToLogin                   = errors.New("oopsy, email or password incorrect")
 	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
 	ErrEmailNotSupplied                = errors.New("oopsy, email mandatory")
+	ErrInvalidEmail                    = errors.New("oopsy, Invalid Email")
 	ErrPasswordNotSupplied             = errors.New("oopsy, password mandatory")
 	ErrConfirmationPasswordNotSupplied = errors.New("oopsy, confirmation password mandatory")
-	ErrFullNameNotSupplied             = errors.New("oopsy, fullname mandatory")
+	ErrFirstNameNotSupplied            = errors.New("oopsy, First Name mandatory")
+	ErrLastNameNotSupplied             = errors.New("oppsy, Last Name mandatory")
 	ErrPasswordsDontMatch              = errors.New("oopsy, passwords dont match")
+
+	SUCCESS_MESSAGE = "Ahoy!"
 )
 
-type RegisterUserRequest struct {
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmed_password"`
-	FullName        string `json:"full_name"`
-	Username        string `json:"username"`
-}
-
-type RegisterUserResponse struct {
-	Username string `json:"username"`
-}
-
-type LoginUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginUserResonse struct {
-	JWT JWT
-}
-
-type JWT struct {
-	AccessToken      string `json:"access_token"`
-	IDToken          string `json:"id_token"`
-	ExpiresIn        int    `json:"expires_in"`
-	RefreshExpiresIn int    `json:"refresh_expires_in"`
-	RefreshToken     string `json:"refresh_token"`
-	TokenType        string `json:"token_type"`
-	NotBeforePolicy  int    `json:"not-before-policy"`
-	SessionState     string `json:"session_state"`
-	Scope            string `json:"scope"`
-}
-
 type Provider interface {
-	CreateClient(context.Context, RegisterUserRequest) (RegisterUserResponse, error)
-	LoginClient(context.Context, LoginUserRequest) (LoginUserResonse, error)
+	CreateClient(context.Context, port.RegisterUserRequest) (port.RegisterUserResponse, error)
+	LoginClient(context.Context, port.LoginUserRequest) (port.LoginAuthResponse, error)
+	RefreshToken(context.Context, port.RefreshTokenRequest) (port.LoginAuthResponse, error)
 }
 
 type AuthService struct {
@@ -63,29 +35,31 @@ type AuthService struct {
 
 func NewAuthService(ap port.Provider) Provider {
 	return &AuthService{authProvider: ap}
+
 }
 
-func (a AuthService) CreateClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
-	err := validatePasswords(req.Password, req.ConfirmPassword)
+func (a *AuthService) CreateClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
+	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
-		return RegisterUserResponse{}, err
+		return port.RegisterUserResponse{}, err
+	}
+
+	err = validatePasswords(req.Password, req.ConfirmPassword)
+	if err != nil {
+		return port.RegisterUserResponse{}, err
 	}
 	err = validateEmail(req.Email)
 	if err != nil {
-		return RegisterUserResponse{}, err
-	}
-	err = validateFullName(req.FullName)
-	if err != nil {
-		return RegisterUserResponse{}, err
+		return port.RegisterUserResponse{}, err
 	}
 
-	resp, err := a.authProvider.CreateNewClient(req.FullName, req.FullName, req.Email, req.Username, req.Password)
+	resp, err := a.authProvider.CreateNewClient(ctx, req)
 	if err != nil {
 		switch err {
 		case port.ErrSysUsernameTaken:
-			return RegisterUserResponse{}, ErrUsernameTaken
+			return port.RegisterUserResponse{}, ErrUsernameTaken
 		case port.ErrSysEmailTaken:
-			return RegisterUserResponse{}, ErrEmailTaken
+			return port.RegisterUserResponse{}, ErrEmailTaken
 		default:
 			return port.RegisterUserResponse{}, ErrUnknown
 		}
@@ -95,17 +69,34 @@ func (a AuthService) CreateClient(ctx context.Context, req RegisterUserRequest) 
 	}, nil
 }
 
-func (a *AuthService) LoginClient(ctx context.Context, rq LoginUserRequest) (LoginUserResonse, error) {
-	resp, err := a.authProvider.ClientLogin(rq.Email, rq.Password)
+func (a *AuthService) LoginClient(ctx context.Context, rq port.LoginUserRequest) (port.LoginAuthResponse, error) {
+	resp, err := a.authProvider.ClientLogin(ctx, rq)
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
-			return LoginUserResonse{}, ErrFailedToLogin
+			return port.LoginAuthResponse{}, ErrFailedToLogin
 		default:
 			return port.LoginAuthResponse{}, ErrUnknown
 		}
 	}
-	return LoginUserResonse{
-		JWT: JWT(resp.JWT),
+	return port.LoginAuthResponse{
+		JWT: port.JWT(resp.JWT),
+	}, nil
+}
+func (a *AuthService) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
+	resp, err := a.authProvider.RefreshToken(ctx, req)
+	if err != nil {
+		switch err {
+		case port.ErrSysFailedToLogin:
+			return port.LoginAuthResponse{
+				Message: ErrFailedToLogin.Error(),
+			}, ErrFailedToLogin
+		default:
+			return port.LoginAuthResponse{}, ErrUnknown
+		}
+	}
+	return port.LoginAuthResponse{
+		JWT:     port.JWT(resp.JWT),
+		Message: SUCCESS_MESSAGE,
 	}, nil
 }

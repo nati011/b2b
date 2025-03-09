@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-func create_validateFullName(fullname string) error {
+func create_validateFirstName(FirstName string) error {
 	//empty name
-	if fullname == "" {
-		return ErrFullNameMandatory
+	if FirstName == "" {
+		return ErrFirstNameMandatory
 	}
 	return nil
 }
@@ -46,14 +46,14 @@ func create_validateDOB(DOB time.Time) error {
 
 func create_validateUserInfo(
 	ctx context.Context,
-	FullName string,
+	FirstName string,
 	Email string,
 	Phone string,
 	Username string,
 	DOB time.Time,
 
 ) error {
-	err := create_validateFullName(FullName)
+	err := create_validateFirstName(FirstName)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func create_validateUserInfo(
 	return nil
 }
 
-func update_validateFullName(fullname string) error {
+func update_validateFirstName(FirstName string) error {
 	return nil
 }
 
@@ -94,14 +94,14 @@ func update_validateDOB(DOB time.Time) error {
 
 func update_validateUserInfo(
 	ctx context.Context,
-	FullName string,
+	FirstName string,
 	Email string,
 	Phone string,
 	Username string,
 	DOB time.Time,
 
 ) error {
-	err := update_validateFullName(FullName)
+	err := update_validateFirstName(FirstName)
 	if err != nil {
 		return err
 	}

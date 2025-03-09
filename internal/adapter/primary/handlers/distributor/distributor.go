@@ -10,22 +10,17 @@ import (
 )
 
 type DistributorHandler struct {
-	distributorContainer *service.Container
+	distributorService service.Provider
 }
 
-func NewDistributorHandler(distributorContainer *service.Container) DistributorHandler {
+func NewDistributorHandler(distributorService service.Provider) DistributorHandler {
 	return DistributorHandler{
-		distributorContainer: distributorContainer,
+		distributorService: distributorService,
 	}
 }
 
 func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var req distributorDTO.RegisterDistributorRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -33,7 +28,7 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 		return
 	}
 
-	registerResponse, err := h.distributorContainer.DistributorProvider.Create(ctx, &req)
+	registerResponse, err := h.distributorService.Create(ctx, &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)

@@ -1,6 +1,10 @@
 package provider
 
-import "errors"
+import (
+	"context"
+	"errors"
+	"time"
+)
 
 // system errors
 var (
@@ -12,11 +16,15 @@ var (
 )
 
 type RegisterUserRequest struct {
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmed_password"`
-	FullName        string `json:"full_name"`
-	Username        string `json:"username"`
+	Email           string    `json:"email"`
+	Password        string    `json:"password"`
+	ConfirmPassword string    `json:"confirmed_password"`
+	BirthDate       time.Time `json:"birth_date"`
+	PhoneNumber     string    `json:"phone_number"`
+	ExternalId      string    `json:"external_id"`
+	FirstName       string    `json:"first_name"`
+	LastName        string    `json:"last_name"`
+	Username        string    `json:"username"`
 }
 
 type RegisterUserResponse struct {
@@ -55,6 +63,7 @@ type CreateClientAuthResponse struct {
 }
 
 type Provider interface {
-	CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResponse, error)
-	ClientLogin(email, password string) (LoginAuthResponse, error)
+	CreateNewClient(ctx context.Context, req RegisterUserRequest) (CreateClientAuthResponse, error)
+	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
+	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 }

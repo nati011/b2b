@@ -12,7 +12,7 @@ var (
 )
 
 type CreateRequest struct {
-	FullName   string
+	FirstName  string
 	Email      string
 	Phone      string
 	Username   string
@@ -23,7 +23,7 @@ type CreateRequest struct {
 
 type GetResponse struct {
 	Id         int
-	FullName   string
+	FirstName  string
 	Email      string
 	Phone      string
 	Username   string

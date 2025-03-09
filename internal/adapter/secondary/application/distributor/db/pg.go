@@ -17,7 +17,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
 
 	err := p.db.QueryRowContext(ctx, query,
-		req.FullName,
+		req.FirstName,
 		req.Email,
 		req.Phone,
 		req.Username,
