@@ -25,7 +25,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	query := "SELECT * FROM public.get_users_by_id($1);"
 
 	// Use Scan to match the number of returned columns
-	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.FullName, &response.Email, &response.Phone, &response.Username, &response.DOB, &response.IsActive, &response.ExternalId)
+	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.FirstName, &response.Email, &response.Phone, &response.Username, &response.DOB, &response.IsActive, &response.ExternalId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -56,7 +56,7 @@ func (p *Postgres) GetByEmail(ctx context.Context, email string) (port.GetAllRes
 
 	for rows.Next() {
 		var user port.GetResponse
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
+		if err := rows.Scan(&user.Id, &user.FirstName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -89,7 +89,7 @@ func (p *Postgres) GetByPhone(ctx context.Context, phone string) (port.GetAllRes
 
 	for rows.Next() {
 		var user port.GetResponse
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
+		if err := rows.Scan(&user.Id, &user.FirstName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -122,7 +122,7 @@ func (p *Postgres) GetByUsername(ctx context.Context, username string) (port.Get
 
 	for rows.Next() {
 		var user port.GetResponse
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
+		if err := rows.Scan(&user.Id, &user.FirstName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -155,7 +155,7 @@ func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool) (port.Get
 
 	for rows.Next() {
 		var user port.GetResponse
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
+		if err := rows.Scan(&user.Id, &user.FirstName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -188,7 +188,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 
 	for rows.Next() {
 		var user port.GetResponse
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
+		if err := rows.Scan(&user.Id, &user.FirstName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -221,7 +221,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for rows.Next() {
 		var user port.GetResponse
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
+		if err := rows.Scan(&user.Id, &user.FirstName, &user.Email, &user.Phone, &user.Username, &user.DOB, &user.IsActive, &user.ExternalId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -241,7 +241,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6, $7);"
 
 	err := p.db.QueryRowContext(ctx, query,
-		req.FullName,
+		req.FirstName,
 		req.Email,
 		req.Phone,
 		req.Username,
@@ -266,7 +266,7 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6, $7);"
 
 	err := p.db.QueryRowContext(ctx, query,
-		req.FullName,
+		req.FirstName,
 		req.Email,
 		req.Phone,
 		req.Username,
@@ -301,11 +301,11 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (p *Postgres) UpdateFullName(ctx context.Context, req *port.UpdateFullNameRequest) (int, error) {
+func (p *Postgres) UpdateFirstName(ctx context.Context, req *port.UpdateFirstNameRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.update_user_fullname($1, $2);"
+	query := "SELECT * FROM public.update_user_FirstName($1, $2);"
 
-	err := p.db.QueryRowContext(ctx, query, req.Id, req.FullName).Scan(&resourceId)
+	err := p.db.QueryRowContext(ctx, query, req.Id, req.FirstName).Scan(&resourceId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

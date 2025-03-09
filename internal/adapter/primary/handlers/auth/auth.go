@@ -1,36 +1,33 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
-	service "b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/auth"
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 type AuthHandler struct {
-	authContainer *service.Container
+	service auth.Provider
 }
 
-func NewAuthHandler(authContainer *service.Container) *AuthHandler {
+func NewAuthHandler(provider port.Provider) *AuthHandler {
 	return &AuthHandler{
-		authContainer: authContainer,
+		service: auth.NewAuthService(provider),
 	}
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+	ctx := context.Background()
 	var req port.LoginUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	loginResponse, err := h.authContainer.AuthService.LoginClient(req)
+	loginResponse, err := h.service.LoginClient(ctx, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -40,7 +37,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request) {
-	print("In handler")
+	ctx := context.Background()
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -52,7 +49,7 @@ func (h *AuthHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	registerResponse, err := h.authContainer.AuthService.CreateClient(req)
+	registerResponse, err := h.service.CreateClient(ctx, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -62,6 +59,7 @@ func (h *AuthHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -74,7 +72,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshResponse, err := h.authContainer.AuthService.RefreshToken(req)
+	refreshResponse, err := h.service.RefreshToken(ctx, req)
 	if err != nil {
 		http.Error(w, "Authentication failed", http.StatusUnauthorized)
 		return

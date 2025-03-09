@@ -27,7 +27,7 @@ func Test_Checkout_happyPath(t *testing.T) {
 		in := &CheckoutRequest{
 			User_Id:           USERID,
 			Amount:            1,
-			PaymentPartner_Id: PaymentPartnerId,
+			PaymentPartner_Id: 1,
 		}
 
 		_, err := testContainer.PaymentService.Checkout(ctx, in)

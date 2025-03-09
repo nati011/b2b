@@ -27,7 +27,7 @@ forexample; if you want to Create specific class of user
 	}
 */
 type User struct {
-	Email    string
-	FullName string
-	Username string
+	Email     string
+	FirstName string
+	Username  string
 }

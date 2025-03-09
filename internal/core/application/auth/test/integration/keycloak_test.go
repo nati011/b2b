@@ -18,17 +18,18 @@ var authService auth.Provider
 
 const (
 	VALID_PASSWORD   = "test@123"
-	VALID_FULLNAME   = "ruth tirusew"
+	VALID_FIRST_NAME = "Ruth"
+	VALID_LAST_NAME  = "T"
 	VALID_EMAIL_A    = "ruthtirusew944@gmail.com"
 	VALID_EMAIL_B    = "ruthtirusew388@gmail.com"
 	VALID_USERNAME_A = "expired_pineapple"
 	VALID_USERNAME_B = "delila"
 
 	//INVALID
-	INVALID_username = ""
-	INVALID_PASSWORD = ""
-	INVALID_FULLNAME = ""
-	INVALID_EMAIL    = ""
+	INVALID_username  = ""
+	INVALID_PASSWORD  = ""
+	INVALID_FirstName = ""
+	INVALID_EMAIL     = ""
 )
 
 func Test_Timeout(t *testing.T) {
@@ -37,15 +38,16 @@ func Test_Timeout(t *testing.T) {
 
 func Test_CreateClient_happyPath(t *testing.T) {
 	ctx := context.Background()
-	user := auth.RegisterUserRequest{
+	user := port.RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
-		FullName:        VALID_FULLNAME,
+		FirstName:       VALID_FIRST_NAME,
+		LastName:        VALID_LAST_NAME,
 		Email:           VALID_EMAIL_A,
 	}
 
-	userRegistrationSuccessResponse := auth.RegisterUserResponse{
+	userRegistrationSuccessResponse := port.RegisterUserResponse{
 		Username: VALID_USERNAME_A,
 	}
 
@@ -69,11 +71,12 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		/* create a user with some username x and attempt
 		to create another user with the same username */
-		in_a := auth.RegisterUserRequest{
+		in_a := port.RegisterUserRequest{
+			FirstName:       VALID_FIRST_NAME,
+			LastName:        VALID_LAST_NAME,
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
 			Email:           VALID_EMAIL_A,
 		}
 
@@ -82,11 +85,11 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			t.Fatalf("Failed to create client err: %v", err)
 		}
 
-		in_b := auth.RegisterUserRequest{
+		in_b := port.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
+			LastName:        VALID_LAST_NAME,
 			Email:           VALID_EMAIL_B,
 		}
 
@@ -103,20 +106,21 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 
 		/* create a user with some email x and attempt
 		to create another user with the same email */
-		ua := auth.RegisterUserRequest{
+		ua := port.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
+			FirstName:       VALID_FIRST_NAME,
 			Email:           VALID_EMAIL_A,
 		}
 
 		authService.CreateClient(ctx, ua)
-		ub := auth.RegisterUserRequest{
+		ub := port.RegisterUserRequest{
+			FirstName:       VALID_FIRST_NAME,
+			LastName:        VALID_LAST_NAME,
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
 			Email:           VALID_EMAIL_A,
 		}
 
