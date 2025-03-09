@@ -6,8 +6,9 @@ type RegisterDistributorRequest struct {
 	Email           string    `json:"email"`
 	Password        string    `json:"password"`
 	DOB             time.Time `json:"date_of_birth"`
+	PhoneNumber     string    `json:"phone_number"`
 	ConfirmPassword string    `json:"confirmed_password"`
-	FullName        string    `json:"full_name"`
+	FirstName       string    `json:"full_name"`
 	Username        string    `json:"username"`
 	ExternalId      string    `json:"external_id"`
 }
@@ -32,7 +33,7 @@ type RegisterDistributorResponse struct {
 
 type GetResponse struct {
 	Id         int       `json:"ID"`
-	FullName   string    `json:"full_name"`
+	FirstName  string    `json:"full_name"`
 	Email      string    `json:"email"`
 	Phone      string    `json:"phone"`
 	Username   string    `json:"username"`
