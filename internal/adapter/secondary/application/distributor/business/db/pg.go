@@ -17,7 +17,32 @@ func (p *Postgres) Update(ctx context.Context, req *port.CreateBusinessInformati
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
-	panic("Unimplemented")
+	var resourceId int
+	var resp port.CreateBusinessResponse
+	query := "SELECT * FROM public.create_distributor_business_location($1, $2, $3, $4, $5, $6);"
+
+	err := p.db.QueryRowContext(ctx, query,
+		req.Name,
+		req.Tin,
+		req.DistributorId,
+		req.GeneralZone,
+		req.Region,
+		req.Woreda,
+	).Scan(&resourceId)
+
+	if err != nil {
+		print(err.Error())
+		switch err {
+		case sql.ErrNoRows:
+			return resp, port.ErrSysNoRows
+		default:
+			return resp, port.ErrSysUnknown
+		}
+	}
+	resp = port.CreateBusinessResponse{
+		BusinessId: resourceId,
+	}
+	return resp, nil
 }
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
