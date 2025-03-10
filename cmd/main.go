@@ -7,14 +7,6 @@ import (
 )
 
 func main() {
-	print("hello")
-	configFlag()
-
-	//create test containers
-	// _ = MasterTestContainer.NewMasterTestContainer()
-}
-
-func configFlag() {
 	var cfg config.Config
 
 	//keycloak
@@ -40,4 +32,5 @@ func configFlag() {
 	InitEmail(cfg.Email, cfg.SMTP)
 	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
 	InitSMS()
+	// _ := MasterContainer.NewMasterContainer()
 }
