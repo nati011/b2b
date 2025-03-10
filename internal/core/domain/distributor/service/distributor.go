@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
 	authPort "b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/distributor"
 )
@@ -16,9 +15,9 @@ var (
 )
 
 type Provider interface {
-	Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response distributorDTO.RegisterDistributorResponse, err error)
-	GetAll(ctx context.Context) (distributorDTO.GetAllResponse, error)
-	GetByParam(ctx context.Context, req *distributorDTO.GetByParamRequest) (distributorDTO.GetResponse, error)
+	Create(ctx context.Context, req *port.RegisterDistributorRequest) (response port.RegisterDistributorResponse, err error)
+	GetAll(ctx context.Context) (port.GetAllResponse, error)
+	GetByParam(ctx context.Context, req *port.GetByParamRequest) (port.GetResponse, error)
 }
 
 type DistributorService struct {
@@ -26,8 +25,8 @@ type DistributorService struct {
 	authService authPort.Provider
 }
 
-func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response distributorDTO.RegisterDistributorResponse, err error) {
-	resp := distributorDTO.RegisterDistributorResponse{}
+func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistributorRequest) (response port.RegisterDistributorResponse, err error) {
+	resp := port.RegisterDistributorResponse{}
 	distribtor := port.CreateRequest{
 		FirstName:  req.FirstName,
 		Email:      req.Email,
@@ -57,43 +56,43 @@ func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.Reg
 
 	}
 
-	resp = distributorDTO.RegisterDistributorResponse{
+	resp = port.RegisterDistributorResponse{
 		Message:       SUCCESS_MESSAGE,
 		DistributorId: id,
 	}
 	return resp, nil
 }
 
-func (d *DistributorService) GetAll(ctx context.Context) (distributorDTO.GetAllResponse, error) {
+func (d *DistributorService) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	resp, err := d.db.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return distributorDTO.GetAllResponse{}, ErrEmptyGetContent
+			return port.GetAllResponse{}, ErrEmptyGetContent
 		default:
-			return distributorDTO.GetAllResponse{}, ErrUnknown
+			return port.GetAllResponse{}, ErrUnknown
 		}
 	}
 
-	resp_val := distributorDTO.GetAllResponse{}
+	resp_val := port.GetAllResponse{}
 	for _, i := range resp.List {
-		resp_val.List = append(resp_val.List, distributorDTO.GetResponse(i))
+		resp_val.List = append(resp_val.List, port.GetResponse(i))
 	}
 	return resp_val, nil
 }
 
-func (d *DistributorService) GetByParam(ctx context.Context, req *distributorDTO.GetByParamRequest) (distributorDTO.GetResponse, error) {
+func (d *DistributorService) GetByParam(ctx context.Context, req *port.GetByParamRequest) (port.GetResponse, error) {
 	resp, err := d.db.GetById(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return distributorDTO.GetResponse{}, ErrEmptyGetContent
+			return port.GetResponse{}, ErrEmptyGetContent
 		default:
-			return distributorDTO.GetResponse{}, ErrUnknown
+			return port.GetResponse{}, ErrUnknown
 		}
 	}
 
-	resp_val := distributorDTO.GetResponse{
+	resp_val := port.GetResponse{
 		Id:        resp.Id,
 		Email:     resp.Email,
 		FirstName: resp.FirstName,

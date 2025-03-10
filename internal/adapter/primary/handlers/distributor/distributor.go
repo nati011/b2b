@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
 	service "b2b.nati011.github.com/internal/core/domain/distributor/service"
+	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
 type DistributorHandler struct {
@@ -21,7 +21,7 @@ func NewDistributorHandler(distributorService service.Provider) DistributorHandl
 
 func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	var req distributorDTO.RegisterDistributorRequest
+	var req port.RegisterDistributorRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -29,6 +29,25 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 	}
 
 	registerResponse, err := h.distributorService.Create(ctx, &req)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	json.NewEncoder(w).Encode(registerResponse)
+}
+
+func (h *DistributorHandler) AddBusinessInformattion(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	var req port.CreateBusinessInformation
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	registerResponse, err := h.distributorService.CreateBusinessInformation(ctx, &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
