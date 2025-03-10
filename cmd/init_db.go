@@ -51,6 +51,5 @@ func runMigration(db *sql.DB, filename string) error {
 	if err != nil {
 		log.Panic(ErrFailedToExecuteMigration)
 	}
-
 	return nil
 }

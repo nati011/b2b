@@ -49,7 +49,11 @@ func validateFlags(cfg config.Config) {
 	if cfg.Email == "" {
 		panic(ErrEmailMissing)
 	}
-	if cfg.EmailDBConnectionString == "" {
-		panic(ErrEmailDBConnectionStringMissing)
+	if cfg.SMTP == "" {
+		panic(ErrSMTPMissing)
 	}
 }
+
+/*
+	go run cmd/* --port=4001 --db="postgres://user:password@localhost:32769/test?" --keycloak_base_url="https://euc1.auth.ac/auth" --keycloak_user_name="admin" --keycloak_password=">Z3P5k8vHN?bch" --keycloak_realm="b2b" --keycloak_client_id="733bcd1a-dd25-4e59-b14f-3331872a3d4e" --keycloak_application_realm="b2b" --email="test@localhost.com" --smtp=1234
+*/
