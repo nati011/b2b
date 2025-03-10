@@ -4,8 +4,8 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
-	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category"
-	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product"
+	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
+	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product"
 )
 
