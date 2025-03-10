@@ -47,7 +47,7 @@ func (h *DistributorHandler) AddBusinessInformattion(w http.ResponseWriter, r *h
 		return
 	}
 
-	registerResponse, err := h.distributorService.CreateBusinessInformation(ctx, &req)
+	registerResponse, err := h.distributorService.AddBusinessInformattion(ctx, &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)

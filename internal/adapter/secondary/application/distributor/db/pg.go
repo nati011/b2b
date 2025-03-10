@@ -12,6 +12,10 @@ type Postgres struct {
 	db *sql.DB
 }
 
+func (p *Postgres) Update(ctx context.Context, req *port.CreateRequest) (int, error) {
+	panic("unimplemented")
+}
+
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
@@ -74,11 +78,11 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func (p *Postgres) Update(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
+func (p *Postgres) UpdateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
 	panic("unimplemented")
 }
 
-func (p *Postgres) CreateBusinessInformation(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
+func (p *Postgres) CreateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
 	var resourceId int
 	var resp port.CreateBusinessResponse
 	query := "SELECT * FROM public.create_distributor_business_location($1, $2, $3, $4, $5, $6);"
@@ -111,7 +115,7 @@ func (p *Postgres) GetBusinessAll(ctx context.Context) (port.GetAllResponse, err
 	panic("Unimplemented")
 }
 
-func (p *Postgres) GetBusinessById(ctx context.Context, id int) (port.GetResponse, error) {
+func (p *Postgres) GetBusinessById(ctx context.Context, id int) (port.GetBusinessResponse, error) {
 	panic("Unimplemented")
 }
 func (p *Postgres) GetByDistributorId(ctx context.Context, id int) (port.GetResponse, error) {

@@ -11,8 +11,20 @@ type MockDistributor struct {
 	Id int
 }
 
+type MockBusiness struct {
+	Id            int
+	Name          string
+	Tin           string
+	DistributorId int
+}
+
 type Mock struct {
 	Distributors []MockDistributor
+	Businesses   []MockBusiness
+}
+
+func (m *Mock) Update(ctx context.Context, req *port.CreateRequest) (int, error) {
+	panic("unimplemented")
 }
 
 func (m *Mock) GetById(ctx context.Context, id int) (port.GetResponse, error) {
@@ -53,6 +65,82 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return port.GetAllResponse{
 		List: resp,
 	}, nil
+}
+
+func (m *Mock) GetBusinessById(ctx context.Context, id int) (port.GetBusinessResponse, error) {
+	resp := port.GetBusinessResponse{}
+	for _, i := range m.Businesses {
+		resp = port.GetBusinessResponse{
+			Id: i.Id,
+		}
+	}
+	if (resp == port.GetBusinessResponse{}) {
+		return port.GetBusinessResponse{}, port.ErrSysNoRows
+	}
+
+	return resp, nil
+}
+
+func (m *Mock) GetByDistributorId(ctx context.Context, distributorId int) (port.GetResponse, error) {
+	resp := port.GetResponse{}
+	for _, i := range m.Businesses {
+		resp = port.GetResponse{
+			Id: i.DistributorId,
+		}
+	}
+	if (resp == port.GetResponse{}) {
+		return port.GetResponse{}, port.ErrSysNoRows
+	}
+
+	return resp, nil
+}
+
+func (m *Mock) GetBusinessAll(ctx context.Context) (port.GetAllResponse, error) {
+	resp := []port.GetResponse{}
+	for _, i := range m.Businesses {
+
+		resp = append(resp, port.GetResponse{
+			Id: i.Id,
+		})
+	}
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (m *Mock) CreateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
+	businessId := rand.Int()
+	m.Businesses = append(m.Businesses, MockBusiness{
+		Id:            businessId,
+		Name:          req.Name,
+		Tin:           req.Tin,
+		DistributorId: req.DistributorId,
+	})
+
+	response := port.CreateBusinessResponse{
+		BusinessId: businessId,
+	}
+	return response, nil
+}
+
+func (m *Mock) UpdateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
+	businessId := rand.Int()
+	m.Businesses = append(m.Businesses, MockBusiness{
+		Id:            businessId,
+		Name:          req.Name,
+		Tin:           req.Tin,
+		DistributorId: req.DistributorId,
+	})
+
+	response := port.CreateBusinessResponse{
+		BusinessId: businessId,
+	}
+	return response, nil
+
 }
 
 func NewMock() port.DB {
