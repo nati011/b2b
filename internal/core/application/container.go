@@ -1,27 +1,23 @@
-package user
+package core
 
-type TestContainer interface {
-	NewTestContainer() *TestContainer
+import (
+	"database/sql"
+
+	resource_db_port "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
+	"b2b.nati011.github.com/internal/core/application/resource"
+)
+
+type Container struct {
+	ResourceService resource.Provider
 }
 
-type MasterTestContainer struct {
-	TestContainer []*any
+func NewContainer(db *sql.DB) *Container {
+	container := Container{}
+	container.InitResourceService(db)
+
+	return &container
 }
 
-func (mt MasterTestContainer) NewMasterTestContainer() (*MasterTestContainer, error) {
-	tc, err := mt.init()
-	if err != nil {
-		panic("failed to create MasterTestContainer")
-	}
-
-	return tc, nil
-}
-
-func (mt *MasterTestContainer) RegisterTestContainer(tc *any) {
-	mt.TestContainer = append(mt.TestContainer, tc)
-}
-
-func (mt MasterTestContainer) init() (*MasterTestContainer, error) {
-	tc := MasterTestContainer{}
-	return &tc, nil
+func (m *Container) InitResourceService(db *sql.DB) {
+	m.ResourceService = resource.NewResource(resource_db_port.NewPostgres(db))
 }
