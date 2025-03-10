@@ -18,6 +18,10 @@ type Provider interface {
 	Create(ctx context.Context, req *port.RegisterDistributorRequest) (response port.RegisterDistributorResponse, err error)
 	GetAll(ctx context.Context) (port.GetAllResponse, error)
 	GetByParam(ctx context.Context, req *port.GetByParamRequest) (port.GetResponse, error)
+	AddBusinessInformattion(ctx context.Context, req *port.CreateBusinessInformation) (response port.CreateBusinessResponse, err error)
+	GetBusinessAll(ctx context.Context) (port.GetAllResponse, error)
+	GetByDistributor(ctx context.Context, distributorId int) (port.GetResponse, error)
+	GetById(ctx context.Context, id int) (port.GetResponse, error)
 }
 
 type DistributorService struct {
@@ -101,7 +105,51 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *port.GetByPara
 
 	return resp_val, nil
 }
+func (d *DistributorService) AddBusinessInformattion(ctx context.Context, req *port.CreateBusinessInformation) (resp port.CreateBusinessResponse, err error) {
+	resp, err = d.db.CreateBusiness(ctx, req)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}
 
+func (d *DistributorService) GetBusinessAll(ctx context.Context) (resp port.GetAllResponse, err error) {
+	resp, err = d.db.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return resp, ErrEmptyGetContent
+		default:
+			return resp, ErrUnknown
+		}
+	}
+	return resp, nil
+}
+
+func (d *DistributorService) GetByDistributor(ctx context.Context, distributorId int) (resp port.GetResponse, err error) {
+	resp, err = d.db.GetByDistributorId(ctx, distributorId)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return resp, ErrEmptyGetContent
+		default:
+			return resp, ErrUnknown
+		}
+	}
+	return resp, nil
+}
+func (d *DistributorService) GetById(ctx context.Context, id int) (resp port.GetResponse, err error) {
+	resp, err = d.db.GetById(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return resp, ErrEmptyGetContent
+		default:
+			return resp, ErrUnknown
+		}
+	}
+	return resp, nil
+}
 func NewDistributorService(db port.DB, authService authPort.Provider) Provider {
 	return &DistributorService{
 		db:          db,
