@@ -6,6 +6,7 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/core"
 	"b2b.nati011.github.com/internal/core/application/resource"
 )
 
@@ -38,8 +39,8 @@ func init() {
 	handler.Register(new(Resource))
 }
 
-func (r *Resource) Init() error {
-	// r.service = rp
+func (r *Resource) Init(services *core.MasterContainer) error {
+	// r.service = services.ResourceService
 	return nil
 }
 
