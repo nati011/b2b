@@ -1,4 +1,5 @@
 package main
 
-func InitSMS() {
+func InitSMS(email, smtp string) {
+
 }

@@ -16,6 +16,5 @@ type Config struct {
 	SMTP  string
 
 	//db
-	CoreDBConnectionString  string
-	EmailDBConnectionString string
+	CoreDBConnectionString string
 }
