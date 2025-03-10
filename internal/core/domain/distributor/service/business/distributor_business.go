@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrEmptyGetContent = errors.New("oopsy, no distributor found")
+	ErrEmptyGetContent = errors.New("oopsy, no business found")
 	ErrUnknown         = errors.New("oopsy, unkown error")
 	SUCCESS_MESSAGE    = "Ahoy!"
 )
@@ -25,18 +25,49 @@ type DistributorService struct {
 }
 
 func (d *DistributorService) Create(ctx context.Context, req *port.CreateBusinessInformation) (resp port.CreateBusinessResponse, err error) {
-	panic("unimplemented")
+	resp, err = d.db.Create(ctx, req)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }
 
 func (d *DistributorService) GetAll(ctx context.Context) (resp port.GetAllResponse, err error) {
-	panic("unimplemented")
+	resp, err = d.db.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return resp, ErrEmptyGetContent
+		default:
+			return resp, ErrUnknown
+		}
+	}
+	return resp, nil
 }
 
 func (d *DistributorService) GetByDistributor(ctx context.Context, distributorId int) (resp port.GetResponse, err error) {
-	panic("unimplemented")
+	resp, err = d.db.GetByDistributorId(ctx, distributorId)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return resp, ErrEmptyGetContent
+		default:
+			return resp, ErrUnknown
+		}
+	}
+	return resp, nil
 }
-func (d *DistributorService) GetById(ctx context.Context, id int) (port.GetResponse, error) {
-	panic("unimplemented")
+func (d *DistributorService) GetById(ctx context.Context, id int) (resp port.GetResponse, err error) {
+	resp, err = d.db.GetById(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return resp, ErrEmptyGetContent
+		default:
+			return resp, ErrUnknown
+		}
+	}
+	return resp, nil
 }
 func NewDistributorBusinessService(db port.DB) Provider {
 	return &DistributorService{

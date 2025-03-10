@@ -585,7 +585,7 @@ create or replace function public.create_distributor_business_location (
   d_general_zone VARCHAR(255),
   d_region VARCHAR(255),
   d_woreda VARCHAR(255),
-  d_business_id INT
+
 ) RETURNS bigint LANGUAGE plpgsql as $$
     DECLARE
         new_business_id BIGINT;
