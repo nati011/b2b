@@ -7,7 +7,7 @@ import (
 
 type TestContainer struct {
 	renderer render.Renderer
-	Emailer  Emailer
+	Emailer  Provider
 }
 
 func NewTestContainer(s smtp.Provider) *TestContainer {
@@ -17,7 +17,7 @@ func NewTestContainer(s smtp.Provider) *TestContainer {
 	return container
 }
 
-func initTestEmailService(s smtp.Provider, r render.Renderer) Emailer {
+func initTestEmailService(s smtp.Provider, r render.Renderer) Provider {
 	return &EmailService{
 		smtp:     s,
 		renderer: r,
