@@ -9,7 +9,7 @@ import (
 
 func BuildRouter(mux *http.ServeMux, services *core.MasterContainer) error {
 	for _, h := range handler.GetHandlers() {
-		if err := h.Init(); err != nil {
+		if err := h.Init(services); err != nil {
 			return err
 		}
 		h.Routes(mux)
