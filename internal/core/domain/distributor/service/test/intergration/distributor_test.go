@@ -9,8 +9,8 @@ import (
 	authProvider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	db "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
 	"b2b.nati011.github.com/internal/core/application/auth"
-	distributorDTO "b2b.nati011.github.com/internal/core/domain/distributor/model/dto"
 	distributor "b2b.nati011.github.com/internal/core/domain/distributor/service"
+	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
 var service distributor.Provider
@@ -51,7 +51,7 @@ func setup() {
 func Test_Create_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		ctx := context.Background()
-		in := &distributorDTO.RegisterDistributorRequest{
+		in := &port.RegisterDistributorRequest{
 			FirstName:       "Test User",
 			Email:           "test@email.com",
 			Password:        "test@123",
@@ -70,9 +70,9 @@ func Test_Create_happyPath(t *testing.T) {
 func Test_Get_All_happyPath(t *testing.T) {
 	ctx := context.Background()
 
-	in := &distributorDTO.RegisterDistributorRequest{
+	in := &port.RegisterDistributorRequest{
 		FirstName:       "Test User",
-		Email:           "test11@email.com",
+		Email:           "test116546@email.com",
 		Password:        "test@123",
 		ConfirmPassword: "test@123",
 		Username:        "username11",
@@ -105,9 +105,9 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 
 func Test_Get_happyPath(t *testing.T) {
 	ctx := context.Background()
-	in := &distributorDTO.RegisterDistributorRequest{
+	in := &port.RegisterDistributorRequest{
 		FirstName:       "Test User",
-		Email:           "test2_11@gmail.com",
+		Email:           "tesfhjt2_11@gmail.com",
 		Password:        "test@123",
 		ConfirmPassword: "test@123",
 		Username:        "username11",
@@ -117,7 +117,7 @@ func Test_Get_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create distributor %v", err)
 	}
-	params := distributorDTO.GetByParamRequest{
+	params := port.GetByParamRequest{
 		Id: resp.DistributorId,
 	}
 	_, err = service.GetByParam(ctx, &params)

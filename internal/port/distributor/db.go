@@ -75,13 +75,42 @@ type GetByParamRequest struct {
 	Email string
 }
 
+type CreateBusinessInformation struct {
+	Name          string `json:"name"`
+	Tin           string `json:"tin"`
+	Latitude      string `json:"latitude"`
+	Longitude     string `json:"longitude"`
+	GeneralZone   string `json:"general_zone"`
+	Region        string `json:"region"`
+	Woreda        string `json:"woreda"`
+	DistributorId int    `json:"distributorId"`
+}
+
+type CreateBusinessResponse struct {
+	BusinessId int
+}
+type GetBusinessResponse struct {
+	Id            int
+	Name          string
+	Tin           int
+	DistributorId int
+}
+
+type GetAllBusinessResponse struct {
+	List []GetResponse
+}
+
 type Reader interface {
 	GetById(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
+	GetBusinessAll(ctx context.Context) (GetAllResponse, error)
+	GetBusinessById(ctx context.Context, req int) (GetResponse, error)
+	GetByDistributorId(ctx context.Context, distributorId int) (GetResponse, error)
 }
 
 type Writer interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
+	Update(ctx context.Context, req *CreateBusinessInformation) (CreateBusinessResponse, error)
 }
 
 type DB interface {
