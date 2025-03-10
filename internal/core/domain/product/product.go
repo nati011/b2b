@@ -6,7 +6,7 @@ import (
 	"math"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
-	port "b2b.nati011.github.com/internal/port/domain/catalogue/product"
+	port "b2b.nati011.github.com/internal/port/domain/product"
 )
 
 var (
