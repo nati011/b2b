@@ -25,6 +25,7 @@ import (
 // │   └── OrderService
 
 type Container struct {
+	db                         *sql.DB
 	CategoryService            category.Provider
 	ProductService             product.Provider
 	ConfigurableProductService configurable_product.Provider
@@ -34,30 +35,35 @@ type Container struct {
 
 func NewContainer(db *sql.DB) *Container {
 	container := Container{}
+	container.db = db
 
-	container.InitCategoryService(db)
+	container.InitCategoryService()
+	container.InitProductService()
+	container.InitConfigrableProductService()
+	container.InitInvoiceService()
+	container.InitOrderService()
 
 	return &container
 }
 
-func (m *Container) InitCategoryService(db *sql.DB) {
-	m.CategoryService = category.NewCategory(category_db_port.NewPostgres(db))
+func (m *Container) InitCategoryService() {
+	m.CategoryService = category.NewCategory(category_db_port.NewPostgres(m.db))
 }
 
-func (m *Container) InitProductService(db *sql.DB) {
-	m.ProductService = product.NewProduct(product_db_port.NewPostgres(db), m.CategoryService)
+func (m *Container) InitProductService() {
+	m.ProductService = product.NewProduct(product_db_port.NewPostgres(m.db), m.CategoryService)
 }
 
-func (m *Container) InitConfigrableProductService(db *sql.DB) {
-	m.ConfigurableProductService = configurable_product.NewConfigurableProductService(configurable_product_db_port.NewPostgres(db),
+func (m *Container) InitConfigrableProductService() {
+	m.ConfigurableProductService = configurable_product.NewConfigurableProductService(configurable_product_db_port.NewPostgres(m.db),
 		m.ProductService,
 	)
 }
 
-func (m *Container) InitInvoiceService(db *sql.DB) {
-	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(db))
+func (m *Container) InitInvoiceService() {
+	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db))
 }
 
-func (m *Container) InitOrderService(db *sql.DB) {
-	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(db), m.InvoiceService)
+func (m *Container) InitOrderService() {
+	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db), m.InvoiceService)
 }
