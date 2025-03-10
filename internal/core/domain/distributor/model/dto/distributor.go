@@ -27,13 +27,14 @@ type UpdateBusinessRequest struct {
 }
 
 type RegisterDistributorResponse struct {
-	Username string `json:"username"`
-	Message  string `json:"message"`
+	DistributorId int    `json:"distributorId"`
+	Message       string `json:"message"`
 }
 
 type GetResponse struct {
 	Id         int       `json:"ID"`
-	FirstName  string    `json:"full_name"`
+	FirstName  string    `json:"first_name"`
+	LastName   string    `json:"last_name"`
 	Email      string    `json:"email"`
 	Phone      string    `json:"phone"`
 	Username   string    `json:"username"`
@@ -46,6 +47,7 @@ type GetAllResponse struct {
 }
 
 type GetByParamRequest struct {
+	Id    int
 	Name  string
 	Email string
 }

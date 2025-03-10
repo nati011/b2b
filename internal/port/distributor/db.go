@@ -24,6 +24,7 @@ type CreateRequest struct {
 type GetResponse struct {
 	Id         int
 	FirstName  string
+	LastName   string
 	Email      string
 	Phone      string
 	Username   string
@@ -37,6 +38,41 @@ type GetAllResponse struct {
 
 type GetByIdRequest struct {
 	Id int
+}
+
+type RegisterDistributorRequest struct {
+	Email           string    `json:"email"`
+	Password        string    `json:"password"`
+	DOB             time.Time `json:"date_of_birth"`
+	PhoneNumber     string    `json:"phone_number"`
+	ConfirmPassword string    `json:"confirmed_password"`
+	FirstName       string    `json:"full_name"`
+	Username        string    `json:"username"`
+	ExternalId      string    `json:"external_id"`
+}
+
+type BusinessLocation struct {
+	GeneralZone string `json:"general_zone"`
+	Region      string `json:"region"`
+	Woreda      string `json:"woreda"`
+}
+
+type UpdateBusinessRequest struct {
+	DistributorId int              `json:"distributorId"`
+	Name          string           `json:"name"`
+	Tin           int              `json:"tin"`
+	Region        BusinessLocation `json:"region"`
+}
+
+type RegisterDistributorResponse struct {
+	DistributorId int    `json:"distributorId"`
+	Message       string `json:"message"`
+}
+
+type GetByParamRequest struct {
+	Id    int
+	Name  string
+	Email string
 }
 
 type Reader interface {
