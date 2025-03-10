@@ -6,7 +6,7 @@ import (
 
 	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
-	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product"
+	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 )
 
 type TestContainer struct {
