@@ -16,8 +16,8 @@ type CreateBusinessInformation struct {
 	Latitude      string `json:"latitude"`
 	Longitude     string `json:"longitude"`
 	GeneralZone   string `json:"general_zone"`
-	REGION        string `json:"region"`
-	WOREDA        string `json:"woreda"`
+	Region        string `json:"region"`
+	Woreda        string `json:"woreda"`
 	DistributorId int    `json:"distributorId"`
 }
 

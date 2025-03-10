@@ -25,6 +25,17 @@ func setup() {
 		db.NewMock(),
 	)
 }
+
+func Test_Get_All_unhappyPath(t *testing.T) {
+	t.Run("no_distributor_found", func(t *testing.T) {
+		ctx := context.Background()
+		wantErr := ErrEmptyGetContent
+		_, err := service.GetAll(ctx)
+		if err != wantErr {
+			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
+		}
+	})
+}
 func Test_Create_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		ctx := context.Background()
@@ -33,8 +44,8 @@ func Test_Create_happyPath(t *testing.T) {
 			Tin:  "124576",
 
 			GeneralZone:   "Test Zone",
-			REGION:        "Test Region",
-			WOREDA:        "Test Woreda",
+			Region:        "Test Region",
+			Woreda:        "Test Woreda",
 			DistributorId: rand.Int(),
 		}
 
@@ -59,17 +70,6 @@ func Test_Get_All_happyPath(t *testing.T) {
 	}
 }
 
-func Test_Get_All_unhappyPath(t *testing.T) {
-	t.Run("no_distributor_found", func(t *testing.T) {
-		ctx := context.Background()
-		wantErr := ErrEmptyGetContent
-		_, err := service.GetAll(ctx)
-		if err != wantErr {
-			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
-		}
-	})
-}
-
 func Test_Get_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &port.CreateBusinessInformation{
@@ -77,8 +77,8 @@ func Test_Get_happyPath(t *testing.T) {
 		Tin:  "124576",
 
 		GeneralZone:   "Test Zone",
-		REGION:        "Test Region",
-		WOREDA:        "Test Woreda",
+		Region:        "Test Region",
+		Woreda:        "Test Woreda",
 		DistributorId: rand.Int(),
 	}
 	resp, err := service.Create(ctx, in)
