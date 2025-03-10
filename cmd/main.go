@@ -36,7 +36,7 @@ func main() {
 	db_pool := InitDB(cfg.CoreDBConnectionString)
 	InitEmail(cfg.Email, cfg.SMTP)
 	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
-	InitSMS()
+	InitSMS(cfg.Email, cfg.SMTP)
 
 	master_constainer := core.NewMasterContainer(db_pool)
 	mux := http.NewServeMux()
