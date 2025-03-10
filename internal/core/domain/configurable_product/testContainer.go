@@ -4,9 +4,9 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
-	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/category"
-	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/configurable_product"
-	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/catalogue/product"
+	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category"
+	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product"
+	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product"
 )
 
 type TestContainer struct {
