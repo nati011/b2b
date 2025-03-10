@@ -104,13 +104,15 @@ type Reader interface {
 	GetById(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetBusinessAll(ctx context.Context) (GetAllResponse, error)
-	GetBusinessById(ctx context.Context, req int) (GetResponse, error)
+	GetBusinessById(ctx context.Context, req int) (GetBusinessResponse, error)
 	GetByDistributorId(ctx context.Context, distributorId int) (GetResponse, error)
 }
 
 type Writer interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
-	Update(ctx context.Context, req *CreateBusinessInformation) (CreateBusinessResponse, error)
+	CreateBusiness(ctx context.Context, req *CreateBusinessInformation) (CreateBusinessResponse, error)
+	Update(ctx context.Context, req *CreateRequest) (int, error)
+	UpdateBusiness(ctx context.Context, req *CreateBusinessInformation) (CreateBusinessResponse, error)
 }
 
 type DB interface {
