@@ -1,33 +1,58 @@
 package main
 
-import "flag"
+import (
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
 
-type config struct {
-	port                     int
-	env                      string
-	keycloakInstanceURL      string
-	keycloakUsername         string
-	keycloakPassword         string
-	keycloakRealm            string
-	keycloakApplicationRealm string
-	keycloakClientId         string
-}
+	"b2b.nati011.github.com/config"
+	"b2b.nati011.github.com/internal/core"
+)
 
 func main() {
-	print("hello")
-	var cfg config
+	var cfg config.Config
 
-	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakInstanceURL, "keycloak_base_url", "keycloak Instance Base URL", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakUsername, "keycloak_user_name", "keycloak Instance Base URL", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakPassword, "keycloak_password", "keycloak password", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakRealm, "keycloak_realm", "keycloak realm", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakApplicationRealm, "keycloak_application_realm", "keycloak application realm", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.keycloakClientId, "keycloak_client_id", "keycloak ClientId", "Environment (development|staging|production)")
+	//keycloak
+	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
+	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakInstanceURL, "keycloak_base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakUsername, "keycloak_user_name", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakPassword, "keycloak_password", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakRealm, "keycloak_realm", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakApplicationRealm, "keycloak_application_realm", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
 
+	//email
+	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
+
+	//db
+	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 	flag.Parse()
+	validateFlags(cfg)
 
-	//create test containers
-	// _ = MasterTestContainer.NewMasterTestContainer()
+	db_pool := InitDB(cfg.CoreDBConnectionString)
+	InitEmail(cfg.Email, cfg.SMTP)
+	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
+	InitSMS(cfg.Email, cfg.SMTP)
+
+	master_constainer := core.NewMasterContainer(db_pool)
+	mux := http.NewServeMux()
+	InitREST(mux, db_pool, master_constainer)
+
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Handler:      mux,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	log.Printf("starting %s server on %s", cfg.Env, srv.Addr)
+
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
