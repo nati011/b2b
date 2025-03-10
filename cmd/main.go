@@ -2,8 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"time"
 
 	"b2b.nati011.github.com/config"
+	"b2b.nati011.github.com/internal/core"
 )
 
 func main() {
@@ -27,10 +32,26 @@ func main() {
 	flag.StringVar(&cfg.CoreDBConnectionString, "core_db_connection_string", "", "Environment (development|staging|production)")
 	flag.Parse()
 
-	connection_pool := InitDB(cfg.CoreDBConnectionString)
-	InitREST(connection_pool)
+	db_pool := InitDB(cfg.CoreDBConnectionString)
 	InitEmail(cfg.Email, cfg.SMTP)
 	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
 	InitSMS()
-	// _ := MasterContainer.NewMasterContainer()
+
+	master_constainer := core.NewMasterContainer(db_pool)
+	mux := http.NewServeMux()
+	InitREST(mux, db_pool, master_constainer)
+
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Handler:      mux,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	log.Printf("starting %s server on %s", cfg.Env, srv.Addr)
+
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

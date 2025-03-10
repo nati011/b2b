@@ -12,7 +12,10 @@ type MasterContainer struct {
 }
 
 func NewMasterContainer(db *sql.DB) *MasterContainer {
-	return &MasterContainer{}
+	container := MasterContainer{}
+	container.InitCategoryService(db)
+
+	return &container
 }
 
 func (m *MasterContainer) InitCategoryService(db *sql.DB) {
