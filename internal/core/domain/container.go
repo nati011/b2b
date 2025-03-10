@@ -3,21 +3,22 @@ package core
 import (
 	"database/sql"
 
-	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category"
+	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	"b2b.nati011.github.com/internal/core/domain/category"
 )
 
-type MasterContainer struct {
+type Container struct {
 	CategoryService category.Provider
 }
 
-func NewMasterContainer(db *sql.DB) *MasterContainer {
-	container := MasterContainer{}
+func NewContainer(db *sql.DB) *Container {
+	container := Container{}
+
 	container.InitCategoryService(db)
 
 	return &container
 }
 
-func (m *MasterContainer) InitCategoryService(db *sql.DB) {
+func (m *Container) InitCategoryService(db *sql.DB) {
 	m.CategoryService = category.NewCategory(category_db_port.NewPostgres(db))
 }
