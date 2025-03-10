@@ -29,8 +29,9 @@ func main() {
 	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
 
 	//db
-	flag.StringVar(&cfg.CoreDBConnectionString, "core_db_connection_string", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 	flag.Parse()
+	validateFlags(cfg)
 
 	db_pool := InitDB(cfg.CoreDBConnectionString)
 	InitEmail(cfg.Email, cfg.SMTP)
