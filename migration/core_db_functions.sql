@@ -578,6 +578,37 @@ create or replace function public.create_distributor_business (d_name TEXT, d_ti
     END;
     $$;
 
+create or replace function public.create_distributor_business_location (
+  d_name TEXT,
+  d_tin VARCHAR(10),
+  d_id INT,
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255),
+  d_business_id INT
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        new_business_id BIGINT;
+
+    DECLARE new_location_id BIGINT;
+
+    BEGIN
+        new_business_id := create_distributor_business(
+    d_name,
+    d_tin,
+    d_id);
+
+    new_location_id := create_distributor_location (
+  d_general_zone,
+  d_region,
+  d_woreda,
+  new_business_id
+) ;
+
+    RETURN new_business_id;
+    END;
+    $$;
+
 create or replace function public.update_distributor_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
     DECLARE
         updated_id BIGINT;
