@@ -16,11 +16,9 @@ var (
 )
 
 type Provider interface {
-	Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response string, err error)
-	CreateBusinessInformation(ctx context.Context, req *distributorDTO.UpdateBusinessRequest) (id int, err error)
-	Get(ctx context.Context, id int) (distributorDTO.GetResponse, error)
+	Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response distributorDTO.RegisterDistributorResponse, err error)
 	GetAll(ctx context.Context) (distributorDTO.GetAllResponse, error)
-	GetByParam(ctx context.Context, req *distributorDTO.GetByParamRequest) (distributorDTO.GetAllResponse, error)
+	GetByParam(ctx context.Context, req *distributorDTO.GetByParamRequest) (distributorDTO.GetResponse, error)
 }
 
 type DistributorService struct {
@@ -28,11 +26,8 @@ type DistributorService struct {
 	authService authPort.Provider
 }
 
-func (d *DistributorService) CreateBusinessInformation(ctx context.Context, req *distributorDTO.UpdateBusinessRequest) (id int, err error) {
-	panic("unimplemented")
-}
-
-func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response string, err error) {
+func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.RegisterDistributorRequest) (response distributorDTO.RegisterDistributorResponse, err error) {
+	resp := distributorDTO.RegisterDistributorResponse{}
 	distribtor := port.CreateRequest{
 		FirstName:  req.FirstName,
 		Email:      req.Email,
@@ -40,10 +35,11 @@ func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.Reg
 		Username:   req.Username,
 		ExternalId: req.ExternalId,
 	}
-	_, err = d.db.Create(ctx, &distribtor)
+
+	id, err := d.db.Create(ctx, &distribtor)
 	if err != nil {
 
-		return "", err
+		return resp, err
 
 	}
 
@@ -57,14 +53,15 @@ func (d *DistributorService) Create(ctx context.Context, req *distributorDTO.Reg
 	}
 	_, err = d.authService.CreateNewClient(ctx, user)
 	if err != nil {
-		return "", err
+		return resp, err
 
 	}
-	return SUCCESS_MESSAGE, nil
-}
 
-func (d *DistributorService) Get(ctx context.Context, id int) (distributorDTO.GetResponse, error) {
-	panic("unimplemented")
+	resp = distributorDTO.RegisterDistributorResponse{
+		Message:       SUCCESS_MESSAGE,
+		DistributorId: id,
+	}
+	return resp, nil
 }
 
 func (d *DistributorService) GetAll(ctx context.Context) (distributorDTO.GetAllResponse, error) {
@@ -85,8 +82,25 @@ func (d *DistributorService) GetAll(ctx context.Context) (distributorDTO.GetAllR
 	return resp_val, nil
 }
 
-func (d *DistributorService) GetByParam(ctx context.Context, req *distributorDTO.GetByParamRequest) (distributorDTO.GetAllResponse, error) {
-	panic("unimplemented")
+func (d *DistributorService) GetByParam(ctx context.Context, req *distributorDTO.GetByParamRequest) (distributorDTO.GetResponse, error) {
+	resp, err := d.db.GetById(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return distributorDTO.GetResponse{}, ErrEmptyGetContent
+		default:
+			return distributorDTO.GetResponse{}, ErrUnknown
+		}
+	}
+
+	resp_val := distributorDTO.GetResponse{
+		Id:        resp.Id,
+		Email:     resp.Email,
+		FirstName: resp.FirstName,
+		LastName:  resp.LastName,
+	}
+
+	return resp_val, nil
 }
 
 func NewDistributorService(db port.DB, authService authPort.Provider) Provider {
