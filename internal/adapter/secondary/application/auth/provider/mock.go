@@ -19,7 +19,6 @@ type MockAuthProvider struct {
 	validTokens []string
 }
 
-// RefreshToken implements provider.AuthProvider.
 func (m *MockAuthProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
 	panic("unimplemented")
 }

@@ -20,8 +20,9 @@ type Provider interface {
 	GetByParam(ctx context.Context, req *port.GetByParamRequest) (port.GetResponse, error)
 	AddBusinessInformattion(ctx context.Context, req *port.CreateBusinessInformation) (response port.CreateBusinessResponse, err error)
 	GetBusinessAll(ctx context.Context) (port.GetAllResponse, error)
-	GetByDistributor(ctx context.Context, distributorId int) (port.GetResponse, error)
+	GetByDistributor(ctx context.Context, distributorId int) (port.GetBusinessResponse, error)
 	GetById(ctx context.Context, id int) (port.GetResponse, error)
+	UpdateBusiness(ctx context.Context, req *port.UpdateBusinessRequest) (response port.RegisterDistributorResponse, err error)
 }
 
 type DistributorService struct {
@@ -61,8 +62,8 @@ func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistr
 	}
 
 	resp = port.RegisterDistributorResponse{
-		Message:       SUCCESS_MESSAGE,
-		DistributorId: id,
+		Message: SUCCESS_MESSAGE,
+		Id:      id,
 	}
 	return resp, nil
 }
@@ -126,7 +127,7 @@ func (d *DistributorService) GetBusinessAll(ctx context.Context) (resp port.GetA
 	return resp, nil
 }
 
-func (d *DistributorService) GetByDistributor(ctx context.Context, distributorId int) (resp port.GetResponse, err error) {
+func (d *DistributorService) GetByDistributor(ctx context.Context, distributorId int) (resp port.GetBusinessResponse, err error) {
 	resp, err = d.db.GetByDistributorId(ctx, distributorId)
 	if err != nil {
 		switch err {
@@ -149,6 +150,21 @@ func (d *DistributorService) GetById(ctx context.Context, id int) (resp port.Get
 		}
 	}
 	return resp, nil
+}
+
+func (d *DistributorService) UpdateBusiness(ctx context.Context, req *port.UpdateBusinessRequest) (response port.RegisterDistributorResponse, err error) {
+	id, err := d.db.UpdateBusiness(ctx, req)
+	if err != nil {
+
+		return response, err
+
+	}
+
+	response = port.RegisterDistributorResponse{
+		Message: SUCCESS_MESSAGE,
+		Id:      id,
+	}
+	return response, nil
 }
 func NewDistributorService(db port.DB, authService authPort.Provider) Provider {
 	return &DistributorService{
