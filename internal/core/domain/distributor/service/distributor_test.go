@@ -118,7 +118,7 @@ func Test_Get_happyPath(t *testing.T) {
 		t.Fatalf("Failed to create distributor %v", err)
 	}
 	params := port.GetByParamRequest{
-		Id: resp.DistributorId,
+		Id: resp.Id,
 	}
 	_, err = service.GetByParam(ctx, &params)
 
@@ -142,7 +142,7 @@ func Test_Create_Business_happyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &port.CreateBusinessInformation{
 			Name: "Test",
-			Tin:  "124576",
+			Tin:  124576,
 
 			GeneralZone:   "Test Zone",
 			Region:        "Test Region",
@@ -175,7 +175,7 @@ func Test_Get_Business_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &port.CreateBusinessInformation{
 		Name: "Test",
-		Tin:  "124576",
+		Tin:  124576,
 
 		GeneralZone:   "Test Zone",
 		Region:        "Test Region",
@@ -191,5 +191,53 @@ func Test_Get_Business_happyPath(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("Failed to fetch business %v", err)
+	}
+}
+
+func Test_Update_Business_happyPath(t *testing.T) {
+	ctx := context.Background()
+	distributors, err := service.GetBusinessAll(ctx)
+	if err != nil {
+		t.Fatalf("Failed to fetch distributors. Error: %v", err)
+	}
+	id := distributors.List[len(distributors.List)-1].Id
+	in := &port.UpdateBusinessRequest{
+		Id:            id,
+		Name:          "Test",
+		Tin:           124576,
+		DistributorId: rand.Int(),
+	}
+	resp, err := service.UpdateBusiness(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to update business %v", err)
+	}
+
+	want := port.RegisterDistributorResponse{
+		Id:      id,
+		Message: SUCCESS_MESSAGE,
+	}
+
+	if resp != want {
+		t.Errorf("Expected: %v, Got: %v", want, resp)
+	}
+}
+
+func Test_Update_Business_unhappyPath(t *testing.T) {
+	ctx := context.Background()
+	id := rand.Int()
+	in := &port.UpdateBusinessRequest{
+		Id:            id,
+		Name:          "Test",
+		Tin:           124576,
+		DistributorId: rand.Int(),
+	}
+	_, err := service.UpdateBusiness(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to update business %v", err)
+	}
+
+	wantErr := ErrEmptyGetContent
+	if err != wantErr {
+		t.Errorf("Expected: %v, Got: %v", wantErr, err)
 	}
 }

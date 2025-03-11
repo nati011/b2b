@@ -570,8 +570,30 @@ create or replace function public.create_distributor_business (d_name TEXT, d_ti
         new_id BIGINT;
 
     BEGIN
+        UPDATE public.distributor_business_info 
+        SET name 
         INSERT INTO public.distributor_business_info(d_name, d_tin, d_id) 
         VALUES (name, tin, distributor_id)
+        RETURNING id INTO new_id;
+        RETURN new_id;
+
+    END;
+    $$;
+
+
+create or replace function public.update_distributor_location (
+    d_id 
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255),
+  d_business_id INT
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        new_id BIGINT;
+
+    BEGIN
+        INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
+        VALUES (general_zone, region, woreda, business_id,  distributor_id)
         RETURNING id INTO new_id;
         RETURN new_id;
 
@@ -609,7 +631,7 @@ create or replace function public.create_distributor_business_location (
     END;
     $$;
 
-create or replace function public.update_distributor_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+CREATE or REPLACE FUNCTION public.update_distributor_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
     DECLARE
         updated_id BIGINT;
 
@@ -625,6 +647,44 @@ create or replace function public.update_distributor_business (db_name TEXT, db_
     END;
     $$;
 
+CREATE OR REPLACE FUNCTION public.update_distributor_business_location(
+d_id BIGINT,
+ d_name TEXT,
+  d_tin VARCHAR(10),
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255)
+
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_business_id BIGINT;
+
+    DECLARE updated_location_id BIGINT;
+
+    BEGIN
+        updated_business_id := update_distributor_business(
+    d_name,
+    d_tin,
+    d_id);
+
+
+    UPDATE public.db_locations
+            SET general_zone= d_general_zone
+            WHERE business_id=d_id;
+            UPDATE public.db_locations
+            SET region=d_region
+            WHERE id=db_id;
+            UPDATE public.db_locations
+            SET woreda=d_woreda
+            WHERE id=db_id
+            RETURNING id INTO updated_location_id;
+
+    RETURN updated_business_id;
+    END;
+    $$;
+
+
+
 create or replace function public.delete_distributor_business (distributor_id INT) RETURNS VOID LANGUAGE plpgsql as $$
 
     BEGIN
@@ -636,16 +696,63 @@ create or replace function public.delete_distributor_business (distributor_id IN
     $$;
 
 -- readers
-create or replace function public.get_distributor_business (distributor_id INT) RETURNS VOID LANGUAGE plpgsql as $$
+DROP FUNCTION get_distributor_business;
+CREATE or REPLACE function public.get_distributor_business (distributor_id INT) 
+RETURNS TABLE(
+    id BIGINT,
+    name TEXT,
+    tin VARCHAR(10),
+    general_zone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
+) LANGUAGE plpgsql as $$
 
     BEGIN
-        CALL delete_user(user_id);
-        UPDATE public.distributors
-        SET is_deleted = TRUE
-        WHERE user_id = user_id
+        SELECT id, name, tin FROM public.distributor_business_info t1
+        JOIN public.db_locations t2 on t1.id
+        WHERE distributor_id = distributor_id 
         AND is_deleted = FALSE;
     END;
     $$;
+
+    DROP FUNCTION get_distributor_business;
+
+CREATE or REPLACE function public.get_business_by_id (business_id INT) 
+RETURNS TABLE(
+    id BIGINT,
+    name TEXT,
+    tin VARCHAR(10),
+    general_zone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
+) LANGUAGE plpgsql as $$
+
+    BEGIN
+        SELECT id, name, tin FROM public.distributor_business_info t1
+        JOIN public.db_locations t2 on t1.id
+        WHERE id = business_id
+        AND is_deleted = FALSE;
+    END;
+    $$;
+
+CREATE or REPLACE function public.get_all_businesses () 
+RETURNS TABLE(
+    id BIGINT,
+    name TEXT,
+    tin VARCHAR(10),
+    general_zone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
+) LANGUAGE plpgsql as $$
+
+    BEGIN
+        SELECT id, name, tin FROM public.distributor_business_info t1
+        JOIN public.db_locations t2 on t1.id
+        WHERE is_deleted = FALSE;
+    END;
+    $$;
+
+
 
 -- Distributor User ----------------------------------------
 -- writers
