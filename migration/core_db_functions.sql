@@ -598,3 +598,40 @@ BEGIN
         AND r.is_deleted = FALSE;
 END;
 $$;
+
+-- invoices ----------------------------------
+
+    -- writers
+CREATE OR REPLACE FUNCTION public.create_invoice(
+   i_externalId VARCHAR(255),
+   i_status VARCHAR(255)
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id BIGINT;
+BEGIN
+    INSERT INTO public.roles (name, description)
+    VALUES (r_name, r_desc) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+    -- readers
+CREATE OR REPLACE FUNCTION public.get_invoices_by_id(
+    invoice_id INT
+)
+RETURNS TABLE(id BIGINT, status VARCHAR(255), external_id VARCHAR(255), order_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT i.id, i.status, i.external_id, i.order_id 
+    FROM public.invoices i
+    WHERE i.id = invoice_id
+      AND i.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
