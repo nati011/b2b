@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	port "b2b.nati011.github.com/internal/port/domain/catalogue/category"
+	port "b2b.nati011.github.com/internal/port/domain/category"
 )
 
 var (
