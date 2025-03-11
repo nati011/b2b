@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"time"
 
@@ -71,13 +72,14 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
-func (m *Mock) GetBusinessById(ctx context.Context, id int) (port.GetBusinessResponse, error) {
-	resp := port.GetBusinessResponse{}
+func (m *Mock) GetBusinessById(ctx context.Context, id int) (resp port.GetBusinessResponse, err error) {
 	for _, i := range m.Businesses {
+		log.Print(i)
 		resp = port.GetBusinessResponse{
 			Id: i.Id,
 		}
 	}
+
 	if (resp == port.GetBusinessResponse{}) {
 		return port.GetBusinessResponse{}, port.ErrSysNoRows
 	}
