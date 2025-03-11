@@ -20,7 +20,15 @@ type CreateRequest struct {
 	ExternalId string
 	Password   string
 }
-
+type UpdateRequest struct {
+	Id         int
+	FirstName  string
+	Email      string
+	Phone      string
+	Username   string
+	DOB        time.Time
+	ExternalId string
+}
 type GetResponse struct {
 	Id         int
 	FirstName  string
@@ -58,15 +66,16 @@ type BusinessLocation struct {
 }
 
 type UpdateBusinessRequest struct {
+	Id            int              `json:"id"`
 	DistributorId int              `json:"distributorId"`
 	Name          string           `json:"name"`
 	Tin           int              `json:"tin"`
-	Region        BusinessLocation `json:"region"`
+	Location      BusinessLocation `json:"location"`
 }
 
 type RegisterDistributorResponse struct {
-	DistributorId int    `json:"distributorId"`
-	Message       string `json:"message"`
+	Id      int    `json:"distributorId"`
+	Message string `json:"message"`
 }
 
 type GetByParamRequest struct {
@@ -77,7 +86,7 @@ type GetByParamRequest struct {
 
 type CreateBusinessInformation struct {
 	Name          string `json:"name"`
-	Tin           string `json:"tin"`
+	Tin           int    `json:"tin"`
 	Latitude      string `json:"latitude"`
 	Longitude     string `json:"longitude"`
 	GeneralZone   string `json:"general_zone"`
@@ -105,14 +114,13 @@ type Reader interface {
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetBusinessAll(ctx context.Context) (GetAllResponse, error)
 	GetBusinessById(ctx context.Context, req int) (GetBusinessResponse, error)
-	GetByDistributorId(ctx context.Context, distributorId int) (GetResponse, error)
+	GetByDistributorId(ctx context.Context, distributorId int) (GetBusinessResponse, error)
 }
 
 type Writer interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	CreateBusiness(ctx context.Context, req *CreateBusinessInformation) (CreateBusinessResponse, error)
-	Update(ctx context.Context, req *CreateRequest) (int, error)
-	UpdateBusiness(ctx context.Context, req *CreateBusinessInformation) (CreateBusinessResponse, error)
+	UpdateBusiness(ctx context.Context, req *UpdateBusinessRequest) (int, error)
 }
 
 type DB interface {

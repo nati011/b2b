@@ -3,28 +3,32 @@ package db
 import (
 	"context"
 	"math/rand"
+	"time"
 
 	port "b2b.nati011.github.com/internal/port/distributor"
 )
 
 type MockDistributor struct {
-	Id int
+	Id         int
+	FirstName  string
+	LastName   string
+	Email      string
+	Phone      string
+	Username   string
+	DOB        time.Time
+	ExternalId string
 }
 
 type MockBusiness struct {
 	Id            int
 	Name          string
-	Tin           string
+	Tin           int
 	DistributorId int
 }
 
 type Mock struct {
 	Distributors []MockDistributor
 	Businesses   []MockBusiness
-}
-
-func (m *Mock) Update(ctx context.Context, req *port.CreateRequest) (int, error) {
-	panic("unimplemented")
 }
 
 func (m *Mock) GetById(ctx context.Context, id int) (port.GetResponse, error) {
@@ -81,15 +85,15 @@ func (m *Mock) GetBusinessById(ctx context.Context, id int) (port.GetBusinessRes
 	return resp, nil
 }
 
-func (m *Mock) GetByDistributorId(ctx context.Context, distributorId int) (port.GetResponse, error) {
-	resp := port.GetResponse{}
+func (m *Mock) GetByDistributorId(ctx context.Context, distributorId int) (port.GetBusinessResponse, error) {
+	resp := port.GetBusinessResponse{}
 	for _, i := range m.Businesses {
-		resp = port.GetResponse{
+		resp = port.GetBusinessResponse{
 			Id: i.DistributorId,
 		}
 	}
-	if (resp == port.GetResponse{}) {
-		return port.GetResponse{}, port.ErrSysNoRows
+	if (resp == port.GetBusinessResponse{}) {
+		return port.GetBusinessResponse{}, port.ErrSysNoRows
 	}
 
 	return resp, nil
@@ -127,19 +131,28 @@ func (m *Mock) CreateBusiness(ctx context.Context, req *port.CreateBusinessInfor
 	return response, nil
 }
 
-func (m *Mock) UpdateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
-	businessId := rand.Int()
-	m.Businesses = append(m.Businesses, MockBusiness{
-		Id:            businessId,
-		Name:          req.Name,
-		Tin:           req.Tin,
-		DistributorId: req.DistributorId,
-	})
+func (m *Mock) UpdateBusiness(ctx context.Context, req *port.UpdateBusinessRequest) (int, error) {
+	updatedDistributor := []MockBusiness{}
+	var updatedResourceId int
+	for _, i := range m.Businesses {
+		if req.Id == i.Id {
+			updatedResourceId = i.Id
+			updatedDistributor = append(updatedDistributor, MockBusiness{
+				Id:   req.Id,
+				Name: req.Name,
+				Tin:  req.Tin,
+			})
+		} else {
+			updatedDistributor = append(updatedDistributor, MockBusiness{
+				Id:   i.Id,
+				Name: i.Name,
+				Tin:  i.Tin,
+			})
+		}
 
-	response := port.CreateBusinessResponse{
-		BusinessId: businessId,
 	}
-	return response, nil
+	m.Businesses = updatedDistributor
+	return updatedResourceId, nil
 
 }
 

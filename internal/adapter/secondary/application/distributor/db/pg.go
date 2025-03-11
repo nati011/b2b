@@ -12,10 +12,6 @@ type Postgres struct {
 	db *sql.DB
 }
 
-func (p *Postgres) Update(ctx context.Context, req *port.CreateRequest) (int, error) {
-	panic("unimplemented")
-}
-
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
@@ -47,7 +43,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_distributors();"
 
-	err := p.db.QueryRowContext(ctx, query).Scan()
+	err := p.db.QueryRowContext(ctx, query).Scan(response)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -65,7 +61,7 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_distributor_by_id($1);"
 
-	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id)
+	err := p.db.QueryRowContext(ctx, query, id).Scan(&response)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -78,8 +74,31 @@ func (p *Postgres) GetById(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func (p *Postgres) UpdateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
-	panic("unimplemented")
+func (p *Postgres) UpdateBusiness(ctx context.Context, req *port.UpdateBusinessRequest) (int, error) {
+	var resourceId int
+	query := "SELECT * FROM public.create_distributor_business_location($1, $2, $3, $4, $5, $6);"
+
+	err := p.db.QueryRowContext(ctx, query,
+		req.Id,
+		req.Name,
+		req.Tin,
+		req.DistributorId,
+		req.Location.GeneralZone,
+		req.Location.Woreda,
+		req.Location.Region,
+	).Scan(&resourceId)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return resourceId, port.ErrSysNoRows
+		default:
+			return resourceId, port.ErrSysUnknown
+		}
+	}
+
+	return resourceId, nil
+
 }
 
 func (p *Postgres) CreateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
@@ -111,15 +130,56 @@ func (p *Postgres) CreateBusiness(ctx context.Context, req *port.CreateBusinessI
 	return resp, nil
 }
 
-func (p *Postgres) GetBusinessAll(ctx context.Context) (port.GetAllResponse, error) {
-	panic("Unimplemented")
+func (p *Postgres) GetBusinessAll(ctx context.Context) (resp port.GetAllResponse, err error) {
+
+	query := "SELECT * FROM public.get_all_distributors();"
+
+	err = p.db.QueryRowContext(ctx, query).Scan(resp)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetAllResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+	}
+
+	return resp, nil
 }
 
 func (p *Postgres) GetBusinessById(ctx context.Context, id int) (port.GetBusinessResponse, error) {
-	panic("Unimplemented")
+	var response port.GetBusinessResponse
+
+	query := "SELECT * FROM public.get_distributor_by_id($1);"
+
+	err := p.db.QueryRowContext(ctx, query, id).Scan(&response)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetBusinessResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetBusinessResponse{}, port.ErrSysUnknown
+		}
+	}
+
+	return response, nil
 }
-func (p *Postgres) GetByDistributorId(ctx context.Context, id int) (port.GetResponse, error) {
-	panic("Unimplemented")
+func (p *Postgres) GetByDistributorId(ctx context.Context, distributor_id int) (port.GetBusinessResponse, error) {
+	var response port.GetBusinessResponse
+
+	query := "SELECT * FROM public.get_distributor_business($1);"
+
+	err := p.db.QueryRowContext(ctx, query, distributor_id).Scan(&response)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetBusinessResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetBusinessResponse{}, port.ErrSysUnknown
+		}
+	}
+
+	return response, nil
 }
 
 func NewPostgres(db *sql.DB) port.DB {
