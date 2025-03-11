@@ -29,6 +29,10 @@ func Test_CreateInvoice_happyPath(t *testing.T) {
 		ExternalId: "test",
 		Status:     "test",
 		SubTotal:   1,
+		TaxAmount:  1,
+		LineItems: []Item{
+			{1, 1},
+		},
 	}
 	id, err := invoiceService.Create(ctx, in)
 	if err != nil {
@@ -50,6 +54,15 @@ func Test_CreateInvoice_happyPath(t *testing.T) {
 	}
 	if resp.Status != "test" {
 		t.Errorf("Expected ExternalId: %v Got: %v", id, resp.Id)
+	}
+	if resp.SubTotal != 1 {
+		t.Errorf("Expected Subtotal: %v Got: %v", id, resp.SubTotal)
+	}
+	if resp.TaxAmount != 1 {
+		t.Errorf("Expected TaxAmount: %v Got: %v", id, resp.TaxAmount)
+	}
+	if len(resp.LineItems) != 1 {
+		t.Errorf("Expected LineItem length: %v Got: %v", id, len(resp.LineItems))
 	}
 }
 
@@ -136,25 +149,33 @@ func Test_Update_unhappyPath(t *testing.T) {
 }
 
 func Test_GetInvoice_happyPath(t *testing.T) {
-	ctx := context.Background()
-	//setup
-	in := &CreateRequest{
-		ExternalId: "test",
-		Status:     "test",
-		OrderId:    1,
-	}
-	id, err := invoiceService.Create(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to create invoice err: %v", err)
-	}
+	t.Run("get", func(t *testing.T) {
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			ExternalId: "test",
+			Status:     "test",
+			OrderId:    1,
+		}
+		id, err := invoiceService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create invoice err: %v", err)
+		}
 
-	resp, err := invoiceService.Get(ctx, id)
-	if err != nil {
-		t.Fatalf("Failed to get invoice err: %v", err)
-	}
-	if resp.Id != id {
-		t.Errorf("Extected id: %v Got: %v", id, resp.Id)
-	}
+		resp, err := invoiceService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get invoice err: %v", err)
+		}
+		if resp.Id != id {
+			t.Errorf("Extected id: %v Got: %v", id, resp.Id)
+		}
+	})
+
+	t.Run("populate_generated_fields_from_order", func(t *testing.T) {
+		//subtotal
+		//lineItems
+		//taxAmount
+	})
 }
 
 func Test_GetInvoice_unhappyPath(t *testing.T) {
