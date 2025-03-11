@@ -10,7 +10,7 @@ type PostgresReaderWriter struct {
 	Pool *sql.DB
 }
 
-func NewPostgresReaderWriter(pool *sql.DB) ReaderWriter {
+func NewPostgres(pool *sql.DB) ReaderWriter {
 	return &PostgresReaderWriter{Pool: pool}
 }
 

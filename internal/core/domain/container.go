@@ -18,12 +18,12 @@ import (
 /*Dependency Tree*/
 
 // Container
-// ├── DB
-// │   ├── CategoryService
-// │   │   └── ProductService
-// │   │       └── ConfigurableProductService
-// │   └── InvoiceService
-// │       └── OrderService
+// ├── CategoryService
+// │   └── ProductService
+// │       └── ConfigurableProductService
+// |
+// └── InvoiceService
+//     └── OrderService
 
 type Container struct {
 	db                         *sql.DB
