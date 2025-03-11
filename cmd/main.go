@@ -1,38 +1,58 @@
 package main
 
 import (
-	"context"
-	"database/sql"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
-	config "b2b.nati011.github.com/config"
-	authRouter "b2b.nati011.github.com/internal/adapter/primary/routes/auth"
-	distributorRouter "b2b.nati011.github.com/internal/adapter/primary/routes/distributor"
-	healthRouter "b2b.nati011.github.com/internal/adapter/primary/routes/health"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	"b2b.nati011.github.com/config"
+	"b2b.nati011.github.com/internal/core"
 )
 
 func main() {
-	cfg := *config.LoadConfig()
+	var cfg config.Config
 
-	var err error
-	ctx := context.Background()
+	//keycloak
+	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
+	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakInstanceURL, "keycloak_base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakUsername, "keycloak_user_name", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakPassword, "keycloak_password", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakRealm, "keycloak_realm", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakApplicationRealm, "keycloak_application_realm", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
 
-	db, err := sql.Open("pgx", cfg.DB_URL)
+	//email
+	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
+
+	//db
+	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
+	flag.Parse()
+	validateFlags(cfg)
+
+	db_pool := InitDB(cfg.CoreDBConnectionString)
+	InitEmail(cfg.Email, cfg.SMTP)
+	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
+	InitSMS(cfg.Email, cfg.SMTP)
+
+	master_constainer := core.NewMasterContainer(db_pool)
+	mux := http.NewServeMux()
+	InitREST(mux, db_pool, master_constainer)
+
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Handler:      mux,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	log.Printf("starting %s server on %s", cfg.Env, srv.Addr)
+
+	err := srv.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err = db.PingContext(ctx); err != nil {
-		log.Fatal(err)
-	}
-	router := http.NewServeMux()
-	authRouter.RegisterRoutes(router)
-	healthRouter.RegisterRoutes(router)
-	distributorRouter.RegisterRoutes(router, db)
-	log.Printf("Starting server on %s", cfg.Port)
-	if err := http.ListenAndServe(cfg.Port, router); err != nil {
 		log.Fatal(err)
 	}
 }
