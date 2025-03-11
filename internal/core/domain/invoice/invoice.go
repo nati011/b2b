@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	port "b2b.nati011.github.com/internal/port/domain/invoice"
+	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
 var (
