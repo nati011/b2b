@@ -320,14 +320,14 @@ CREATE TABLE IF NOT EXISTS public."o_items"
 COMMENT ON TABLE public."o_items" IS 'stores order items';
 
 
-CREATE TABLE IF NOT EXISTS public."payment_methods" 
-(
-  id BIGSERIAL PRIMARY KEY,
-  value VARCHAR(255),
-  description TEXT
-) INHERITS (public."base");
+-- CREATE TABLE IF NOT EXISTS public."payment_methods" 
+-- (
+--   id BIGSERIAL PRIMARY KEY,
+--   value VARCHAR(255),
+--   description TEXT
+-- ) INHERITS (public."base");
 
-COMMENT ON TABLE public."payment_methods" IS 'stores payment options';
+-- COMMENT ON TABLE public."payment_methods" IS 'stores payment options';
 
 CREATE TABLE IF NOT EXISTS public."invoices" 
 (
@@ -335,9 +335,7 @@ CREATE TABLE IF NOT EXISTS public."invoices"
   status VARCHAR(255),
   external_id VARCHAR(255),
   order_id INT,
-  payment_method_id INT,
   FOREIGN KEY (order_id) REFERENCES public."orders" (id) ON DELETE CASCADE,
-  FOREIGN KEY (payment_method_id) REFERENCES public."payment_methods" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores invoices';
