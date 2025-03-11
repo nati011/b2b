@@ -38,6 +38,7 @@ func NewContainer(db *sql.DB) *Container {
 	container := Container{}
 	container.db = db
 
+	//ORDER ORDER!!
 	container.InitCategoryService()
 	container.InitProductService()
 	container.InitConfigrableProductService()
