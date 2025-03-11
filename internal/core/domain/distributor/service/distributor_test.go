@@ -53,7 +53,7 @@ func Test_Create_happyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &port.RegisterDistributorRequest{
 			FirstName:       "Test User",
-			Email:           "test@email.com",
+			Email:           "test789@email.com",
 			Password:        "test@123",
 			ConfirmPassword: "test@123",
 			Username:        "username",
@@ -72,7 +72,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 
 	in := &port.RegisterDistributorRequest{
 		FirstName:       "Test User",
-		Email:           "test116546@email.com",
+		Email:           "t6546@email.com",
 		Password:        "test@123",
 		ConfirmPassword: "test@123",
 		Username:        "username11",
@@ -95,7 +95,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 func Test_Get_All_unhappyPath(t *testing.T) {
 	t.Run("no_distributor_found", func(t *testing.T) {
 		ctx := context.Background()
-		wantErr := ErrEmptyGetContent
+		wantErr := ErrEmptyGetDistributorContent
 		_, err := service.GetAll(ctx)
 		if err != wantErr {
 			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
@@ -130,7 +130,7 @@ func Test_Get_happyPath(t *testing.T) {
 func Test_Get_All_Businesses_unhappyPath(t *testing.T) {
 	t.Run("no_businesses_found", func(t *testing.T) {
 		ctx := context.Background()
-		wantErr := ErrEmptyGetContent
+		wantErr := ErrEmptyGetBusinessContent
 		_, err := service.GetBusinessAll(ctx)
 		if err != wantErr {
 			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
@@ -160,7 +160,17 @@ func Test_Create_Business_happyPath(t *testing.T) {
 
 func Test_Get_All_Businesses_happyPath(t *testing.T) {
 	ctx := context.Background()
-
+	in := &port.RegisterDistributorRequest{
+		FirstName:       "Test User",
+		Email:           "tesfh231@gmail.com",
+		Password:        "test@123",
+		ConfirmPassword: "test@123",
+		Username:        "username11",
+	}
+	_, err := service.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create distributor %v", err)
+	}
 	got, err := service.GetBusinessAll(ctx)
 	if err != nil {
 		t.Errorf("Expected err:%v Got err: %v", nil, err)
@@ -173,6 +183,7 @@ func Test_Get_All_Businesses_happyPath(t *testing.T) {
 
 func Test_Get_Business_happyPath(t *testing.T) {
 	ctx := context.Background()
+
 	in := &port.CreateBusinessInformation{
 		Name: "Test",
 		Tin:  124576,
@@ -196,16 +207,36 @@ func Test_Get_Business_happyPath(t *testing.T) {
 
 func Test_Update_Business_happyPath(t *testing.T) {
 	ctx := context.Background()
-	distributors, err := service.GetBusinessAll(ctx)
-	if err != nil {
-		t.Fatalf("Failed to fetch distributors. Error: %v", err)
+	distIn := &port.RegisterDistributorRequest{
+		FirstName:       "Test User",
+		Email:           "test475@gmail.com",
+		Password:        "test@123",
+		ConfirmPassword: "test@123",
+		Username:        "username11",
 	}
-	id := distributors.List[len(distributors.List)-1].Id
+	dist, err := service.Create(ctx, distIn)
+	if err != nil {
+		t.Fatalf("Failed to create distributor %v", err)
+	}
+	businessIn := &port.CreateBusinessInformation{
+		Name: "Test",
+		Tin:  124576,
+
+		GeneralZone:   "Test Zone",
+		Region:        "Test Region",
+		Woreda:        "Test Woreda",
+		DistributorId: dist.Id,
+	}
+
+	businessResp, err := service.AddBusinessInformattion(ctx, businessIn)
+
+	if err != nil {
+		t.Fatalf("Failed to create business %v", err)
+	}
 	in := &port.UpdateBusinessRequest{
-		Id:            id,
-		Name:          "Test",
-		Tin:           124576,
-		DistributorId: rand.Int(),
+		Id:   businessResp.BusinessId,
+		Name: "Test",
+		Tin:  124576,
 	}
 	resp, err := service.UpdateBusiness(ctx, in)
 	if err != nil {
@@ -213,7 +244,7 @@ func Test_Update_Business_happyPath(t *testing.T) {
 	}
 
 	want := port.RegisterDistributorResponse{
-		Id:      id,
+		Id:      businessResp.BusinessId,
 		Message: SUCCESS_MESSAGE,
 	}
 
@@ -232,11 +263,7 @@ func Test_Update_Business_unhappyPath(t *testing.T) {
 		DistributorId: rand.Int(),
 	}
 	_, err := service.UpdateBusiness(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to update business %v", err)
-	}
-
-	wantErr := ErrEmptyGetContent
+	wantErr := ErrEmptyGetDistributorContent
 	if err != wantErr {
 		t.Errorf("Expected: %v, Got: %v", wantErr, err)
 	}

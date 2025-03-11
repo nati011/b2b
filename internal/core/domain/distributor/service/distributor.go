@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrEmptyGetContent = errors.New("oopsy, no distributor found")
-	ErrUnknown         = errors.New("oopsy, unkown error")
-	SUCCESS_MESSAGE    = "Ahoy!"
+	ErrEmptyGetDistributorContent = errors.New("oopsy, no distributor found")
+	ErrEmptyGetBusinessContent    = errors.New("oopsy, no business found")
+	ErrUnknown                    = errors.New("oopsy, unkown error")
+	SUCCESS_MESSAGE               = "Ahoy!"
 )
 
 type Provider interface {
@@ -73,7 +74,7 @@ func (d *DistributorService) GetAll(ctx context.Context) (port.GetAllResponse, e
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return port.GetAllResponse{}, ErrEmptyGetContent
+			return port.GetAllResponse{}, ErrEmptyGetDistributorContent
 		default:
 			return port.GetAllResponse{}, ErrUnknown
 		}
@@ -91,7 +92,7 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *port.GetByPara
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return port.GetResponse{}, ErrEmptyGetContent
+			return port.GetResponse{}, ErrEmptyGetDistributorContent
 		default:
 			return port.GetResponse{}, ErrUnknown
 		}
@@ -119,7 +120,7 @@ func (d *DistributorService) GetBusinessAll(ctx context.Context) (resp port.GetA
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return resp, ErrEmptyGetContent
+			return resp, ErrEmptyGetBusinessContent
 		default:
 			return resp, ErrUnknown
 		}
@@ -132,7 +133,7 @@ func (d *DistributorService) GetByDistributor(ctx context.Context, distributorId
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return resp, ErrEmptyGetContent
+			return resp, ErrEmptyGetDistributorContent
 		default:
 			return resp, ErrUnknown
 		}
@@ -144,7 +145,7 @@ func (d *DistributorService) GetById(ctx context.Context, id int) (resp port.Get
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return resp, ErrEmptyGetContent
+			return resp, ErrEmptyGetDistributorContent
 		default:
 			return resp, ErrUnknown
 		}
@@ -153,6 +154,21 @@ func (d *DistributorService) GetById(ctx context.Context, id int) (resp port.Get
 }
 
 func (d *DistributorService) UpdateBusiness(ctx context.Context, req *port.UpdateBusinessRequest) (response port.RegisterDistributorResponse, err error) {
+	_, err = d.db.GetBusinessById(
+		ctx,
+		req.Id,
+	)
+
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return response, ErrEmptyGetDistributorContent
+
+		default:
+			return response, ErrUnknown
+		}
+	}
+
 	id, err := d.db.UpdateBusiness(ctx, req)
 	if err != nil {
 
