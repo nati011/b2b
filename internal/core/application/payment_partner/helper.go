@@ -1,4 +1,4 @@
-package partner
+package payment_partner
 
 func validateName(name string) error {
 	if name == "" {
