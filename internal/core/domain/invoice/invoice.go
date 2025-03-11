@@ -91,11 +91,20 @@ func (i *InvoiceService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-
+	port_lineItems := []port.Item{}
+	for _, i := range req.LineItems {
+		port_lineItems = append(port_lineItems, port.Item{
+			ProductId: i.ProductId,
+			Quantity:  i.Quantity,
+		})
+	}
 	id, err := i.DB.Create(ctx, &port.CreateRequest{
 		ExternalId: req.ExternalId,
 		Status:     req.Status,
 		OrderId:    req.OrderId,
+		Subtotal:   req.SubTotal,
+		TaxAmount:  req.TaxAmount,
+		LineItems:  port_lineItems,
 	})
 	if err != nil {
 		switch err {
