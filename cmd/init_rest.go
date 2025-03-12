@@ -14,6 +14,7 @@ var (
 )
 
 func InitREST(mux *http.ServeMux, db *sql.DB, services *core.MasterContainer) *http.ServeMux {
+	print("Rest Initialized....")
 	err := rest.BuildRouter(mux, services)
 	if err != nil {
 		panic(ErrFailedToBuildRoutes)

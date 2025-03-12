@@ -29,11 +29,12 @@ func main() {
 	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
 
 	//db
+	flag.StringVar(&cfg.FileLocation, "file", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 	flag.Parse()
 	validateFlags(cfg)
 
-	db_pool := InitDB(cfg.CoreDBConnectionString)
+	db_pool := InitDB(cfg.CoreDBConnectionString, cfg.FileLocation)
 	InitEmail(cfg.Email, cfg.SMTP)
 	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
 	InitSMS(cfg.Email, cfg.SMTP)

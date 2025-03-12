@@ -23,22 +23,16 @@ var (
 	SUCCESS_MESSAGE = "Ahoy!"
 )
 
-type Provider interface {
-	CreateClient(context.Context, port.RegisterUserRequest) (port.RegisterUserResponse, error)
-	LoginClient(context.Context, port.LoginUserRequest) (port.LoginAuthResponse, error)
-	RefreshToken(context.Context, port.RefreshTokenRequest) (port.LoginAuthResponse, error)
-}
-
 type AuthService struct {
 	authProvider port.Provider
 }
 
-func NewAuthService(ap port.Provider) Provider {
+func NewAuthService(ap port.Provider) port.Provider {
 	return &AuthService{authProvider: ap}
 
 }
 
-func (a *AuthService) CreateClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
+func (a *AuthService) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
 		return port.RegisterUserResponse{}, err
@@ -69,7 +63,7 @@ func (a *AuthService) CreateClient(ctx context.Context, req port.RegisterUserReq
 	}, nil
 }
 
-func (a *AuthService) LoginClient(ctx context.Context, rq port.LoginUserRequest) (port.LoginAuthResponse, error) {
+func (a *AuthService) ClientLogin(ctx context.Context, rq port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	resp, err := a.authProvider.ClientLogin(ctx, rq)
 	if err != nil {
 		switch err {

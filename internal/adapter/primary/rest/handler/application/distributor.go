@@ -1,22 +1,34 @@
-package handlers
+package handler
 
 import (
 	"context"
 	"encoding/json"
 	"net/http"
 
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/core"
+
 	service "b2b.nati011.github.com/internal/core/domain/distributor/service"
 	port "b2b.nati011.github.com/internal/port/distributor"
+	// util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 type DistributorHandler struct {
 	distributorService service.Provider
 }
 
-func NewDistributorHandler(distributorService service.Provider) DistributorHandler {
-	return DistributorHandler{
-		distributorService: distributorService,
-	}
+func init() {
+	handler.Register(new(DistributorHandler))
+}
+
+func (d *DistributorHandler) Init(services *core.MasterContainer) error {
+	// d.service = services.ResourceService
+	return nil
+}
+
+func (d *DistributorHandler) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/v1/distributor/register", d.RegisterDistributor)
+
 }
 
 func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request) {

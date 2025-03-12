@@ -14,7 +14,7 @@ import (
 
 var keycloakContainer *keycloak.KeycloakContainer
 var KeycloakProvider port.Provider
-var authService auth.Provider
+var authService port.Provider
 
 const (
 	VALID_PASSWORD   = "test@123"
@@ -54,7 +54,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	in := user
 	want := userRegistrationSuccessResponse
 
-	got, err := authService.CreateClient(ctx, in)
+	got, err := authService.CreateNewClient(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create client err: %v", err)
 	}
@@ -80,7 +80,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateClient(ctx, in_a)
+		_, err := authService.CreateNewClient(ctx, in_a)
 		if err != nil {
 			t.Fatalf("Failed to create client err: %v", err)
 		}
@@ -93,7 +93,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_B,
 		}
 
-		_, err = authService.CreateClient(ctx, in_b)
+		_, err = authService.CreateNewClient(ctx, in_b)
 		wantErr := auth.ErrUsernameTaken
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
@@ -114,7 +114,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		authService.CreateClient(ctx, ua)
+		authService.CreateNewClient(ctx, ua)
 		ub := port.RegisterUserRequest{
 			FirstName:       VALID_FIRST_NAME,
 			LastName:        VALID_LAST_NAME,
@@ -124,7 +124,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateClient(ctx, ub)
+		_, err := authService.CreateNewClient(ctx, ub)
 		wantErr := auth.ErrEmailTaken
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
