@@ -10,7 +10,7 @@ import (
 )
 
 type AuthHandler struct {
-	service auth.Provider
+	service port.Provider
 }
 
 func NewAuthHandler(provider port.Provider) *AuthHandler {
@@ -27,7 +27,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loginResponse, err := h.service.LoginClient(ctx, req)
+	loginResponse, err := h.service.ClientLogin(ctx, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -49,7 +49,7 @@ func (h *AuthHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	registerResponse, err := h.service.CreateClient(ctx, req)
+	registerResponse, err := h.service.CreateNewClient(ctx, req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

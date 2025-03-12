@@ -570,8 +570,6 @@ create or replace function public.create_distributor_business (d_name TEXT, d_ti
         new_id BIGINT;
 
     BEGIN
-        UPDATE public.distributor_business_info 
-        SET name 
         INSERT INTO public.distributor_business_info(d_name, d_tin, d_id) 
         VALUES (name, tin, distributor_id)
         RETURNING id INTO new_id;
@@ -582,7 +580,7 @@ create or replace function public.create_distributor_business (d_name TEXT, d_ti
 
 
 create or replace function public.update_distributor_location (
-    d_id 
+    d_id INT,
   d_general_zone VARCHAR(255),
   d_region VARCHAR(255),
   d_woreda VARCHAR(255),
@@ -606,7 +604,7 @@ create or replace function public.create_distributor_business_location (
   d_id INT,
   d_general_zone VARCHAR(255),
   d_region VARCHAR(255),
-  d_woreda VARCHAR(255),
+  d_woreda VARCHAR(255)
 
 ) RETURNS bigint LANGUAGE plpgsql as $$
     DECLARE
@@ -696,7 +694,6 @@ create or replace function public.delete_distributor_business (distributor_id IN
     $$;
 
 -- readers
-DROP FUNCTION get_distributor_business;
 CREATE or REPLACE function public.get_distributor_business (distributor_id INT) 
 RETURNS TABLE(
     id BIGINT,
@@ -714,9 +711,6 @@ RETURNS TABLE(
         AND is_deleted = FALSE;
     END;
     $$;
-
-    DROP FUNCTION get_distributor_business;
-
 CREATE or REPLACE function public.get_business_by_id (business_id INT) 
 RETURNS TABLE(
     id BIGINT,
@@ -780,8 +774,60 @@ create or replace function public.create_distributor_user (
 
     INSERT INTO public.distributor_users (user_id, distributor_id)
     VALUES 	
-    (new_user_id, new_distributor_id)
+    (new_user_id, new_distributor_id);
 
     RETURN new_distributor_id;
 END;
 $$;
+CREATE or REPLACE FUNCTION public.update_distributor_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_id BIGINT;
+
+    BEGIN
+        UPDATE public.distributor_business_info
+        SET name= db_name
+        WHERE id=db_id;
+        UPDATE public.distributor_business_info
+        SET tin=db_tin
+        WHERE id=db_id
+        RETURNING id INTO updated_id;
+        RETURN updated_id;
+    END;
+    $$;
+
+CREATE OR REPLACE FUNCTION public.update_distributor_business_location(
+d_id BIGINT,
+ d_name TEXT,
+  d_tin VARCHAR(10),
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255)
+
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_business_id BIGINT;
+
+    DECLARE updated_location_id BIGINT;
+
+    BEGIN
+        updated_business_id := update_distributor_business(
+    d_name,
+    d_tin,
+    d_id);
+
+
+    UPDATE public.db_locations
+            SET general_zone= d_general_zone
+            WHERE business_id=d_id;
+            UPDATE public.db_locations
+            SET region=d_region
+            WHERE id=db_id;
+            UPDATE public.db_locations
+            SET woreda=d_woreda
+            WHERE id=db_id
+            RETURNING id INTO updated_location_id;
+
+    RETURN updated_business_id;
+    END;
+    $$;
+

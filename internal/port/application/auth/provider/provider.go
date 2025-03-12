@@ -58,12 +58,8 @@ type JWT struct {
 	Scope            string
 }
 
-type CreateClientAuthResponse struct {
-	Username string
-}
-
 type Provider interface {
-	CreateNewClient(ctx context.Context, req RegisterUserRequest) (CreateClientAuthResponse, error)
+	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 }

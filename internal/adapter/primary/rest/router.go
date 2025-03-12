@@ -8,7 +8,9 @@ import (
 )
 
 func BuildRouter(mux *http.ServeMux, services *core.MasterContainer) error {
+	print("Building Routes...")
 	for _, h := range handler.GetHandlers() {
+		print(h)
 		if err := h.Init(services); err != nil {
 			return err
 		}

@@ -16,5 +16,6 @@ type Config struct {
 	SMTP  string
 
 	//db
+	FileLocation           string
 	CoreDBConnectionString string
 }
