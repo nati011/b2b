@@ -964,6 +964,21 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.remove_all_product_images(
+    i_product_id INT,
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_images
+    SET is_deleted = TRUE
+    WHERE id = i_product_id;
+
+    RETURN i_product_id;
+END;
+$$;
+
     -- reader
 CREATE OR REPLACE FUNCTION public.get_images_by_productId(
     i_product_id INT
@@ -998,6 +1013,21 @@ BEGIN
     RETURNING id INTO new_id;
 
     RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.remove_all_categories_from_product(
+    i_product_id INT,
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_category
+    SET is_deleted = TRUE
+    WHERE id = i_product_id;
+
+    RETURN i_product_id;
 END;
 $$;
 
@@ -1038,6 +1068,23 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.update_stock_product(
+    i_product_id INT,
+    i_product_quantity INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_category p
+    SET p.quantity = i_product_quantity
+    WHERE p.id = i_product_id
+        AND p.is_deleted = FALSE;
+
+    RETURN i_product_id;
+END;
+$$;
+
     -- reader
 CREATE OR REPLACE FUNCTION public.get_stock_by_productId(
     s_product_id INT
@@ -1050,6 +1097,116 @@ BEGIN
     SELECT p.quantity
     FROM public.p_stock p
     WHERE p.product_id = s_product_id
+      AND p.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+-- product_price ---------------------------------------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.add_price_to_product(
+  i_price INT,
+  i_product_id INT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.p_stock (price, product_id)
+    VALUES (i_price, i_product_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_product_price(
+    i_product_id INT,
+    i_product_price DECIMAL(2, 12)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_category p
+    SET p.price = i_product_price
+    WHERE p.id = i_product_id
+        AND p.is_deleted = FALSE;
+
+    RETURN i_product_id;
+END;
+$$;
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_price_by_productId(
+    p_product_id INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.price
+    FROM public.p_prices p
+    WHERE p.product_id = p_product_id
+      AND i.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+-- product stock ----------------------------------------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_product_stock(
+  i_quantity INT,
+  i_product_id INT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.p_stock (quantity, product_id)
+    VALUES (i_quantity, i_product_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_product_price(
+    i_product_id INT,
+    i_quantity INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_stock p
+    SET p.quantity = i_quantity
+    WHERE p.id = i_product_id
+        AND p.is_deleted = FALSE;
+
+    RETURN i_product_id;
+END;
+$$;
+    
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_stock_by_productId(
+    p_product_id INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.quantity
+    FROM public.p_stock p
+    WHERE p.product_id = p_product_id
       AND i.is_deleted = FALSE
     LIMIT 1;
 END;
