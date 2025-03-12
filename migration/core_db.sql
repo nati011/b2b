@@ -198,21 +198,15 @@ CREATE TABLE IF NOT EXISTS public."p_stock"
 
 COMMENT ON TABLE public."p_stock" IS 'quantiative data about products';
 
-CREATE TABLE IF NOT EXISTS public."s_operations" (id SERIAL PRIMARY KEY, value VARCHAR(255)) INHERITS (public."base");
-
-COMMENT ON TABLE public."s_operations" IS 'operation that can be performed on stocks';
-
 CREATE TABLE IF NOT EXISTS public."s_ledger"
 (
   id SERIAL PRIMARY KEY,
   quantity INT,
   product_id INT,
-  stock_operation_id INT,
   created_by_user_id INT,
   created_on_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE,
-   FOREIGN KEY (stock_operation_id) REFERENCES public."s_operations"(id) ON DELETE CASCADE,
-   FOREIGN KEY (created_by_user_id) REFERENCES public."users"(id) ON DELETE CASCADE
+  FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by_user_id) REFERENCES public."users"(id) ON DELETE CASCADE
 );
 
 COMMENT ON TABLE public."s_ledger" IS 'ledger for stock movement';
