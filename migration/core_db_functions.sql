@@ -381,7 +381,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION public.get_all()
+CREATE OR REPLACE FUNCTION public.get_all_users()
 RETURNS TABLE(id INT, fullname VARCHAR(255), email VARCHAR(255), phone VARCHAR(255), username VARCHAR(255), birthdate date, is_active boolean, external_id VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
@@ -603,17 +603,20 @@ $$;
 
     -- writers
 CREATE OR REPLACE FUNCTION public.create_invoice(
+   i_status VARCHAR(255),
    i_externalId VARCHAR(255),
-   i_status VARCHAR(255)
+   i_orderId int,
+   i_subtotal DECIMAL(12,2),
+   i_taxAmount DECIMAL(12,2)
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
     new_id BIGINT;
 BEGIN
-    INSERT INTO public.roles (name, description)
-    VALUES (r_name, r_desc) 
+    INSERT INTO public.invoices (status, external_id, order_id, subtotal, tax_amount)
+    VALUES (i_status, i_externalId, i_orderId, i_subtotal, i_taxAmount) 
     RETURNING id INTO new_id;
 
     RETURN new_id;
@@ -621,17 +624,153 @@ END;
 $$;
     -- readers
 CREATE OR REPLACE FUNCTION public.get_invoices_by_id(
-    invoice_id INT
+    i_invoice_id INT
 )
-RETURNS TABLE(id BIGINT, status VARCHAR(255), external_id VARCHAR(255), order_id INT)
+RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.status, i.external_id, i.order_id 
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
     FROM public.invoices i
-    WHERE i.id = invoice_id
+    WHERE i.id = i_invoice_id
       AND i.is_deleted = FALSE
     LIMIT 1;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION public.get_all_invoices()
+RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    FROM public.invoices i
+    WHERE i.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_invoices_by_external_id(
+     i_external_id VARCHAR(255)
+)
+RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    FROM public.invoices i
+    WHERE i.is_deleted = FALSE 
+    AND i.external_id = i_external_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.get_invoices_by_status(
+     i_status VARCHAR(255)
+)
+RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    FROM public.invoices i
+    WHERE i.is_deleted = FALSE 
+    AND i.status = i_status;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_invoices_by_order_id(
+     i_order_id INT
+)
+RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    FROM public.invoices i
+    WHERE i.is_deleted = FALSE 
+    AND i.order_id = i_order_id
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_invoice_externalId(
+    i_invoice_id INT,
+    new_external_id VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.invoices
+    SET external_id = new_external_id
+    WHERE id = i_invoice_id
+      AND is_deleted = FALSE;
+
+    RETURN i_invoice_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_invoice_status(
+    i_invoice_id INT,
+    new_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.invoices
+    SET status = new_status
+    WHERE id = i_invoice_id
+      AND is_deleted = FALSE;
+
+    RETURN i_invoice_id;
+END;
+$$;
+
+
+-- invoice line items--------------------------------------------
+
+    -- writers
+CREATE OR REPLACE FUNCTION public.create_invoice_line_item(
+   i_product_name VARCHAR(255),
+   i_qty INT,
+   i_price DECIMAL(12,2),
+   i_product_id INT,
+   i_invoice_id INT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.invoice_line_items (product_name, qty, price, product_id, invoice_id)
+    VALUES (i_product_name, i_qty, i_price, i_product_id, i_invoice_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+    
+    -- readers
+CREATE OR REPLACE FUNCTION public.get_invoice_line_item_by_invoice_id(
+    i_invoice_id INT
+)
+RETURNS TABLE(id INT, product_name VARCHAR(255), qty INT, price DECIMAL(12,2), product_id INT, invoice_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT i.id, i.product_name, i.qty, i.price, i.product_id, i.invoice_id
+    FROM public.invoice_line_items i
+    WHERE i.invoice_id = i_invoice_id
+      AND i.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+    
