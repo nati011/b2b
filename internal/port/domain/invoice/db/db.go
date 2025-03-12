@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrSysNoRows = errors.New("no rows found")
+	ErrSysNoRows  = errors.New("no rows found")
+	ErrSysUnknown = errors.New("unknown eror")
 )
 
 type Item struct {
@@ -34,6 +35,9 @@ type CreateRequest struct {
 	ExternalId string
 	Status     string
 	OrderId    int
+	Subtotal   float64
+	TaxAmount  float64
+	LineItems  []Item
 }
 
 type UpdateExternalIdRequest struct {

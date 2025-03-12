@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	port "b2b.nati011.github.com/internal/port/domain/invoice"
+	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
 type Item struct {
@@ -171,13 +171,24 @@ func (m *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetResponse,
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	rand.Seed(time.Now().UnixNano())
 	id := rand.Intn(1000-10+1) + 10
+	mock_lineItems := []Item{}
+	for _, i := range req.LineItems {
+		mock_lineItems = append(mock_lineItems, Item{
+			ProductId: i.ProductId,
+			Quantity:  i.Quantity,
+		})
+	}
 	m.invoices = append(m.invoices, MockInvoice{
 		Id:           id,
 		Created_Date: time.Now(),
 		ExternalId:   req.ExternalId,
 		Status:       req.Status,
 		OrderId:      req.OrderId,
+		SubTotal:     req.Subtotal,
+		TaxAmount:    req.TaxAmount,
+		LineItems:    mock_lineItems,
 	})
+
 	return id, nil
 }
 
