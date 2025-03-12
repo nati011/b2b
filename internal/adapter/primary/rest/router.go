@@ -6,6 +6,8 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	application_core "b2b.nati011.github.com/internal/core/application"
+
+	// domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
