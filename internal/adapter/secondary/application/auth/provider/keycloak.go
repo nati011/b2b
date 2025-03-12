@@ -54,13 +54,13 @@ func NewKeycloakProvider(
 	}
 }
 
-func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.CreateClientAuthResponse, error) {
+func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
 		log.Printf("Something wrong with the credentials or URL: %v", err)
 		print(err.Error())
-		return port.CreateClientAuthResponse{}, port.ErrSysUnknown
+		return port.RegisterUserResponse{}, port.ErrSysUnknown
 	}
 
 	user := gocloak.User{
@@ -81,12 +81,12 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 			case 409:
 				switch {
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakEmailTaken):
-					return port.CreateClientAuthResponse{}, port.ErrSysEmailTaken
+					return port.RegisterUserResponse{}, port.ErrSysEmailTaken
 				case strings.Contains(apiErr.Message, MessageErrKeyCloakUsernameTaken):
-					return port.CreateClientAuthResponse{}, port.ErrSysUsernameTaken
+					return port.RegisterUserResponse{}, port.ErrSysUsernameTaken
 				}
 			default:
-				return port.CreateClientAuthResponse{}, port.ErrSysUnknown
+				return port.RegisterUserResponse{}, port.ErrSysUnknown
 
 			}
 		}
@@ -100,10 +100,10 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 	}
 
 	if err != nil {
-		return port.CreateClientAuthResponse{}, port.ErrSysUnknown
+		return port.RegisterUserResponse{}, port.ErrSysUnknown
 	}
 
-	return port.CreateClientAuthResponse{
+	return port.RegisterUserResponse{
 		Username: req.Username,
 	}, nil
 }

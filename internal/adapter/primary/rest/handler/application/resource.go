@@ -35,12 +35,9 @@ type Resource struct {
 	service resource.Provider
 }
 
-func init() {
-	handler.Register(new(Resource))
-}
-
 func (r *Resource) Init(services *core.MasterContainer) error {
-	// r.service = services.ResourceService
+	handler.Register(new(Resource))
+
 	return nil
 }
 

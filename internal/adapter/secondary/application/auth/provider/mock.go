@@ -15,8 +15,7 @@ type MockClient struct {
 }
 
 type MockAuthProvider struct {
-	clients     []MockClient
-	validTokens []string
+	clients []MockClient
 }
 
 func (m *MockAuthProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
@@ -31,13 +30,13 @@ func (m *MockAuthProvider) Cleanup() {
 	m.clients = []MockClient{}
 }
 
-func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.CreateClientAuthResponse, error) {
+func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	// check if username or password is taken
 	for _, index := range m.clients {
 		if index.username == req.Username {
-			return port.CreateClientAuthResponse{}, port.ErrSysUsernameTaken
+			return port.RegisterUserResponse{}, port.ErrSysUsernameTaken
 		} else if index.email == req.Email {
-			return port.CreateClientAuthResponse{}, port.ErrSysEmailTaken
+			return port.RegisterUserResponse{}, port.ErrSysEmailTaken
 		}
 	}
 	m.clients = append(m.clients, MockClient{
@@ -48,7 +47,7 @@ func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.Registe
 		password:  req.Password,
 	})
 
-	return port.CreateClientAuthResponse{
+	return port.RegisterUserResponse{
 		Username: req.Username,
 	}, nil
 }

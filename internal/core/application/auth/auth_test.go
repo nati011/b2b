@@ -25,7 +25,7 @@ const (
 	INVALID_EMAIL     = ""
 )
 
-var service Provider
+var service port.Provider
 var mock = provider.NewMockAuthProvider()
 
 func TestMain(m *testing.M) {
@@ -48,7 +48,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 		FirstName:       VALID_FirstName,
 		Email:           VALID_EMAIL_A,
 	}
-	_, err := service.CreateClient(ctx, in)
+	_, err := service.CreateNewClient(ctx, in)
 	if err != nil {
 		t.Errorf("Failed to create err: %v", err)
 	}
@@ -64,7 +64,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			ConfirmPassword: VALID_PASSWORD,
 			FirstName:       VALID_FirstName,
 		}
-		_, err := service.CreateClient(ctx, in)
+		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrEmailNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -80,7 +80,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			ConfirmPassword: VALID_PASSWORD,
 			FirstName:       VALID_FirstName,
 		}
-		_, err := service.CreateClient(ctx, in)
+		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrPasswordNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -96,7 +96,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Password:  VALID_PASSWORD,
 			FirstName: VALID_FirstName,
 		}
-		_, err := service.CreateClient(ctx, in)
+		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrConfirmationPasswordNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -113,7 +113,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			ConfirmPassword: VALID_PASSWORD_B,
 			FirstName:       VALID_FirstName,
 		}
-		_, err := service.CreateClient(ctx, in)
+		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrPasswordsDontMatch
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -129,7 +129,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
 		}
-		_, err := service.CreateClient(ctx, in)
+		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrFirstNameNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
