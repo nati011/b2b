@@ -171,9 +171,10 @@ CREATE TABLE IF NOT EXISTS public."products"
   name VARCHAR(255),
   description TEXT,
   external_id VARCHAR(255),
-  is_active BOOLEAN,
-  distributor_id INT,
-  FOREIGN KEY (distributor_id) REFERENCES public."distributors" (id) ON DELETE CASCADE
+  is_active BOOLEAN DEFAULT FALSE,
+  distributor_id INT
+  -- ,
+  -- FOREIGN KEY (distributor_id) REFERENCES public."distributors" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."products" IS 'stores products';
