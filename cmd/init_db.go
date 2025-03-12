@@ -6,6 +6,8 @@ import (
 	"errors"
 	"log"
 	"os"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var (
