@@ -72,7 +72,7 @@ type UpdateExternalIDRequest struct {
 
 type UpdatePriceRequest struct {
 	Id    int
-	Price int
+	Price float64
 }
 
 type UpdateDescRequest struct {
