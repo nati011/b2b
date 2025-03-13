@@ -22,7 +22,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_products_by_id($1);"
 
-	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Desc, &response.ExternalID, &response.IsActive, &response.DistributorId)
+	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Desc, &response.ExternalID, &response.IsActive, &response.DistributorId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -31,13 +31,104 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			return port.GetResponse{}, port.ErrSysUnknown
 		}
 	}
+
+	// get price
+	query = "SELECT * FROM public.get_price_by_productId($1);"
+	var price float64
+	err = p.db.QueryRowContext(ctx, query, id).Scan(&price)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
+	}
+	response.Price = price
+
+	// get images
+	var productImages []string
+	query = "SELECT * FROM public.get_images_by_productId($1);"
+	rows, err := p.db.QueryContext(ctx, query, id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
+
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var productImage string
+		if err := rows.Scan(&productImage); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetResponse{}, err
+		}
+		productImages = append(productImages, productImage)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetResponse{}, port.ErrSysUnknown
+	}
+	response.Images = productImages
+
+	// get categories
+	var productCategories []int
+	query = "SELECT * FROM public.get_categories_by_productId($1);"
+	rows, err = p.db.QueryContext(ctx, query, id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var categoryId int
+		if err := rows.Scan(&categoryId); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetResponse{}, err
+		}
+		productCategories = append(productCategories, categoryId)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetResponse{}, port.ErrSysUnknown
+	}
+	response.CategoryId = productCategories
+
+	// get stock
+	query = "SELECT * FROM public.get_stock_by_productId($1);"
+	var stock int
+	err = p.db.QueryRowContext(ctx, query, id).Scan(&stock)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
+	}
+	response.Stock = stock
+
+	// get attribute-values
 	return response, nil
 }
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	// get all product ids
+	// get each product
 
-	query := "SELECT * FROM public.get_all_invoices();"
+	query := "SELECT * FROM public.get_all_products();"
 	rows, err := p.db.QueryContext(ctx, query)
 	if err != nil {
 		switch err {
@@ -52,7 +143,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for rows.Next() {
 		var product port.GetResponse
-		if err := rows.Scan(&product.Id, &product.Desc, &product.ExternalID, &product.IsActive, &product.DistributorId); err != nil {
+		if err := rows.Scan(&product.Id, &product.Name, &product.Desc, &product.ExternalID, &product.IsActive, &product.DistributorId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -84,12 +175,12 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 	defer rows.Close()
 
 	for rows.Next() {
-		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Desc, &invoice.ExternalID, &invoice.IsActive, &invoice.DistributorId); err != nil {
+		var product port.GetResponse
+		if err := rows.Scan(&product.Id, &product.Name, &product.Desc, &product.ExternalID, &product.IsActive, &product.DistributorId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
-		response.List = append(response.List, invoice)
+		response.List = append(response.List, product)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -117,12 +208,12 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 	defer rows.Close()
 
 	for rows.Next() {
-		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Desc, &invoice.ExternalID, &invoice.IsActive, &invoice.DistributorId); err != nil {
+		var product port.GetResponse
+		if err := rows.Scan(&product.Id, &product.Name, &product.Desc, &product.ExternalID, &product.IsActive, &product.DistributorId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
-		response.List = append(response.List, invoice)
+		response.List = append(response.List, product)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -150,12 +241,12 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 	defer rows.Close()
 
 	for rows.Next() {
-		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Desc, &invoice.ExternalID, &invoice.IsActive, &invoice.DistributorId); err != nil {
+		var product port.GetResponse
+		if err := rows.Scan(&product.Id, &product.Name, &product.Desc, &product.ExternalID, &product.IsActive, &product.DistributorId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
-		response.List = append(response.List, invoice)
+		response.List = append(response.List, product)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -167,11 +258,93 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 }
 
 func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryRequest) (port.GetAllResponse, error) {
-	return port.GetAllResponse{}, nil
+	var response port.GetAllResponse
+
+	// get product ids
+	var productIds []int
+	for _, i := range req.CategoryId {
+		query := "SELECT * FROM public.get_products_by_categoryId($1);"
+		rows, err := p.db.QueryContext(ctx, query, i)
+		if err != nil {
+			switch err {
+			case sql.ErrNoRows:
+				return port.GetAllResponse{}, port.ErrSysNoRows
+			default:
+				return port.GetAllResponse{}, port.ErrSysUnknown
+			}
+
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var productId int
+			if err := rows.Scan(&productId); err != nil {
+				log.Printf("unable to scan row: %q", err)
+				return port.GetAllResponse{}, err
+			}
+			productIds = append(productIds, productId)
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Printf("error occurred during rows iteration: %q", err)
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+	}
+
+	//get products
+	for _, i := range productIds {
+		product_resp, err := p.Get(ctx, i)
+		if err != nil {
+			log.Printf("error occurred during products iteration: %q", err)
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+		response.List = append(response.List, product_resp)
+	}
+	return response, nil
 }
 
 func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRangeRequest) (port.GetAllResponse, error) {
-	return port.GetAllResponse{}, nil
+	var response port.GetAllResponse
+
+	// get product ids
+	var productIds []int
+	query := "SELECT * FROM public.get_products_by_price_range($1, $2);"
+	rows, err := p.db.QueryContext(ctx, query, req.PriceMin, req.PriceMax)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetAllResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var productId int
+		if err := rows.Scan(&productId); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetAllResponse{}, err
+		}
+		productIds = append(productIds, productId)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetAllResponse{}, port.ErrSysUnknown
+	}
+
+	//get products
+	for _, i := range productIds {
+		product_resp, err := p.Get(ctx, i)
+		if err != nil {
+			log.Printf("error occurred during products iteration: %q", err)
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+		response.List = append(response.List, product_resp)
+	}
+	return response, nil
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
@@ -209,7 +382,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	}
 
 	// create price
-	query = "SELECT * FROM public.update_product_price($1, $2);"
+	query = "SELECT * FROM public.add_price_to_product($1, $2);"
 
 	_, err = p.db.QueryContext(ctx, query, product_id, req.Price)
 	if err != nil {
@@ -237,9 +410,9 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	}
 
 	// create stock
-	query = "SELECT * FROM public.update_product_stock($1, $2);"
+	query = "SELECT * FROM public.create_product_stock($1, $2);"
 
-	_, err = p.db.QueryContext(ctx, query, product_id, 0)
+	_, err = p.db.QueryContext(ctx, query, 0, product_id)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -251,8 +424,10 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 	// product attributes
 	for key, value := range req.Attributes {
-		query = "SELECT * FROM public.create_product_attribute($1);"
 		var attributeId int
+
+		query = "SELECT * FROM public.create_product_attribute($1);"
+
 		err = p.db.QueryRowContext(ctx, query, key).Scan(&attributeId)
 		if err != nil {
 			switch err {
@@ -263,7 +438,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			}
 		}
 
-		query = "SELECT * FROM public.create_product_attribute_value($1);"
+		query = "SELECT * FROM public.create_product_attribute_value($1, $2, $3);"
 
 		_, err = p.db.QueryContext(ctx, query, value, product_id, attributeId)
 		if err != nil {
@@ -348,10 +523,9 @@ func (p *Postgres) UpdateActiveStatus(ctx context.Context, req *port.UpdateActiv
 }
 
 func (p *Postgres) UpdatePrice(ctx context.Context, req *port.UpdatePriceRequest) error {
-	var resourceId int
 	query := "SELECT * FROM public.update_product_price($1, $2);"
 
-	err := p.db.QueryRowContext(ctx, query, req.Id, req.Price).Scan(&resourceId)
+	_, err := p.db.QueryContext(ctx, query, req.Id, req.Price)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -457,7 +631,7 @@ func (p *Postgres) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingR
 	}
 	//store to stock ledger
 	query = "SELECT * FROM public.stock_operation_ledger_entry($1, $2, $3, $4);"
-	_, err = p.db.QueryContext(ctx, query, req.Amount, req.Id, STOCK_OPERATION_GOODS_RECEIVING, "")
+	_, err = p.db.QueryContext(ctx, query, req.Amount, req.Id, STOCK_OPERATION_GOODS_RECEIVING, 0)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -497,7 +671,7 @@ func (p *Postgres) Dispatch(ctx context.Context, req *port.DispatchRequest) erro
 	}
 	//store to stock ledger
 	query = "SELECT * FROM public.stock_operation_ledger_entry($1, $2, $3, $4);"
-	_, err = p.db.QueryContext(ctx, query, req.Amount, req.Id, STOCK_OPERATION_DEPLETION, "")
+	_, err = p.db.QueryContext(ctx, query, req.Amount, req.Id, STOCK_OPERATION_DEPLETION, 0)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
