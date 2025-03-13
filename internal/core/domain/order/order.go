@@ -116,8 +116,10 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	lineItems := []invoice.Item{}
 	for _, i := range req.Items {
 		lineItems = append(lineItems, invoice.Item{
-			ProductId: i.ProductId,
-			Quantity:  i.Quantity,
+			ProductId:       i.ProductId,
+			ProductName:     "",
+			ProductQuantity: i.Quantity,
+			ProductPrice:    1,
 		})
 	}
 

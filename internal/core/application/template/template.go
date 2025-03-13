@@ -37,7 +37,7 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
-type Templer interface {
+type Provider interface {
 	Create(context.Context, CreateRequest) (CreateResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	Get(context.Context, string) (GetResponse, error)
@@ -47,7 +47,7 @@ type TemplateService struct {
 	db db.ReaderWriter
 }
 
-func NewTemplateService(db_provider db.ReaderWriter) Templer {
+func NewTemplateService(db_provider db.ReaderWriter) Provider {
 	return &TemplateService{
 		db: db_provider,
 	}

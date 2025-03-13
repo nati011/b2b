@@ -21,10 +21,8 @@ func NewPostgres(db *sql.DB) port.DB {
 func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 
-	// Adjust the query to select the appropriate fields
 	query := "SELECT * FROM public.get_users_by_id($1);"
 
-	// Use Scan to match the number of returned columns
 	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.FullName, &response.Email, &response.Phone, &response.Username, &response.DOB, &response.IsActive, &response.ExternalId)
 	if err != nil {
 		switch err {
@@ -206,7 +204,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all();"
+	query := "SELECT * FROM public.get_all_users();"
 	rows, err := p.db.QueryContext(ctx, query)
 	if err != nil {
 		switch err {
