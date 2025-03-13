@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -47,6 +49,9 @@ func (r *Resource) Init(applicationServices *application_core.Container, domainS
 
 func (r *Resource) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/resource", r.GetResourceHandler)
+	mux.HandleFunc("POST /api/v1/resource", r.CreateResourceHandler)
+	mux.HandleFunc("PATCH /api/v1/resource", r.UpdateResourceHandler)
+	mux.HandleFunc("DELETE /api/v1/resource", r.DeleteResourceHandler)
 }
 
 func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -89,10 +94,45 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CreateResourceRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+
+	id, err := rs.service.Create(r.Context(), (*resource.CreateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case resource.ErrDuplicateName,
+			resource.ErrEmptyAction,
+			resource.ErrEmptyName,
+			resource.ErrIdNotFound,
+			resource.ErrEmptyUpdateContent,
+			resource.ErrEmptyGetContent:
+
+			util.RequestErrorResponse(w, r, err)
+		default:
+			util.ServerErrorResponse(w, r, err)
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"resources": id}, nil)
 }
 
 func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("oopsy, not implemented (yet?)"))
 }
 
 func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {
+	// const ParamId = "id"
+	// paramValues := r.URL.Query()
+	// paramIdValue := paramValues.Get(ParamId)
+
+	w.Write([]byte("oopsy, not implemented (yet?)"))
 }
