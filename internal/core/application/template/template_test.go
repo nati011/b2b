@@ -8,7 +8,7 @@ import (
 	db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 )
 
-var templateService Templer
+var templateService Provider
 
 func Test_Create_happyPath(t *testing.T) {
 	ctx := context.Background()

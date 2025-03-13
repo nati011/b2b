@@ -29,10 +29,10 @@ type Renderer interface {
 }
 
 type RenderService struct {
-	TemplateService template.Templer
+	TemplateService template.Provider
 }
 
-func NewRenderService(tp template.Templer) Renderer {
+func NewRenderService(tp template.Provider) Renderer {
 	return &RenderService{
 		TemplateService: tp,
 	}

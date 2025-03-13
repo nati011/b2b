@@ -10,7 +10,7 @@ COMMENT ON TABLE public."base" IS 'stores universal fields.';
 
 CREATE TABLE IF NOT EXISTS public."roles" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(255),
   description VARCHAR(255)
 ) INHERITS (public."base");
@@ -44,7 +44,7 @@ COMMENT ON TABLE public."user_roles" IS 'stores role user mappings';
 
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   action VARCHAR(255),
   name VARCHAR(255)
 ) INHERITS (public."base");
@@ -64,7 +64,7 @@ COMMENT ON TABLE public."role_resources" IS 'stores role resource mappings';
 
 CREATE TABLE IF NOT EXISTS public."retailers" 
 (
-  id BIGSERIAL PRIMARY KEY
+  id SERIAL PRIMARY KEY
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."retailers" IS 'stores retailer specific information(not user)';
@@ -81,7 +81,7 @@ COMMENT ON TABLE public."retailer_users" IS 'stores retailer agents(always on th
 
 CREATE TABLE IF NOT EXISTS public."distributors"
 (
-  id BIGSERIAL PRIMARY KEY
+  id SERIAL PRIMARY KEY
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."distributors" IS 'stores distributor specific information(not user)';
@@ -98,7 +98,7 @@ COMMENT ON TABLE public."distributor_users" IS 'stores distributor agents(always
 
 CREATE TABLE IF NOT EXISTS public."admins"
 (
-	id BIGSERIAL PRIMARY KEY
+	id SERIAL PRIMARY KEY
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."admins" IS 'stores admin specific information(not user)';
@@ -115,7 +115,7 @@ COMMENT ON TABLE public."admin_users" IS 'stores admin agents(always on the admi
 
 CREATE TABLE IF NOT EXISTS public."retailer_business_info" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name TEXT,
   tin VARCHAR(10) NOT NULL,
   retailer_id INT UNIQUE REFERENCES public."retailers" (id) ON DELETE CASCADE
@@ -138,7 +138,7 @@ COMMENT ON TABLE public."rb_locations" IS 'stores location information of busine
 
 CREATE TABLE IF NOT EXISTS public."distributor_business_info" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name TEXT,
   tin VARCHAR(10) NOT NULL,
   distributor_id INT UNIQUE REFERENCES public."distributors" (id) ON DELETE CASCADE
@@ -159,7 +159,7 @@ COMMENT ON TABLE public."rb_locations" IS 'stores location information of distri
 
 CREATE TABLE IF NOT EXISTS public."category" 
 (
-  id BIGSERIAL PRIMARY KEY, 
+  id SERIAL PRIMARY KEY, 
   name VARCHAR(255)
 ) INHERITS (public."base");
 
@@ -167,23 +167,22 @@ COMMENT ON TABLE public."category" IS 'category tags for products';
 
 CREATE TABLE IF NOT EXISTS public."products" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(255),
   description TEXT,
   external_id VARCHAR(255),
-  is_active BOOLEAN,
-  distributor_id INT,
-  FOREIGN KEY (distributor_id) REFERENCES public."distributors" (id) ON DELETE CASCADE
+  is_active BOOLEAN DEFAULT FALSE,
+  distributor_id INT
+  -- ,
+  -- FOREIGN KEY (distributor_id) REFERENCES public."distributors" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."products" IS 'stores products';
 
 CREATE TABLE IF NOT EXISTS public."p_category" 
 (
-  product_id INT,
-  category_id INT,
-  FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE,
-  FOREIGN KEY (category_id) REFERENCES public."category" (id) ON DELETE CASCADE
+  product_id BIGINT,
+  category_id BIGINT
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."p_category" IS 'many to many relationship for category and product';
@@ -197,28 +196,22 @@ CREATE TABLE IF NOT EXISTS public."p_stock"
 
 COMMENT ON TABLE public."p_stock" IS 'quantiative data about products';
 
-CREATE TABLE IF NOT EXISTS public."s_operations" (id SERIAL PRIMARY KEY, value VARCHAR(255)) INHERITS (public."base");
-
-COMMENT ON TABLE public."s_operations" IS 'operation that can be performed on stocks';
-
 CREATE TABLE IF NOT EXISTS public."s_ledger"
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   quantity INT,
   product_id INT,
-  stock_operation_id INT,
+  operation VARCHAR(255),
   created_by_user_id INT,
   created_on_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE,
-   FOREIGN KEY (stock_operation_id) REFERENCES public."s_operations"(id) ON DELETE CASCADE,
-   FOREIGN KEY (created_by_user_id) REFERENCES public."users"(id) ON DELETE CASCADE
+  FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
 );
 
 COMMENT ON TABLE public."s_ledger" IS 'ledger for stock movement';
 
 CREATE TABLE IF NOT EXISTS public."p_prices" 
 (
-  price MONEY,
+  price DECIMAL(12, 2),
   product_id INT,
   FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -227,7 +220,8 @@ COMMENT ON TABLE public."p_prices" IS 'stores product price information';
 
 CREATE TABLE IF NOT EXISTS public."p_attributes" 
 (
-  id SERIAL PRIMARY KEY, name VARCHAR(255)
+  id SERIAL PRIMARY KEY, 
+  name VARCHAR(255)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."p_attributes" IS 'stores product attributes(part of EAV)';
@@ -256,7 +250,7 @@ COMMENT ON TABLE public."p_attributes" IS 'stores images of products';
 
 CREATE TABLE IF NOT EXISTS public."configurable_products"
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(255),
   description TEXT,
   external_id VARCHAR(255),
@@ -267,7 +261,7 @@ COMMENT ON TABLE public."configurable_products" IS 'meta-product definition';
 
 CREATE TABLE IF NOT EXISTS public."cp_attributes"
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   product_attribute_id INT,
   configurable_product_id INT,
 	FOREIGN KEY (product_attribute_id) REFERENCES public."p_attributes"(id) ON DELETE CASCADE,
@@ -279,7 +273,7 @@ COMMENT ON TABLE public."cp_attributes" IS 'meta-product definition criteria(par
 
 CREATE TABLE IF NOT EXISTS public."cp_members"
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   cp_id INT,
   product_id INT,
 	FOREIGN KEY (cp_id) REFERENCES public."configurable_products"(id) ON DELETE CASCADE,
@@ -290,7 +284,7 @@ COMMENT ON TABLE public."cp_members" IS 'configurable product attribute values(p
 
 CREATE TABLE IF NOT EXISTS public."o_statuses"
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   value VARCHAR(255),
   description TEXT
 ) INHERITS(public."base");
@@ -299,7 +293,7 @@ COMMENT ON TABLE public."o_statuses" IS 'order states';
 
 CREATE TABLE IF NOT EXISTS public."orders"
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   retailer_id INT,
   status_id INT,
   total MONEY,
@@ -320,24 +314,28 @@ CREATE TABLE IF NOT EXISTS public."o_items"
 COMMENT ON TABLE public."o_items" IS 'stores order items';
 
 
-CREATE TABLE IF NOT EXISTS public."payment_methods" 
-(
-  id BIGSERIAL PRIMARY KEY,
-  value VARCHAR(255),
-  description TEXT
-) INHERITS (public."base");
-
-COMMENT ON TABLE public."payment_methods" IS 'stores payment options';
-
 CREATE TABLE IF NOT EXISTS public."invoices" 
 (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   status VARCHAR(255),
   external_id VARCHAR(255),
   order_id INT,
-  payment_method_id INT,
-  FOREIGN KEY (order_id) REFERENCES public."orders" (id) ON DELETE CASCADE,
-  FOREIGN KEY (payment_method_id) REFERENCES public."payment_methods" (id) ON DELETE CASCADE
+  subtotal DECIMAL(12,2),
+  tax_amount DECIMAL(12,2)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores invoices';
+
+
+CREATE TABLE IF NOT EXISTS public."invoice_line_items" 
+(
+  id SERIAL PRIMARY KEY,
+  product_name VARCHAR(255),
+  qty INT,
+  price DECIMAL(12,2),
+  product_id INT,
+  invoice_id INT,
+  FOREIGN KEY (invoice_id) REFERENCES public."invoices" (id) ON DELETE CASCADE
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."invoices" IS 'stores invoice line items';

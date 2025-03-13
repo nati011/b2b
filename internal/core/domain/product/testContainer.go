@@ -1,8 +1,8 @@
 package product
 
 import (
-	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category"
-	db "b2b.nati011.github.com/internal/adapter/secondary/domain/product"
+	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
+	db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	category "b2b.nati011.github.com/internal/core/domain/category"
 )
 
