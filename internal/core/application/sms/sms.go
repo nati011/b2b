@@ -26,7 +26,7 @@ type Response struct {
 	Message string
 }
 
-type Texter interface {
+type Provider interface {
 	Send(r *Request) (Response, error)
 }
 

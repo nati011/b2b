@@ -177,6 +177,7 @@ func Test_Timeout(t *testing.T) {}
 
 func Test_read(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
@@ -202,6 +203,7 @@ func Test_read(t *testing.T) {
 
 func Test_write(t *testing.T) {
 	t.Run("get_all", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -230,6 +232,7 @@ func Test_write(t *testing.T) {
 	})
 
 	t.Run("get_by_param", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -260,6 +263,7 @@ func Test_write(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02", "2024-09-20")

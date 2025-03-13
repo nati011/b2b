@@ -1,10 +1,11 @@
-package db
+package transaction
 
 import (
 	"context"
 	"database/sql"
+	"time"
 
-	port "b2b.nati011.github.com/internal/port/application/partner/db"
+	port "b2b.nati011.github.com/internal/port/application/transaction/db"
 )
 
 type Postgres struct {
@@ -25,23 +26,19 @@ func (p *Postgres) GetAll(context.Context) (port.GetAllResponse, error) {
 	return port.GetAllResponse{}, nil
 }
 
-func (p *Postgres) GetByStatus(context.Context, string) (port.GetAllResponse, error) {
+func (p *Postgres) GetByDate(context.Context, time.Time) (port.GetAllResponse, error) {
 	return port.GetAllResponse{}, nil
 }
 
-func (p *Postgres) GetByName(context.Context, string) (port.GetAllResponse, error) {
+func (p *Postgres) GetByUserId(context.Context, int) (port.GetAllResponse, error) {
+	return port.GetAllResponse{}, nil
+}
+
+func (p *Postgres) GetByPartnerId(context.Context, int) (port.GetAllResponse, error) {
 	return port.GetAllResponse{}, nil
 }
 
 func (p *Postgres) Create(context.Context, *port.CreateRequest) (int, error) {
-	return 0, nil
-}
-
-func (p *Postgres) UpdateStatus(context.Context, int, string) (int, error) {
-	return 0, nil
-}
-
-func (p *Postgres) UpdateName(context.Context, int, string) (int, error) {
 	return 0, nil
 }
 

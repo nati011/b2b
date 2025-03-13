@@ -5,12 +5,14 @@ import (
 	"math/rand"
 	"time"
 
-	port "b2b.nati011.github.com/internal/port/domain/invoice"
+	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
 type Item struct {
-	ProductId int
-	Quantity  int
+	ProductId       int
+	ProductName     string
+	ProductQuantity int
+	ProductPrice    float64
 }
 
 type MockInvoice struct {
@@ -38,8 +40,10 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			items := []port.Item{}
 			for _, i := range i.LineItems {
 				items = append(items, port.Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductQuantity: i.ProductQuantity,
+					ProductName:     i.ProductName,
+					ProductPrice:    i.ProductPrice,
 				})
 			}
 			return port.GetResponse{
@@ -63,8 +67,10 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		items := []port.Item{}
 		for _, i := range i.LineItems {
 			items = append(items, port.Item{
-				ProductId: i.ProductId,
-				Quantity:  i.Quantity,
+				ProductId:       i.ProductId,
+				ProductQuantity: i.ProductQuantity,
+				ProductName:     i.ProductName,
+				ProductPrice:    i.ProductPrice,
 			})
 		}
 		res.List = append(res.List, port.GetResponse{
@@ -92,8 +98,10 @@ func (m *Mock) GetByExternalId(ctx context.Context, extId string) (port.GetAllRe
 			items := []port.Item{}
 			for _, i := range i.LineItems {
 				items = append(items, port.Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductQuantity: i.ProductQuantity,
+					ProductName:     i.ProductName,
+					ProductPrice:    i.ProductPrice,
 				})
 			}
 			res.List = append(res.List, port.GetResponse{
@@ -121,8 +129,10 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 			items := []port.Item{}
 			for _, i := range i.LineItems {
 				items = append(items, port.Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductQuantity: i.ProductQuantity,
+					ProductName:     i.ProductName,
+					ProductPrice:    i.ProductPrice,
 				})
 			}
 			res.List = append(res.List, port.GetResponse{
@@ -149,8 +159,10 @@ func (m *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetResponse,
 			items := []port.Item{}
 			for _, i := range i.LineItems {
 				items = append(items, port.Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductQuantity: i.ProductQuantity,
+					ProductName:     i.ProductName,
+					ProductPrice:    i.ProductPrice,
 				})
 			}
 			return port.GetResponse{
@@ -171,13 +183,26 @@ func (m *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetResponse,
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	rand.Seed(time.Now().UnixNano())
 	id := rand.Intn(1000-10+1) + 10
+	mock_lineItems := []Item{}
+	for _, i := range req.LineItems {
+		mock_lineItems = append(mock_lineItems, Item{
+			ProductId:       i.ProductId,
+			ProductQuantity: i.ProductQuantity,
+			ProductName:     i.ProductName,
+			ProductPrice:    i.ProductPrice,
+		})
+	}
 	m.invoices = append(m.invoices, MockInvoice{
 		Id:           id,
 		Created_Date: time.Now(),
 		ExternalId:   req.ExternalId,
 		Status:       req.Status,
 		OrderId:      req.OrderId,
+		SubTotal:     req.Subtotal,
+		TaxAmount:    req.TaxAmount,
+		LineItems:    mock_lineItems,
 	})
+
 	return id, nil
 }
 

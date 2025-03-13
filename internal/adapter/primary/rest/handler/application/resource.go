@@ -6,8 +6,9 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
-	"b2b.nati011.github.com/internal/core"
+	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/resource"
+	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
 type CreateResourceRequest struct {
@@ -35,11 +36,11 @@ type Resource struct {
 	service resource.Provider
 }
 
-func init() {
+func InitResource() {
 	handler.Register(new(Resource))
 }
 
-func (r *Resource) Init(services *core.MasterContainer) error {
+func (r *Resource) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	// r.service = services.ResourceService
 	return nil
 }

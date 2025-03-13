@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/config"
-	"b2b.nati011.github.com/internal/core"
+	application_core "b2b.nati011.github.com/internal/core/application"
+	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
 func main() {
@@ -38,9 +39,11 @@ func main() {
 	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId)
 	InitSMS(cfg.Email, cfg.SMTP)
 
-	master_constainer := core.NewMasterContainer(db_pool)
+	application_constainer := application_core.NewContainer(db_pool, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.Email, cfg.SMTP)
+	domain_container := domain_core.NewContainer(db_pool)
+
 	mux := http.NewServeMux()
-	InitREST(mux, db_pool, master_constainer)
+	InitREST(mux, db_pool, application_constainer, domain_container)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

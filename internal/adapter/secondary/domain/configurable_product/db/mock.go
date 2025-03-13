@@ -1,4 +1,4 @@
-package configurableProduct
+package configurable_product
 
 import (
 	"context"

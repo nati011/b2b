@@ -37,7 +37,7 @@ const (
 	SUCCESS_MESSAGE = "Ahoy, mail received!"
 )
 
-type Emailer interface {
+type Provider interface {
 	Send(*SendRequest) error
 }
 
