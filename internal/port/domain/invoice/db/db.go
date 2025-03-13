@@ -12,8 +12,10 @@ var (
 )
 
 type Item struct {
-	ProductId int
-	Quantity  int
+	ProductId       int
+	ProductName     string
+	ProductQuantity int
+	ProductPrice    float64
 }
 
 type GetResponse struct {
