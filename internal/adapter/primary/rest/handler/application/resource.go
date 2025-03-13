@@ -41,7 +41,7 @@ func InitResource() {
 }
 
 func (r *Resource) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	// r.service = services.ResourceService
+	r.service = applicationServices.ResourceService
 	return nil
 }
 
