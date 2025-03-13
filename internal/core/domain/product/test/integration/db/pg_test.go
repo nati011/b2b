@@ -5,21 +5,25 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/product"
+	test_container "b2b.nati011.github.com/internal/core/domain/product/test"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-var productService product.Provider
-var container product.TestContainer
+var container test_container.TestContainer
 var pgContainer *postgres.PostgresContainer
 var db *sql.DB
-var categoryId = 1
+var categoryId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -65,8 +69,54 @@ func setup() {
 	if err != nil {
 		log.Fatalf("Error running stored func migration: %v", err)
 	}
-	container = product.NewPackageIntegrationTestContainer()
-	productService = container.ProductService
+	container = test_container.NewDBIntegrationTestContainer(
+		db,
+	)
+	categoryId, _ = container.CategoryService.Create(ctx, &category.CreateRequest{
+		Name: "test",
+		Desc: "test",
+	})
+}
+
+func teardown() {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatalf("could not begin transaction: %v", err)
+	}
+
+	// Get all table names
+	var tables []string
+	rows, err := tx.Query("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
+	if err != nil {
+		tx.Rollback()
+		log.Fatalf("could not fetch table names: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			tx.Rollback()
+			log.Fatalf("could not scan table name: %v", err)
+		}
+		tables = append(tables, table)
+	}
+
+	// Prepare the TRUNCATE statement
+	if len(tables) > 0 {
+		truncateQuery := "TRUNCATE TABLE " + strings.Join(tables, ", ") + " RESTART IDENTITY CASCADE;"
+		_, err = tx.Exec(truncateQuery)
+		if err != nil {
+			tx.Rollback()
+			log.Fatalf("could not truncate tables: %v", err)
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("could not commit transaction: %v", err)
+	}
 }
 
 func runMigration(db *sql.DB, filename string) error {
@@ -105,6 +155,7 @@ func Test_Timeout(t *testing.T) {
 
 func Test_read(t *testing.T) {
 	t.Run("Get", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
 		in := &product.CreateRequest{
@@ -121,22 +172,23 @@ func Test_read(t *testing.T) {
 			},
 		}
 
-		_, err := productService.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		//get
-		got, err := productService.GetAll(ctx)
+		got, err := container.ProductService.Get(ctx, id)
 		if err != nil {
-			t.Errorf("Expected err:%v Got err: %v", nil, err)
+			t.Fatalf("Failed to get product err %v", err)
 		}
-		wantNum := 1
-		if len(got.List) != wantNum {
-			t.Errorf("Expected len: %v, Got len: %v", wantNum, len(got.List))
+		wantId := id
+		if got.Id != wantId {
+			t.Errorf("Expected Id: %v, Got: %v", wantId, id)
 		}
 	})
+
 	t.Run("GetAll", func(t *testing.T) {
+		t.Cleanup(teardown)
 		//setup
 		ctx := context.Background()
 		in := &product.CreateRequest{
@@ -153,7 +205,7 @@ func Test_read(t *testing.T) {
 			},
 		}
 
-		_, err := productService.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -172,13 +224,13 @@ func Test_read(t *testing.T) {
 			},
 		}
 
-		_, err = productService.Create(ctx, in_two)
+		_, err = container.ProductService.Create(ctx, in_two)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
 		//get-all
-		resp, err := productService.GetAll(ctx)
+		resp, err := container.ProductService.GetAll(ctx)
 		if err != nil {
 			t.Errorf("Expected err:%v Got err: %v", nil, err)
 		}
@@ -189,6 +241,7 @@ func Test_read(t *testing.T) {
 	})
 
 	t.Run("GetByName", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 		in := &product.CreateRequest{
@@ -205,12 +258,12 @@ func Test_read(t *testing.T) {
 			},
 		}
 
-		_, err := productService.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := productService.GetByParam(ctx, &product.GetByParamRequest{
+		got, err := container.ProductService.GetByParam(ctx, &product.GetByParamRequest{
 			Name: "test",
 		})
 		if err != nil {
@@ -223,6 +276,7 @@ func Test_read(t *testing.T) {
 	})
 
 	t.Run("GetByExternalId", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 		in := &product.CreateRequest{
@@ -239,12 +293,12 @@ func Test_read(t *testing.T) {
 			},
 		}
 
-		_, err := productService.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := productService.GetByParam(ctx, &product.GetByParamRequest{
+		got, err := container.ProductService.GetByParam(ctx, &product.GetByParamRequest{
 			ExternalID: "123",
 		})
 		if err != nil {
@@ -257,6 +311,7 @@ func Test_read(t *testing.T) {
 	})
 
 	t.Run("GetByDistributorId", func(t *testing.T) {
+		t.Cleanup(teardown)
 		// setup
 		ctx := context.Background()
 		in := &product.CreateRequest{
@@ -274,25 +329,97 @@ func Test_read(t *testing.T) {
 			DistributorId: 1,
 		}
 
-		_, err := productService.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
-			t.Fatalf("Failed to create product")
+			t.Fatalf("Failed to create product err: %v", err)
 		}
 
-		got, err := productService.GetByParam(ctx, &product.GetByParamRequest{
+		got, err := container.ProductService.GetByParam(ctx, &product.GetByParamRequest{
 			DistributorId: 1,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get product err: %v", err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
+	t.Run("GetByCategory", func(t *testing.T) {
+		t.Cleanup(teardown)
+		// setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: 1,
+			CategoryId:    []int{categoryId},
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+
+		got, err := container.ProductService.GetByParam(ctx, &product.GetByParamRequest{
+			CategoryId: []int{categoryId},
 		})
 		if err != nil {
 			t.Errorf("Expected err: %v, Got err: %v", nil, err)
 		}
 		wantLen := 1
 		if wantLen != len(got.List) {
-			t.Errorf("Expected len: %v Got err: %v", wantLen, len(got.List))
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
 		}
 	})
 
-	t.Run("GetByCategory", func(t *testing.T) {})
-	t.Run("GetByPriceRange", func(t *testing.T) {})
+	t.Run("GetByPriceRange", func(t *testing.T) {
+		t.Cleanup(teardown)
+		// setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: 1,
+			CategoryId:    []int{categoryId},
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+
+		got, err := container.ProductService.GetByParam(ctx, &product.GetByParamRequest{
+			PriceMin: math.MinInt,
+			PriceMax: math.MaxInt,
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v, Got err: %v", nil, err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
 }
 
 func Test_write(t *testing.T) {
@@ -312,13 +439,13 @@ func Test_write(t *testing.T) {
 			},
 		}
 
-		id, err := productService.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Errorf("Failed to create product err: %v", err)
 		}
 
 		//get
-		resp, err := productService.Get(ctx, id)
+		resp, err := container.ProductService.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Expected err:%v Got err: %v", nil, err)
 		}
@@ -327,13 +454,411 @@ func Test_write(t *testing.T) {
 		}
 	})
 
-	t.Run("updateName", func(t *testing.T) {})
-	t.Run("updateExternalId", func(t *testing.T) {})
-	t.Run("updatePrice", func(t *testing.T) {})
-	t.Run("updateDesc", func(t *testing.T) {})
-	t.Run("updateImages", func(t *testing.T) {})
-	t.Run("updateActiveStatus", func(t *testing.T) {})
-	t.Run("updateCategory", func(t *testing.T) {})
-	t.Run("goodsReceiving", func(t *testing.T) {})
-	t.Run("dispatch", func(t *testing.T) {})
+	t.Run("updateName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		//update
+		update_in := &product.UpdateRequest{
+			Id:   id,
+			Name: "test1",
+		}
+		_, err = container.ProductService.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.Name != update_in.Name {
+			t.Fatalf("Expected name: %v Got: %v", got.Name, update_in.Name)
+		}
+	})
+
+	t.Run("updateExternalId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		//update
+		update_in := &product.UpdateRequest{
+			Id:         id,
+			ExternalID: "test1",
+		}
+		_, err = container.ProductService.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.ExternalID != update_in.ExternalID {
+			t.Fatalf("Expected externalId: %v Got: %v", got.ExternalID, update_in.ExternalID)
+		}
+	})
+
+	t.Run("updatePrice", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		//update
+		update_in := &product.UpdateRequest{
+			Id:    id,
+			Price: 2,
+		}
+		_, err = container.ProductService.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.Price != float64(update_in.Price) {
+			t.Fatalf("Expected price: %v Got: %v", got.Price, update_in.Price)
+		}
+	})
+	t.Run("updateDesc", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		//update
+		update_in := &product.UpdateRequest{
+			Id:   id,
+			Desc: "new desc",
+		}
+		_, err = container.ProductService.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.Desc != update_in.Desc {
+			t.Fatalf("Expected desc: %v Got: %v", got.Desc, update_in.Desc)
+		}
+	})
+	t.Run("updateImages", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		//update
+		update_in := &product.UpdateRequest{
+			Id: id,
+			Images: []string{
+				"new image",
+				"new image",
+				"new image",
+			},
+		}
+		_, err = container.ProductService.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if len(got.Images) != len(update_in.Images) {
+			t.Fatalf("Expected images len: %v Got: %v", len(got.Images), len(update_in.Images))
+		}
+	})
+
+	t.Run("updateActiveStatus", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		err = container.ProductService.Activate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+		wantActiveStatus := true
+		if got.IsActive != wantActiveStatus {
+			t.Fatalf("Expected active status: %v Got: %v", wantActiveStatus, got.IsActive)
+		}
+
+		err = container.ProductService.Deactivate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err = container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+		wantActiveStatus = false
+		if got.IsActive != wantActiveStatus {
+			t.Fatalf("Expected active status: %v Got: %v", wantActiveStatus, got.IsActive)
+		}
+	})
+
+	t.Run("updateCategory", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		//update
+		update_in := &product.UpdateRequest{
+			Id: id,
+			CategoryId: []int{
+				categoryId,
+				categoryId,
+				categoryId,
+			},
+		}
+		_, err = container.ProductService.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if len(got.CategoryId) != len(update_in.CategoryId) {
+			t.Fatalf("Expected categories len: %v Got: %v", len(got.CategoryId), len(update_in.CategoryId))
+		}
+	})
+	t.Run("goodsReceiving", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		goodsReceivingAmount := 5
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     id,
+			Amount: goodsReceivingAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.Stock != goodsReceivingAmount {
+			t.Fatalf("Expected stock: %v Got: %v", goodsReceivingAmount, got.Stock)
+		}
+	})
+
+	t.Run("dispatch", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		goodsReceivingAmount := 5
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     id,
+			Amount: goodsReceivingAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		dispachAmount := 5
+		err = container.ProductService.Dispatch(ctx, &product.DispatchRequest{
+			Id:     id,
+			Amount: dispachAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.Stock != 0 {
+			t.Fatalf("Expected stock: %v Got: %v", dispachAmount, got.Stock)
+		}
+	})
 }
