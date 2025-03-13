@@ -203,10 +203,10 @@ CREATE TABLE IF NOT EXISTS public."s_ledger"
   id SERIAL PRIMARY KEY,
   quantity INT,
   product_id INT,
+  operation VARCHAR(255),
   created_by_user_id INT,
   created_on_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE,
-  FOREIGN KEY (created_by_user_id) REFERENCES public."users"(id) ON DELETE CASCADE
+  FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
 );
 
 COMMENT ON TABLE public."s_ledger" IS 'ledger for stock movement';
@@ -222,7 +222,8 @@ COMMENT ON TABLE public."p_prices" IS 'stores product price information';
 
 CREATE TABLE IF NOT EXISTS public."p_attributes" 
 (
-  id SERIAL PRIMARY KEY, name VARCHAR(255)
+  id SERIAL PRIMARY KEY, 
+  name VARCHAR(255)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."p_attributes" IS 'stores product attributes(part of EAV)';

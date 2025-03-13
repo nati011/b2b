@@ -1178,7 +1178,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.update_product_price(
+CREATE OR REPLACE FUNCTION public.update_product_stock(
     i_product_id INT,
     i_quantity INT
 )
@@ -1211,3 +1211,72 @@ BEGIN
     LIMIT 1;
 END;
 $$;
+
+-- stock ledger ------------------------------------------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.stock_operation_ledger_entry(
+  s_quantity INT,
+  s_product_id INT,
+  s_stock_operation VARCHAR(255),
+  s_created_by_user_id INT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.s_ledger (quantity, product_id, operation, created_by_user_id)
+    VALUES (s_quantity, s_product_id, s_stock_operation, s_created_by_user_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+    -- reader
+
+-- product attributes ------------------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_product_attribute(
+  i_name INT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.p_attributes (name)
+    VALUES (i_name) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+    -- reader
+
+-- product attribute-values ------------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_product_attribute_value(
+  i_name VARCHAR(255),
+  i_product_id INT,
+  i_attribute_id INT,
+)
+RETURNS BIGINT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.p_attribute_values (name, product_id, attribute_id)
+    VALUES (i_name, i_product_id, i_attribute_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+    -- reader
