@@ -8,21 +8,8 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main ./cmd/main.go
+RUN go run -o main ./cmd/* --port $PORT   --keycloak_base_url $KEYCLOAK_BASE_URL  --keycloak_user_name $KEYCLOAK_USER_NAME    --keycloak_password $KEYCLOAK_PASSWORD     --keycloak_realm $KEYCLOAK_REALM   --keycloak_client_id $KEYCLOAK_CLIENT_ID    --keycloak_application_realm $KEYCLOAK_APPLICATION_REALM    --db $DB_URL    --file /app    --smtp $SMTP    --email EMAIL
 
 EXPOSE 8080
 
 RUN echo "Running main"
-
-CMD ./main \
-    --port $PORT \
-    --keycloak_base_url $KEYCLOAK_BASE_URL \
-    --keycloak_user_name $KEYCLOAK_USER_NAME \
-    --keycloak_password $KEYCLOAK_PASSWORD \
-    --keycloak_realm $KEYCLOAK_REALM \
-    --keycloak_client_id $KEYCLOAK_CLIENT_ID \
-    --keycloak_application_realm $KEYCLOAK_APPLICATION_REALM \
-    --db $DB_URL
-    --file /app
-    --smtp $SMTP
-    --email EMAIL
