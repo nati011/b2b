@@ -789,7 +789,7 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.products (product_name, product_description, external_id, distributor_id)
+    INSERT INTO public.products (name, description, external_id, distributor_id)
     VALUES (p_product_name, p_product_description, p_external_id, p_distributor_id) 
     RETURNING id INTO new_id;
 
@@ -797,82 +797,6 @@ BEGIN
 END;
 $$;
 
-    -- readers
-CREATE OR REPLACE FUNCTION public.get_products_by_id(
-    p_product_id INT
-)
-RETURNS TABLE(product_name VARCHAR(255), product_description VARCHAR(255), external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
-    FROM public.products p
-    WHERE p.id = p_product_id
-      AND i.is_deleted = FALSE
-    LIMIT 1;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_products_by_name(
-    p_product_name INT
-)
-RETURNS TABLE(product_name VARCHAR(255), product_description VARCHAR(255), external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
-    FROM public.products p
-    WHERE p.name = p_product_name
-      AND i.is_deleted = FALSE
-    LIMIT 1;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_products_by_externalId(
-    p_external_id INT
-)
-RETURNS TABLE(product_name VARCHAR(255), product_description VARCHAR(255), external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
-    FROM public.products p
-    WHERE p.external_id = p_external_id
-      AND i.is_deleted = FALSE
-    LIMIT 1;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_products_by_distributorId(
-    p_distributor_id INT
-)
-RETURNS TABLE(product_name VARCHAR(255), product_description VARCHAR(255), external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
-    FROM public.products p
-    WHERE p.distributor_id = p_distributor_id
-      AND i.is_deleted = FALSE
-    LIMIT 1;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_all_products()
-RETURNS TABLE(product_name VARCHAR(255), product_description VARCHAR(255), external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
-    FROM public.products p
-    WHERE i.is_deleted = FALSE;
-END;
-$$;
 
 CREATE OR REPLACE FUNCTION public.update_product_name(
     i_product_id INT,
@@ -900,7 +824,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE public.products
-    SET external_id = w_external_Id
+    SET external_id = new_external_Id
     WHERE id = i_product_id
       AND is_deleted = FALSE;
 
@@ -942,6 +866,84 @@ BEGIN
 END;
 $$;
 
+
+    -- readers
+CREATE OR REPLACE FUNCTION public.get_products_by_id(
+    p_product_id INT
+)
+RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    FROM public.products p
+    WHERE p.id = p_product_id
+      AND p.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_products_by_name(
+    p_product_name VARCHAR(255)
+)
+RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    FROM public.products p
+    WHERE p.name = p_product_name
+      AND p.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_products_by_externalId(
+    p_external_id VARCHAR(255)
+)
+RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    FROM public.products p
+    WHERE p.external_id = p_external_id
+      AND p.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_products_by_distributorId(
+    p_distributor_id INT
+)
+RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    FROM public.products p
+    WHERE p.distributor_id = p_distributor_id
+      AND p.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_products()
+RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    FROM public.products p
+    WHERE p.is_deleted = FALSE;
+END;
+$$;
+
 -- product_images ---------------------------------------------------
     
     -- writer
@@ -950,22 +952,19 @@ CREATE OR REPLACE FUNCTION public.add_image_to_product(
   i_blur_hash VARCHAR(255),
   i_product_id INT
 )
-RETURNS BIGINT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 DECLARE
     new_id INT;
 BEGIN
     INSERT INTO public.p_images (url, blur_hash, product_id)
-    VALUES (i_url, i_blur_hash, i_product_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
+    VALUES (i_url, i_blur_hash, i_product_id);
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.remove_all_product_images(
-    i_product_id INT,
+    i_product_id INT
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -973,7 +972,7 @@ AS $$
 BEGIN
     UPDATE public.p_images
     SET is_deleted = TRUE
-    WHERE id = i_product_id;
+    WHERE product_id = i_product_id;
 
     RETURN i_product_id;
 END;
@@ -983,15 +982,15 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_productId(
     i_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255), blur_hash VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.url, i.blur_hash
+    SELECT url
     FROM public.p_images i
     WHERE i.product_id = i_product_id
-      AND i.is_deleted = FALSE
+      AND i.is_deleted = FALSE;
 END;
 $$;
 
@@ -1002,141 +1001,90 @@ CREATE OR REPLACE FUNCTION public.add_category_to_product(
   i_product_id INT,
   i_category_id INT
 )
-RETURNS BIGINT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 DECLARE
     new_id INT;
 BEGIN
     INSERT INTO public.p_category (product_id, category_id)
-    VALUES (i_product_id, i_category_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
+    VALUES (i_product_id, i_category_id);
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.remove_all_categories_from_product(
-    i_product_id INT,
+    i_product_id INT
 )
-RETURNS INT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE public.p_category
     SET is_deleted = TRUE
-    WHERE id = i_product_id;
-
-    RETURN i_product_id;
+    WHERE product_id = i_product_id;
 END;
 $$;
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_categories_by_productId(
-    p_product_id INT
+    p_product_id BIGINT
 )
-RETURNS TABLE(category_id INT)
+RETURNS TABLE(category_id BIGINT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.quantity
+    SELECT p.category_id
     FROM public.p_category p
     WHERE p.product_id = p_product_id
-      AND i.is_deleted = FALSE
+      AND p.is_deleted = FALSE;
 END;
 $$;
 
--- product_stock ---------------------------------------------------
-    
-    -- writer
-CREATE OR REPLACE FUNCTION public.add_category_to_product(
-  i_quantity INT,
-  i_product_id INT
+CREATE OR REPLACE FUNCTION public.get_products_by_categoryId(
+    p_category_id BIGINT
 )
-RETURNS BIGINT
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    new_id INT;
-BEGIN
-    INSERT INTO public.p_stock (quantity, product_id)
-    VALUES (i_product_id, i_category_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.update_stock_product(
-    i_product_id INT,
-    i_product_quantity INT
-)
-RETURNS INT
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE public.p_category p
-    SET p.quantity = i_product_quantity
-    WHERE p.id = i_product_id
-        AND p.is_deleted = FALSE;
-
-    RETURN i_product_id;
-END;
-$$;
-
-    -- reader
-CREATE OR REPLACE FUNCTION public.get_stock_by_productId(
-    s_product_id INT
-)
-RETURNS INT
+RETURNS TABLE(product_id BIGINT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.quantity
-    FROM public.p_stock p
-    WHERE p.product_id = s_product_id
-      AND p.is_deleted = FALSE
-    LIMIT 1;
+    SELECT p.product_id
+    FROM public.p_category p
+    WHERE p.category_id = p_category_id
+      AND p.is_deleted = FALSE;
 END;
 $$;
+
 
 -- product_price ---------------------------------------------------
 
     -- writer
 CREATE OR REPLACE FUNCTION public.add_price_to_product(
-  i_price INT,
-  i_product_id INT
+  i_product_id INT,
+  i_price INT
 )
-RETURNS BIGINT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    new_id INT;
 BEGIN
-    INSERT INTO public.p_stock (price, product_id)
-    VALUES (i_price, i_product_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
+    INSERT INTO public.p_prices (price, product_id)
+    VALUES (i_price, i_product_id);
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_product_price(
     i_product_id INT,
-    i_product_price DECIMAL(2, 12)
+    i_product_price DECIMAL(12, 2)
 )
-RETURNS INT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE public.p_category p
-    SET p.price = i_product_price
-    WHERE p.id = i_product_id
-        AND p.is_deleted = FALSE;
-
-    RETURN i_product_id;
+    UPDATE public.p_prices
+    SET price = i_product_price
+    WHERE product_id = i_product_id
+        AND is_deleted = FALSE;
 END;
 $$;
 
@@ -1144,16 +1092,35 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_price_by_productId(
     p_product_id INT
 )
-RETURNS INT
+RETURNS DECIMAL(12, 2)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    price DECIMAL(12, 2);
+BEGIN
+    SELECT p.price INTO price
+    FROM public.p_prices p
+    WHERE p.product_id = p_product_id
+      AND p.is_deleted = FALSE
+    LIMIT 1;
+
+    RETURN COALESCE(price, 0);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_products_by_price_range(
+    p_min DECIMAL(12, 2),
+    p_max DECIMAL(12, 2)
+)
+RETURNS TABLE(product_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.price
+    SELECT p.product_id
     FROM public.p_prices p
-    WHERE p.product_id = p_product_id
-      AND i.is_deleted = FALSE
-    LIMIT 1;
+    WHERE p.price BETWEEN p_min AND p_max
+      AND p.is_deleted = FALSE;
 END;
 $$;
 
@@ -1164,17 +1131,12 @@ CREATE OR REPLACE FUNCTION public.create_product_stock(
   i_quantity INT,
   i_product_id INT
 )
-RETURNS BIGINT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    new_id INT;
 BEGIN
     INSERT INTO public.p_stock (quantity, product_id)
-    VALUES (i_quantity, i_product_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
+    VALUES (i_quantity, i_product_id);
 END;
 $$;
 
@@ -1182,16 +1144,14 @@ CREATE OR REPLACE FUNCTION public.update_product_stock(
     i_product_id INT,
     i_quantity INT
 )
-RETURNS INT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE public.p_stock p
-    SET p.quantity = i_quantity
-    WHERE p.id = i_product_id
-        AND p.is_deleted = FALSE;
-
-    RETURN i_product_id;
+    UPDATE public.p_stock
+    SET quantity = i_quantity
+    WHERE product_id = i_product_id
+        AND is_deleted = FALSE;
 END;
 $$;
     
@@ -1202,13 +1162,16 @@ CREATE OR REPLACE FUNCTION public.get_stock_by_productId(
 RETURNS INT
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    quantity INT;
 BEGIN
-    RETURN QUERY
-    SELECT p.quantity
+    SELECT p.quantity INTO quantity
     FROM public.p_stock p
     WHERE p.product_id = p_product_id
-      AND i.is_deleted = FALSE
+      AND p.is_deleted = FALSE
     LIMIT 1;
+
+    RETURN COALESCE(quantity, 0);
 END;
 $$;
 
@@ -1221,17 +1184,12 @@ CREATE OR REPLACE FUNCTION public.stock_operation_ledger_entry(
   s_stock_operation VARCHAR(255),
   s_created_by_user_id INT
 )
-RETURNS BIGINT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    new_id INT;
 BEGIN
     INSERT INTO public.s_ledger (quantity, product_id, operation, created_by_user_id)
-    VALUES (s_quantity, s_product_id, s_stock_operation, s_created_by_user_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
+    VALUES (s_quantity, s_product_id, s_stock_operation, s_created_by_user_id);
 END;
 $$;
 
@@ -1241,9 +1199,9 @@ $$;
     
     -- writer
 CREATE OR REPLACE FUNCTION public.create_product_attribute(
-  i_name INT
+  i_name VARCHAR(255)
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -1264,19 +1222,14 @@ $$;
 CREATE OR REPLACE FUNCTION public.create_product_attribute_value(
   i_name VARCHAR(255),
   i_product_id INT,
-  i_attribute_id INT,
+  i_attribute_id INT
 )
-RETURNS BIGINT
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    new_id INT;
 BEGIN
     INSERT INTO public.p_attribute_values (name, product_id, attribute_id)
-    VALUES (i_name, i_product_id, i_attribute_id) 
-    RETURNING id INTO new_id;
-
-    RETURN new_id;
+    VALUES (i_name, i_product_id, i_attribute_id);
 END;
 $$;
     -- reader
