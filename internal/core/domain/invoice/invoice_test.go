@@ -31,7 +31,7 @@ func Test_CreateInvoice_happyPath(t *testing.T) {
 		SubTotal:   1,
 		TaxAmount:  1,
 		LineItems: []Item{
-			{1, 1},
+			{1, "1", 1, 1},
 		},
 	}
 	id, err := invoiceService.Create(ctx, in)
