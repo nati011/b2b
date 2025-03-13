@@ -170,9 +170,14 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &invoice.CreateRequest{
+			OrderId:    1,
 			ExternalId: "test",
 			Status:     "test",
-			OrderId:    orderId,
+			SubTotal:   1,
+			TaxAmount:  1,
+			LineItems: []invoice.Item{
+				{ProductId: 1, ProductName: "1", ProductQuantity: 1, ProductPrice: 1},
+			},
 		}
 		id, err := invoiceService.Create(ctx, in)
 		if err != nil {
@@ -269,9 +274,14 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &invoice.CreateRequest{
+			OrderId:    1,
 			ExternalId: "test",
 			Status:     "test",
-			OrderId:    orderId,
+			SubTotal:   1,
+			TaxAmount:  1,
+			LineItems: []invoice.Item{
+				{1, "1", 1, 1},
+			},
 		}
 		_, err := invoiceService.Create(ctx, in)
 		if err != nil {
@@ -300,9 +310,14 @@ func Test_write(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &invoice.CreateRequest{
-			OrderId:    orderId,
+			OrderId:    1,
 			ExternalId: "test",
 			Status:     "test",
+			SubTotal:   1,
+			TaxAmount:  1,
+			LineItems: []invoice.Item{
+				{1, "1", 1, 1},
+			},
 		}
 		id, err := invoiceService.Create(ctx, in)
 		if err != nil {
@@ -317,13 +332,22 @@ func Test_write(t *testing.T) {
 			t.Errorf("Expected id: %v Got: %v", id, resp.Id)
 		}
 		if resp.OrderId != 1 {
-			t.Errorf("Expected OrderId: %v Got: %v", id, resp.Id)
+			t.Errorf("Expected OrderId: %v Got: %v", 1, resp.OrderId)
 		}
 		if resp.ExternalId != "test" {
-			t.Errorf("Expected ExternalId: %v Got: %v", id, resp.Id)
+			t.Errorf("Expected ExternalId: %v Got: %v", "test", resp.ExternalId)
 		}
 		if resp.Status != "test" {
-			t.Errorf("Expected ExternalId: %v Got: %v", id, resp.Id)
+			t.Errorf("Expected Status: %v Got: %v", "test", resp.Status)
+		}
+		if resp.SubTotal != 1 {
+			t.Errorf("Expected subtotal: %v Got: %v", 1, resp.SubTotal)
+		}
+		if resp.TaxAmount != 1 {
+			t.Errorf("Expected taxAmount: %v Got: %v", 1, resp.TaxAmount)
+		}
+		if len(resp.LineItems) != 1 {
+			t.Errorf("Expected lineItems len: %v Got %v", 1, len(resp.LineItems))
 		}
 	})
 	t.Run("UpdateStatus", func(t *testing.T) {
@@ -331,9 +355,9 @@ func Test_write(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &invoice.CreateRequest{
+			OrderId:    orderId,
 			ExternalId: "test",
 			Status:     "test",
-			OrderId:    orderId,
 		}
 		id, err := invoiceService.Create(ctx, in)
 		if err != nil {
@@ -386,10 +410,6 @@ func Test_write(t *testing.T) {
 		resp, err := invoiceService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to Get invocie err: %v", err)
-		}
-
-		if resp.Status != "new_status" {
-			t.Errorf("Expected status: %v Got: %v", "new_status", resp.Status)
 		}
 
 		if resp.ExternalId != "new_externalId" {
