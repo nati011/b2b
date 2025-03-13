@@ -22,8 +22,10 @@ const (
 )
 
 type Item struct {
-	ProductId int
-	Quantity  int
+	ProductId       int
+	ProductName     string
+	ProductQuantity int
+	ProductPrice    float64
 }
 
 type CreateRequest struct {
@@ -94,8 +96,10 @@ func (i *InvoiceService) Create(ctx context.Context, req *CreateRequest) (int, e
 	port_lineItems := []port.Item{}
 	for _, i := range req.LineItems {
 		port_lineItems = append(port_lineItems, port.Item{
-			ProductId: i.ProductId,
-			Quantity:  i.Quantity,
+			ProductId:       i.ProductId,
+			ProductName:     "",
+			ProductQuantity: 1,
+			ProductPrice:    1,
 		})
 	}
 	id, err := i.DB.Create(ctx, &port.CreateRequest{
@@ -174,8 +178,10 @@ func (i *InvoiceService) Get(ctx context.Context, id int) (GetResponse, error) {
 	items := []Item{}
 	for _, i := range resp.LineItems {
 		items = append(items, Item{
-			ProductId: i.ProductId,
-			Quantity:  i.Quantity,
+			ProductId:       i.ProductId,
+			ProductName:     "",
+			ProductQuantity: 1,
+			ProductPrice:    1,
 		})
 	}
 	return GetResponse{
@@ -205,8 +211,10 @@ func (i *InvoiceService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		items := []Item{}
 		for _, i := range i.LineItems {
 			items = append(items, Item{
-				ProductId: i.ProductId,
-				Quantity:  i.Quantity,
+				ProductId:       i.ProductId,
+				ProductName:     "",
+				ProductQuantity: 1,
+				ProductPrice:    1,
 			})
 		}
 		resp = append(resp, GetResponse{
@@ -241,8 +249,10 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			items := []Item{}
 			for _, i := range i.LineItems {
 				items = append(items, Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductName:     "",
+					ProductQuantity: 1,
+					ProductPrice:    1,
 				})
 			}
 			resp = append(resp, GetResponse{
@@ -272,8 +282,10 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			items := []Item{}
 			for _, i := range i.LineItems {
 				items = append(items, Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductName:     "",
+					ProductQuantity: 1,
+					ProductPrice:    1,
 				})
 			}
 			resp = append(resp, GetResponse{
@@ -302,8 +314,10 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 			items := []Item{}
 			for _, i := range db_resp.LineItems {
 				items = append(items, Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:       i.ProductId,
+					ProductName:     "",
+					ProductQuantity: 1,
+					ProductPrice:    1,
 				})
 			}
 			resp = append(resp, GetResponse{
