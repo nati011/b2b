@@ -181,10 +181,8 @@ COMMENT ON TABLE public."products" IS 'stores products';
 
 CREATE TABLE IF NOT EXISTS public."p_category" 
 (
-  product_id INT,
-  category_id INT,
-  FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE,
-  FOREIGN KEY (category_id) REFERENCES public."category" (id) ON DELETE CASCADE
+  product_id BIGINT,
+  category_id BIGINT
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."p_category" IS 'many to many relationship for category and product';
@@ -213,7 +211,7 @@ COMMENT ON TABLE public."s_ledger" IS 'ledger for stock movement';
 
 CREATE TABLE IF NOT EXISTS public."p_prices" 
 (
-  price MONEY,
+  price DECIMAL(12, 2),
   product_id INT,
   FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
