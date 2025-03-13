@@ -17,7 +17,7 @@ type DistributorHandler struct {
 	distributorService service.Provider
 }
 
-func init() {
+func InitDistributor() {
 	handler.Register(new(DistributorHandler))
 }
 
