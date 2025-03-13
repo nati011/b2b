@@ -8,7 +8,7 @@
             "mode": "auto",
             "program": "./cmd",
             "args": [
-                "--db", "postgres://user:password@localhost:32769/test?",
+                "--db", "postgres://postgres:1234@localhost:5432/postgres",
                 "--port", "8084",
                 "--keycloak_base_url", "https://euc1.auth.ac/auth",
                 "--keycloak_user_name", "admin",

@@ -14,7 +14,7 @@ func WriteJSON(w http.ResponseWriter, data Envelope, headers http.Header) error 
 		return err
 	}
 
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
 	w.Write(response)
 	return nil
 }
