@@ -67,7 +67,7 @@ type UpdateRequest struct {
 	Id         int
 	Name       string
 	ExternalID string
-	Price      int
+	Price      float64
 	Desc       string
 	Images     []string
 	CategoryId []int
@@ -150,13 +150,14 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 
 	//create
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
-		Name:       req.Name,
-		Desc:       req.Desc,
-		ExternalID: req.ExternalID,
-		Images:     req.Images,
-		Price:      req.Price,
-		Attributes: req.Attributes,
-		CategoryId: req.CategoryId,
+		Name:          req.Name,
+		Desc:          req.Desc,
+		ExternalID:    req.ExternalID,
+		Images:        req.Images,
+		Price:         req.Price,
+		Attributes:    req.Attributes,
+		CategoryId:    req.CategoryId,
+		DistributorId: req.DistributorId,
 	})
 	if err != nil {
 		switch err {
@@ -247,6 +248,22 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		}
 	}
 
+	if req.DistributorId != 0 {
+		resp_getByDistId, err := p.DB.GetByDistributorId(ctx, &port.GetByDistributorIdRequest{
+			DistributorId: req.DistributorId,
+		})
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range resp_getByDistId.List {
+			resp.List = append(resp.List, GetResponse(i))
+		}
+	}
+
 	if req.PriceMax != 0 && req.PriceMin != 0 {
 		resp_getByName, err := p.DB.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
 			PriceMin: req.PriceMin,
@@ -324,23 +341,6 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	if err != nil {
 		return 0, ErrIdNotFound
 	}
-	//validate req
-	err = p.validateName(ctx, req.Name)
-	if err != nil {
-		return 0, err
-	}
-	err = validateDesc(req.Desc)
-	if err != nil {
-		return 0, err
-	}
-	err = validateImages(req.Images)
-	if err != nil {
-		return 0, err
-	}
-	err = validatePrice(int(req.Price))
-	if err != nil {
-		return 0, err
-	}
 
 	//update
 	if req.ExternalID != "" {
@@ -359,6 +359,10 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Name != "" {
+		err = p.validateName(ctx, req.Name)
+		if err != nil {
+			return 0, err
+		}
 		err = p.DB.UpdateName(ctx, &port.UpdateNameRequest{
 			Id:   req.Id,
 			Name: req.Name,
@@ -373,6 +377,10 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Price != 0 {
+		err = validatePrice(int(req.Price))
+		if err != nil {
+			return 0, err
+		}
 		err = p.DB.UpdatePrice(ctx, &port.UpdatePriceRequest{
 			Id:    req.Id,
 			Price: req.Price,
@@ -388,6 +396,10 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Desc != "" {
+		err = validateDesc(req.Desc)
+		if err != nil {
+			return 0, err
+		}
 		err = p.DB.UpdateDesc(ctx, &port.UpdateDescRequest{
 			Id:   req.Id,
 			Desc: req.Desc,
@@ -402,6 +414,10 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Images != nil {
+		err = validateImages(req.Images)
+		if err != nil {
+			return 0, err
+		}
 		err = p.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
 			Images: req.Images,
