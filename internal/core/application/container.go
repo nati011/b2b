@@ -74,6 +74,7 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId)
+	container.InitDistributorService()
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitTemplateService()
@@ -84,6 +85,7 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 	container.InitPaymentPartnerService()
 	container.InitPaymentService()
 	container.InitResourceService()
+	container.InitRetailerService()
 	container.InitRoleService()
 	container.InitUserService()
 	// container.InitSMSService()

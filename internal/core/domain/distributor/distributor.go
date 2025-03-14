@@ -32,10 +32,27 @@ type DistributorService struct {
 	authService auth.Provider
 }
 
-func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistributorRequest) (response port.RegisterDistributorResponse, err error) {
-	resp := port.RegisterDistributorResponse{}
+func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistributorRequest) (resp port.RegisterDistributorResponse, err error) {
+	user := authPort.RegisterUserRequest{
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		Email:           req.Email,
+		BirthDate:       req.DOB,
+		PhoneNumber:     req.PhoneNumber,
+		Username:        req.Username,
+		ExternalId:      req.ExternalId,
+		Password:        req.Password,
+		ConfirmPassword: req.ConfirmPassword,
+	}
+	_, err = d.authService.CreateNewClient(ctx, user)
+	if err != nil {
+		return resp, err
+
+	}
+
 	distribtor := port.CreateRequest{
 		FirstName:  req.FirstName,
+		LastName:   req.LastName,
 		Email:      req.Email,
 		DOB:        req.DOB,
 		Username:   req.Username,
@@ -45,21 +62,7 @@ func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistr
 	id, err := d.db.Create(ctx, &distribtor)
 	if err != nil {
 
-		return resp, err
-
-	}
-
-	user := authPort.RegisterUserRequest{
-		FirstName:   req.FirstName,
-		Email:       req.Email,
-		BirthDate:   req.DOB,
-		PhoneNumber: req.PhoneNumber,
-		Username:    req.Username,
-		ExternalId:  req.ExternalId,
-	}
-	_, err = d.authService.CreateNewClient(ctx, user)
-	if err != nil {
-		return resp, err
+		return resp, ErrUnknown
 
 	}
 
