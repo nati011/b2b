@@ -5,10 +5,11 @@ import (
 	"os"
 	"testing"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/category"
 )
 
-var service Provider
+var container TestContainer
+var category_id int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -17,10 +18,12 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewProduct(
-		db.NewMock(),
-		nil,
-	)
+	container = NewPackageIntegrationTestContainer()
+	ctx := context.Background()
+	category_id, _ = container.CategoryService.Create(ctx, &category.CreateRequest{
+		Name: "test",
+		Desc: "test",
+	})
 }
 
 func Test_Create_happyPath(t *testing.T) {
@@ -40,13 +43,13 @@ func Test_Create_happyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Errorf("Failed to create product err: %v", err)
 		}
 
 		//get
-		resp, err := service.Get(ctx, id)
+		resp, err := container.ProductService.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Expected err:%v Got err: %v", nil, err)
 		}
@@ -71,12 +74,12 @@ func Test_Create_happyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Error("Failed to create product", err)
 		}
 
-		got, err := service.Get(ctx, id)
+		got, err := container.ProductService.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Expected err:%v Got err: %v", nil, err)
 		}
@@ -106,7 +109,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		wantErr := ErrNameNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -128,7 +131,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
@@ -145,7 +148,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		_, err = service.Create(ctx, in_new)
+		_, err = container.ProductService.Create(ctx, in_new)
 		wantErr := ErrNameDuplicate
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -166,7 +169,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		wantErr := ErrDescNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -187,7 +190,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		wantErr := ErrImagesMustBeAtleastTwo
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -209,7 +212,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		wantErr := ErrAttributeValuesCannotBeEmpty
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -230,7 +233,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "test",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		wantErr := ErrPriceNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -252,7 +255,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				"test": "tets",
 			},
 		}
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		wantErr := ErrPriceNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -277,13 +280,13 @@ func Test_Get_happyPath(t *testing.T) {
 		},
 	}
 
-	_, err := service.Create(ctx, in)
+	_, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
 	//get
-	got, err := service.GetAll(ctx)
+	got, err := container.ProductService.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Expected err:%v Got err: %v", nil, err)
 	}
@@ -298,7 +301,7 @@ func Test_Get_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		//get
 		wantErr := ErrIdNotFound
-		_, err := service.Get(ctx, 99)
+		_, err := container.ProductService.Get(ctx, 99)
 		if err != wantErr {
 			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
 		}
@@ -322,7 +325,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 		},
 	}
 
-	_, err := service.Create(ctx, in)
+	_, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
@@ -341,13 +344,13 @@ func Test_Get_All_happyPath(t *testing.T) {
 		},
 	}
 
-	_, err = service.Create(ctx, in_two)
+	_, err = container.ProductService.Create(ctx, in_two)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
 	//get-all
-	resp, err := service.GetAll(ctx)
+	resp, err := container.ProductService.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Expected err:%v Got err: %v", nil, err)
 	}
@@ -361,7 +364,7 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 	ctx := context.Background()
 	//get-all
 	wantErr := ErrEmptyGetContent
-	_, err := service.GetAll(ctx)
+	_, err := container.ProductService.GetAll(ctx)
 	if err != wantErr {
 		t.Errorf("Expected err:%v Got err: %v", ErrEmptyGetContent, err)
 	}
@@ -386,12 +389,12 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			},
 		}
 
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
 			Name: "test",
 		})
 		if err != nil {
@@ -420,12 +423,12 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			},
 		}
 
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
 			ExternalID: "123",
 		})
 		if err != nil {
@@ -437,11 +440,46 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("byPriceRange", func(t *testing.T) {
+	t.Run("byDistributorId", func(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "Price Range",
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: 1,
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
+			DistributorId: 1,
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v, Got: %v", nil, err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
+	t.Run("byDistributorId", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -454,12 +492,12 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			},
 		}
 
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
 			PriceMin: 100,
 			PriceMax: 1000,
 		})
@@ -469,6 +507,76 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 		wantLen := 1
 		if wantLen != len(got.List) {
 			t.Errorf("Expected len: %v Got err: %v", wantLen, len(got.List))
+		}
+	})
+
+	t.Run("byCategory", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 500.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			CategoryId: []int{category_id},
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
+			CategoryId: []int{category_id},
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v, Got: %v", nil, err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
+	t.Run("byCategory", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 500.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			CategoryId: []int{category_id},
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
+			CategoryId: []int{category_id},
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v, Got: %v", nil, err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
 		}
 	})
 
@@ -503,18 +611,18 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			},
 		}
 
-		_, err := service.Create(ctx, in)
+		_, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		_, err = service.Create(ctx, in_2)
+		_, err = container.ProductService.Create(ctx, in_2)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
-			PriceMin: 800,
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
+			PriceMin: 100,
 			PriceMax: 1000,
 		})
 		if err != nil {
@@ -531,7 +639,7 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 func Test_Get_by_param_unhappyPath(t *testing.T) {
 	t.Run("noMatch", func(t *testing.T) {
 		ctx := context.Background()
-		_, err := service.GetByParam(ctx, &GetByParamRequest{})
+		_, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{})
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
@@ -557,7 +665,7 @@ func Test_Update_happyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -574,12 +682,12 @@ func Test_Update_happyPath(t *testing.T) {
 				"updated",
 			},
 		}
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != nil {
 			t.Fatalf("Failed to update")
 		}
 
-		got, err := service.Get(ctx, id)
+		got, err := container.ProductService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to Get")
 		}
@@ -615,7 +723,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Price: 200,
 		}
 		wantErr := ErrIdNotFound
-		_, err := service.Update(ctx, update_in)
+		_, err := container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -638,7 +746,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -654,7 +762,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Price: 200,
 		}
 		wantErr := ErrNameNotSupplied
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -677,7 +785,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product %v", err)
 		}
@@ -693,7 +801,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Price: 200,
 		}
 		wantErr := ErrDescNotSupplied
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -716,7 +824,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product %v", err)
 		}
@@ -732,7 +840,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Price: 200,
 		}
 		wantErr := ErrImagesMustBeAtleastTwo
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -755,7 +863,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -771,7 +879,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 		wantErr := ErrPriceNotSupplied
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -794,7 +902,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -813,7 +921,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		_, err = service.Create(ctx, in_2)
+		_, err = container.ProductService.Create(ctx, in_2)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -830,7 +938,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Price: 200,
 		}
 		wantErr := ErrNameDuplicate
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -853,7 +961,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
@@ -870,7 +978,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Price: 0,
 		}
 		wantErr := ErrPriceNotSupplied
-		_, err = service.Update(ctx, update_in)
+		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
 		}
@@ -894,12 +1002,12 @@ func Test_goods_receiving_happyPath(t *testing.T) {
 		},
 	}
 
-	id, err := service.Create(ctx, in)
+	id, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
-	err = service.ReceiveGoods(ctx, &GoodsReceivingRequest{
+	err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
 		Id:     id,
 		Amount: 2,
 	})
@@ -908,7 +1016,7 @@ func Test_goods_receiving_happyPath(t *testing.T) {
 	}
 
 	//check stock
-	got, err := service.Get(ctx, id)
+	got, err := container.ProductService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to get product")
 	}
@@ -924,7 +1032,7 @@ func Test_goods_receiving_unhappyPath(t *testing.T) {
 		//setup
 		ctx := context.Background()
 		wantErr := ErrIdNotFound
-		err := service.ReceiveGoods(ctx, &GoodsReceivingRequest{
+		err := container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
 			Id:     99,
 			Amount: 2,
 		})
@@ -951,12 +1059,12 @@ func Test_dispatch_happyPath(t *testing.T) {
 		},
 	}
 
-	id, err := service.Create(ctx, in)
+	id, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
-	err = service.ReceiveGoods(ctx, &GoodsReceivingRequest{
+	err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
 		Id:     id,
 		Amount: 2,
 	})
@@ -964,7 +1072,7 @@ func Test_dispatch_happyPath(t *testing.T) {
 		t.Fatalf("Failed to initiate goods receiving")
 	}
 
-	err = service.Dispatch(ctx, &DispatchRequest{
+	err = container.ProductService.Dispatch(ctx, &DispatchRequest{
 		Id:     id,
 		Amount: 2,
 	})
@@ -973,7 +1081,7 @@ func Test_dispatch_happyPath(t *testing.T) {
 	}
 
 	// check stock
-	got, err := service.Get(ctx, id)
+	got, err := container.ProductService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to get product")
 	}
@@ -987,7 +1095,7 @@ func Test_dispatch_happyPath(t *testing.T) {
 func Test_dispatch_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
 		ctx := context.Background()
-		err := service.Dispatch(ctx, &DispatchRequest{
+		err := container.ProductService.Dispatch(ctx, &DispatchRequest{
 			Id:     99,
 			Amount: 2,
 		})
@@ -1015,19 +1123,19 @@ func Test_Activate_happyPath(t *testing.T) {
 		},
 	}
 
-	id, err := service.Create(ctx, in)
+	id, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
-	err = service.Activate(ctx, id)
+	err = container.ProductService.Activate(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to activate product")
 	}
 
 	//verify status
 	wantActiveStatus := true
-	resp, err := service.Get(ctx, id)
+	resp, err := container.ProductService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to activte status")
 	}
@@ -1039,7 +1147,7 @@ func Test_Activate_happyPath(t *testing.T) {
 func Test_Activate_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
 		ctx := context.Background()
-		err := service.Activate(ctx, 99)
+		err := container.ProductService.Activate(ctx, 99)
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Fatalf("Expected err: %v, Got err: %v", wantErr, err)
@@ -1062,17 +1170,17 @@ func Test_Activate_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		err = service.Activate(ctx, id)
+		err = container.ProductService.Activate(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to activate product")
 		}
 
-		err = service.Activate(ctx, id)
+		err = container.ProductService.Activate(ctx, id)
 		if err != ErrAlreadyActive {
 			t.Fatalf("Failed to activate product")
 		}
@@ -1096,13 +1204,13 @@ func Test_Deactvate_happyPath(t *testing.T) {
 		},
 	}
 
-	id, err := service.Create(ctx, in)
+	id, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
 	//verify
-	got, err := service.Get(ctx, id)
+	got, err := container.ProductService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to get")
 	}
@@ -1115,7 +1223,7 @@ func Test_Deactvate_happyPath(t *testing.T) {
 func Test_Deactvate_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
 		ctx := context.Background()
-		err := service.Activate(ctx, 99)
+		err := container.ProductService.Activate(ctx, 99)
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Want err: %v", wantErr, err)
@@ -1138,12 +1246,12 @@ func Test_Deactvate_unhappyPath(t *testing.T) {
 			},
 		}
 
-		id, err := service.Create(ctx, in)
+		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
 
-		err = service.Deactivate(ctx, id)
+		err = container.ProductService.Deactivate(ctx, id)
 		expectedErr := ErrAlreadyInactive
 		if err != expectedErr {
 			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)

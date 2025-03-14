@@ -5,7 +5,7 @@ import (
 
 	"database/sql"
 
-	port "b2b.nati011.github.com/internal/port/distributor"
+	port "b2b.nati011.github.com/internal/port/application/distributor"
 )
 
 type Postgres struct {

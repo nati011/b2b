@@ -13,8 +13,8 @@ import (
 )
 
 var keycloakContainer *keycloak.KeycloakContainer
-var KeycloakProvider port.Provider
-var authService port.Provider
+var KeycloakProvider auth.Provider
+var authService auth.Provider
 
 const (
 	VALID_PASSWORD   = "test@123"
@@ -181,11 +181,6 @@ func shutDown() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func teardown() {
-	shutDown()
-	setup()
 }
 
 const (

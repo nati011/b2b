@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product"
+	db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 

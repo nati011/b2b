@@ -5,16 +5,20 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
-	"b2b.nati011.github.com/internal/core"
+	application_core "b2b.nati011.github.com/internal/core/application"
+
+	// domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
+	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
-func BuildRouter(mux *http.ServeMux, services *core.MasterContainer) error {
+func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	application_handler.InitAuth()
 	application_handler.InitDistributor()
+	application_handler.InitHealth()
 	application_handler.InitResource()
 
 	for _, h := range handler.GetHandlers() {
-		if err := h.Init(services); err != nil {
+		if err := h.Init(applicationServices, domainServices); err != nil {
 			return err
 		}
 		h.Routes(mux)

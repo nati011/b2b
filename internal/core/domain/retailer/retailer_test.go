@@ -9,13 +9,13 @@ import (
 
 	authProvider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	db "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
-	"b2b.nati011.github.com/internal/core/application/auth"
-	auth_port "b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/application/retailer"
+
+	"b2b.nati011.github.com/internal/core/application/auth"
 )
 
 var service Provider
-var authService auth_port.Provider
+var authService auth.Provider
 
 func TestMain(m *testing.M) {
 	setup()
@@ -185,6 +185,20 @@ func Test_Get_All_Businesses_happyPath(t *testing.T) {
 func Test_Get_Business_happyPath(t *testing.T) {
 	ctx := context.Background()
 
+	retailerIn := &port.RegisterRetailerRequest{
+		FirstName:       "Test User",
+		Email:           "businessTest@gmail.com",
+		Password:        "test@123",
+		ConfirmPassword: "test@123",
+		Username:        "username11",
+	}
+
+	retailerResponse, err := service.Create(ctx, retailerIn)
+
+	if err != nil {
+		t.Fatalf("Failed to create retailer")
+	}
+
 	in := &port.CreateBusinessInformation{
 		Name: "Test",
 		Tin:  124576,
@@ -192,7 +206,7 @@ func Test_Get_Business_happyPath(t *testing.T) {
 		GeneralZone: "Test Zone",
 		Region:      "Test Region",
 		Woreda:      "Test Woreda",
-		RetailerId:  rand.Int(),
+		RetailerId:  retailerResponse.Id,
 	}
 	resp, err := service.AddBusinessInformattion(ctx, in)
 	if err != nil {
@@ -210,7 +224,7 @@ func Test_Update_Business_happyPath(t *testing.T) {
 	ctx := context.Background()
 	distIn := &port.RegisterRetailerRequest{
 		FirstName:       "Test User",
-		Email:           "test475@gmail.com",
+		Email:           "test_retailer@gmail.com",
 		Password:        "test@123",
 		ConfirmPassword: "test@123",
 		Username:        "username11",

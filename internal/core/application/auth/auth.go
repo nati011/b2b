@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
@@ -23,8 +24,14 @@ var (
 	SUCCESS_MESSAGE = "Ahoy!"
 )
 
+type Provider interface {
+	CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error)
+	ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error)
+	RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error)
+}
+
 type AuthService struct {
-	authProvider port.Provider
+	authProvider Provider
 }
 
 func NewAuthService(ap port.Provider) port.Provider {
@@ -65,6 +72,9 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req port.RegisterUser
 
 func (a *AuthService) ClientLogin(ctx context.Context, rq port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	resp, err := a.authProvider.ClientLogin(ctx, rq)
+	log.Printf(resp.Message)
+	print(err.Error())
+
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
