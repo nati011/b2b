@@ -22,10 +22,10 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	var response port.GetResponse
 
 	// Adjust the query to select the appropriate fields
-	query := "SELECT id, name, action FROM public.get_resources_by_id($1);"
+	query := "SELECT * FROM public.get_resources_by_id($1);"
 
 	// Use Scan to match the number of returned columns
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Action)
+	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Action, &response.Name)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -42,7 +42,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_resources_by_name($1);"
 
-	err := p.Pool.QueryRowContext(ctx, query, name).Scan(&response.Id, &response.Name, &response.Action)
+	err := p.Pool.QueryRowContext(ctx, query, name).Scan(&response.Id, &response.Action, &response.Name)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
