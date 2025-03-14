@@ -10,12 +10,11 @@ import (
 	authProvider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	db "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
 	"b2b.nati011.github.com/internal/core/application/auth"
-	port "b2b.nati011.github.com/internal/port/distributor"
-	auth_port "b2b.nati011.github.com/internal/port/application/auth/provider"
+	port "b2b.nati011.github.com/internal/port/application/distributor"
 )
 
 var service Provider
-var authService auth_port.Provider
+var authService auth.Provider
 
 func TestMain(m *testing.M) {
 	setup()

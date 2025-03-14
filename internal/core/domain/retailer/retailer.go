@@ -6,6 +6,8 @@ import (
 
 	authPort "b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/application/retailer"
+
+	"b2b.nati011.github.com/internal/core/application/auth"
 )
 
 var (
@@ -28,7 +30,7 @@ type Provider interface {
 
 type RetailerService struct {
 	db          port.DB
-	authService authPort.Provider
+	authService auth.Provider
 }
 
 func (d *RetailerService) Create(ctx context.Context, req *port.RegisterRetailerRequest) (response port.RegisterRetailerResponse, err error) {
@@ -182,7 +184,7 @@ func (d *RetailerService) UpdateBusiness(ctx context.Context, req *port.UpdateBu
 	}
 	return response, nil
 }
-func NewRetailerService(db port.DB, authService authPort.Provider) Provider {
+func NewRetailerService(db port.DB, authService auth.Provider) Provider {
 	return &RetailerService{
 		db:          db,
 		authService: authService,

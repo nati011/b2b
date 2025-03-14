@@ -1,8 +1,8 @@
 package order
 
 import (
-	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice"
-	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order"
+	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
+	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 )
 

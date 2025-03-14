@@ -6,15 +6,16 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest"
-	"b2b.nati011.github.com/internal/core"
+	application_core "b2b.nati011.github.com/internal/core/application"
+	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
 var (
 	ErrFailedToBuildRoutes = errors.New("oopsy, failed to build routes")
 )
 
-func InitREST(mux *http.ServeMux, db *sql.DB, services *core.MasterContainer) *http.ServeMux {
-	err := rest.BuildRouter(mux, services)
+func InitREST(mux *http.ServeMux, db *sql.DB, applicationServices *application_core.Container, domainServices *domain_core.Container) *http.ServeMux {
+	err := rest.BuildRouter(mux, applicationServices, domainServices)
 	if err != nil {
 		panic(ErrFailedToBuildRoutes)
 	}

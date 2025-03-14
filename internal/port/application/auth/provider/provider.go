@@ -57,7 +57,6 @@ type JWT struct {
 	SessionState     string
 	Scope            string
 }
-
 type Provider interface {
 	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)

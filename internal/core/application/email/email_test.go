@@ -16,7 +16,7 @@ const (
 	INVALID_TEXT          = ""
 )
 
-var service Emailer
+var service Provider
 
 func Test_SendEmail_happyPath(t *testing.T) {
 	in := SendRequest{
