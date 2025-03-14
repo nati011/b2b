@@ -56,13 +56,11 @@ func NewKeycloakProvider(
 }
 
 func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
-	print("New client.....")
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
 		log.Printf("Something wrong with the credentials or URL: %v", err)
-		print(err.Error())
 		return port.RegisterUserResponse{}, port.ErrSysUnknown
 	}
 
@@ -79,7 +77,6 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
-			print(apiErr.Message)
 			switch apiErr.Code {
 			case 409:
 				switch {
@@ -143,7 +140,6 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserReq
 	}
 
 	if token == nil {
-		print("Token is nil")
 		return port.LoginAuthResponse{}, port.ErrSysFailedToLogin
 	}
 
