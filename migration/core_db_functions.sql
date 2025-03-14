@@ -831,3 +831,361 @@ d_id BIGINT,
     END;
     $$;
 
+
+-- Retailer ----------------------------------------
+-- writers
+create or replace function public.create_retailer () RETURNS BIGINT LANGUAGE plpgsql as $$
+    DECLARE
+        new_id BIGINT;
+
+    BEGIN
+        INSERT INTO public.retailers values(default)
+        RETURNING id INTO new_id;
+        RETURN new_id;
+    END;
+    $$;
+
+create or replace function public.create_retailer_location (
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255),
+  d_business_id INT
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        new_id BIGINT;
+
+    BEGIN
+        INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
+        VALUES (general_zone, region, woreda, business_id,  retailer_id)
+        RETURNING id INTO new_id;
+        RETURN new_id;
+
+    END;
+    $$;
+
+create or replace function public.delete_retailer(retailer_identifier INT) RETURNS VOID LANGUAGE plpgsql as $$
+
+    BEGIN
+        UPDATE public.retailers
+        SET is_deleted = TRUE
+        WHERE id =retailer_identifier
+        AND is_deleted = FALSE;
+    END;
+    $$;
+
+
+---readers
+create or replace function public.get_retailer_by_id (retailer_id INT) RETURNS table (
+  id INT,
+  FirstName VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(255),
+  username VARCHAR(255),
+  birthdate date,
+  is_active boolean,
+  external_id VARCHAR(255)
+) LANGUAGE plpgsql as $$
+    BEGIN
+        RETURN QUERY
+
+        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
+        from public.retailer_users t1
+        INNER JOIN public.retailers t2 on t1.retailer_id
+        INNER JOIN public.users t3 on t2.user_id=t3.id
+        WHERE t1.retailer_id = retailer_id AND t1.is_deleted=false
+        LIMIT 1;
+    END;
+$$;
+
+create or replace function public.get_all_retailers() RETURNS table (
+  id INT,
+  FirstName VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(255),
+  username VARCHAR(255),
+  birthdate date,
+  is_active boolean,
+  external_id VARCHAR(255)
+) LANGUAGE plpgsql as $$
+    BEGIN
+        RETURN QUERY
+
+        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
+        from public.retailer_users t1
+        INNER JOIN public.retailers t2 on t1.retailer_id
+        INNER JOIN public.users t3 on t2.user_id=t3.id
+        WHERE  t1.is_deleted=false
+        LIMIT 1;
+    END;
+$$;
+
+
+
+
+-- Retailer Business ----------------------------------------
+create or replace function public.create_retailer_business (d_name TEXT, d_tin VARCHAR(10), d_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        new_id BIGINT;
+
+    BEGIN
+        INSERT INTO public.retailer_business_info(d_name, d_tin, d_id) 
+        VALUES (name, tin, retailer_id)
+        RETURNING id INTO new_id;
+        RETURN new_id;
+
+    END;
+    $$;
+
+
+create or replace function public.update_retailer_location (
+    d_id INT,
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255),
+  d_business_id INT
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        new_id BIGINT;
+
+    BEGIN
+        INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
+        VALUES (general_zone, region, woreda, business_id,  retailer_id)
+        RETURNING id INTO new_id;
+        RETURN new_id;
+
+    END;
+    $$;
+
+create or replace function public.create_retailer_business_location (
+  d_name TEXT,
+  d_tin VARCHAR(10),
+  d_id INT,
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255)
+
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        new_business_id BIGINT;
+
+    DECLARE new_location_id BIGINT;
+
+    BEGIN
+        new_business_id := create_retailer_business(
+    d_name,
+    d_tin,
+    d_id);
+
+    new_location_id := create_retailer_location (
+  d_general_zone,
+  d_region,
+  d_woreda,
+  new_business_id
+) ;
+
+    RETURN new_business_id;
+    END;
+    $$;
+
+CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_id BIGINT;
+
+    BEGIN
+        UPDATE public.retailer_business_info
+        SET name= db_name
+        WHERE id=db_id;
+        UPDATE public.retailer_business_info
+        SET tin=db_tin
+        WHERE id=db_id
+        RETURNING id INTO updated_id;
+        RETURN updated_id;
+    END;
+    $$;
+
+CREATE OR REPLACE FUNCTION public.update_retailer_business_location(
+d_id BIGINT,
+ d_name TEXT,
+  d_tin VARCHAR(10),
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255)
+
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_business_id BIGINT;
+
+    DECLARE updated_location_id BIGINT;
+
+    BEGIN
+        updated_business_id := update_retailer_business(
+    d_name,
+    d_tin,
+    d_id);
+
+
+    UPDATE public.db_locations
+            SET general_zone= d_general_zone
+            WHERE business_id=d_id;
+            UPDATE public.db_locations
+            SET region=d_region
+            WHERE id=db_id;
+            UPDATE public.db_locations
+            SET woreda=d_woreda
+            WHERE id=db_id
+            RETURNING id INTO updated_location_id;
+
+    RETURN updated_business_id;
+    END;
+    $$;
+
+
+
+create or replace function public.delete_retailer_business (retailer_id INT) RETURNS VOID LANGUAGE plpgsql as $$
+
+    BEGIN
+        UPDATE public.retailer_business_info
+        SET is_deleted = TRUE
+        WHERE retailer_id = user_id
+        AND is_deleted = FALSE;
+    END;
+    $$;
+
+-- readers
+CREATE or REPLACE function public.get_retailer_business (retailer_id INT) 
+RETURNS TABLE(
+    id BIGINT,
+    name TEXT,
+    tin VARCHAR(10),
+    general_zone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
+) LANGUAGE plpgsql as $$
+
+    BEGIN
+        SELECT id, name, tin FROM public.retailer_business_info t1
+        JOIN public.db_locations t2 on t1.id
+        WHERE retailer_id = retailer_id 
+        AND is_deleted = FALSE;
+    END;
+    $$;
+CREATE or REPLACE function public.get_business_by_id (business_id INT) 
+RETURNS TABLE(
+    id BIGINT,
+    name TEXT,
+    tin VARCHAR(10),
+    general_zone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
+) LANGUAGE plpgsql as $$
+
+    BEGIN
+        SELECT id, name, tin FROM public.retailer_business_info t1
+        JOIN public.db_locations t2 on t1.id
+        WHERE id = business_id
+        AND is_deleted = FALSE;
+    END;
+    $$;
+
+CREATE or REPLACE function public.get_all_businesses () 
+RETURNS TABLE(
+    id BIGINT,
+    name TEXT,
+    tin VARCHAR(10),
+    general_zone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
+) LANGUAGE plpgsql as $$
+
+    BEGIN
+        SELECT id, name, tin FROM public.retailer_business_info t1
+        JOIN public.db_locations t2 on t1.id
+        WHERE is_deleted = FALSE;
+    END;
+    $$;
+
+
+
+-- retailer User ----------------------------------------
+-- writers
+create or replace function public.create_retailer_user (
+  u_FirstName VARCHAR(255),
+  u_email VARCHAR(255),
+  u_phone VARCHAR(255),
+  u_username VARCHAR(255),
+  u_dob DATE,
+  u_external_id VARCHAR(255)
+) RETURNS BIGINT LANGUAGE plpgsql as $$
+    DECLARE new_user_id INT;
+    DECLARE new_retailer_id INT;
+
+    BEGIN
+    new_user_id := create_user(
+    u_FirstName,
+    u_email,
+    u_phone,
+    u_username,
+    u_dob,
+    u_external_id );
+
+    new_retailer_id := create_retailer();
+
+    INSERT INTO public.retailer_users (user_id, retailer_id)
+    VALUES 	
+    (new_user_id, new_retailer_id);
+
+    RETURN new_retailer_id;
+END;
+$$;
+CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_id BIGINT;
+
+    BEGIN
+        UPDATE public.retailer_business_info
+        SET name= db_name
+        WHERE id=db_id;
+        UPDATE public.retailer_business_info
+        SET tin=db_tin
+        WHERE id=db_id
+        RETURNING id INTO updated_id;
+        RETURN updated_id;
+    END;
+    $$;
+
+CREATE OR REPLACE FUNCTION public.update_retailer_business_location(
+d_id BIGINT,
+ d_name TEXT,
+  d_tin VARCHAR(10),
+  d_general_zone VARCHAR(255),
+  d_region VARCHAR(255),
+  d_woreda VARCHAR(255)
+
+) RETURNS bigint LANGUAGE plpgsql as $$
+    DECLARE
+        updated_business_id BIGINT;
+
+    DECLARE updated_location_id BIGINT;
+
+    BEGIN
+        updated_business_id := update_retailer_business(
+    d_name,
+    d_tin,
+    d_id);
+
+
+    UPDATE public.db_locations
+            SET general_zone= d_general_zone
+            WHERE business_id=d_id;
+            UPDATE public.db_locations
+            SET region=d_region
+            WHERE id=db_id;
+            UPDATE public.db_locations
+            SET woreda=d_woreda
+            WHERE id=db_id
+            RETURNING id INTO updated_location_id;
+
+    RETURN updated_business_id;
+    END;
+    $$;
+
