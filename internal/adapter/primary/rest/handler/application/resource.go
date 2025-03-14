@@ -130,9 +130,5 @@ func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {
-	// const ParamId = "id"
-	// paramValues := r.URL.Query()
-	// paramIdValue := paramValues.Get(ParamId)
-
 	w.Write([]byte("oopsy, not implemented (yet?)"))
 }
