@@ -7,11 +7,11 @@ CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
    r_action VARCHAR(255)
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    new_id BIGINT;
+    new_id INT;
 BEGIN
     INSERT INTO public.resources (name, action)
     VALUES (r_name, r_action) 
@@ -22,7 +22,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_resource_name(
-    resource_id BIGINT,
+    resource_id INT,
     new_name TEXT
 )
 RETURNS BIGINT
@@ -39,7 +39,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_resource_action(
-    resource_id BIGINT,
+    resource_id INT,
     new_action TEXT
 )
 RETURNS BIGINT
@@ -57,7 +57,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION public.delete_resource(
-   r_id BIGINT
+   r_id INT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -72,9 +72,9 @@ $$;
     --readers
 
 CREATE OR REPLACE FUNCTION public.get_resources_by_id(
-    resource_id BIGINT
+    resource_id INT
 )
-RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -90,7 +90,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_resources_by_name(
     resource_name VARCHAR(255)
 )
-RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -104,7 +104,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_resources()
-RETURNS TABLE(id BIGINT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
