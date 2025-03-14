@@ -318,7 +318,6 @@ create or replace function public.get_users_by_external_id (user_external_id VAR
     END;
     $$;
 
-<<<<<<< HEAD
 create or replace function public.get_all () RETURNS table (
   id INT,
   FirstName VARCHAR(255),
@@ -337,7 +336,6 @@ create or replace function public.get_all () RETURNS table (
         LIMIT 1;
     END;
     $$;
-=======
 
 CREATE OR REPLACE FUNCTION public.get_users_by_external_id(
     user_external_id VARCHAR(255)
@@ -368,11 +366,11 @@ BEGIN
     LIMIT 1;
 END;
 $$;
->>>>>>> origin/development
 
 --writers
 create or replace function public.create_user (
-  u_FirstName VARCHAR(255),
+  u_firstname VARCHAR(255),
+  u_lastname VARCHAR(255),
   u_email VARCHAR(255),
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
@@ -383,14 +381,18 @@ create or replace function public.create_user (
         new_id INT;
     BEGIN
         INSERT INTO public.users 
-        (FirstName, 
+        (
+        firstName, 
+        lastName,
         email, 
         phone_number, 
         username, 
         birth_date,
         external_id)
         VALUES 	
-        (u_FirstName, 
+        (
+        u_firstname, 
+        u_lastname,
         u_email, 
         u_phone, 
         u_username, 
@@ -784,7 +786,8 @@ RETURNS TABLE(
 -- Distributor User ----------------------------------------
 -- writers
 create or replace function public.create_distributor_user (
-  u_FirstName VARCHAR(255),
+  u_firstname VARCHAR(255),
+  u_lastname VARCHAR(255)
   u_email VARCHAR(255),
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
@@ -796,7 +799,8 @@ create or replace function public.create_distributor_user (
 
     BEGIN
     new_user_id := create_user(
-    u_FirstName,
+    u_firstname,
+    u_lastname,
     u_email,
     u_phone,
     u_username,
@@ -1154,7 +1158,8 @@ create or replace function public.create_retailer_user (
 
     BEGIN
     new_user_id := create_user(
-    u_FirstName,
+    u_firstname,
+    u_lastname,
     u_email,
     u_phone,
     u_username,
