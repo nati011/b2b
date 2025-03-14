@@ -122,7 +122,7 @@ func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request
 			util.ServerErrorResponse(w, r, err)
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resources": id}, nil)
+	util.WriteJSON(w, util.Envelope{"resource": id}, nil)
 }
 
 func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
