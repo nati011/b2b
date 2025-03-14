@@ -26,7 +26,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	).Scan(&resourceId)
 
 	if err != nil {
-		print(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return 0, port.ErrSysNoRows
@@ -116,7 +115,6 @@ func (p *Postgres) CreateBusiness(ctx context.Context, req *port.CreateBusinessI
 	).Scan(&resourceId)
 
 	if err != nil {
-		print(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return resp, port.ErrSysNoRows

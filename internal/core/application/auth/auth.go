@@ -73,8 +73,6 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req port.RegisterUser
 func (a *AuthService) ClientLogin(ctx context.Context, rq port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	resp, err := a.authProvider.ClientLogin(ctx, rq)
 	log.Printf(resp.Message)
-	print(err.Error())
-
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
