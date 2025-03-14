@@ -14,10 +14,11 @@ type Postgres struct {
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6);"
+	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6, $7);"
 
 	err := p.db.QueryRowContext(ctx, query,
 		req.FirstName,
+		req.LastName,
 		req.Email,
 		req.Phone,
 		req.Username,

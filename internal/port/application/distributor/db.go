@@ -13,6 +13,7 @@ var (
 
 type CreateRequest struct {
 	FirstName  string
+	LastName   string
 	Email      string
 	Phone      string
 	Username   string
@@ -54,7 +55,8 @@ type RegisterDistributorRequest struct {
 	DOB             time.Time `json:"date_of_birth"`
 	PhoneNumber     string    `json:"phone_number"`
 	ConfirmPassword string    `json:"confirmed_password"`
-	FirstName       string    `json:"full_name"`
+	FirstName       string    `json:"first_name"`
+	LastName        string    `json:"last_name"`
 	Username        string    `json:"username"`
 	ExternalId      string    `json:"external_id"`
 }
