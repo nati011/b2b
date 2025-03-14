@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"b2b.nati011.github.com/internal/core/application/auth"
 	authPort "b2b.nati011.github.com/internal/port/application/auth/provider"
-	port "b2b.nati011.github.com/internal/port/distributor"
+	port "b2b.nati011.github.com/internal/port/application/distributor"
 )
 
 var (
@@ -28,7 +29,7 @@ type Provider interface {
 
 type DistributorService struct {
 	db          port.DB
-	authService authPort.Provider
+	authService auth.Provider
 }
 
 func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistributorRequest) (response port.RegisterDistributorResponse, err error) {
@@ -182,7 +183,7 @@ func (d *DistributorService) UpdateBusiness(ctx context.Context, req *port.Updat
 	}
 	return response, nil
 }
-func NewDistributorService(db port.DB, authService authPort.Provider) Provider {
+func NewDistributorService(db port.DB, authService auth.Provider) Provider {
 	return &DistributorService{
 		db:          db,
 		authService: authService,

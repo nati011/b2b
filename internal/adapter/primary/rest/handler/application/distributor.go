@@ -6,23 +6,23 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	"b2b.nati011.github.com/internal/core"
-
-	service "b2b.nati011.github.com/internal/core/domain/distributor/service"
-	port "b2b.nati011.github.com/internal/port/distributor"
+	application_core "b2b.nati011.github.com/internal/core/application"
+	domain_core "b2b.nati011.github.com/internal/core/domain"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
+	port "b2b.nati011.github.com/internal/port/application/distributor"
 	// util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 type DistributorHandler struct {
-	distributorService service.Provider
+	distributorService distributor.Provider
 }
 
 func InitDistributor() {
 	handler.Register(new(DistributorHandler))
 }
 
-func (d *DistributorHandler) Init(services *core.MasterContainer) error {
-	// d.service = services.ResourceService
+func (d *DistributorHandler) Init(services *application_core.Container, domainService *domain_core.Container) error {
+	d.distributorService = services.DistributorService
 	return nil
 }
 

@@ -24,6 +24,7 @@ type CreateRequest struct {
 type GetResponse struct {
 	Id         int
 	FirstName  string
+	LastName   string
 	Email      string
 	Phone      string
 	Username   string

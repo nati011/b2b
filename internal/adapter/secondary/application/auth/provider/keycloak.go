@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"b2b.nati011.github.com/internal/core/application/auth"
 	"github.com/Nerzal/gocloak/v13"
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
@@ -43,7 +44,7 @@ func NewKeycloakProvider(
 	keycloakRealm string,
 	keycloakApplicationRealm string,
 	keycloakClientId string,
-) port.Provider {
+) auth.Provider {
 	return &KeycloakProvider{
 		KeycloakInstanceURL:      keycloakInstanceURL,
 		KeycloakUsername:         keycloakUsername,
@@ -55,7 +56,9 @@ func NewKeycloakProvider(
 }
 
 func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
+	print("New client.....")
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
+
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
 		log.Printf("Something wrong with the credentials or URL: %v", err)
@@ -111,6 +114,7 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
+
 	if err != nil {
 		log.Printf("Something wrong with the credentials or URL: %v", err)
 		return port.LoginAuthResponse{}, port.ErrSysUnknown
@@ -121,6 +125,7 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserReq
 		return port.LoginAuthResponse{}, port.ErrSysUnknown
 	}
 	token, err := client.Login(ctx, k.KeycloakClientId, *clientSecret.Value, k.KeycloakApplicationRealm, req.Email, req.Password)
+
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
@@ -137,16 +142,9 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserReq
 		}
 	}
 
-	rptResult, err := client.RetrospectToken(ctx, token.AccessToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm)
-	if err != nil {
-		log.Fatal("Inspection failed:" + err.Error())
-		return port.LoginAuthResponse{}, err
-	}
-
-	if !*rptResult.Active {
-		err := errors.New("token is not active")
-		log.Fatal("token is not active:" + err.Error())
-		return port.LoginAuthResponse{}, err
+	if token == nil {
+		print("Token is nil")
+		return port.LoginAuthResponse{}, port.ErrSysFailedToLogin
 	}
 
 	return port.LoginAuthResponse{
