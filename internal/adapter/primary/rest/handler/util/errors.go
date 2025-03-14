@@ -30,8 +30,7 @@ func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 func RequestErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logError(r, err)
-	message := "the server encountered a problem and could not process your request"
-	errorResponse(w, r, http.StatusInternalServerError, message)
+	errorResponse(w, r, http.StatusInternalServerError, err.Error())
 }
 
 func NotFoundResponse(w http.ResponseWriter, r *http.Request) {
