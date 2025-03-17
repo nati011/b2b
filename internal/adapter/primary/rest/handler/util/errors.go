@@ -8,32 +8,32 @@ import (
 
 var logger = log.New(os.Stdout, "api: ", log.LstdFlags)
 
-func logError(r *http.Request, err error) {
+func logError(err error) {
 	logger.Println(err)
 }
 
-func errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
-	env := Envelope{"error": message}
+func errorResponse(w http.ResponseWriter, status int, message interface{}) {
+	env := Envelope{"message": message}
 
-	err := WriteJSON(w, env, nil)
+	err := WriteJSON(w, env, status)
 	if err != nil {
-		logError(r, err)
+		logError(err)
 		w.WriteHeader(500)
 	}
 }
 
 func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	logError(r, err)
+	logError(err)
 	message := "the server encountered a problem and could not process your request"
-	errorResponse(w, r, http.StatusInternalServerError, message)
+	errorResponse(w, http.StatusInternalServerError, message)
 }
 
 func RequestErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	logError(r, err)
-	errorResponse(w, r, http.StatusInternalServerError, err.Error())
+	logError(err)
+	errorResponse(w, http.StatusBadRequest, err.Error())
 }
 
 func NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "the requested resource could not be found"
-	errorResponse(w, r, http.StatusNotFound, message)
+	errorResponse(w, http.StatusNotFound, message)
 }
