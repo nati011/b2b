@@ -33,7 +33,7 @@ func setup() {
 	//create user
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FullName:   "natnael jemaneh asefa",
+		FirstName:  "natnael jemaneh asefa",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",

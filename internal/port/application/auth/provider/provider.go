@@ -1,17 +1,49 @@
 package provider
 
-import "errors"
+import (
+	"context"
+	"errors"
+	"time"
+)
 
 // system errors
 var (
 	ErrSysUsernameTaken = errors.New("invalid username")
 	ErrSysEmailTaken    = errors.New("invalid email")
 	ErrSysFailedToLogin = errors.New("invalid email or password")
+	ErrSysTokenExpired  = errors.New("invalid or expired token")
 	ErrSysUnknown       = errors.New("unknown error")
 )
 
-type LoginAuthResonse struct {
-	JWT JWT
+type RegisterUserRequest struct {
+	Email           string    `json:"email"`
+	Password        string    `json:"password"`
+	ConfirmPassword string    `json:"confirmed_password"`
+	BirthDate       time.Time `json:"birth_date"`
+	PhoneNumber     string    `json:"phone_number"`
+	ExternalId      string    `json:"external_id"`
+	FirstName       string    `json:"first_name"`
+	LastName        string    `json:"last_name"`
+	Username        string    `json:"username"`
+}
+
+type RegisterUserResponse struct {
+	Username string `json:"username"`
+	Message  string `json:"message"`
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type LoginAuthResponse struct {
+	JWT     JWT
+	Message string `json:"message"`
+}
+
+type LoginUserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type JWT struct {
@@ -25,12 +57,8 @@ type JWT struct {
 	SessionState     string
 	Scope            string
 }
-
-type CreateClientAuthResonse struct {
-	Username string
-}
-
 type Provider interface {
-	CreateNewClient(firstName string, lastName string, email string, username string, password string) (CreateClientAuthResonse, error)
-	ClientLogin(email, password string) (LoginAuthResonse, error)
+	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
+	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
+	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 }

@@ -30,7 +30,7 @@ func Test_Create_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "testProduct",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -76,7 +76,7 @@ func Test_Create_happyPath(t *testing.T) {
 
 		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
-			t.Error("Failed to create product")
+			t.Error("Failed to create product", err)
 		}
 
 		got, err := container.ProductService.Get(ctx, id)
@@ -179,7 +179,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("atleast_two_images_mandatory", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Two ImageTest",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -200,7 +200,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("attribute_values_cannot_be_empty", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Value EmptyTest",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -222,7 +222,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("price_mandatory", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Price Test",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -243,7 +243,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("price_cannot_be_zero", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Price ZeroTest",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -410,7 +410,7 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "External Id",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -475,7 +475,7 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("byPriceRange", func(t *testing.T) {
+	t.Run("byDistributorId", func(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
@@ -545,7 +545,7 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("aggregate-Fetch", func(t *testing.T) {
+	t.Run("byCategory", func(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
@@ -560,6 +560,41 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			CategoryId: []int{category_id},
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+
+		got, err := container.ProductService.GetByParam(ctx, &GetByParamRequest{
+			CategoryId: []int{category_id},
+		})
+		if err != nil {
+			t.Errorf("Expected err: %v, Got: %v", nil, err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
+	t.Run("aggregate-Fetch", func(t *testing.T) {
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "Aggregate Fetch",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 900.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
 		}
 
 		in_2 := &CreateRequest{
@@ -570,7 +605,7 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 				"test",
 				"test",
 			},
-			Price: 500.00,
+			Price: 950.00,
 			Attributes: map[string]string{
 				"test": "test",
 			},
@@ -737,7 +772,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "testUnhappy Path",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -752,7 +787,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 
 		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
-			t.Fatalf("Failed to create product")
+			t.Fatalf("Failed to create product %v", err)
 		}
 		// update
 		update_in := &UpdateRequest{
@@ -776,7 +811,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Two Images Test",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -791,7 +826,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 
 		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
-			t.Fatalf("Failed to create product")
+			t.Fatalf("Failed to create product %v", err)
 		}
 		// update
 		update_in := &UpdateRequest{
@@ -815,7 +850,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Price MandatoryTest",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -854,7 +889,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "Duplicate Name tEST",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
@@ -913,7 +948,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 		// setup
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:       "test",
+			Name:       "zERO PRICE",
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
