@@ -21,7 +21,6 @@ func NewPostgres(DB *sql.DB) port.DB {
 func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 
-	// Adjust the query to select the appropriate fields
 	query := "SELECT * FROM public.get_resources_by_id($1);"
 
 	// Use Scan to match the number of returned columns
