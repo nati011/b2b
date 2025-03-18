@@ -26,7 +26,6 @@ func Test_Add_Category_To_Product_happyPath(t *testing.T) {
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 	if err != nil {
 		t.Errorf("Failed to create category")
@@ -104,7 +103,6 @@ func Test_Update_product_Category_happyPath(t *testing.T) {
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 	if err != nil {
 		t.Errorf("Failed to create category")
@@ -135,7 +133,6 @@ func Test_Update_product_Category_happyPath(t *testing.T) {
 	//create category
 	new_category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test2",
-		Desc: "test2",
 	})
 	if err != nil {
 		t.Errorf("Failed to create category")
@@ -191,7 +188,6 @@ func Test_Update_Product_Category_unhappyPath(t *testing.T) {
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 	if err != nil {
 		t.Errorf("Failed to create category")
@@ -248,7 +244,6 @@ func Test_Get_Products_By_Category_happyPath(t *testing.T) {
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 	if err != nil {
 		t.Errorf("Failed to create category")
@@ -361,7 +356,6 @@ func Test_Get_Categories_of_product_happyPath(t *testing.T) {
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 	if err != nil {
 		t.Errorf("Failed to create category")

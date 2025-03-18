@@ -17,6 +17,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	application_handler.InitHealth()
 	application_handler.InitResource()
 	domain_handler.InitProduct()
+	domain_handler.InitCategory()
 
 	for _, h := range handler.GetHandlers() {
 		if err := h.Init(applicationServices, domainServices); err != nil {

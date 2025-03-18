@@ -22,7 +22,6 @@ func setup() {
 	ctx := context.Background()
 	category_id, _ = container.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 }
 
