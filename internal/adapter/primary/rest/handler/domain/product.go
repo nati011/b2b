@@ -161,13 +161,25 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		resp, err := p.service.GetByParam(r.Context(), &product.GetByParamRequest{
-			Name:       paramNameValue,
-			ExternalID: ParamExternalIdValue,
-			CategoryId: []int{typedCategoryId},
-			PriceMin:   typedPriceMin,
-			PriceMax:   typedPriceMax,
-		})
+		var resp product.GetAllResponse
+
+		if typedCategoryId != 0 {
+			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
+				Name:       paramNameValue,
+				ExternalID: ParamExternalIdValue,
+				CategoryId: []int{typedCategoryId},
+				PriceMin:   typedPriceMin,
+				PriceMax:   typedPriceMax,
+			})
+		} else {
+			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
+				Name:       paramNameValue,
+				ExternalID: ParamExternalIdValue,
+				PriceMin:   typedPriceMin,
+				PriceMax:   typedPriceMax,
+			})
+		}
+
 		if err != nil {
 			switch err {
 			case product.ErrCategoryNotFound,
