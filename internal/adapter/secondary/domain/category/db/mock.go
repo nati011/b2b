@@ -11,7 +11,6 @@ import (
 type MockCategory struct {
 	Id   int
 	Name string
-	Desc string
 }
 
 type Mock struct {
@@ -28,7 +27,6 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 	m.Categories = append(m.Categories, MockCategory{
 		Id:   id,
 		Name: req.Name,
-		Desc: req.Desc,
 	})
 	return id, nil
 }

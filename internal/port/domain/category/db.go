@@ -12,13 +12,11 @@ var (
 
 type CreateRequest struct {
 	Name string
-	Desc string
 }
 
 type GetResponse struct {
 	Id   int
 	Name string
-	Desc string
 }
 
 type GetAllResponse struct {
