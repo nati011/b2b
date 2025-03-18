@@ -4,6 +4,7 @@ import (
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
+	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 type TestContainer struct {
@@ -19,6 +20,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.OrderService = NewOrderService(
 		order_db.NewMock(),
 		container.InvoiceService,
+		product.NewPackageIntegrationTestContainer().ProductService,
 	)
 
 	return container
