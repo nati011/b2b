@@ -9,7 +9,7 @@
             "mode": "auto",
             "program": "./cmd",
             "args": [
-                "--db", "postgres://postgres:1234@localhost:5432/b2b_1",
+                "--db", "postgres://postgres:1234@localhost:5432/b2b_3",
                 "--port", "8084",
                 "--keycloak_base_url", "https://euc1.auth.ac/auth",
                 "--keycloak_user_name", "admin",
