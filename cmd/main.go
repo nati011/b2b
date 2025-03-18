@@ -30,7 +30,7 @@ func main() {
 	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
 
 	//db
-	flag.StringVar(&cfg.FileLocation, "file", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 	flag.Parse()
 	validateFlags(cfg)
