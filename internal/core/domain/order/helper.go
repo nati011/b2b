@@ -1,6 +1,8 @@
 package order
 
-import "context"
+import (
+	"context"
+)
 
 func (o *OrderService) validate_retailerId(ctx context.Context, id int) error {
 	if id == 0 {
@@ -25,8 +27,21 @@ func (o *OrderService) validate_items(ctx context.Context, items []Item) error {
 		if i.ProductId == 0 || i.Quantity == 0 {
 			return ErrItemMemberProductIdOrQuantityEmpty
 		}
+		//validate items exist
+		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
+		if err != nil {
+			switch err {
+			case ErrIdNotFound:
+				return ErrItemMemberProductNotFound
+			default:
+				return ErrUnknown
+			}
+		}
+		//validate provided qty exists
+		if prod_resp.Stock > i.Quantity {
+			return ErrItemMemberProductQuantityNotFound
+		}
 	}
-	//validate items exist
-	//validate provided qty exists
+
 	return nil
 }
