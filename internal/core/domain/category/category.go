@@ -18,13 +18,11 @@ var (
 
 type CreateRequest struct {
 	Name string
-	Desc string
 }
 
 type GetResponse struct {
 	Id   int
 	Name string
-	Desc string
 }
 
 type GetAllResponse struct {
@@ -55,14 +53,8 @@ func (c *CategoryService) Create(ctx context.Context, req *CreateRequest) (int, 
 		return 0, err
 	}
 
-	err = validateDesc(req.Desc)
-	if err != nil {
-		return 0, err
-	}
-
 	id, err := c.db.Create(ctx, &port.CreateRequest{
 		Name: req.Name,
-		Desc: req.Desc,
 	})
 	if err != nil {
 		switch err {

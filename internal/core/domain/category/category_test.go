@@ -27,7 +27,6 @@ func Test_add_category_happyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name: "test",
-			Desc: "test",
 		}
 		id, err := service.Create(ctx, in)
 		if err != nil {
@@ -48,28 +47,13 @@ func Test_add_category_happyPath(t *testing.T) {
 func Test_add_category_unhappyPath(t *testing.T) {
 	t.Run("name_mandatory", func(t *testing.T) {
 		ctx := context.Background()
-		in := &CreateRequest{
-			Desc: "test",
-		}
+		in := &CreateRequest{}
 		_, err := service.Create(ctx, in)
 		wantErr := ErrNameIsNotSupplied
 		if err != wantErr {
 			t.Fatalf("Expected err: %v Want err: %v", wantErr, err)
 		}
 	})
-
-	t.Run("desc_mandatory", func(t *testing.T) {
-		ctx := context.Background()
-		in := &CreateRequest{
-			Name: "test",
-		}
-		_, err := service.Create(ctx, in)
-		wantErr := ErrDescIsNotSupplied
-		if err != wantErr {
-			t.Fatalf("Expected err: %v Want err: %v", wantErr, err)
-		}
-	})
-
 }
 
 func Test_remove_category_happyPath(t *testing.T) {
@@ -77,7 +61,6 @@ func Test_remove_category_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name: "test",
-		Desc: "test",
 	}
 	id, err := service.Create(ctx, in)
 	if err != nil {
@@ -114,7 +97,6 @@ func Test_get_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name: "test",
-		Desc: "test",
 	}
 	id, err := service.Create(ctx, in)
 	if err != nil {
@@ -148,7 +130,6 @@ func Test_get_all_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name: "test",
-		Desc: "test",
 	}
 	_, err := service.Create(ctx, in)
 	if err != nil {
