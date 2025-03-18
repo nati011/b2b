@@ -74,7 +74,6 @@ func setup() {
 	)
 	categoryId, _ = container.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
-		Desc: "test",
 	})
 }
 

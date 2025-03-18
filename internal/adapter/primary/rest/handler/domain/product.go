@@ -15,7 +15,7 @@ import (
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
-type CreateRequest struct {
+type CreateProductRequest struct {
 	Name          string            `json:"name"`
 	Desc          string            `json:"desc"`
 	ExternalID    string            `json:"external_id"`
@@ -26,7 +26,7 @@ type CreateRequest struct {
 	CategoryId    []int             `json:"category_id"`
 }
 
-type GetResponse struct {
+type GetProductResponse struct {
 	Id            int               `json:"id"`
 	Name          string            `json:"name"`
 	Desc          string            `json:"desc"`
@@ -40,11 +40,11 @@ type GetResponse struct {
 	IsActive      bool              `json:"is_active"`
 }
 
-type GetAllResponse struct {
-	List []GetResponse `json:"products"`
+type GetAllProductResponse struct {
+	List []GetProductResponse `json:"products"`
 }
 
-type GetByParamRequest struct {
+type GetProductByParamRequest struct {
 	Name          string `json:"name"`
 	ExternalID    string `json:"external_id"`
 	DistributorId int    `json:"distributor_id"`
@@ -53,7 +53,7 @@ type GetByParamRequest struct {
 	PriceMax      int    `json:"price_max"`
 }
 
-type UpdateRequest struct {
+type UpdateProductRequest struct {
 	Id         int      `json:"id"`
 	Name       string   `json:"name"`
 	ExternalID string   `json:"extenal_id"`
@@ -161,13 +161,25 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		resp, err := p.service.GetByParam(r.Context(), &product.GetByParamRequest{
-			Name:       paramNameValue,
-			ExternalID: ParamExternalIdValue,
-			CategoryId: []int{typedCategoryId},
-			PriceMin:   typedPriceMin,
-			PriceMax:   typedPriceMax,
-		})
+		var resp product.GetAllResponse
+
+		if typedCategoryId != 0 {
+			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
+				Name:       paramNameValue,
+				ExternalID: ParamExternalIdValue,
+				CategoryId: []int{typedCategoryId},
+				PriceMin:   typedPriceMin,
+				PriceMax:   typedPriceMax,
+			})
+		} else {
+			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
+				Name:       paramNameValue,
+				ExternalID: ParamExternalIdValue,
+				PriceMin:   typedPriceMin,
+				PriceMax:   typedPriceMax,
+			})
+		}
+
 		if err != nil {
 			switch err {
 			case product.ErrCategoryNotFound,
@@ -191,7 +203,7 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestBody CreateRequest
+	var requestBody CreateProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
@@ -224,7 +236,7 @@ func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestBody UpdateRequest
+	var requestBody UpdateProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return

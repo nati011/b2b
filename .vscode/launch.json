@@ -10,6 +10,7 @@
             "program": "./cmd",
             "args": [
                 "--db", "postgres://postgres:1234@localhost:5432/b2b_3",
+                "--migration_file_dir", "/home/natanel/personal/b2b_clean/b2b/migration",
                 "--port", "8084",
                 "--keycloak_base_url", "https://euc1.auth.ac/auth",
                 "--keycloak_user_name", "admin",
