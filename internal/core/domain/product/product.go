@@ -20,7 +20,6 @@ var (
 	ErrImagesMustBeAtleastTwo       = errors.New("oopsy, images must be atleast two")
 	ErrPriceNotSupplied             = errors.New("oopsy, price is not supplied")
 	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
-	ErrDuplicateNameNotAllowed      = errors.New("oopsy, duplicate name not allowed")
 	ErrUnknown                      = errors.New("oopsy, unkown error")
 	ErrCategoryNotFound             = errors.New("oopsy, category not found")
 )
@@ -174,6 +173,7 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
 		}

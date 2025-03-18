@@ -123,7 +123,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		resp, err := p.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
-			case product.ErrEmptyGetContent:
+			case product.ErrIdNotFound:
 				util.RequestErrorResponse(w, r, err)
 				return
 			default:
@@ -133,22 +133,32 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 		util.WriteJSON(w, util.Envelope{"product": resp}, http.StatusAccepted)
 	} else {
-		typedCategoryId, err := strconv.Atoi(ParamCategoryIdValue)
-		if err != nil {
-			util.RequestErrorResponse(w, r, err)
-			return
+		var typedCategoryId int
+		var err error
+		if ParamCategoryIdValue != "" {
+			typedCategoryId, err = strconv.Atoi(ParamCategoryIdValue)
+			if err != nil {
+				util.RequestErrorResponse(w, r, err)
+				return
+			}
 		}
 
-		typedPriceMin, err := strconv.Atoi(ParamPriceMinValue)
-		if err != nil {
-			util.RequestErrorResponse(w, r, err)
-			return
+		var typedPriceMin int
+		if ParamPriceMinValue != "" {
+			typedPriceMin, err = strconv.Atoi(ParamPriceMinValue)
+			if err != nil {
+				util.RequestErrorResponse(w, r, err)
+				return
+			}
 		}
 
-		typedPriceMax, err := strconv.Atoi(ParamPriceMaxValue)
-		if err != nil {
-			util.RequestErrorResponse(w, r, err)
-			return
+		var typedPriceMax int
+		if ParamPriceMaxValue != "" {
+			typedPriceMax, err = strconv.Atoi(ParamPriceMaxValue)
+			if err != nil {
+				util.RequestErrorResponse(w, r, err)
+				return
+			}
 		}
 
 		resp, err := p.service.GetByParam(r.Context(), &product.GetByParamRequest{
@@ -189,7 +199,13 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := p.service.Create(r.Context(), (*product.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case product.ErrIdNotFound:
+		case product.ErrIdNotFound,
+			product.ErrNameNotSupplied,
+			product.ErrNameDuplicate,
+			product.ErrImagesMustBeAtleastTwo,
+			product.ErrPriceNotSupplied,
+			product.ErrAttributeValuesCannotBeEmpty,
+			product.ErrCategoryNotFound:
 			util.RequestErrorResponse(w, r, err)
 			return
 		default:
