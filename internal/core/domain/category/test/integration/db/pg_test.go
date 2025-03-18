@@ -155,7 +155,6 @@ func Test_Reader(t *testing.T) {
 		ctx := context.Background()
 		in := &category.CreateRequest{
 			Name: "test",
-			Desc: "test",
 		}
 		id, err := service.Create(ctx, in)
 		if err != nil {
@@ -179,7 +178,6 @@ func Test_Reader(t *testing.T) {
 		ctx := context.Background()
 		in := &category.CreateRequest{
 			Name: "test",
-			Desc: "test",
 		}
 		_, err := service.Create(ctx, in)
 		if err != nil {
@@ -205,7 +203,6 @@ func Test_Writer(t *testing.T) {
 		ctx := context.Background()
 		in := &category.CreateRequest{
 			Name: "test",
-			Desc: "test",
 		}
 		id, err := service.Create(ctx, in)
 		if err != nil {
@@ -227,7 +224,6 @@ func Test_Writer(t *testing.T) {
 		ctx := context.Background()
 		in := &category.CreateRequest{
 			Name: "test",
-			Desc: "test",
 		}
 		id, err := service.Create(ctx, in)
 		if err != nil {
