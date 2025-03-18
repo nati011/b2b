@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Launch Package",
             "type": "go",
@@ -8,7 +9,7 @@
             "mode": "auto",
             "program": "./cmd",
             "args": [
-                "--db", "postgres://postgres:1234@localhost:5432/postgres",
+                "--db", "postgres://postgres:1234@localhost:5432/b2b_1",
                 "--port", "8084",
                 "--keycloak_base_url", "https://euc1.auth.ac/auth",
                 "--keycloak_user_name", "admin",
