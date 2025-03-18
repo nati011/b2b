@@ -12,7 +12,9 @@ import (
 )
 
 func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
-
+	application_handler.InitAuth()
+	application_handler.InitDistributor()
+	application_handler.InitHealth()
 	application_handler.InitResource()
 	domain_handler.InitProduct()
 
