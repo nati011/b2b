@@ -27,6 +27,7 @@ func setup() {
 		invoice.NewInvoice(invoice_db.NewMock()),
 		productService,
 	)
+
 	ctx := context.Background()
 	productId, _ = productService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
