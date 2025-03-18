@@ -13,22 +13,23 @@ import (
 )
 
 var keycloakContainer *keycloak.KeycloakContainer
-var KeycloakProvider port.Provider
+var KeycloakProvider auth.Provider
 var authService auth.Provider
 
 const (
 	VALID_PASSWORD   = "test@123"
-	VALID_FULLNAME   = "ruth tirusew"
+	VALID_FIRST_NAME = "Ruth"
+	VALID_LAST_NAME  = "T"
 	VALID_EMAIL_A    = "ruthtirusew944@gmail.com"
 	VALID_EMAIL_B    = "ruthtirusew388@gmail.com"
 	VALID_USERNAME_A = "expired_pineapple"
 	VALID_USERNAME_B = "delila"
 
 	//INVALID
-	INVALID_username = ""
-	INVALID_PASSWORD = ""
-	INVALID_FULLNAME = ""
-	INVALID_EMAIL    = ""
+	INVALID_username  = ""
+	INVALID_PASSWORD  = ""
+	INVALID_FirstName = ""
+	INVALID_EMAIL     = ""
 )
 
 func Test_Timeout(t *testing.T) {
@@ -37,60 +38,62 @@ func Test_Timeout(t *testing.T) {
 
 func Test_CreateClient_happyPath(t *testing.T) {
 	ctx := context.Background()
-	user := auth.RegisterUserRequest{
+	user := port.RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
-		FullName:        VALID_FULLNAME,
+		FirstName:       VALID_FIRST_NAME,
+		LastName:        VALID_LAST_NAME,
 		Email:           VALID_EMAIL_A,
 	}
 
-	userRegistrationSuccessResponse := auth.RegisterUserResponse{
+	userRegistrationSuccessResponse := port.RegisterUserResponse{
 		Username: VALID_USERNAME_A,
 	}
 
 	in := user
 	want := userRegistrationSuccessResponse
 
-	got, err := authService.CreateClient(ctx, in)
+	got, err := authService.CreateNewClient(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create client err: %v", err)
 	}
 	if got != want {
 		t.Errorf("Expected: %v, Got: %v", want, got)
 	}
-	t.Cleanup(teardown)
+	// t.Cleanup(teardown)
 }
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
 	ctx := context.Background()
 	t.Run("DuplicateUsername", func(t *testing.T) {
-		t.Cleanup(teardown)
+		// t.Cleanup(teardown)
 
 		/* create a user with some username x and attempt
 		to create another user with the same username */
-		in_a := auth.RegisterUserRequest{
+		in_a := port.RegisterUserRequest{
+			FirstName:       VALID_FIRST_NAME,
+			LastName:        VALID_LAST_NAME,
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateClient(ctx, in_a)
+		_, err := authService.CreateNewClient(ctx, in_a)
 		if err != nil {
 			t.Fatalf("Failed to create client err: %v", err)
 		}
 
-		in_b := auth.RegisterUserRequest{
+		in_b := port.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
+			LastName:        VALID_LAST_NAME,
 			Email:           VALID_EMAIL_B,
 		}
 
-		_, err = authService.CreateClient(ctx, in_b)
+		_, err = authService.CreateNewClient(ctx, in_b)
 		wantErr := auth.ErrUsernameTaken
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
@@ -99,28 +102,29 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("DuplicateEmail", func(t *testing.T) {
-		t.Cleanup(teardown)
+		// t.Cleanup(teardown)
 
 		/* create a user with some email x and attempt
 		to create another user with the same email */
-		ua := auth.RegisterUserRequest{
+		ua := port.RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
+			FirstName:       VALID_FIRST_NAME,
 			Email:           VALID_EMAIL_A,
 		}
 
-		authService.CreateClient(ctx, ua)
-		ub := auth.RegisterUserRequest{
+		authService.CreateNewClient(ctx, ua)
+		ub := port.RegisterUserRequest{
+			FirstName:       VALID_FIRST_NAME,
+			LastName:        VALID_LAST_NAME,
 			Username:        VALID_USERNAME_B,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
-			FullName:        VALID_FULLNAME,
 			Email:           VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateClient(ctx, ub)
+		_, err := authService.CreateNewClient(ctx, ub)
 		wantErr := auth.ErrEmailTaken
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
@@ -136,29 +140,30 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	var err error
-	ctx := context.Background()
-	keycloakContainer, err = RunContainer(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// var err error
+	// ctx := context.Background()
+	// keycloakContainer, err = RunContainer(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
-	if err != nil {
-		panic(err)
-	}
-	KeycloakUsername := keycloakAdminClient.Username
-	KeycloakPassword := keycloakAdminClient.Password
-	KeycloakRealm := keycloakAdminClient.Realm
-	keycloakApplicationRealm := keycloakAdminClient.Realm
-	keycloakClientId := keycloakAdminClient.ClientID
+	// keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	KeycloakUsername := "ruthtirusew944@gmail.com"
+	KeycloakPassword := "W>-553:F?XWXpmV"
+	KeycloakRealm := "b2b"
+	keycloakApplicationRealm := "b2b"
+	keycloakClientId := "test"
+	keycloakInstanceUrl := "https://euc1.auth.ac/auth"
 
-	KeycloakProvider = provider.NewKeycloakProvider(
+	KeycloakProvider := provider.NewKeycloakProvider(
 		keycloakInstanceUrl,
 		KeycloakUsername,
 		KeycloakPassword,
@@ -176,11 +181,6 @@ func shutDown() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func teardown() {
-	shutDown()
-	setup()
 }
 
 const (

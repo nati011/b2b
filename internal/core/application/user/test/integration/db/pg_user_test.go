@@ -16,6 +16,7 @@ import (
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	user "b2b.nati011.github.com/internal/core/application/user"
+	port "b2b.nati011.github.com/internal/port/application/user"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -181,7 +182,7 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName:   "natnael jemaneh asefa",
+			FirstName:  "natnael jemaneh asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -192,7 +193,7 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		_, err = testContainer.UserService.GetByParam(ctx, &user.GetByParam{
+		_, err = testContainer.UserService.GetByParam(ctx, &port.GetByParam{
 			ID: id,
 		})
 		if err != nil {
@@ -208,11 +209,11 @@ func Test_write(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -237,7 +238,7 @@ func Test_write(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName:   "natnael jemaneh asefa",
+			FirstName:  "natnael jemaneh asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -249,7 +250,7 @@ func Test_write(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		inParam := &user.GetByParam{
+		inParam := &port.GetByParam{
 			Username: "test",
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -268,7 +269,7 @@ func Test_write(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02", "2024-09-20")
 		in := user.CreateRequest{
-			FullName:   "natnael jemaneh asefa",
+			FirstName:  "natnael jemaneh asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -282,7 +283,7 @@ func Test_write(t *testing.T) {
 		in_updateParsedTime, _ := time.Parse("2006-01-02", "2024-09-19")
 		in_update := &user.UpdateRequest{
 			Id:         user_id,
-			FullName:   "test",
+			FirstName:  "test",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -293,7 +294,7 @@ func Test_write(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
-		if got.FullName != in_update.FullName {
+		if got.FirstName != in_update.FirstName {
 			t.Errorf("Expected : %v Got: %v", in_update.DOB, got.DOB)
 		}
 		if got.Email != in_update.Email {

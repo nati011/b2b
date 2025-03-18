@@ -5,13 +5,14 @@ import (
 
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/user"
+	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
 func (t *TransactionService) validateUserId(ctx context.Context, userId int) error {
 	if userId == 0 {
 		return ErrUserIdNotSupplied
 	}
-	_, err := t.UserService.GetByParam(ctx, &user.GetByParam{
+	_, err := t.UserService.GetByParam(ctx, &port.GetByParam{
 		ID: userId,
 	})
 	if err != nil {
