@@ -70,26 +70,31 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			switch err {
-			case resource.ErrEmptyGetContent:
-				util.NotFoundResponse(w, r)
+			case resource.ErrEmptyGetContent,
+				resource.ErrEmptyName,
+				resource.ErrEmptyAction:
+
+				util.RequestErrorResponse(w, r, err)
+				return
 			default:
 				util.ServerErrorResponse(w, r, err)
+				return
 			}
 		}
 
-		util.WriteJSON(w, util.Envelope{"resource": resp}, nil)
+		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
 	} else {
 		resp, err := rs.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				util.NotFoundResponse(w, r)
+				util.RequestErrorResponse(w, r, err)
 			default:
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
 
-		util.WriteJSON(w, util.Envelope{"resources": resp}, nil)
+		util.WriteJSON(w, util.Envelope{"resources": resp}, http.StatusAccepted)
 	}
 }
 
@@ -118,17 +123,70 @@ func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request
 			resource.ErrEmptyGetContent:
 
 			util.RequestErrorResponse(w, r, err)
+			return
 		default:
 			util.ServerErrorResponse(w, r, err)
+			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": id}, nil)
+	util.WriteJSON(w, util.Envelope{"resource": id}, http.StatusAccepted)
 }
 
 func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("oopsy, not implemented (yet?)"))
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody UpdateResourceRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	id, err := rs.service.Update(r.Context(), (*resource.UpdateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case resource.ErrDuplicateName,
+			resource.ErrEmptyAction,
+			resource.ErrEmptyName,
+			resource.ErrIdNotFound,
+			resource.ErrEmptyUpdateContent,
+			resource.ErrEmptyGetContent:
+
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"resource": id}, http.StatusAccepted)
 }
 
 func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("oopsy, not implemented (yet?)"))
+	const ParamId = "id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, r, err)
+			return
+		}
+		err = rs.service.Delete(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case resource.ErrIdNotFound:
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+				return
+			}
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"resource": paramIdValue}, http.StatusAccepted)
 }
