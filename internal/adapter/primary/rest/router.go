@@ -7,7 +7,7 @@ import (
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	application_core "b2b.nati011.github.com/internal/core/application"
 
-	// domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
+	domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
@@ -16,6 +16,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	application_handler.InitDistributor()
 	application_handler.InitHealth()
 	application_handler.InitResource()
+	domain_handler.InitProduct()
 
 	for _, h := range handler.GetHandlers() {
 		if err := h.Init(applicationServices, domainServices); err != nil {
