@@ -5,10 +5,14 @@ import (
 	"os"
 	"testing"
 
+	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
+	"b2b.nati011.github.com/internal/core/domain/invoice"
+	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var service Provider
+var productId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -17,10 +21,26 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	productService := product.NewPackageIntegrationTestContainer().ProductService
 	service = NewOrderService(
 		db.NewMock(),
-		nil,
+		invoice.NewInvoice(invoice_db.NewMock()),
+		productService,
 	)
+	ctx := context.Background()
+	productId, _ = productService.Create(ctx, &product.CreateRequest{
+		Name:       "testProduct",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"test",
+			"test",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+	})
 }
 
 func Test_Place_Order_happyPath(t *testing.T) {
@@ -30,7 +50,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -54,7 +74,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -84,7 +104,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		in := &PlaceRequest{
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -114,7 +134,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1},
+					ProductId: productId},
 			},
 		}
 		_, err := service.Place(ctx, in)
@@ -131,7 +151,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 		RetailerId: 1,
 		Items: []Item{
 			{
-				ProductId: 1,
+				ProductId: productId,
 				Quantity:  19},
 		},
 	}
@@ -172,7 +192,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -201,7 +221,7 @@ func Test_Get_happyPath(t *testing.T) {
 		RetailerId: 1,
 		Items: []Item{
 			{
-				ProductId: 1,
+				ProductId: productId,
 				Quantity:  19},
 		},
 	}
@@ -238,7 +258,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 		RetailerId: 1,
 		Items: []Item{
 			{
-				ProductId: 1,
+				ProductId: productId,
 				Quantity:  19},
 		},
 	}
@@ -275,7 +295,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -302,7 +322,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -329,7 +349,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 			RetailerId: 1,
 			Items: []Item{
 				{
-					ProductId: 1,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
