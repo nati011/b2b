@@ -180,11 +180,11 @@ func Test_assignRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FullName: "natnael jemaneh asefa",
-		Email:    "natnaeljemaneh001@gmail.com",
-		Phone:    "+251949184879",
-		Username: "test",
-		DOB:      parsedTime,
+		FirstName: "natnael jemaneh asefa",
+		Email:     "natnaeljemaneh001@gmail.com",
+		Phone:     "+251949184879",
+		Username:  "test",
+		DOB:       parsedTime,
 
 		ExternalId: "123",
 	}
@@ -216,11 +216,11 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -243,11 +243,11 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -287,11 +287,11 @@ func Test_removeAssignedRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FullName: "natnael jemaneh asefa",
-		Email:    "natnaeljemaneh001@gmail.com",
-		Phone:    "+251949184879",
-		Username: "test",
-		DOB:      parsedTime,
+		FirstName: "natnael jemaneh asefa",
+		Email:     "natnaeljemaneh001@gmail.com",
+		Phone:     "+251949184879",
+		Username:  "test",
+		DOB:       parsedTime,
 
 		ExternalId: "123",
 	}
@@ -329,11 +329,11 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -365,11 +365,11 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -394,11 +394,11 @@ func Test_getAllRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FullName: "natnael jemaneh asefa",
-		Email:    "natnaeljemaneh001@gmail.com",
-		Phone:    "+251949184879",
-		Username: "test",
-		DOB:      parsedTime,
+		FirstName: "natnael jemaneh asefa",
+		Email:     "natnaeljemaneh001@gmail.com",
+		Phone:     "+251949184879",
+		Username:  "test",
+		DOB:       parsedTime,
 
 		ExternalId: "123",
 	}
@@ -440,11 +440,11 @@ func Test_getAllRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -482,11 +482,11 @@ func Test_has_role_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -526,11 +526,11 @@ func Test_has_role_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}
@@ -567,11 +567,11 @@ func Test_has_role_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FullName: "natnael jemaneh asefa",
-			Email:    "natnaeljemaneh001@gmail.com",
-			Phone:    "+251949184879",
-			Username: "test",
-			DOB:      parsedTime,
+			FirstName: "natnael jemaneh asefa",
+			Email:     "natnaeljemaneh001@gmail.com",
+			Phone:     "+251949184879",
+			Username:  "test",
+			DOB:       parsedTime,
 
 			ExternalId: "123",
 		}

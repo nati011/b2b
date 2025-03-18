@@ -7,10 +7,20 @@ services:
       - "8080:8080"
     restart: unless-stopped
     env_file:
-      - .env  
+      - .env
+    environment:
+      - PORT
+      - KEYCLOAK_BASE_URL
+      - KEYCLOAK_USER_NAME
+      - KEYCLOAK_PASSWORD
+      - KEYCLOAK_REALM
+      - KEYCLOAK_CLIENT_ID
+      - KEYCLOAK_APPLICATION_REALM
+      - DB_URL
+      - SMTP
+      - EMAIL
     networks:
       - backend
-
 
 networks:
   backend:
