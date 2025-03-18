@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/domain/invoice"
+	"b2b.nati011.github.com/internal/core/domain/product"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -16,6 +17,8 @@ var (
 	ErrUnknown                            = errors.New("oopsy, unknown error")
 	ErrEmptyGetResponse                   = errors.New("oopsy, empty get response")
 	ErrAlreadyCanceled                    = errors.New("oopsy, order already canceled")
+	ErrItemMemberProductNotFound          = errors.New("oopsy, product not found")
+	ErrItemMemberProductQuantityNotFound  = errors.New("oopsy, product quantity not found")
 )
 
 const (
@@ -61,12 +64,17 @@ type Provider interface {
 type OrderService struct {
 	DB             port.DB
 	InvoiceService invoice.Provider
+	ProductService product.Provider
 }
 
-func NewOrderService(db port.DB, is invoice.Provider) Provider {
+func NewOrderService(db port.DB,
+	is invoice.Provider,
+	ps product.Provider) Provider {
+
 	return &OrderService{
 		DB:             db,
 		InvoiceService: is,
+		ProductService: ps,
 	}
 }
 
