@@ -54,8 +54,8 @@ COMMENT ON TABLE public."resources" IS 'stores permissible resources for user ag
 
 CREATE TABLE IF NOT EXISTS public."role_resources"
 (
-	role_id BIGINT,
-	resource_id BIGINT,
+	role_id INT,
+	resource_id INT,
 	FOREIGN KEY (role_id) REFERENCES public."roles"(id) ON DELETE CASCADE,
 	FOREIGN KEY(resource_id) REFERENCES public."resources"(id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -182,8 +182,8 @@ COMMENT ON TABLE public."products" IS 'stores products';
 
 CREATE TABLE IF NOT EXISTS public."p_category" 
 (
-  product_id BIGINT,
-  category_id BIGINT
+  product_id INT,
+  category_id INT
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."p_category" IS 'many to many relationship for category and product';
