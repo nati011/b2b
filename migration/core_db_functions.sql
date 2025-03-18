@@ -1,25 +1,5 @@
 -- v 0.1
 -- Resources ----------------------------------------
--- writers
-create or replace function public.create_resource (r_name VARCHAR(255), r_action VARCHAR(255)) RETURNS BIGINT LANGUAGE plpgsql as $$
-    DECLARE
-        new_id BIGINT;
-    BEGIN
-        INSERT INTO public.resources (name, action)
-        VALUES (r_name, r_action) 
-        RETURNING id INTO new_id;
-
-        RETURN new_id;
-    END;
-    $$;
-
-create or replace function public.update_resource_name (resource_id BIGINT, new_name TEXT) RETURNS BIGINT LANGUAGE plpgsql as $$
-    BEGIN
-        UPDATE public.resources
-        SET name = new_name
-        WHERE id = resource_id
-        AND is_deleted = FALSE;
-
     -- writers
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
@@ -43,7 +23,7 @@ CREATE OR REPLACE FUNCTION public.update_resource_name(
     resource_id INT,
     new_name TEXT
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -60,7 +40,7 @@ CREATE OR REPLACE FUNCTION public.update_resource_action(
     resource_id INT,
     new_action TEXT
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -92,7 +72,9 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_resources_by_id(
     resource_id INT
 )
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id INT, 
+              action VARCHAR(255), 
+              name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -108,7 +90,9 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_resources_by_name(
     resource_name VARCHAR(255)
 )
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(id INT, 
+              action VARCHAR(255), 
+              name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -122,22 +106,25 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_resources()
-RETURNS TABLE(id INT, action VARCHAR(255), name VARCHAR(255))
+RETURNS TABLE(
+    id INT, action VARCHAR(255), 
+    name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
-BEGIN
-    RETURN QUERY
-    SELECT r.id, r.action, r.name
-    FROM public.resources r
-    WHERE r.is_deleted = FALSE;
-END;
-$$;
-=======
-        RETURN resource_id;
+    BEGIN
+        RETURN QUERY
+        SELECT r.id, r.action, r.name
+        FROM public.resources r
+        WHERE r.is_deleted = FALSE;
     END;
     $$;
 
-create or replace function public.update_resource_action (resource_id BIGINT, new_action TEXT) RETURNS BIGINT LANGUAGE plpgsql as $$
+create or replace function public.update_resource_action (
+    resource_id INT, 
+    new_action TEXT) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.resources
         SET action = new_action
@@ -148,7 +135,11 @@ create or replace function public.update_resource_action (resource_id BIGINT, ne
     END;
     $$;
 
-create or replace function public.delete_resource (r_id BIGINT) RETURNS VOID LANGUAGE plpgsql as $$
+create or replace function public.delete_resource (
+    r_id INT) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.resources
         SET is_deleted = TRUE
@@ -157,7 +148,13 @@ create or replace function public.delete_resource (r_id BIGINT) RETURNS VOID LAN
     $$;
 
 --readers
-create or replace function public.get_resources_by_id (resource_id BIGINT) RETURNS table (id BIGINT, action VARCHAR(255), name VARCHAR(255)) LANGUAGE plpgsql as $$
+create or replace function public.get_resources_by_id (
+    resource_id INT) 
+RETURNS table (id INT, 
+               action VARCHAR(255), 
+               name VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.id, r.action, r.name
@@ -166,9 +163,15 @@ create or replace function public.get_resources_by_id (resource_id BIGINT) RETUR
         AND r.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_resources_by_name (resource_name VARCHAR(255)) RETURNS table (id BIGINT, action VARCHAR(255), name VARCHAR(255)) LANGUAGE plpgsql as $$
+create or replace function public.get_resources_by_name (
+    resource_name VARCHAR(255)) 
+RETURNS table (id INT, 
+               action VARCHAR(255), 
+               name VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.id, r.action, r.name
@@ -177,23 +180,33 @@ create or replace function public.get_resources_by_name (resource_name VARCHAR(2
         AND r.is_deleted = FALSE
         LIMIT 1; 
     END;
-    $$;
+$$;
 
-create or replace function public.get_all_resources () RETURNS table (id BIGINT, action VARCHAR(255), name VARCHAR(255)) LANGUAGE plpgsql as $$
+create or replace function public.get_all_resources () 
+RETURNS table (id INT, 
+               action VARCHAR(255), 
+               name VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.id, r.action, r.name
         FROM public.resources r
         WHERE r.is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 
 -- Roles ----------------------------------------
 -- writers
-create or replace function public.create_role (r_name VARCHAR(255), r_desc VARCHAR(255)) RETURNS BIGINT LANGUAGE plpgsql as $$
+create or replace function public.create_role (
+    r_name VARCHAR(255), 
+    r_desc VARCHAR(255)) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
     BEGIN
         INSERT INTO public.roles (name, description)
         VALUES (r_name, r_desc) 
@@ -201,9 +214,14 @@ create or replace function public.create_role (r_name VARCHAR(255), r_desc VARCH
 
         RETURN new_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_role_name (role_id BIGINT, new_name TEXT) RETURNS BIGINT LANGUAGE plpgsql as $$
+create or replace function public.update_role_name (
+    role_id INT, 
+    new_name TEXT) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         
         UPDATE public.roles
@@ -213,9 +231,14 @@ create or replace function public.update_role_name (role_id BIGINT, new_name TEX
 
         RETURN role_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_role_desc (role_id BIGINT, new_desc TEXT) RETURNS BIGINT LANGUAGE plpgsql as $$
+create or replace function public.update_role_desc (
+    role_id INT, 
+    new_desc TEXT) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.roles
         SET description = new_desc
@@ -224,22 +247,29 @@ create or replace function public.update_role_desc (role_id BIGINT, new_desc TEX
 
         RETURN role_id;
     END;
-    $$;
+$$;
 
-create or replace function public.delete_role (r_id BIGINT) RETURNS VOID LANGUAGE plpgsql as $$
+create or replace function public.delete_role (
+    r_id INT) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.roles
         SET is_deleted = TRUE
         WHERE id = r_id;
     END;
-    $$;
+$$;
 
 -- readers
-create or replace function public.get_roles_by_id (role_id BIGINT) RETURNS table (
-  id BIGINT,
+create or replace function public.get_roles_by_id (
+    role_id INT) 
+RETURNS table (
+  id INT,
   description VARCHAR(255),
   name VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.id, r.description, r.name
@@ -248,9 +278,15 @@ create or replace function public.get_roles_by_id (role_id BIGINT) RETURNS table
         AND r.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_roles_by_name (role_name VARCHAR(255)) RETURNS table (id BIGINT, action VARCHAR(255), name VARCHAR(255)) LANGUAGE plpgsql as $$
+create or replace function public.get_roles_by_name (
+    role_name VARCHAR(255)) 
+RETURNS table (id INT, 
+               action VARCHAR(255), 
+               name VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.id, r.description, r.name
@@ -259,37 +295,41 @@ create or replace function public.get_roles_by_name (role_name VARCHAR(255)) RET
         AND r.is_deleted = FALSE
         LIMIT 1; 
     END;
-    $$;
+$$;
 
-create or replace function public.get_all_roles () RETURNS table (
-  id BIGINT,
+create or replace function public.get_all_roles () 
+RETURNS table (
+  id INT,
   description VARCHAR(255),
   name VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.id, r.description, r.name
         FROM public.roles r
         WHERE r.is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- role_resources ----------------------------------------
 -- writers
 create or replace function public.add_resource_to_role (
-  role_identifier BIGINT,
-  resource_identifier BIGINT
-) RETURNS VOID LANGUAGE plpgsql as $$
+  role_identifier INT,
+  resource_identifier INT
+) RETURNS VOID LANGUAGE plpgsql 
+AS $$
     BEGIN
         INSERT INTO public.role_resources (role_id, resource_id)
         VALUES (role_identifier, resource_identifier);
     END;
-    $$;
+$$;
 
 create or replace function public.remove_resource_from_role (
-  role_identifier BIGINT,
-  resource_identifier BIGINT
-) RETURNS VOID LANGUAGE plpgsql as $$
+  role_identifier INT,
+  resource_identifier INT
+) RETURNS VOID LANGUAGE plpgsql 
+AS $$
     BEGIN
     UPDATE public.role_resources
     SET is_deleted = TRUE
@@ -297,10 +337,14 @@ create or replace function public.remove_resource_from_role (
         AND resource_id = resource_identifier
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- readers
-create or replace function public.get_all_resource_by_role (role_identifier INT) RETURNS table (resource_id BIGINT) LANGUAGE plpgsql as $$
+create or replace function public.get_all_resource_by_role (
+    role_identifier INT) 
+RETURNS table (resource_id INT) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.resource_id
@@ -308,11 +352,14 @@ create or replace function public.get_all_resource_by_role (role_identifier INT)
         WHERE r.role_id = role_identifier 
             AND r.is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- Users ----------------------------------------
---readers
-create or replace function public.get_users_by_id (user_id INT) RETURNS table (
+
+    --readers
+create or replace function public.get_users_by_id (
+    user_id INT) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -321,18 +368,28 @@ create or replace function public.get_users_by_id (user_id INT) RETURNS table (
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, 
+               u.FirstName, 
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               u.birth_date, 
+               u.is_active, 
+               u.external_id 
         FROM public.users u
         WHERE u.id = user_id
         AND u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_users_by_email (user_email VARCHAR(255)) RETURNS table (
+create or replace function public.get_users_by_email (
+    user_email VARCHAR(255)) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -341,18 +398,28 @@ create or replace function public.get_users_by_email (user_email VARCHAR(255)) R
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, 
+               u.FirstName, 
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               u.birth_date, 
+               u.is_active, 
+               u.external_id 
         FROM public.users u
         WHERE u.email = user_email
         AND u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_users_by_phone (user_phone VARCHAR(255)) RETURNS table (
+create or replace function public.get_users_by_phone (
+    user_phone VARCHAR(255)) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -361,18 +428,28 @@ create or replace function public.get_users_by_phone (user_phone VARCHAR(255)) R
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, 
+               u.FirstName, 
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               u.birth_date, 
+               u.is_active, 
+               u.external_id 
         FROM public.users u
         WHERE u.phone_number = user_phone
         AND u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_users_by_username (user_username VARCHAR(255)) RETURNS table (
+create or replace function public.get_users_by_username (
+    user_username VARCHAR(255)) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -381,18 +458,28 @@ create or replace function public.get_users_by_username (user_username VARCHAR(2
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, 
+               u.FirstName, 
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               u.birth_date, 
+               u.is_active, 
+               u.external_id 
         FROM public.users u
         WHERE u.username = user_username
         AND u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_users_by_active_status (user_active_status BOOLEAN) RETURNS table (
+create or replace function public.get_users_by_active_status (
+    user_active_status BOOLEAN) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -401,18 +488,28 @@ create or replace function public.get_users_by_active_status (user_active_status
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, 
+               u.FirstName, 
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               u.birth_date, 
+               u.is_active, 
+               u.external_id 
         FROM public.users u
         WHERE u.is_active = user_active_status
         AND u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_users_by_external_id (user_external_id VARCHAR(255)) RETURNS table (
+create or replace function public.get_users_by_external_id (
+    user_external_id VARCHAR(255)) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -421,7 +518,8 @@ create or replace function public.get_users_by_external_id (user_external_id VAR
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
@@ -430,9 +528,10 @@ create or replace function public.get_users_by_external_id (user_external_id VAR
         AND u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
+$$;
 
-create or replace function public.get_all () RETURNS table (
+create or replace function public.get_all () 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -441,40 +540,47 @@ create or replace function public.get_all () RETURNS table (
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, 
+               u.FirstName, 
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               u.birth_date, 
+               u.is_active, 
+               u.external_id 
         FROM public.users u
         WHERE u.is_deleted = FALSE
         LIMIT 1;
     END;
-    $$;
-
-CREATE OR REPLACE FUNCTION public.get_users_by_external_id(
-    user_external_id VARCHAR(255)
-)
-RETURNS TABLE(id INT, fullname VARCHAR(255), email VARCHAR(255), phone VARCHAR(255), username VARCHAR(255), birthdate date, is_active boolean, external_id VARCHAR(255))
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
-    FROM public.users u
-    WHERE u.external_id = user_external_id
-      AND u.is_deleted = FALSE
-    LIMIT 1;
-END;
 $$;
 
 
 CREATE OR REPLACE FUNCTION public.get_all_users()
-RETURNS TABLE(id INT, fullname VARCHAR(255), email VARCHAR(255), phone VARCHAR(255), username VARCHAR(255), birthdate date, is_active boolean, external_id VARCHAR(255))
+RETURNS TABLE(
+    id INT, 
+    fullname VARCHAR(255), 
+    email VARCHAR(255), 
+    phone VARCHAR(255), 
+    username VARCHAR(255), 
+    birthdate date, 
+    is_active boolean, 
+    external_id VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT u.id, u.fullname, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+    SELECT u.id, 
+           u.fullname, 
+           u.email, 
+           u.phone_number, 
+           u.username, 
+           u.birth_date, 
+           u.is_active, 
+           u.external_id 
     FROM public.users u
     WHERE u.is_deleted = FALSE
     LIMIT 1;
@@ -490,7 +596,8 @@ create or replace function public.create_user (
   u_username VARCHAR(255),
   u_dob DATE,
   u_external_id VARCHAR(255)
-) RETURNS INT LANGUAGE plpgsql as $$
+) RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
         new_id INT;
     BEGIN
@@ -517,9 +624,12 @@ create or replace function public.create_user (
 
         RETURN new_id;
     END;
-    $$;
+$$;
 
-create or replace function public.delete_user (u_id INT) RETURNS VOID LANGUAGE plpgsql as $$
+create or replace function public.delete_user (
+    u_id INT) 
+    RETURNS VOID LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET is_deleted = TRUE
@@ -527,7 +637,11 @@ create or replace function public.delete_user (u_id INT) RETURNS VOID LANGUAGE p
     END;
     $$;
 
-create or replace function public.update_user_FirstName (user_id INT, new_FirstName VARCHAR(255)) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_FirstName (
+    user_id INT, 
+    new_FirstName VARCHAR(255)) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET FirstName = new_FirstName
@@ -536,9 +650,13 @@ create or replace function public.update_user_FirstName (user_id INT, new_FirstN
 
         RETURN user_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_user_email (user_id INT, new_email VARCHAR(255)) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_email (
+    user_id INT, 
+    new_email VARCHAR(255)) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET email = new_email
@@ -547,9 +665,13 @@ create or replace function public.update_user_email (user_id INT, new_email VARC
 
         RETURN user_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_user_dob (user_id INT, new_dob DATE) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_dob (
+    user_id INT, 
+    new_dob DATE) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET birth_date = new_dob
@@ -558,9 +680,13 @@ create or replace function public.update_user_dob (user_id INT, new_dob DATE) RE
 
         RETURN user_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_user_is_active_status (user_id INT, new_active_status BOOLEAN) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_is_active_status (
+    user_id INT, 
+    new_active_status BOOLEAN) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET is_active = new_active_status
@@ -569,9 +695,13 @@ create or replace function public.update_user_is_active_status (user_id INT, new
 
         RETURN user_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_user_phone (user_id INT, new_phone VARCHAR(255)) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_phone (
+    user_id INT, 
+    new_phone VARCHAR(255)) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET phone_number = new_phone
@@ -580,9 +710,13 @@ create or replace function public.update_user_phone (user_id INT, new_phone VARC
 
         RETURN user_id;
     END;
-    $$;
+$$;
 
-create or replace function public.update_user_name (user_id INT, new_username VARCHAR(255)) RETURNS INT LANGUAGE plpgsql as $$
+create or replace function public.update_user_name (
+    user_id INT, 
+    new_username VARCHAR(255)) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.users
         SET username = new_username
@@ -591,18 +725,26 @@ create or replace function public.update_user_name (user_id INT, new_username VA
 
         RETURN user_id;
     END;
-    $$;
+$$;
 
 -- user-roles ----------------------------------
 --writers
-create or replace function public.add_role_to_user (user_identifier INT, role_identifier INT) RETURNS VOID LANGUAGE plpgsql as $$
+create or replace function public.add_role_to_user (
+    user_identifier INT, 
+    role_identifier INT) 
+    RETURNS VOID LANGUAGE plpgsql 
+AS $$
     BEGIN
         INSERT INTO public.user_roles (user_id, role_id)
         VALUES (role_identifier, user_identifier);
     END;
-    $$;
+$$;
 
-create or replace function public.remove_role_from_user (user_identifier INT, role_identifier INT) RETURNS VOID LANGUAGE plpgsql as $$
+create or replace function public.remove_role_from_user (
+    user_identifier INT, 
+    role_identifier INT) 
+    RETURNS VOID LANGUAGE plpgsql 
+AS $$
     BEGIN
     UPDATE public.user_roles
     SET is_deleted = TRUE
@@ -610,10 +752,13 @@ create or replace function public.remove_role_from_user (user_identifier INT, ro
         AND user_id = user_identifier
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- readers
-create or replace function public.get_all_role_by_user (user_identifier INT) RETURNS table (role_id INT) LANGUAGE plpgsql as $$
+create or replace function public.get_all_role_by_user (
+    user_identifier INT) 
+RETURNS table (role_id INT) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
         SELECT r.role_id
@@ -621,41 +766,55 @@ create or replace function public.get_all_role_by_user (user_identifier INT) RET
         WHERE r.user_id = user_identifier 
             AND r.is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- Distributor ----------------------------------------
--- writers
-create or replace function public.create_distributor () RETURNS BIGINT LANGUAGE plpgsql as $$
+    
+    -- writers
+create or replace function public.create_distributor () 
+RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
         INSERT INTO public.distributors values(default)
         RETURNING id INTO new_id;
         RETURN new_id;
     END;
-    $$;
+$$;
 
 create or replace function public.create_distributor_location (
   d_general_zone VARCHAR(255),
   d_region VARCHAR(255),
   d_woreda VARCHAR(255),
   d_business_id INT
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
-        INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
-        VALUES (general_zone, region, woreda, business_id,  distributor_id)
+        INSERT INTO public.db_locations(
+            d_general_zone, 
+            d_region, 
+            d_woreda, 
+            d_business_id) 
+        VALUES (general_zone, 
+                region, 
+                woreda, 
+                business_id, 
+                distributor_id)
         RETURNING id INTO new_id;
         RETURN new_id;
 
     END;
-    $$;
+$$;
 
-create or replace function public.delete_distributor(distributor_identifier INT) RETURNS VOID LANGUAGE plpgsql as $$
-
+create or replace function public.delete_distributor(
+    distributor_identifier INT) 
+    RETURNS VOID LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.distributors
         SET is_deleted = TRUE
@@ -666,7 +825,9 @@ create or replace function public.delete_distributor(distributor_identifier INT)
 
 
 ---readers
-create or replace function public.get_distributor_by_id (distributor_id INT) RETURNS table (
+create or replace function public.get_distributor_by_id (
+    distributor_id INT) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -679,16 +840,26 @@ create or replace function public.get_distributor_by_id (distributor_id INT) RET
     BEGIN
         RETURN QUERY
 
-        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
+        SELECT  t2.id, 
+                t3.FirstName, 
+                t3.email, 
+                t3.phone_number, 
+                t3.username, 
+                t3.birth_date, 
+                t3.external_id
         from public.distributor_users t1
-        INNER JOIN public.distributors t2 on t1.distributor_id
-        INNER JOIN public.users t3 on t2.user_id=t3.id
-        WHERE t1.distributor_id = distributor_id AND t1.is_deleted=false
+        INNER JOIN public.distributors t2 
+        on t1.distributor_id
+        INNER JOIN public.users t3 
+        on t2.user_id=t3.id
+        WHERE t1.distributor_id = distributor_id 
+        AND t1.is_deleted=false
         LIMIT 1;
     END;
 $$;
 
-create or replace function public.get_all_distributors() RETURNS table (
+create or replace function public.get_all_distributors() 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -697,14 +868,23 @@ create or replace function public.get_all_distributors() RETURNS table (
   birthdate date,
   is_active boolean,
   external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
 
-        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
+        SELECT  t2.id, 
+                t3.FirstName, 
+                t3.email, 
+                t3.phone_number, 
+                t3.username, 
+                t3.birth_date, 
+                t3.external_id
         from public.distributor_users t1
-        INNER JOIN public.distributors t2 on t1.distributor_id
-        INNER JOIN public.users t3 on t2.user_id=t3.id
+        INNER JOIN public.distributors t2 
+        on t1.distributor_id
+        INNER JOIN public.users t3 
+        on t2.user_id=t3.id
         WHERE  t1.is_deleted=false
         LIMIT 1;
     END;
@@ -714,33 +894,50 @@ $$;
 
 
 -- Distributor Business ----------------------------------------
-create or replace function public.create_distributor_business (d_name TEXT, d_tin VARCHAR(10), d_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+create or replace function public.create_distributor_business (
+    d_name TEXT, 
+    d_tin VARCHAR(10), 
+    d_id INT) 
+RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
-        INSERT INTO public.distributor_business_info(d_name, d_tin, d_id) 
-        VALUES (name, tin, distributor_id)
+        INSERT INTO public.distributor_business_info(
+            d_name, 
+            d_tin, 
+            d_id) 
+        VALUES (name, 
+                tin, 
+                distributor_id)
         RETURNING id INTO new_id;
         RETURN new_id;
 
     END;
-    $$;
+$$;
 
 
 create or replace function public.update_distributor_location (
     d_id INT,
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255),
-  d_business_id INT
-) RETURNS bigint LANGUAGE plpgsql as $$
+    d_general_zone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255),
+    d_business_id INT
+) RETURNS INT LANGUAGE plpgsql as $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
-        INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
-        VALUES (general_zone, region, woreda, business_id,  distributor_id)
+        INSERT INTO public.db_locations(
+            d_general_zone, 
+            d_region, d_woreda, 
+            d_business_id) 
+        VALUES (general_zone, 
+                region, 
+                woreda, 
+                business_id,  
+                distributor_id)
         RETURNING id INTO new_id;
         RETURN new_id;
 
@@ -755,32 +952,33 @@ create or replace function public.create_distributor_business_location (
   d_region VARCHAR(255),
   d_woreda VARCHAR(255)
 
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT LANGUAGE plpgsql as $$
     DECLARE
-        new_business_id BIGINT;
+        new_business_id INT;
 
-    DECLARE new_location_id BIGINT;
+    DECLARE new_location_id INT;
 
     BEGIN
-        new_business_id := create_distributor_business(
-    d_name,
-    d_tin,
-    d_id);
-
-    new_location_id := create_distributor_location (
-  d_general_zone,
-  d_region,
-  d_woreda,
-  new_business_id
-) ;
+        new_business_id := create_distributor_business(d_name, 
+                                                       d_tin, 
+                                                       d_id);
+        new_location_id := create_distributor_location (d_general_zone, 
+                                                        d_region, 
+                                                        d_woreda, 
+                                                        new_business_id) ;
 
     RETURN new_business_id;
     END;
-    $$;
+$$;
 
-CREATE or REPLACE FUNCTION public.update_distributor_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+CREATE or REPLACE FUNCTION public.update_distributor_business (
+    db_name TEXT, 
+    db_tin VARCHAR(10), 
+    db_id INT) 
+RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
-        updated_id BIGINT;
+        updated_id INT;
 
     BEGIN
         UPDATE public.distributor_business_info
@@ -792,28 +990,27 @@ CREATE or REPLACE FUNCTION public.update_distributor_business (db_name TEXT, db_
         RETURNING id INTO updated_id;
         RETURN updated_id;
     END;
-    $$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.update_distributor_business_location(
-d_id BIGINT,
- d_name TEXT,
-  d_tin VARCHAR(10),
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255)
+    d_id INT,
+    d_name TEXT,
+    d_tin VARCHAR(10),
+    d_general_zone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255)
 
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        updated_business_id BIGINT;
+        updated_business_id INT;
 
-    DECLARE updated_location_id BIGINT;
+    DECLARE updated_location_id INT;
 
     BEGIN
-        updated_business_id := update_distributor_business(
-    d_name,
-    d_tin,
-    d_id);
-
+        updated_business_id := 
+        update_distributor_business(d_name, d_tin, d_id);
 
     UPDATE public.db_locations
             SET general_zone= d_general_zone
@@ -828,86 +1025,91 @@ d_id BIGINT,
 
     RETURN updated_business_id;
     END;
-    $$;
+$$;
 
-
-
-create or replace function public.delete_distributor_business (distributor_id INT) RETURNS VOID LANGUAGE plpgsql as $$
-
+create or replace function public.delete_distributor_business (
+    distributor_id INT) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.distributor_business_info
         SET is_deleted = TRUE
         WHERE distributor_id = user_id
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- readers
 CREATE or REPLACE function public.get_distributor_business (distributor_id INT) 
 RETURNS TABLE(
-    id BIGINT,
+    id INT,
     name TEXT,
     tin VARCHAR(10),
     general_zone VARCHAR(255),
     region VARCHAR(255),
-    woreda VARCHAR(255)
-) LANGUAGE plpgsql as $$
-
+    woreda VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         SELECT id, name, tin FROM public.distributor_business_info t1
         JOIN public.db_locations t2 on t1.id
         WHERE distributor_id = distributor_id 
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
+
 CREATE or REPLACE function public.get_business_by_id (business_id INT) 
 RETURNS TABLE(
-    id BIGINT,
+    id INT,
     name TEXT,
     tin VARCHAR(10),
     general_zone VARCHAR(255),
     region VARCHAR(255),
     woreda VARCHAR(255)
-) LANGUAGE plpgsql as $$
-
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         SELECT id, name, tin FROM public.distributor_business_info t1
         JOIN public.db_locations t2 on t1.id
         WHERE id = business_id
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 CREATE or REPLACE function public.get_all_businesses () 
 RETURNS TABLE(
-    id BIGINT,
+    id INT,
     name TEXT,
     tin VARCHAR(10),
     general_zone VARCHAR(255),
     region VARCHAR(255),
     woreda VARCHAR(255)
-) LANGUAGE plpgsql as $$
-
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         SELECT id, name, tin FROM public.distributor_business_info t1
         JOIN public.db_locations t2 on t1.id
         WHERE is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 
 
 -- Distributor User ----------------------------------------
--- writers
+    
+    -- writers
 create or replace function public.create_distributor_user (
   u_firstname VARCHAR(255),
-  u_lastname VARCHAR(255)
+  u_lastname VARCHAR(255),
   u_email VARCHAR(255),
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
   u_dob DATE,
   u_external_id VARCHAR(255)
-) RETURNS BIGINT LANGUAGE plpgsql as $$
+) RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE new_user_id INT;
     DECLARE new_distributor_id INT;
 
@@ -930,9 +1132,15 @@ create or replace function public.create_distributor_user (
     RETURN new_distributor_id;
 END;
 $$;
-CREATE or REPLACE FUNCTION public.update_distributor_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+
+CREATE or REPLACE FUNCTION public.update_distributor_business (
+    db_name TEXT, 
+    db_tin VARCHAR(10), 
+    db_id INT) 
+RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
-        updated_id BIGINT;
+        updated_id INT;
 
     BEGIN
         UPDATE public.distributor_business_info
@@ -944,21 +1152,22 @@ CREATE or REPLACE FUNCTION public.update_distributor_business (db_name TEXT, db_
         RETURNING id INTO updated_id;
         RETURN updated_id;
     END;
-    $$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.update_distributor_business_location(
-d_id BIGINT,
- d_name TEXT,
-  d_tin VARCHAR(10),
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255)
+    d_id INT,
+    d_name TEXT,
+    d_tin VARCHAR(10),
+    d_general_zone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255)
 
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT LANGUAGE plpgsql 
+AS $$
     DECLARE
-        updated_business_id BIGINT;
+        updated_business_id INT;
 
-    DECLARE updated_location_id BIGINT;
+    DECLARE updated_location_id INT;
 
     BEGIN
         updated_business_id := update_distributor_business(
@@ -980,14 +1189,17 @@ d_id BIGINT,
 
     RETURN updated_business_id;
     END;
-    $$;
+$$;
 
 
 -- Retailer ----------------------------------------
--- writers
-create or replace function public.create_retailer () RETURNS BIGINT LANGUAGE plpgsql as $$
+    -- writers
+create or replace function public.create_retailer () 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
         INSERT INTO public.retailers values(default)
@@ -1001,9 +1213,9 @@ create or replace function public.create_retailer_location (
   d_region VARCHAR(255),
   d_woreda VARCHAR(255),
   d_business_id INT
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT LANGUAGE plpgsql as $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
         INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
@@ -1012,21 +1224,26 @@ create or replace function public.create_retailer_location (
         RETURN new_id;
 
     END;
-    $$;
+$$;
 
-create or replace function public.delete_retailer(retailer_identifier INT) RETURNS VOID LANGUAGE plpgsql as $$
-
+create or replace function public.delete_retailer(
+    retailer_identifier INT) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.retailers
         SET is_deleted = TRUE
         WHERE id =retailer_identifier
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 
 ---readers
-create or replace function public.get_retailer_by_id (retailer_id INT) RETURNS table (
+create or replace function public.get_retailer_by_id (
+    retailer_id INT) 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -1034,8 +1251,9 @@ create or replace function public.get_retailer_by_id (retailer_id INT) RETURNS t
   username VARCHAR(255),
   birthdate date,
   is_active boolean,
-  external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+  external_id VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
 
@@ -1048,7 +1266,8 @@ create or replace function public.get_retailer_by_id (retailer_id INT) RETURNS t
     END;
 $$;
 
-create or replace function public.get_all_retailers() RETURNS table (
+create or replace function public.get_all_retailers() 
+RETURNS table (
   id INT,
   FirstName VARCHAR(255),
   email VARCHAR(255),
@@ -1056,8 +1275,9 @@ create or replace function public.get_all_retailers() RETURNS table (
   username VARCHAR(255),
   birthdate date,
   is_active boolean,
-  external_id VARCHAR(255)
-) LANGUAGE plpgsql as $$
+  external_id VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         RETURN QUERY
 
@@ -1070,13 +1290,16 @@ create or replace function public.get_all_retailers() RETURNS table (
     END;
 $$;
 
-
-
-
 -- Retailer Business ----------------------------------------
-create or replace function public.create_retailer_business (d_name TEXT, d_tin VARCHAR(10), d_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+create or replace function public.create_retailer_business (
+    d_name TEXT, 
+    d_tin VARCHAR(10), 
+    d_id INT) 
+RETURNS INT 
+LANGUAGE plpgsql 
+As $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
         INSERT INTO public.retailer_business_info(d_name, d_tin, d_id) 
@@ -1090,13 +1313,15 @@ create or replace function public.create_retailer_business (d_name TEXT, d_tin V
 
 create or replace function public.update_retailer_location (
     d_id INT,
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255),
-  d_business_id INT
-) RETURNS bigint LANGUAGE plpgsql as $$
+    d_general_zone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255),
+    d_business_id INT) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_id BIGINT;
+        new_id INT;
 
     BEGIN
         INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
@@ -1105,7 +1330,7 @@ create or replace function public.update_retailer_location (
         RETURN new_id;
 
     END;
-    $$;
+$$;
 
 create or replace function public.create_retailer_business_location (
   d_name TEXT,
@@ -1113,13 +1338,14 @@ create or replace function public.create_retailer_business_location (
   d_id INT,
   d_general_zone VARCHAR(255),
   d_region VARCHAR(255),
-  d_woreda VARCHAR(255)
-
-) RETURNS bigint LANGUAGE plpgsql as $$
+  d_woreda VARCHAR(255)) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        new_business_id BIGINT;
+        new_business_id INT;
 
-    DECLARE new_location_id BIGINT;
+    DECLARE new_location_id INT;
 
     BEGIN
         new_business_id := create_retailer_business(
@@ -1127,20 +1353,18 @@ create or replace function public.create_retailer_business_location (
     d_tin,
     d_id);
 
-    new_location_id := create_retailer_location (
-  d_general_zone,
-  d_region,
-  d_woreda,
-  new_business_id
-) ;
+    new_location_id := create_retailer_location (d_general_zone,
+                                                 d_region,
+                                                 d_woreda,
+                                                 new_business_id);
 
     RETURN new_business_id;
     END;
-    $$;
+$$;
 
-CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS INT LANGUAGE plpgsql as $$
     DECLARE
-        updated_id BIGINT;
+        updated_id INT;
 
     BEGIN
         UPDATE public.retailer_business_info
@@ -1155,25 +1379,23 @@ CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin
     $$;
 
 CREATE OR REPLACE FUNCTION public.update_retailer_business_location(
-d_id BIGINT,
- d_name TEXT,
-  d_tin VARCHAR(10),
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255)
+    d_id INT,
+    d_name TEXT,
+    d_tin VARCHAR(10),
+    d_general_zone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255)
 
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        updated_business_id BIGINT;
+        updated_business_id INT;
 
-    DECLARE updated_location_id BIGINT;
+    DECLARE updated_location_id INT;
 
     BEGIN
-        updated_business_id := update_retailer_business(
-    d_name,
-    d_tin,
-    d_id);
-
+        updated_business_id := update_retailer_business(d_name, d_tin, d_id);
 
     UPDATE public.db_locations
             SET general_zone= d_general_zone
@@ -1188,72 +1410,78 @@ d_id BIGINT,
 
     RETURN updated_business_id;
     END;
-    $$;
+$$;
 
 
 
-create or replace function public.delete_retailer_business (retailer_id INT) RETURNS VOID LANGUAGE plpgsql as $$
-
+create or replace function public.delete_retailer_business (
+    retailer_id INT) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         UPDATE public.retailer_business_info
         SET is_deleted = TRUE
         WHERE retailer_id = user_id
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 -- readers
-CREATE or REPLACE function public.get_retailer_business (retailer_id INT) 
+CREATE or REPLACE function public.get_retailer_business (
+    retailer_id INT) 
 RETURNS TABLE(
-    id BIGINT,
+    id INT,
     name TEXT,
     tin VARCHAR(10),
     general_zone VARCHAR(255),
     region VARCHAR(255),
-    woreda VARCHAR(255)
-) LANGUAGE plpgsql as $$
-
+    woreda VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         SELECT id, name, tin FROM public.retailer_business_info t1
         JOIN public.db_locations t2 on t1.id
         WHERE retailer_id = retailer_id 
         AND is_deleted = FALSE;
     END;
-    $$;
-CREATE or REPLACE function public.get_business_by_id (business_id INT) 
+$$;
+
+CREATE or REPLACE function public.get_business_by_id (
+    business_id INT) 
 RETURNS TABLE(
-    id BIGINT,
+    id INT,
     name TEXT,
     tin VARCHAR(10),
     general_zone VARCHAR(255),
     region VARCHAR(255),
     woreda VARCHAR(255)
-) LANGUAGE plpgsql as $$
-
+) LANGUAGE plpgsql 
+AS $$
     BEGIN
         SELECT id, name, tin FROM public.retailer_business_info t1
         JOIN public.db_locations t2 on t1.id
         WHERE id = business_id
         AND is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 CREATE or REPLACE function public.get_all_businesses () 
 RETURNS TABLE(
-    id BIGINT,
+    id INT,
     name TEXT,
     tin VARCHAR(10),
     general_zone VARCHAR(255),
     region VARCHAR(255),
-    woreda VARCHAR(255)
-) LANGUAGE plpgsql as $$
-
+    woreda VARCHAR(255)) 
+LANGUAGE plpgsql 
+AS $$
     BEGIN
         SELECT id, name, tin FROM public.retailer_business_info t1
         JOIN public.db_locations t2 on t1.id
         WHERE is_deleted = FALSE;
     END;
-    $$;
+$$;
 
 
 
@@ -1265,33 +1493,34 @@ create or replace function public.create_retailer_user (
   u_phone VARCHAR(255),
   u_username VARCHAR(255),
   u_dob DATE,
-  u_external_id VARCHAR(255)
-) RETURNS BIGINT LANGUAGE plpgsql as $$
-    DECLARE new_user_id INT;
-    DECLARE new_retailer_id INT;
+  u_external_id VARCHAR(255)) 
+  RETURNS INT 
+  LANGUAGE plpgsql 
+  AS $$
+        DECLARE new_user_id INT;
+        DECLARE new_retailer_id INT;
 
-    BEGIN
-    new_user_id := create_user(
-    u_firstname,
-    u_lastname,
-    u_email,
-    u_phone,
-    u_username,
-    u_dob,
-    u_external_id );
+        BEGIN
+        new_user_id := create_user(
+        u_firstname,
+        u_lastname,
+        u_email,
+        u_phone,
+        u_username,
+        u_dob,
+        u_external_id );
 
-    new_retailer_id := create_retailer();
+        new_retailer_id := create_retailer();
 
-    INSERT INTO public.retailer_users (user_id, retailer_id)
-    VALUES 	
-    (new_user_id, new_retailer_id);
-
-    RETURN new_retailer_id;
-END;
+        INSERT INTO public.retailer_users (user_id, retailer_id)
+            VALUES(new_user_id, new_retailer_id);
+        RETURN new_retailer_id;
+    END;
 $$;
-CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS bigint LANGUAGE plpgsql as $$
+
+CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin VARCHAR(10), db_id INT) RETURNS INT LANGUAGE plpgsql as $$
     DECLARE
-        updated_id BIGINT;
+        updated_id INT;
 
     BEGIN
         UPDATE public.retailer_business_info
@@ -1306,25 +1535,23 @@ CREATE or REPLACE FUNCTION public.update_retailer_business (db_name TEXT, db_tin
     $$;
 
 CREATE OR REPLACE FUNCTION public.update_retailer_business_location(
-d_id BIGINT,
- d_name TEXT,
-  d_tin VARCHAR(10),
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255)
+    d_id INT,
+    d_name TEXT,
+    d_tin VARCHAR(10),
+    d_general_zone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255)
 
-) RETURNS bigint LANGUAGE plpgsql as $$
+) RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
     DECLARE
-        updated_business_id BIGINT;
+        updated_business_id INT;
 
-    DECLARE updated_location_id BIGINT;
+    DECLARE updated_location_id INT;
 
     BEGIN
-        updated_business_id := update_retailer_business(
-    d_name,
-    d_tin,
-    d_id);
-
+        updated_business_id := update_retailer_business(d_name, d_tin, d_id);
 
     UPDATE public.db_locations
             SET general_zone= d_general_zone
@@ -1339,7 +1566,7 @@ d_id BIGINT,
 
     RETURN updated_business_id;
     END;
-    $$;
+$$;
 
 
 -- invoices ----------------------------------
@@ -1356,7 +1583,7 @@ RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    new_id BIGINT;
+    new_id INT;
 BEGIN
     INSERT INTO public.invoices (status, external_id, order_id, subtotal, tax_amount)
     VALUES (i_status, i_externalId, i_orderId, i_subtotal, i_taxAmount) 
@@ -1397,12 +1624,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_invoices_by_external_id(
      i_external_id VARCHAR(255)
 )
-RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+RETURNS TABLE(id INT, 
+              status VARCHAR(255), 
+              external_id VARCHAR(255), 
+              order_id INT, 
+              subtotal DECIMAL(12,2), 
+              tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    SELECT i.id, 
+           i.status, 
+           i.external_id, 
+           i.order_id, 
+           i.subtotal, 
+           i.tax_amount
     FROM public.invoices i
     WHERE i.is_deleted = FALSE 
     AND i.external_id = i_external_id;
@@ -1413,12 +1650,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_invoices_by_status(
      i_status VARCHAR(255)
 )
-RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+RETURNS TABLE(id INT, 
+              status VARCHAR(255), 
+              external_id VARCHAR(255), 
+              order_id INT, 
+              subtotal DECIMAL(12,2), 
+              tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    SELECT i.id, 
+           i.status, 
+           i.external_id, 
+           i.order_id, 
+           i.subtotal, 
+           i.tax_amount
     FROM public.invoices i
     WHERE i.is_deleted = FALSE 
     AND i.status = i_status;
@@ -1428,12 +1675,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_invoices_by_order_id(
      i_order_id INT
 )
-RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+RETURNS TABLE(id INT, 
+              status VARCHAR(255), 
+              external_id VARCHAR(255), 
+              order_id INT, 
+              subtotal DECIMAL(12,2), 
+              tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    SELECT i.id, 
+           i.status, 
+           i.external_id, 
+           i.order_id, 
+           i.subtotal, 
+           i.tax_amount
     FROM public.invoices i
     WHERE i.is_deleted = FALSE 
     AND i.order_id = i_order_id
@@ -1486,14 +1743,22 @@ CREATE OR REPLACE FUNCTION public.create_invoice_line_item(
    i_product_id INT,
    i_invoice_id INT
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.invoice_line_items (product_name, qty, price, product_id, invoice_id)
-    VALUES (i_product_name, i_qty, i_price, i_product_id, i_invoice_id) 
+    INSERT INTO public.invoice_line_items (product_name, 
+                                           qty, 
+                                           price, 
+                                           product_id, 
+                                           invoice_id)
+    VALUES (i_product_name, 
+            i_qty, 
+            i_price, 
+            i_product_id, 
+            i_invoice_id) 
     RETURNING id INTO new_id;
 
     RETURN new_id;
@@ -1504,12 +1769,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_invoice_line_item_by_invoice_id(
     i_invoice_id INT
 )
-RETURNS TABLE(id INT, product_name VARCHAR(255), qty INT, price DECIMAL(12,2), product_id INT, invoice_id INT)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              qty INT, 
+              price DECIMAL(12,2), 
+              product_id INT, 
+              invoice_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.product_name, i.qty, i.price, i.product_id, i.invoice_id
+    SELECT i.id, 
+           i.product_name, 
+           i.qty, 
+           i.price, 
+           i.product_id, 
+           i.invoice_id
     FROM public.invoice_line_items i
     WHERE i.invoice_id = i_invoice_id
       AND i.is_deleted = FALSE
@@ -1526,14 +1801,20 @@ CREATE OR REPLACE FUNCTION public.create_product(
   p_external_id VARCHAR(255),
   p_distributor_id INT
 )
-RETURNS BIGINT
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.products (name, description, external_id, distributor_id)
-    VALUES (p_product_name, p_product_description, p_external_id, p_distributor_id) 
+    INSERT INTO public.products (name, 
+                                 description, 
+                                 external_id, 
+                                 distributor_id)
+    VALUES (p_product_name, 
+            p_product_description, 
+            p_external_id, 
+            p_distributor_id) 
     RETURNING id INTO new_id;
 
     RETURN new_id;
@@ -1614,12 +1895,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_products_by_id(
     p_product_id INT
 )
-RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description TEXT, 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id
     FROM public.products p
     WHERE p.id = p_product_id
       AND p.is_deleted = FALSE
@@ -1630,12 +1921,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_products_by_name(
     p_product_name VARCHAR(255)
 )
-RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description TEXT, 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id
     FROM public.products p
     WHERE p.name = p_product_name
       AND p.is_deleted = FALSE
@@ -1646,12 +1947,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_products_by_externalId(
     p_external_id VARCHAR(255)
 )
-RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description TEXT, 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id
     FROM public.products p
     WHERE p.external_id = p_external_id
       AND p.is_deleted = FALSE
@@ -1662,12 +1973,22 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_products_by_distributorId(
     p_distributor_id INT
 )
-RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description TEXT, 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id
     FROM public.products p
     WHERE p.distributor_id = p_distributor_id
       AND p.is_deleted = FALSE
@@ -1676,12 +1997,22 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_products()
-RETURNS TABLE(id INT, product_name VARCHAR(255), product_description TEXT, external_id VARCHAR(255), is_active BOOLEAN, distributor_id INT)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description TEXT, 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.description, p.external_id, p.is_active, p.distributor_id
+    SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id
     FROM public.products p
     WHERE p.is_deleted = FALSE;
 END;
@@ -1737,6 +2068,68 @@ BEGIN
 END;
 $$;
 
+-- category -------------------------------------------------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_category(
+  c_name VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO 
+    public.category (name)
+    VALUES (c_name)
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.remove_category(
+    c_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.category
+    SET is_deleted = TRUE
+    WHERE id = c_id;
+END;
+$$;
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_category(
+    c_id INT
+)
+RETURNS TABLE(id INT, name VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT c.id, c.name
+    FROM public.category c
+    WHERE c.id = c_id
+      AND c.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_category()
+RETURNS TABLE(id INT, name VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT c.id, c.name
+    FROM public.category c
+    WHERE c.is_deleted = FALSE;
+END;
+$$;
+
 -- product_categories ---------------------------------------------------
     
     -- writer
@@ -1770,9 +2163,9 @@ $$;
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_categories_by_productId(
-    p_product_id BIGINT
+    p_product_id INT
 )
-RETURNS TABLE(category_id BIGINT)
+RETURNS TABLE(category_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1785,9 +2178,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_products_by_categoryId(
-    p_category_id BIGINT
+    p_category_id INT
 )
-RETURNS TABLE(product_id BIGINT)
+RETURNS TABLE(product_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1931,8 +2324,14 @@ RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    INSERT INTO public.s_ledger (quantity, product_id, operation, created_by_user_id)
-    VALUES (s_quantity, s_product_id, s_stock_operation, s_created_by_user_id);
+    INSERT INTO public.s_ledger (quantity, 
+                                 product_id, 
+                                 operation, 
+                                 created_by_user_id)
+    VALUES (s_quantity, 
+            s_product_id, 
+            s_stock_operation, 
+            s_created_by_user_id);
 END;
 $$;
 
@@ -1971,8 +2370,13 @@ RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    INSERT INTO public.p_attribute_values (name, product_id, attribute_id)
-    VALUES (i_name, i_product_id, i_attribute_id);
+    INSERT INTO public.p_attribute_values (name, 
+                                           product_id, 
+                                           attribute_id)
+    VALUES (i_name, 
+            i_product_id, 
+            i_attribute_id);
 END;
 $$;
     -- reader
+
