@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -32,7 +31,6 @@ func (a *UserHandler) Routes(mux *http.ServeMux) {
 }
 
 func (a *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
 	var req user.UpdateRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -40,7 +38,7 @@ func (a *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	registerResponse, err := a.service.Update(ctx, &req)
+	registerResponse, err := a.service.Update(r.Context(), &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
