@@ -282,8 +282,10 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 					product.ErrAlreadyActive:
 
 					util.RequestErrorResponse(w, r, err)
+					return
 				default:
 					util.ServerErrorResponse(w, r, err)
+					return
 				}
 			}
 			return
@@ -295,8 +297,10 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 					product.ErrAlreadyInactive:
 
 					util.RequestErrorResponse(w, r, err)
+					return
 				default:
 					util.ServerErrorResponse(w, r, err)
+					return
 				}
 			}
 			return
