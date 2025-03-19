@@ -148,6 +148,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 
 	return id, nil
 }
+
 func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	//validate
 	got, err := o.DB.GetByID(ctx, id)
