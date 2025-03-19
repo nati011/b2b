@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -32,7 +31,6 @@ func (d *DistributorHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
 	var req port.RegisterDistributorRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -40,7 +38,7 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 		return
 	}
 
-	registerResponse, err := h.distributorService.Create(ctx, &req)
+	registerResponse, err := h.distributorService.Create(r.Context(), &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -51,7 +49,6 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 }
 
 func (h *DistributorHandler) AddBusinessInformattion(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
 	var req port.CreateBusinessInformation
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -59,7 +56,7 @@ func (h *DistributorHandler) AddBusinessInformattion(w http.ResponseWriter, r *h
 		return
 	}
 
-	registerResponse, err := h.distributorService.AddBusinessInformattion(ctx, &req)
+	registerResponse, err := h.distributorService.AddBusinessInformattion(r.Context(), &req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)

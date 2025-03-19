@@ -23,7 +23,7 @@ type OrderItem struct {
 
 type PlaceOrderRequest struct {
 	RetailerId int         `json:"retailer_id"`
-	Items      []OrderItem `json:"orders"`
+	Items      []OrderItem `json:"items"`
 }
 
 type GetOrderResponse struct {
