@@ -44,6 +44,7 @@ func NewKeycloakProvider(
 	keycloakRealm string,
 	keycloakApplicationRealm string,
 	keycloakClientId string,
+	keycloakClientSecret string,
 ) auth.Provider {
 	return &KeycloakProvider{
 		KeycloakInstanceURL:      keycloakInstanceURL,
@@ -52,6 +53,7 @@ func NewKeycloakProvider(
 		KeycloakRealm:            keycloakRealm,
 		KeycloakApplicationRealm: keycloakApplicationRealm,
 		KeycloakClientId:         keycloakClientId,
+		KeycloakClientSecret:     keycloakClientSecret,
 	}
 }
 
@@ -86,7 +88,7 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 					return port.RegisterUserResponse{}, port.ErrSysUsernameTaken
 				}
 			default:
-				return port.RegisterUserResponse{}, port.ErrSysUnknown
+				return port.RegisterUserResponse{}, err
 
 			}
 		}
@@ -100,7 +102,7 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 	}
 
 	if err != nil {
-		return port.RegisterUserResponse{}, port.ErrSysUnknown
+		return port.RegisterUserResponse{}, err
 	}
 
 	return port.RegisterUserResponse{
@@ -110,18 +112,8 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 
 func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
-	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 
-	if err != nil {
-		log.Printf("Something wrong with the credentials or URL: %v", err)
-		return port.LoginAuthResponse{}, port.ErrSysUnknown
-	}
-	clientSecret, err := client.GetClientSecret(ctx, adminToken.AccessToken, k.KeycloakApplicationRealm, k.KeycloakClientId)
-	if err != nil {
-		log.Printf("client secret fetching failed: %v", err.Error())
-		return port.LoginAuthResponse{}, port.ErrSysUnknown
-	}
-	token, err := client.Login(ctx, k.KeycloakClientId, *clientSecret.Value, k.KeycloakApplicationRealm, req.Email, req.Password)
+	token, err := client.Login(ctx, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm, req.Email, req.Password)
 
 	if err != nil {
 		var apiErr *gocloak.APIError
@@ -133,7 +125,7 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserReq
 					return port.LoginAuthResponse{}, port.ErrSysFailedToLogin
 				}
 			default:
-				return port.LoginAuthResponse{}, port.ErrSysFailedToLogin
+				return port.LoginAuthResponse{}, port.ErrSysUnknown
 
 			}
 		}
@@ -160,17 +152,8 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserReq
 
 func (k *KeycloakProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
-	adminToken, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
-	if err != nil {
-		log.Printf("Something wrong with the credentials or URL: %v", err)
-		return port.LoginAuthResponse{}, port.ErrSysUnknown
-	}
-	clientSecret, err := client.GetClientSecret(ctx, adminToken.AccessToken, k.KeycloakApplicationRealm, k.KeycloakClientId)
-	if err != nil {
-		log.Printf("client secret fetching failed: %v", err.Error())
-		return port.LoginAuthResponse{}, port.ErrSysUnknown
-	}
-	token, err := client.RefreshToken(ctx, req.RefreshToken, k.KeycloakClientId, *clientSecret.Value, k.KeycloakRealm)
+
+	token, err := client.RefreshToken(ctx, req.RefreshToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakRealm)
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) {
