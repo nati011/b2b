@@ -59,7 +59,6 @@ func setup() {
 		"test@gmail.com",
 		smtpPort,
 	))
-
 }
 
 const (
