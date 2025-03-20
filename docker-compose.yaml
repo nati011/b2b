@@ -16,6 +16,7 @@ services:
       - KEYCLOAK_REALM
       - KEYCLOAK_CLIENT_ID
       - KEYCLOAK_APPLICATION_REALM
+      - KEYCLOAK_CLIENT_SECRET
       - DB_URL
       - SMTP
       - EMAIL
