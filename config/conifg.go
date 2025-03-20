@@ -10,6 +10,7 @@ type Config struct {
 	KeycloakRealm            string
 	KeycloakApplicationRealm string
 	KeycloakClientId         string
+	KeycloakClientSecret     string
 
 	//email
 	Email string
