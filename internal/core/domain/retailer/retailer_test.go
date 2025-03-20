@@ -39,6 +39,7 @@ func setup() {
 		KeycloakRealm,
 		keycloakApplicationRealm,
 		keycloakClientId,
+		"",
 	)
 
 	authService = auth.NewAuthService(KeycloakProvider)

@@ -68,12 +68,12 @@ type Container struct {
 	UserService           user.Provider
 }
 
-func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, email_address, smtp_port string) *Container {
+func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, email_address, smtp_port string, keycloakClientSecret string) *Container {
 	container := Container{}
 	container.db = db
 
 	//ORDER ORDER!!
-	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId)
+	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
 	container.InitDistributorService()
 	container.InitResourceService()
 	container.InitRoleService()
@@ -93,8 +93,8 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 	return &container
 }
 
-func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string) {
-	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId))
+func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
+	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret))
 }
 
 func (m *Container) InitDistributorService() {
