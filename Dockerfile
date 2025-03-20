@@ -19,8 +19,9 @@ CMD ./main \
     --keycloak_client_id $KEYCLOAK_CLIENT_ID \
     --keycloak_application_realm $KEYCLOAK_APPLICATION_REALM \
     --db $DB_URL \
-    --file /app \
+    --migration_file_dir /app \
     --smtp $SMTP \
     --email $EMAIL
+    --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET
 
 EXPOSE 8080
