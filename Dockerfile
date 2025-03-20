@@ -21,7 +21,7 @@ CMD ./main \
     --db $DB_URL \
     --migration_file_dir /app \
     --smtp $SMTP \
-    --email $EMAIL
+    --email $EMAIL \
     --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET
 
 EXPOSE 8080
