@@ -19,7 +19,7 @@ CMD ./main \
     --keycloak_client_id $KEYCLOAK_CLIENT_ID \
     --keycloak_application_realm $KEYCLOAK_APPLICATION_REALM \
     --db $DB_URL \
-    --migration_file_dir /app \
+    --migration_file_dir /app/migration \
     --smtp $SMTP \
     --email $EMAIL \
     --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET
