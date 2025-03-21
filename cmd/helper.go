@@ -16,6 +16,7 @@ var (
 	ErrKeycloakApplicationRealmMissing = errors.New("oopsy, keycloak application realm mandatory")
 	ErrKeycloakClientSecretMissing     = errors.New("oopsy, keycloak client secret mandatory")
 	ErrKeycloakClientIdMissing         = errors.New("oopsy, keycloak clientId missing")
+	ErrKeycloakClientSecretMandtory    = errors.New("oopsy, keycloak secret missing")
 	ErrEmailMissing                    = errors.New("oopsy, email missing")
 	ErrSMTPMissing                     = errors.New("oopsy, smtp missing")
 	ErrCoreDBConnectionStringMissing   = errors.New("oopsy, core db conn string missing")
@@ -54,7 +55,7 @@ func validateFlags(cfg config.Config) {
 		panic(ErrSMTPMissing)
 	}
 	if cfg.KeycloakClientSecret == "" {
-		panic(ErrKeycloakApplicationRealmMissing)
+		panic(ErrKeycloakClientSecretMandtory)
 	}
 }
 
