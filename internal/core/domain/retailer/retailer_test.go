@@ -2,20 +2,15 @@ package retailer
 
 import (
 	"context"
-	"log"
-	"math/rand"
 	"os"
 	"testing"
 
-	authProvider "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	db "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
-	port "b2b.nati011.github.com/internal/port/application/retailer"
-
+	"b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
 	"b2b.nati011.github.com/internal/core/application/auth"
 )
 
-var service Provider
-var authService auth.Provider
+var testContainer TestContainer
+var ctx context.Context
 
 func TestMain(m *testing.M) {
 	setup()
@@ -48,239 +43,261 @@ func setup() {
 
 		KeycloakProvider,
 	)
+	ctx = context.Background()
+	testContainer = NewPackageIntegrationTestContainer()
 }
 
 func Test_Create_happyPath(t *testing.T) {
-	t.Run("create", func(t *testing.T) {
-		ctx := context.Background()
-		in := &port.RegisterRetailerRequest{
-			FirstName:       "Test User",
-			Email:           "test789@email.com",
-			Password:        "test@123",
-			ConfirmPassword: "test@123",
-			Username:        "username",
-		}
+	in := CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
 
-		_, err := service.Create(ctx, in)
-
-		if err != nil {
-			log.Fatalf("Create retailer test failed %v", err)
-		}
-	})
-}
-
-func Test_Get_All_happyPath(t *testing.T) {
-	ctx := context.Background()
-
-	in := &port.RegisterRetailerRequest{
-		FirstName:       "Test User",
-		Email:           "t6546@email.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
+		FirstName: "test",
+		LastName:  "test",
+		Email:     "test@gmail.com",
 	}
-
-	_, err := service.Create(ctx, in)
+	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
-		t.Fatalf("Failed to create retailer %v", err)
+		t.Fatalf("Failed to create err: %v", err)
 	}
-	got, err := service.GetAll(ctx)
+
+	//check
+	resp, err := testContainer.RetailerService.Get(ctx, id)
 	if err != nil {
-		t.Errorf("Expected err:%v Got err: %v", nil, err)
+		t.Fatalf("Failed to get err: %v", err)
 	}
-	wantNum := 1
-	if len(got.List) != wantNum {
-		t.Errorf("Expected len: %v, Got len: %v", wantNum, len(got.List))
+	if resp.Id != id {
+		t.Errorf("Expected id: %v Got :%v", id, resp.Id)
 	}
 }
 
-func Test_Get_All_unhappyPath(t *testing.T) {
-	t.Run("no_retailer_found", func(t *testing.T) {
-		ctx := context.Background()
-		wantErr := ErrEmptyGetRetailerContent
-		_, err := service.GetAll(ctx)
+func Test_Create_unhappyPath(t *testing.T) {
+	t.Run("validate_invalid_Tin", func(t *testing.T) {
+		// tin :has tobe 10 digits
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err := testContainer.RetailerService.Create(ctx, &in)
+		wantErr := ErrInvalidTin
 		if err != wantErr {
-			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
+
+	t.Run("validate lat", func(t *testing.T) {
+		//validate lat: has tobe validate coordinates
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err := testContainer.RetailerService.Create(ctx, &in)
+		wantErr := ErrInvalidLatitude
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+
+	t.Run("validate long", func(t *testing.T) {
+		//validate long: has tobe validate coordinates
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err := testContainer.RetailerService.Create(ctx, &in)
+		wantErr := ErrInvalidLatitude
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Update_happyPath(t *testing.T) {
+	t.Run("updateName", func(t *testing.T) {
+		//setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		update_in := UpdateRequest{
+			Id:   id,
+			Name: "test",
+			Tin:  "1111111111",
+		}
+		err = testContainer.RetailerService.Update(ctx, &update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := testContainer.RetailerService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+	})
+
+	t.Run("updateTin", func(t *testing.T) {
+
+	})
+}
+
+func Test_Update_unhappyPath(t *testing.T) {
+
 }
 
 func Test_Get_happyPath(t *testing.T) {
-	ctx := context.Background()
-	in := &port.RegisterRetailerRequest{
-		FirstName:       "Test User",
-		Email:           "tesfhjt2_11@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
+	t.Run("getById", func(t *testing.T) {
+		//setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
 
-	resp, err := service.Create(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to create retailer %v", err)
-	}
-	params := port.GetByParamRequest{
-		Id: resp.Id,
-	}
-	_, err = service.GetByParam(ctx, &params)
-
-	if err != nil {
-		t.Fatalf("Failed to fetch retailer %v", err)
-	}
-}
-
-func Test_Get_All_Businesses_unhappyPath(t *testing.T) {
-	t.Run("no_businesses_found", func(t *testing.T) {
-		ctx := context.Background()
-		wantErr := ErrEmptyGetBusinessContent
-		_, err := service.GetBusinessAll(ctx)
-		if err != wantErr {
-			t.Errorf("Expected err:%v Got err: %v", wantErr, err)
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
 		}
-	})
-}
-func Test_Create_Business_happyPath(t *testing.T) {
-	t.Run("create", func(t *testing.T) {
-		ctx := context.Background()
-		in := &port.CreateBusinessInformation{
-			Name: "Test",
-			Tin:  124576,
-
-			GeneralZone: "Test Zone",
-			Region:      "Test Region",
-			Woreda:      "Test Woreda",
-			RetailerId:  rand.Int(),
-		}
-
-		_, err := service.AddBusinessInformattion(ctx, in)
-
+		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
-			log.Fatalf("Create retailer test failed %v", err)
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		_, err = testContainer.RetailerService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+	})
+
+	t.Run("getByName", func(t *testing.T) {
+		// setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		_, err = testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
+			Name: in.FirstName + in.LastName,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+	})
+
+	t.Run("getByTin", func(t *testing.T) {
+		// setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		_, err = testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
+			Tin: in.Tin,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+	})
+
+	t.Run("getAll", func(t *testing.T) {
+		// setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		_, err = testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
+			Tin: in.Tin,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
 		}
 	})
 }
 
-func Test_Get_All_Businesses_happyPath(t *testing.T) {
-	ctx := context.Background()
-	in := &port.RegisterRetailerRequest{
-		FirstName:       "Test User",
-		Email:           "tesfh231@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
-	_, err := service.Create(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to create retailer %v", err)
-	}
-	got, err := service.GetBusinessAll(ctx)
-	if err != nil {
-		t.Errorf("Expected err:%v Got err: %v", nil, err)
-	}
-	wantNum := 1
-	if len(got.List) != wantNum {
-		t.Errorf("Expected len: %v, Got len: %v", wantNum, len(got.List))
-	}
-}
-
-func Test_Get_Business_happyPath(t *testing.T) {
-	ctx := context.Background()
-
-	retailerIn := &port.RegisterRetailerRequest{
-		FirstName:       "Test User",
-		Email:           "businessTest@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
-
-	retailerResponse, err := service.Create(ctx, retailerIn)
-
-	if err != nil {
-		t.Fatalf("Failed to create retailer")
-	}
-
-	in := &port.CreateBusinessInformation{
-		Name: "Test",
-		Tin:  124576,
-
-		GeneralZone: "Test Zone",
-		Region:      "Test Region",
-		Woreda:      "Test Woreda",
-		RetailerId:  retailerResponse.Id,
-	}
-	resp, err := service.AddBusinessInformattion(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to create business %v", err)
-	}
-
-	_, err = service.GetById(ctx, resp.BusinessId)
-
-	if err != nil {
-		t.Fatalf("Failed to fetch business %v", err)
-	}
-}
-
-func Test_Update_Business_happyPath(t *testing.T) {
-	ctx := context.Background()
-	distIn := &port.RegisterRetailerRequest{
-		FirstName:       "Test User",
-		Email:           "test_retailer@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
-	dist, err := service.Create(ctx, distIn)
-	if err != nil {
-		t.Fatalf("Failed to create retailer %v", err)
-	}
-	businessIn := &port.CreateBusinessInformation{
-		Name: "Test",
-		Tin:  124576,
-
-		GeneralZone: "Test Zone",
-		Region:      "Test Region",
-		Woreda:      "Test Woreda",
-		RetailerId:  dist.Id,
-	}
-
-	businessResp, err := service.AddBusinessInformattion(ctx, businessIn)
-
-	if err != nil {
-		t.Fatalf("Failed to create business %v", err)
-	}
-	in := &port.UpdateBusinessRequest{
-		Id:   businessResp.BusinessId,
-		Name: "Test",
-		Tin:  124576,
-	}
-	resp, err := service.UpdateBusiness(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to update business %v", err)
-	}
-
-	want := port.RegisterRetailerResponse{
-		Id:      businessResp.BusinessId,
-		Message: SUCCESS_MESSAGE,
-	}
-
-	if resp != want {
-		t.Errorf("Expected: %v, Got: %v", want, resp)
-	}
-}
-
-func Test_Update_Business_unhappyPath(t *testing.T) {
-	ctx := context.Background()
-	id := rand.Int()
-	in := &port.UpdateBusinessRequest{
-		Id:         id,
-		Name:       "Test",
-		Tin:        124576,
-		RetailerId: rand.Int(),
-	}
-	_, err := service.UpdateBusiness(ctx, in)
-	wantErr := ErrEmptyGetRetailerContent
-	if err != wantErr {
-		t.Errorf("Expected: %v, Got: %v", wantErr, err)
-	}
+func Test_Get_unhappyPath(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		_, err := testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
+			Tin: "test",
+		})
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
 }
