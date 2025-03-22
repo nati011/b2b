@@ -33,6 +33,7 @@ type CreateRequest struct {
 
 type GetResponse struct {
 	Id          int
+	Name        string
 	Tin         string
 	Latitude    string
 	Longitude   string
