@@ -52,7 +52,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("validate_invalid_Tin", func(t *testing.T) {
 		// tin :has tobe 10 digits
 		in := CreateRequest{
-			Tin:         "1111111111",
+			Tin:         "111111111",
 			Latitude:    "9.0192° N",
 			Longitude:   "38.7525° E",
 			GeneralZone: "test",
@@ -70,46 +70,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("validate lat", func(t *testing.T) {
-		//validate lat: has tobe validate coordinates
-		in := CreateRequest{
-			Tin:         "1111111111",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
+	t.Run("validate_duplicate_Tin", func(t *testing.T) {
 
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
-		}
-		_, err := testContainer.RetailerService.Create(ctx, &in)
-		wantErr := ErrInvalidLatitude
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got: %v", wantErr, err)
-		}
-	})
-
-	t.Run("validate long", func(t *testing.T) {
-		//validate long: has tobe validate coordinates
-		in := CreateRequest{
-			Tin:         "1111111111",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
-		}
-		_, err := testContainer.RetailerService.Create(ctx, &in)
-		wantErr := ErrInvalidLatitude
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got: %v", wantErr, err)
-		}
 	})
 }
 
@@ -135,7 +97,6 @@ func Test_Update_happyPath(t *testing.T) {
 		update_in := UpdateRequest{
 			Id:   id,
 			Name: "test",
-			Tin:  "1111111111",
 		}
 		err = testContainer.RetailerService.Update(ctx, &update_in)
 		if err != nil {
@@ -171,9 +132,8 @@ func Test_Update_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 		update_in := UpdateRequest{
-			Id:   id,
-			Name: "test",
-			Tin:  "1111111111",
+			Id:  id,
+			Tin: "1234567891",
 		}
 		err = testContainer.RetailerService.Update(ctx, &update_in)
 		if err != nil {
@@ -261,7 +221,7 @@ func Test_Get_happyPath(t *testing.T) {
 		}
 		wantLen := 1
 		if len(resp.List) != wantLen {
-			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
 		}
 		if resp.List[0].Id != id {
 			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)

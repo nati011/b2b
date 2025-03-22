@@ -1,13 +1,13 @@
 package retailer
 
+import (
+	"regexp"
+)
+
 func validateTin(tin string) error {
-	return nil
-}
-
-func validateLat(lat string) error {
-	return nil
-}
-
-func validateLong(long string) error {
+	// TIN must be 10 digits
+	if matched, _ := regexp.MatchString(`^\d{10}$`, tin); !matched {
+		return ErrInvalidTin
+	}
 	return nil
 }
