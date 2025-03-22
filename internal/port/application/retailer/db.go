@@ -21,15 +21,14 @@ type CreateRequest struct {
 	UserId      int
 }
 
-type UpdateRequest struct {
-	Name        string
-	Tin         string
-	Latitude    string
-	Longitude   string
-	GeneralZone string
-	Region      string
-	Woreda      string
-	Id          int
+type UpdateNameRequest struct {
+	Name string
+	Id   int
+}
+
+type UpdateTinRequest struct {
+	Tin string
+	Id  int
 }
 
 type GetResponse struct {
@@ -50,13 +49,14 @@ type GetAllResponse struct {
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
-	GetByName(ctx context.Context, name string) (GetResponse, error)
+	GetByName(ctx context.Context, name string) (GetAllResponse, error)
 	GetByTin(ctx context.Context, tin string) (GetResponse, error)
 }
 
 type Writer interface {
 	Create(ctx context.Context, req CreateRequest) (int, error)
-	Update(ctx context.Context, req *UpdateRequest) error
+	UpdateName(ctx context.Context, req *UpdateNameRequest) error
+	UpdateTin(ctx context.Context, tin *UpdateTinRequest) error
 }
 
 type DB interface {
