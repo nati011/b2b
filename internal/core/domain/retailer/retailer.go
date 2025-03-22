@@ -11,6 +11,7 @@ import (
 var (
 	ErrUnknown         = errors.New("oopsy, unknown error")
 	ErrInvalidTin      = errors.New("oopsy, tin invalid")
+	ErrDuplicateTin    = errors.New("oopsy, tin already in use")
 	ErrInvalidLatitude = errors.New("oopsy, latitude invalid")
 	ErrIdNotFound      = errors.New("oopsy, id not found")
 	ErrEmptyGetContent = errors.New("oopsy, empty get content")
@@ -78,17 +79,7 @@ func NewRetailerService(up user.Provider, db port.DB) Provider {
 
 func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate
-	err := validateLat(req.Latitude)
-	if err != nil {
-		return 0, err
-	}
-
-	err = validateLong(req.Longitude)
-	if err != nil {
-		return 0, err
-	}
-
-	err = validateTin(req.Tin)
+	err := validateTin(req.Tin)
 	if err != nil {
 		return 0, err
 	}
@@ -102,7 +93,11 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 	})
 	if err != nil {
 		switch err {
-		case user.ErrEmailNotValid, user.ErrPhoneNotValid, user.ErrPhoneOrEmailMandatory, user.ErrFirstNameMandatory:
+		case user.ErrEmailNotValid,
+			user.ErrPhoneNotValid,
+			user.ErrPhoneOrEmailMandatory,
+			user.ErrFirstNameMandatory:
+
 			return 0, err
 		default:
 			return 0, ErrUnknown
@@ -142,6 +137,7 @@ func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) 
 
 	return GetResponse{
 		Id:          resp.Id,
+		Name:        resp.Name,
 		Tin:         resp.Tin,
 		Latitude:    resp.Latitude,
 		Longitude:   resp.Longitude,
@@ -152,9 +148,97 @@ func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) 
 }
 
 func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
+	resp := port.GetAllResponse{}
+
+	if req.Name != "" {
+		resp_name, err := r.DB.GetByName(ctx, req.Name)
+		if err != nil {
+			switch err {
+			case ErrIdNotFound:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		resp.List = append(resp.List, resp_name.List...)
+	}
+
+	if req.Tin != "" {
+		resp_tin, err := r.DB.GetByTin(ctx, req.Tin)
+		if err != nil {
+			switch err {
+			case ErrIdNotFound:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		resp.List = append(resp.List, resp_tin)
+	}
+	if len(resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	service_resp := GetAllResponse{}
+	for _, i := range resp.List {
+		service_resp.List = append(service_resp.List, GetResponse{
+			Id:          i.Id,
+			Name:        i.Name,
+			Tin:         i.Tin,
+			Latitude:    i.Latitude,
+			Longitude:   i.Longitude,
+			GeneralZone: i.GeneralZone,
+			Region:      i.Region,
+			Woreda:      i.Woreda,
+		})
+	}
 	return GetAllResponse{}, nil
 }
 
 func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error {
+	//validate id
+	_, err := r.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+
+	if req.Name != "" {
+		err = r.DB.UpdateName(ctx, &port.UpdateNameRequest{
+			Id:   req.Id,
+			Name: req.Name,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
+	if req.Tin != "" {
+		err = validateTin(req.Tin)
+		if err != nil {
+			switch err {
+			case ErrInvalidTin:
+				return err
+			default:
+				return ErrUnknown
+			}
+		}
+
+		err = r.DB.UpdateTin(ctx, &port.UpdateTinRequest{
+			Id:  req.Id,
+			Tin: req.Tin,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
+		}
+	}
+
 	return nil
 }
