@@ -74,6 +74,40 @@ func Test_Create_unhappyPath(t *testing.T) {
 
 	t.Run("validate_duplicate_Tin", func(t *testing.T) {
 		t.Cleanup(testContainer.Cleanup)
+		//setup
+		_, err := testContainer.RetailerService.Create(ctx, &CreateRequest{
+			Tin:         "1234567891",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		})
+		if err != nil {
+			t.Fatalf("Failed to create %v", err)
+		}
+
+		in := CreateRequest{
+			Tin:         "1234567891",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		_, err = testContainer.RetailerService.Create(ctx, &in)
+		wantErr := ErrDuplicateTin
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
 	})
 }
 
@@ -168,6 +202,36 @@ func Test_Update_unhappyPath(t *testing.T) {
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+
+	t.Run("duplicate_Tin", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
+		//setup
+		id, err := testContainer.RetailerService.Create(ctx, &CreateRequest{
+			Tin:         "1234567891",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		})
+		if err != nil {
+			t.Fatalf("Failed to create %v", err)
+		}
+
+		update_in := UpdateRequest{
+			Id:  id,
+			Tin: "1234567891",
+		}
+		err = testContainer.RetailerService.Update(ctx, &update_in)
+		wantErr := ErrDuplicateTin
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
 }
