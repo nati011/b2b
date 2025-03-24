@@ -120,6 +120,29 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.Stock = stock
 
 	// get attribute-values
+	var productAttruteValue = map[string]string{}
+	query = "SELECT * FROM public.get_attributes_by_productId($1)"
+	rows, err = p.db.QueryContext(ctx, query, id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var attributeName string
+		var attributeValue string
+		if err := rows.Scan(&attributeName, attributeValue); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetResponse{}, err
+		}
+		productAttruteValue[attributeName] = attributeValue
+	}
+	response.Attributes = productAttruteValue
 	return response, nil
 }
 
