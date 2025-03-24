@@ -63,6 +63,7 @@ type Provider interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) error
+	GetAllUsers(ctx context.Context, id int) (user_ids []int, err error)
 }
 
 type RetailerService struct {
@@ -250,4 +251,21 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error 
 	}
 
 	return nil
+}
+
+func (r *RetailerService) GetAllUsers(ctx context.Context, id int) ([]int, error) {
+	var response_ids = []int{}
+	users, err := r.DB.GetAllUserAgents(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return []int{}, ErrEmptyGetContent
+		default:
+			return []int{}, ErrUnknown
+		}
+	}
+	for _, i := range users.List {
+		response_ids = append(response_ids, i.Id)
+	}
+	return response_ids, nil
 }
