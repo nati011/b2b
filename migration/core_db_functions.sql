@@ -2382,12 +2382,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_attributes_values_by_productId(
     p_product_id INT
 )
-RETURNS TABLE(p_attribute VARCHAR(255), p_attribute_value VARCHAR(255))
+RETURNS TABLE(p_attribute_name VARCHAR(255), p_attribute_value VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.attribute_name, 
+    SELECT p.name, av.name 
     FROM public.p_attributes p
     JOIN public.p_attribute_values av
     ON av.attribute_id = p.id

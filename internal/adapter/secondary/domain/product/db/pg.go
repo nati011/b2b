@@ -121,7 +121,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 	// get attribute-values
 	var productAttruteValue = map[string]string{}
-	query = "SELECT * FROM public.get_attributes_by_productId($1)"
+	query = "SELECT * FROM public.get_attributes_values_by_productId($1)"
 	rows, err = p.db.QueryContext(ctx, query, id)
 	if err != nil {
 		switch err {
@@ -136,13 +136,14 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for rows.Next() {
 		var attributeName string
 		var attributeValue string
-		if err := rows.Scan(&attributeName, attributeValue); err != nil {
+		if err := rows.Scan(&attributeName, &attributeValue); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
 		productAttruteValue[attributeName] = attributeValue
 	}
 	response.Attributes = productAttruteValue
+
 	return response, nil
 }
 
