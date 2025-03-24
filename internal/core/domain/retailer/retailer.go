@@ -159,19 +159,23 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
-		resp.List = append(resp.List, resp_name.List...)
+		if len(resp_name.List) != 0 {
+			resp.List = append(resp.List, resp_name.List...)
+		}
 	}
 
 	if req.Tin != "" {
 		resp_tin, err := r.DB.GetByTin(ctx, req.Tin)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case port.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
-		resp.List = append(resp.List, resp_tin)
+		if resp_tin.Id != 0 {
+			resp.List = append(resp.List, resp_tin)
+		}
 	}
 	if len(resp.List) == 0 {
 		return GetAllResponse{}, ErrEmptyGetContent
@@ -189,7 +193,10 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 			Woreda:      i.Woreda,
 		})
 	}
-	return GetAllResponse{}, nil
+	if len(service_resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return service_resp, nil
 }
 
 func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error {
