@@ -1,53 +1,82 @@
 package handler
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
 )
 
-type Middleware struct {
-	URL            string
-	clientID       string
-	clientSecret   string
-	realm          string
-	clientPassword string
+type AuthMiddleware struct {
+	client       *gocloak.GoCloak
+	BaseURL      string
+	ClientID     string
+	ClientSecret string
+	Realm        string
+	Password     string
 }
 
-func NewMiddleware(keycloak_base_url, keycloak_password, keycloak_realm, keycloak_client_id, keycloak_client_secret string) *Middleware {
-	middleware := Middleware{}
-	middleware.Init(
-		keycloak_base_url, keycloak_password, keycloak_realm, keycloak_client_id, keycloak_client_secret,
-	)
-	return &middleware
+var (
+	ErrUnAuthorized = errors.New("oopsy, unauthorized user")
+)
+
+func NewAuthMiddleware(
+	BaseURL string,
+	ClientID string,
+	ClientSecret string,
+	Realm string,
+	Password string,
+) *AuthMiddleware {
+	return &AuthMiddleware{
+		client:       gocloak.NewClient(BaseURL),
+		BaseURL:      BaseURL,
+		ClientID:     ClientID,
+		ClientSecret: ClientSecret,
+		Realm:        Realm,
+		Password:     Password,
+	}
 }
 
-func (a *Middleware) Init(keycloak_base_url, keycloak_password, keycloak_realm, keycloak_client_id, keycloak_client_secret string) {
-	a.URL = keycloak_base_url
-	a.clientID = keycloak_client_id
-	a.clientSecret = keycloak_client_secret
-	a.realm = keycloak_realm
-	a.clientPassword = keycloak_password
-}
-
-func (a *Middleware) AuthenticationMiddleware(handler http.Handler) http.Handler {
+func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		header := r.Header
-		fmt.Printf("Header %v", header)
-		client := gocloak.NewClient(a.URL)
-
-		if header.Get("Authorization") == "" {
-			fmt.Printf("Authorization Header empty: %v", header)
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			return
 		}
 
-		result, err := client.RetrospectToken(r.Context(), header.Get("Authorization"), a.clientID, a.clientSecret, a.realm)
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "Bearer" {
+			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			return
+		}
+
+		token := parts[1]
+		if token == "" {
+			http.Error(w, "Unauthorized: No token provided", http.StatusUnauthorized)
+			return
+		}
+
+		result, err := am.client.RetrospectToken(
+			r.Context(),
+			token,
+			am.ClientID,
+			am.ClientSecret,
+			am.Realm,
+		)
 		if err != nil {
-			print(header.Get("Authorization"))
-			print(err.Error())
+			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			return
 		}
 
-		fmt.Printf("Introspection result %v", result)
-		handler.ServeHTTP(w, r)
+		if !*result.Active {
+			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "auth_info", result)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

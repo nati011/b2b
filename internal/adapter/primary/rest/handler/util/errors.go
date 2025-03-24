@@ -33,6 +33,11 @@ func RequestErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	errorResponse(w, http.StatusBadRequest, err.Error())
 }
 
+func UnauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	logError(err)
+	errorResponse(w, http.StatusUnauthorized, err.Error())
+}
+
 func NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "the requested resource could not be found"
 	errorResponse(w, http.StatusNotFound, message)
