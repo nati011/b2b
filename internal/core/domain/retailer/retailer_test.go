@@ -379,3 +379,35 @@ func Test_Get_unhappyPath(t *testing.T) {
 		}
 	})
 }
+
+func Test_Get_All_Users_happyPath(t *testing.T) {
+	t.Run("getAllUsers", func(t *testing.T) {
+		//setup
+		t.Cleanup(testContainer.Cleanup)
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get user agents %v", err)
+		}
+
+	})
+}
+
+func Test_Get_All_Users_unhappyPath(t *testing.T) {
+}
