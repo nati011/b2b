@@ -79,7 +79,7 @@ func NewRetailerService(up user.Provider, db port.DB) Provider {
 
 func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate
-	err := validateTin(req.Tin)
+	err := r.validateTin(ctx, req.Tin)
 	if err != nil {
 		return 0, err
 	}
@@ -225,10 +225,12 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error 
 	}
 
 	if req.Tin != "" {
-		err = validateTin(req.Tin)
+		err = r.validateTin(ctx, req.Tin)
 		if err != nil {
 			switch err {
 			case ErrInvalidTin:
+				return err
+			case ErrDuplicateTin:
 				return err
 			default:
 				return ErrUnknown
