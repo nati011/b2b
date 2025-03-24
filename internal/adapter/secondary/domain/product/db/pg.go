@@ -338,7 +338,6 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 		default:
 			return port.GetAllResponse{}, port.ErrSysUnknown
 		}
-
 	}
 	defer rows.Close()
 
