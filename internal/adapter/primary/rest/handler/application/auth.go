@@ -43,7 +43,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	loginResponse, err := h.service.ClientLogin(r.Context(), req)
 
 	if err != nil {
-		print(err.Error())
 		util.UnauthorizedErrorResponse(w, r, err)
 		return
 	}
@@ -61,7 +60,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	refreshResponse, err := h.service.RefreshToken(r.Context(), req)
 	if err != nil {
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
+		util.UnauthorizedErrorResponse(w, r, err)
 		return
 	}
 
