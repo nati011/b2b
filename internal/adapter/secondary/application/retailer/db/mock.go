@@ -42,14 +42,21 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Region:      req.Region,
 		Woreda:      req.Woreda,
 	})
-
-	//register user
-	//changes if business rule about default user creation changes
-	newUserId := len(m.userAgents) + 1
-	m.userAgents = append(m.userAgents, MockUserAgent{
-		Id: newUserId,
-	})
+	err := m.CreateUserAgent(ctx, req.UserId)
+	if err != nil {
+		switch err {
+		default:
+			return 0, port.ErrSysUnknown
+		}
+	}
 	return newId, nil
+}
+
+func (m Mock) CreateUserAgent(ctx context.Context, id int) error {
+	m.userAgents = append(m.userAgents, MockUserAgent{
+		Id: id,
+	})
+	return nil
 }
 
 func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
