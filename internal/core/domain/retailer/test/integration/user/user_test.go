@@ -8,7 +8,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
-var testContainer TestContainer
+var testContainer retailer.TestContainer
 var ctx context.Context
 
 func TestMain(m *testing.M) {
@@ -37,13 +37,19 @@ func Test_create_default_admin_user_upon_retailer_registration(t *testing.T) {
 		LastName:  "test",
 		Email:     "test@gmail.com",
 	}
-	_, err := testContainer.RetailerService.Create(ctx, &in)
+	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
-	//check if user exists
+	//get all retailer users
+	user_id, err := testContainer.RetailerService.GetAllUsers(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get users err: %v", err)
+	}
 	//attempt to deactivate
-	testContainer.UserService.Activate(ctx, id)
-
+	err = testContainer.UserService.Deactivate(ctx, user_id[0])
+	if err != nil {
+		t.Fatalf("Failed to activate user err: %v", err)
+	}
 }
