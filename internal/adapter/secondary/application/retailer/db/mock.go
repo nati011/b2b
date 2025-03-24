@@ -17,8 +17,13 @@ type MockRetailer struct {
 	Woreda      string
 }
 
+type MockUserAgent struct {
+	Id int
+}
+
 type Mock struct {
-	retailers []MockRetailer
+	retailers  []MockRetailer
+	userAgents []MockUserAgent
 }
 
 func NewMock() port.DB {
@@ -36,6 +41,13 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		GeneralZone: req.GeneralZone,
 		Region:      req.Region,
 		Woreda:      req.Woreda,
+	})
+
+	//register user
+	//changes if business rule about default user creation changes
+	newUserId := len(m.userAgents) + 1
+	m.userAgents = append(m.userAgents, MockUserAgent{
+		Id: newUserId,
 	})
 	return newId, nil
 }
@@ -183,4 +195,17 @@ func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, erro
 		}
 	}
 	return port.GetResponse{}, port.ErrSysNoRows
+}
+
+func (m *Mock) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUserResponse, error) {
+	var resp = port.GetAllUserResponse{}
+	for _, i := range m.userAgents {
+		resp.List = append(resp.List, port.GetUserResponse{
+			Id: i.Id,
+		})
+	}
+	if len(resp.List) == 0 {
+		return port.GetAllUserResponse{}, port.ErrSysNoRows
+	}
+	return resp, nil
 }
