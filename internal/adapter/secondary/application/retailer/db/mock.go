@@ -124,6 +124,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.retailers {
 		resp = append(resp, port.GetResponse{
+			Id:          i.Id,
 			Name:        i.Name,
 			Tin:         i.Tin,
 			Latitude:    i.Latitude,
@@ -142,29 +143,35 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 }
 
 func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
+	resp := []port.GetResponse{}
 	for _, i := range m.retailers {
 		if i.Name == name {
-			return port.GetAllResponse{
-				List: []port.GetResponse{
-					{
-						Name:        i.Name,
-						Tin:         i.Tin,
-						Latitude:    i.Latitude,
-						Longitude:   i.Longitude,
-						GeneralZone: i.GeneralZone,
-						Region:      i.Region,
-						Woreda:      i.Woreda},
-				},
-			}, nil
+			resp = append(resp, port.GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+			})
 		}
 	}
-	return port.GetAllResponse{}, port.ErrSysNoRows
+
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
 }
 
 func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	for _, i := range m.retailers {
 		if i.Tin == tin {
 			return port.GetResponse{
+				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
 				Latitude:    i.Latitude,
