@@ -260,7 +260,6 @@ func Test_Get_happyPath(t *testing.T) {
 			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
 		}
 	})
-
 	t.Run("getAll", func(t *testing.T) {
 		// setup
 		in := CreateRequest{
