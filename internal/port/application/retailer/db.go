@@ -46,6 +46,10 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type CreateUserAgentRequest struct {
+	User_id int
+}
+
 type GetUserResponse struct {
 	Id int
 }

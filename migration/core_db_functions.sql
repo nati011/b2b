@@ -1193,74 +1193,65 @@ $$;
 
 
 -- Retailer ----------------------------------------
+    
     -- writers
-create or replace function public.create_retailer () 
+CREATE OR REPLACE FUNCTION public.create_retailer (
+    r_name VARCHAR(255),
+    r_tin VARCHAR(255),
+    r_lat VARCHAR(255),
+    r_long VARCHAR(255),
+    r_generalZone VARCHAR(255),
+    r_region VARCHAR(255),
+    r_woreda VARCHAR(255)
+) 
 RETURNS INT 
 LANGUAGE plpgsql 
 AS $$
     DECLARE
         new_id INT;
-
+        business_id INT;
     BEGIN
-        INSERT INTO public.retailers values(default)
+        INSERT INTO public.retailers DEFAULT VALUES
         RETURNING id INTO new_id;
+
+        -- Business info
+        INSERT INTO public.retailer_business_info(name, tin, retailer_id)
+        VALUES(r_name, r_tin, new_id)  -- Corrected from r_retailer_id to new_id
+        RETURNING id INTO business_id;
+
+        -- Retailer business Locations
+        INSERT INTO public.rb_locations(lat, long, general_zone, region, woreda, business_id)
+        VALUES(r_lat, r_long, r_generalZone, r_region, r_woreda, business_id);  -- Added business_id
+
         RETURN new_id;
-    END;
-    $$;
-
-create or replace function public.create_retailer_location (
-  d_general_zone VARCHAR(255),
-  d_region VARCHAR(255),
-  d_woreda VARCHAR(255),
-  d_business_id INT
-) RETURNS INT LANGUAGE plpgsql as $$
-    DECLARE
-        new_id INT;
-
-    BEGIN
-        INSERT INTO public.db_locations(d_general_zone, d_region, d_woreda, d_business_id) 
-        VALUES (general_zone, region, woreda, business_id,  retailer_id)
-        RETURNING id INTO new_id;
-        RETURN new_id;
-
     END;
 $$;
 
-create or replace function public.delete_retailer(
-    retailer_identifier INT) 
-RETURNS VOID 
-LANGUAGE plpgsql 
-AS $$
-    BEGIN
-        UPDATE public.retailers
-        SET is_deleted = TRUE
-        WHERE id =retailer_identifier
-        AND is_deleted = FALSE;
-    END;
-$$;
-
-
----readers
+    ---readers
 create or replace function public.get_retailer_by_id (
     retailer_id INT) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
-  email VARCHAR(255),
-  phone VARCHAR(255),
-  username VARCHAR(255),
-  birthdate date,
-  is_active boolean,
-  external_id VARCHAR(255)) 
+  name VARCHAR(255),
+  tin VARCHAR(255),
+  lat VARCHAR(255),
+  long VARCHAR(255),
+  generalZone VARCHAR(255),
+  region VARCHAR(255),
+  woreda VARCHAR(255)
+) 
 LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
 
-        SELECT  t2.id, t3.FirstName, t3.email, t3.phone_number, t3.username, t3.birth_date, t3.external_id
-        from public.retailer_users t1
-        INNER JOIN public.retailers t2 on t1.retailer_id
-        INNER JOIN public.users t3 on t2.user_id=t3.id
+        SELECT  r.id, rb.name, rb.tin, rb_loc.lat, rb_loc.long, 
+        rb_loc.general_zone, rb_loc.region, rb_loc.woreda
+        FROM  public.retailers r
+        JOIN public.retailer_business_info rb 
+        ON rb.retailer_id = r.id
+        JOIN public.rb_locations rb_loc 
+        ON rb_loc.business_id = rb.id
         WHERE t1.retailer_id = retailer_id AND t1.is_deleted=false
         LIMIT 1;
     END;
