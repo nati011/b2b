@@ -21,6 +21,7 @@ func setup() {
 }
 
 func Test_Create_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Cleanup)
 	in := CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
@@ -50,6 +51,7 @@ func Test_Create_happyPath(t *testing.T) {
 
 func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("validate_invalid_Tin", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		// tin :has tobe 10 digits
 		in := CreateRequest{
 			Tin:         "111111111",
@@ -71,12 +73,13 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("validate_duplicate_Tin", func(t *testing.T) {
-
+		t.Cleanup(testContainer.Cleanup)
 	})
 }
 
 func Test_Update_happyPath(t *testing.T) {
 	t.Run("updateName", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		//setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -114,6 +117,7 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("updateTin", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -154,6 +158,7 @@ func Test_Update_happyPath(t *testing.T) {
 
 func Test_Update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		update_in := UpdateRequest{
 			Id:   99,
 			Name: "test",
@@ -169,6 +174,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 
 func Test_Get_happyPath(t *testing.T) {
 	t.Run("getById", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		//setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -196,6 +202,7 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByName", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -229,6 +236,7 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByTin", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -261,6 +269,7 @@ func Test_Get_happyPath(t *testing.T) {
 		}
 	})
 	t.Run("getAll", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -296,6 +305,7 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
 		_, err := testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
 			Tin: "test",
 		})
