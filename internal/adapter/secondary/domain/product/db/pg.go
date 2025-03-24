@@ -255,6 +255,31 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			}
 		}
 		product.Stock = stock
+
+		// get attribute-values
+		var productAttruteValue = map[string]string{}
+		query = "SELECT * FROM public.get_attributes_values_by_productId($1)"
+		rows, err = p.db.QueryContext(ctx, query, product.Id)
+		if err != nil {
+			switch err {
+			case sql.ErrNoRows:
+				return port.GetAllResponse{}, port.ErrSysNoRows
+			default:
+				return port.GetAllResponse{}, port.ErrSysUnknown
+			}
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var attributeName string
+			var attributeValue string
+			if err := rows.Scan(&attributeName, &attributeValue); err != nil {
+				log.Printf("unable to scan row: %q", err)
+				return port.GetAllResponse{}, err
+			}
+			productAttruteValue[attributeName] = attributeValue
+		}
+		product.Attributes = productAttruteValue
 		response.List = append(response.List, product)
 	}
 
