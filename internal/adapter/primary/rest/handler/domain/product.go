@@ -132,7 +132,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		util.WriteJSON(w, util.Envelope{"product": resp}, http.StatusAccepted)
-	} else {
+	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
 		if ParamCategoryIdValue != "" {
@@ -184,6 +184,21 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case product.ErrCategoryNotFound,
 				product.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+				return
+			}
+		}
+		util.WriteJSON(w, util.Envelope{"products": resp}, http.StatusAccepted)
+	} else {
+		// GET ALL
+		resp, err := p.service.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case product.ErrEmptyGetContent:
+
 				util.RequestErrorResponse(w, r, err)
 				return
 			default:
