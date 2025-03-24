@@ -46,11 +46,20 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type GetUserResponse struct {
+	Id int
+}
+
+type GetAllUserResponse struct {
+	List []GetUserResponse
+}
+
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByName(ctx context.Context, name string) (GetAllResponse, error)
 	GetByTin(ctx context.Context, tin string) (GetResponse, error)
+	GetAllUserAgents(ctx context.Context, id int) (GetAllUserResponse, error)
 }
 
 type Writer interface {
