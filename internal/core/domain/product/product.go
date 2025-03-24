@@ -332,6 +332,9 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	for _, i := range resp.List {
 		resp_val.List = append(resp_val.List, GetResponse(i))
 	}
+	//add image
+	//add categories
+	//add attributes
 	return resp_val, nil
 }
 
