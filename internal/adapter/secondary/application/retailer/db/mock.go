@@ -42,19 +42,20 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Region:      req.Region,
 		Woreda:      req.Woreda,
 	})
-	err := m.CreateUserAgent(ctx, req.UserId)
+
+	err := m.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
+		User_id: req.UserId,
+	})
 	if err != nil {
-		switch err {
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, port.ErrSysUnknown
 	}
+
 	return newId, nil
 }
 
-func (m Mock) CreateUserAgent(ctx context.Context, id int) error {
+func (m Mock) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
 	m.userAgents = append(m.userAgents, MockUserAgent{
-		Id: id,
+		Id: req.User_id,
 	})
 	return nil
 }
