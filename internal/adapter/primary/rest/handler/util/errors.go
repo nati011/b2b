@@ -1,16 +1,13 @@
 package handler
 
 import (
-	"log"
+	"errors"
 	"net/http"
-	"os"
 )
 
-var logger = log.New(os.Stdout, "api: ", log.LstdFlags)
-
-func logError(err error) {
-	logger.Println(err)
-}
+var (
+	ErrInvalidRequestBody = errors.New("oopsy, invalid request data")
+)
 
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 	env := Envelope{"message": message}

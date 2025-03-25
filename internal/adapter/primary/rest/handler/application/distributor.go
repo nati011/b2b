@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	port "b2b.nati011.github.com/internal/port/application/distributor"
-	// util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 type DistributorHandler struct {
@@ -34,15 +34,20 @@ func (h *DistributorHandler) RegisterDistributor(w http.ResponseWriter, r *http.
 	var req port.RegisterDistributorRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		util.RequestErrorResponse(w, r, util.ErrInvalidRequestBody)
 		return
 	}
 
 	registerResponse, err := h.distributorService.Create(r.Context(), &req)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
+		switch err {
+		case distributor.ErrUnknown:
+			util.ServerErrorResponse(w, r, err)
+			return
+		default:
+			util.RequestErrorResponse(w, r, err)
+		}
 	}
 
 	json.NewEncoder(w).Encode(registerResponse)
@@ -52,15 +57,21 @@ func (h *DistributorHandler) AddBusinessInformattion(w http.ResponseWriter, r *h
 	var req port.CreateBusinessInformation
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		util.RequestErrorResponse(w, r, util.ErrInvalidRequestBody)
 		return
 	}
 
 	registerResponse, err := h.distributorService.AddBusinessInformattion(r.Context(), &req)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
+		switch err {
+		case distributor.ErrUnknown:
+			util.ServerErrorResponse(w, r, err)
+			return
+		default:
+			util.RequestErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	json.NewEncoder(w).Encode(registerResponse)

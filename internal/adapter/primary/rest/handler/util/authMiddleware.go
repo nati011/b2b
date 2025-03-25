@@ -48,14 +48,14 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		}
 
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "Bearer" {
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
 			return
 		}
 
 		token := parts[1]
 		if token == "" {
-			http.Error(w, "Unauthorized: No token provided", http.StatusUnauthorized)
+			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
 			return
 		}
 
