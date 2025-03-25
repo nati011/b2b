@@ -1161,8 +1161,8 @@ CREATE OR REPLACE FUNCTION public.update_distributor_business_location(
     d_general_zone VARCHAR(255),
     d_region VARCHAR(255),
     d_woreda VARCHAR(255)
-
-) RETURNS INT LANGUAGE plpgsql 
+) RETURNS INT 
+LANGUAGE plpgsql 
 AS $$
     DECLARE
         updated_business_id INT;
@@ -1231,7 +1231,7 @@ CREATE OR REPLACE FUNCTION public.update_retailer_name(
     r_id INT,
     r_name VARCHAR(255)
 ) 
-RETURNS INT 
+RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
     DECLARE new_id INT;
@@ -1247,13 +1247,13 @@ CREATE OR REPLACE FUNCTION public.update_retailer_tin(
     r_id INT,
     r_tin VARCHAR(255)
 ) 
-RETURNS INT 
+RETURNS VOID 
 LANGUAGE plpgsql 
 AS $$
     DECLARE new_id INT;
     BEGIN
         UPDATE public.retailer_business_info
-            SET name = r_name
+            SET tin = r_tin
             WHERE id = r_id;
     END;
 $$;
