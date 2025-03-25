@@ -281,17 +281,140 @@ func Test_Read(t *testing.T) {
 func Test_Write(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := retailer.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+
+			Email: "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//check
+		resp, err := testContainer.RetailerService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		if resp.Id != id {
+			t.Errorf("Expected id: %v Got :%v", id, resp.Id)
+		}
 	})
 
 	t.Run("create_user_agent", func(t *testing.T) {
 		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := retailer.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+
+			Email: "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//check if user agent has been created
+		_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get user agents %v", err)
+		}
 	})
 
 	t.Run("updateName", func(t *testing.T) {
 		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := retailer.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		update_in := retailer.UpdateRequest{
+			Id:   id,
+			Name: "test",
+		}
+		err = testContainer.RetailerService.Update(ctx, &update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := testContainer.RetailerService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		if resp.Name != update_in.Name {
+			t.Errorf("Expected name: %v Got:%v", update_in.Name, resp.Name)
+		}
 	})
 
 	t.Run("updateTin", func(t *testing.T) {
 		t.Cleanup(teardown)
+		// setup
+		ctx := context.Background()
+		in := retailer.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		update_in := retailer.UpdateRequest{
+			Id:  id,
+			Tin: "1234567891",
+		}
+		err = testContainer.RetailerService.Update(ctx, &update_in)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		// check
+		resp, err := testContainer.RetailerService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		if resp.Tin != update_in.Tin {
+			t.Errorf("Expected Tin: %v Got:%v", update_in.Tin, resp.Tin)
+		}
 	})
 }
