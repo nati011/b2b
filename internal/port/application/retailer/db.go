@@ -47,7 +47,8 @@ type GetAllResponse struct {
 }
 
 type CreateUserAgentRequest struct {
-	User_id int
+	User_id     int
+	Retailer_id int
 }
 
 type GetUserResponse struct {
@@ -68,6 +69,7 @@ type Reader interface {
 
 type Writer interface {
 	Create(ctx context.Context, req CreateRequest) (int, error)
+	CreateRetailerUser(ctx context.Context, req *CreateUserAgentRequest) error
 	UpdateName(ctx context.Context, req *UpdateNameRequest) error
 	UpdateTin(ctx context.Context, tin *UpdateTinRequest) error
 }
