@@ -136,7 +136,7 @@ func Test_Update_happyPath(t *testing.T) {
 			Id:   id,
 			Name: "test",
 		}
-		err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.RetailerService.Update(ctx, &update_in)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
@@ -174,7 +174,7 @@ func Test_Update_happyPath(t *testing.T) {
 			Id:  id,
 			Tin: "1234567891",
 		}
-		err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.RetailerService.Update(ctx, &update_in)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
@@ -199,7 +199,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Name: "test",
 			Tin:  "1111111111",
 		}
-		err := testContainer.RetailerService.Update(ctx, &update_in)
+		_, err := testContainer.RetailerService.Update(ctx, &update_in)
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -229,7 +229,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Id:  id,
 			Tin: "1234567891",
 		}
-		err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.RetailerService.Update(ctx, &update_in)
 		wantErr := ErrDuplicateTin
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
