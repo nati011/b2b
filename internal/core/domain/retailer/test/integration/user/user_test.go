@@ -43,12 +43,12 @@ func Test_create_default_admin_user_upon_retailer_registration(t *testing.T) {
 	}
 
 	//get all retailer users
-	user_id, err := testContainer.RetailerService.GetAllUsers(ctx, id)
+	users, err := testContainer.RetailerService.GetAllUsers(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to get users err: %v", err)
 	}
 	//attempt to deactivate
-	err = testContainer.UserService.Deactivate(ctx, user_id[0])
+	err = testContainer.UserService.Deactivate(ctx, users.List[0])
 	if err != nil {
 		t.Fatalf("Failed to activate user err: %v", err)
 	}

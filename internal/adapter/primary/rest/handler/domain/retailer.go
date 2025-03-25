@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -52,6 +54,10 @@ type UpdateRequest struct {
 	Tin  string `json:"tin"`
 }
 
+type GetAllUsers struct {
+	List []int `json:"list"`
+}
+
 type Retailer struct {
 	service retailer.Provider
 }
@@ -98,7 +104,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"retailer": resp}, http.StatusAccepted)
+		util.WriteJSON(w, util.Envelope{"retailer": (GetResponse)(resp)}, http.StatusAccepted)
 	} else if paramNameValue != "" || paramTinValue != "" {
 		resp, err := re.service.GetByParam(r.Context(), &retailer.GetByParamRequest{
 			Name: paramNameValue,
@@ -115,17 +121,110 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"retailers": resp}, http.StatusAccepted)
+		handler_resp := GetAllResponse{}
+		for _, i := range resp.List {
+			handler_resp.List = append(handler_resp.List, (GetResponse)(i))
+		}
+		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	} else {
-	}
-	//GET ALL
-}
+		resp, err := re.service.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case retailer.ErrEmptyGetContent:
 
-func (p *Retailer) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+				return
+			}
+		}
+		handler_resp := GetAllResponse{}
+		for _, i := range resp.List {
+			handler_resp.List = append(handler_resp.List, (GetResponse)(i))
+		}
+		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
+	}
 }
 
 func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CreateRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	id, err := p.service.Create(r.Context(), (*retailer.CreateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound,
+			retailer.ErrDuplicateTin,
+			retailer.ErrInvalidTin:
+
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"retailer": id}, http.StatusAccepted)
 }
 
-func (p *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+func (re *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody UpdateRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	id, err := re.service.Update(r.Context(), (*retailer.UpdateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"retailer": id}, http.StatusAccepted)
+}
+
+func (re *Retailer) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, r, err)
+			return
+		}
+		resp, err := re.service.GetAllUsers(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case retailer.ErrIdNotFound:
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+			}
+		}
+		util.WriteJSON(w, util.Envelope{"retailer_users": (GetAllUsers)(resp)}, http.StatusAccepted)
+	}
 }
