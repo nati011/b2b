@@ -46,7 +46,7 @@ func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistr
 	}
 	_, err = d.authService.CreateNewClient(ctx, user)
 	if err != nil {
-		return resp, err
+		return port.RegisterDistributorResponse{}, err
 
 	}
 
@@ -62,7 +62,7 @@ func (d *DistributorService) Create(ctx context.Context, req *port.RegisterDistr
 	id, err := d.db.Create(ctx, &distribtor)
 	if err != nil {
 
-		return resp, ErrUnknown
+		return port.RegisterDistributorResponse{}, ErrUnknown
 
 	}
 
