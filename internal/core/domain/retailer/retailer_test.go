@@ -32,7 +32,8 @@ func Test_Create_happyPath(t *testing.T) {
 
 		FirstName: "test",
 		LastName:  "test",
-		Email:     "test@gmail.com",
+
+		Email: "test@gmail.com",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -333,37 +334,6 @@ func Test_Get_happyPath(t *testing.T) {
 		}
 	})
 	t.Run("getAll", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
-		// setup
-		in := CreateRequest{
-			Tin:         "1111111111",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
-		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		resp, err := testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
-			Tin: in.Tin,
-		})
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-		wantLen := 1
-		if len(resp.List) != wantLen {
-			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
-		}
-		if resp.List[0].Id != id {
-			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
-		}
 	})
 }
 

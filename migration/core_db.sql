@@ -117,7 +117,7 @@ COMMENT ON TABLE public."admin_users" IS 'stores admin agents(always on the admi
 CREATE TABLE IF NOT EXISTS public."retailer_business_info" 
 (
   id SERIAL PRIMARY KEY,
-  name TEXT,
+  name VARCHAR(255),
   tin VARCHAR(10) NOT NULL,
   retailer_id INT UNIQUE REFERENCES public."retailers" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -126,8 +126,8 @@ COMMENT ON TABLE public."retailer_business_info" IS 'stores busines information 
 
 CREATE TABLE IF NOT EXISTS public."rb_locations"
 (	
-  lat FLOAT,
-  long FLOAT,
+  lat VARCHAR(255),
+  long VARCHAR(255),
   general_zone VARCHAR(255) NOT NULL,
   region VARCHAR(255) NOT NULL,
   woreda VARCHAR(255) NOT NULL,
