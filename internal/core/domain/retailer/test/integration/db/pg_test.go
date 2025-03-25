@@ -393,7 +393,7 @@ func Test_Write(t *testing.T) {
 			Id:   id,
 			Name: "test",
 		}
-		err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.RetailerService.Update(ctx, &update_in)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
@@ -432,7 +432,7 @@ func Test_Write(t *testing.T) {
 			Id:  id,
 			Tin: "1234567891",
 		}
-		err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.RetailerService.Update(ctx, &update_in)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}

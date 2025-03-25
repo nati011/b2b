@@ -12,7 +12,6 @@ var (
 	ErrUnknown         = errors.New("oopsy, unknown error")
 	ErrInvalidTin      = errors.New("oopsy, tin invalid")
 	ErrDuplicateTin    = errors.New("oopsy, tin already in use")
-	ErrInvalidLatitude = errors.New("oopsy, latitude invalid")
 	ErrIdNotFound      = errors.New("oopsy, id not found")
 	ErrEmptyGetContent = errors.New("oopsy, empty get content")
 )
@@ -58,13 +57,17 @@ type UpdateRequest struct {
 	Tin  string
 }
 
+type GetAllUsers struct {
+	List []int
+}
+
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
-	Update(ctx context.Context, req *UpdateRequest) error
-	GetAllUsers(ctx context.Context, id int) (user_ids []int, err error)
+	Update(ctx context.Context, req *UpdateRequest) (int, error)
+	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
 }
 
 type RetailerService struct {
@@ -235,15 +238,15 @@ func (r *RetailerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	return service_resp, nil
 }
 
-func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error {
+func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate id
 	_, err := r.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case ErrIdNotFound:
-			return err
+			return 0, err
 		default:
-			return ErrUnknown
+			return 0, ErrUnknown
 		}
 	}
 
@@ -255,7 +258,7 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error 
 		if err != nil {
 			switch err {
 			default:
-				return ErrUnknown
+				return 0, ErrUnknown
 			}
 		}
 	}
@@ -265,11 +268,11 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error 
 		if err != nil {
 			switch err {
 			case ErrInvalidTin:
-				return err
+				return 0, err
 			case ErrDuplicateTin:
-				return err
+				return 0, err
 			default:
-				return ErrUnknown
+				return 0, ErrUnknown
 			}
 		}
 
@@ -280,27 +283,29 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error 
 		if err != nil {
 			switch err {
 			default:
-				return ErrUnknown
+				return 0, ErrUnknown
 			}
 		}
 	}
 
-	return nil
+	return req.Id, nil
 }
 
-func (r *RetailerService) GetAllUsers(ctx context.Context, id int) ([]int, error) {
+func (r *RetailerService) GetAllUsers(ctx context.Context, id int) (GetAllUsers, error) {
 	var response_ids = []int{}
 	users, err := r.DB.GetAllUserAgents(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return []int{}, ErrEmptyGetContent
+			return GetAllUsers{}, ErrEmptyGetContent
 		default:
-			return []int{}, ErrUnknown
+			return GetAllUsers{}, ErrUnknown
 		}
 	}
 	for _, i := range users.List {
 		response_ids = append(response_ids, i.Id)
 	}
-	return response_ids, nil
+	return GetAllUsers{
+		List: response_ids,
+	}, nil
 }
