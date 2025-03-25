@@ -62,6 +62,7 @@ type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
+	GetAll(ctx context.Context) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) error
 	GetAllUsers(ctx context.Context, id int) (user_ids []int, err error)
 }
@@ -181,6 +182,39 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 	}
 	if len(resp.List) == 0 {
 		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	service_resp := GetAllResponse{}
+	for _, i := range resp.List {
+		service_resp.List = append(service_resp.List, GetResponse{
+			Id:          i.Id,
+			Name:        i.Name,
+			Tin:         i.Tin,
+			Latitude:    i.Latitude,
+			Longitude:   i.Longitude,
+			GeneralZone: i.GeneralZone,
+			Region:      i.Region,
+			Woreda:      i.Woreda,
+		})
+	}
+	if len(service_resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return service_resp, nil
+}
+
+func (r *RetailerService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp := port.GetAllResponse{}
+
+	resp_name, err := r.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	if len(resp_name.List) != 0 {
+		resp.List = append(resp.List, resp_name.List...)
 	}
 	service_resp := GetAllResponse{}
 	for _, i := range resp.List {
