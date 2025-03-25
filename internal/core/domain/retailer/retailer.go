@@ -114,6 +114,7 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		GeneralZone: req.GeneralZone,
 		Region:      req.Region,
 		Woreda:      req.Woreda,
+		UserId:      req.UserId,
 	})
 	if err != nil {
 		switch err {

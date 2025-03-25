@@ -1229,7 +1229,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.update_retailer_name(
     r_id INT,
-    r_name VARCHAR(255),
+    r_name VARCHAR(255)
 ) 
 RETURNS INT 
 LANGUAGE plpgsql 
@@ -1245,7 +1245,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.update_retailer_tin(
     r_id INT,
-    r_tin VARCHAR(255),
+    r_tin VARCHAR(255)
 ) 
 RETURNS INT 
 LANGUAGE plpgsql 
@@ -1260,9 +1260,9 @@ $$;
 
     -- readers
 create or replace function public.get_retailer_by_id (
-    retailer_id INT
+    r_retailer_id INT
 ) 
-RETURNS table (
+RETURNS TABLE (
   id INT,
   name VARCHAR(255),
   tin VARCHAR(255),
@@ -1284,7 +1284,7 @@ AS $$
         ON rb.retailer_id = r.id
         JOIN public.rb_locations rb_loc 
         ON rb_loc.business_id = rb.id
-        WHERE r.id = retailer_id 
+        WHERE r.id = r_retailer_id 
         AND r.is_deleted = FALSE
         LIMIT 1;
     END;
@@ -1293,7 +1293,7 @@ $$;
 create or replace function public.get_retailer_by_name (
     retailer_name VARCHAR(255)
 ) 
-RETURNS table (
+RETURNS TABLE (
   id INT,
   name VARCHAR(255),
   tin VARCHAR(255),
@@ -1316,14 +1316,14 @@ AS $$
         JOIN public.rb_locations rb_loc 
         ON rb_loc.business_id = rb.id
         WHERE rb.name = retailer_name 
-        AND r.is_deleted = FALSE
+        AND r.is_deleted = FALSE;
     END;
 $$;
 
 create or replace function public.get_retailer_by_tin (
     retailer_tin VARCHAR(255)
 ) 
-RETURNS table (
+RETURNS TABLE (
   id INT,
   name VARCHAR(255),
   tin VARCHAR(255),
@@ -1346,7 +1346,7 @@ AS $$
         JOIN public.rb_locations rb_loc 
         ON rb_loc.business_id = rb.id
         WHERE rb.tin = retailer_tin 
-        AND r.is_deleted = FALSE
+        AND r.is_deleted = FALSE;
     END;
 $$;
 
@@ -1402,6 +1402,7 @@ RETURNS TABLE (
 LANGUAGE plpgsql 
 AS $$
 BEGIN   
+    RETURN QUERY
     SELECT user_id
     FROM public.retailer_users ru
     WHERE ru.retailer_id = r_id;
