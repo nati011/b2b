@@ -177,6 +177,36 @@ func Test_Read(t *testing.T) {
 	})
 
 	t.Run("get_all", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		// setup
+		in := retailer.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
+		}
+		id, err := testContainer.RetailerService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := testContainer.RetailerService.GetAll(ctx)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
+		}
+		if resp.List[0].Id != id {
+			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
+		}
 	})
 
 	t.Run("get_by_name", func(t *testing.T) {
