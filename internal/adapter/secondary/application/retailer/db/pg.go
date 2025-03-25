@@ -1,4 +1,4 @@
-package db
+package adapter
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 )
 
 type Postgres struct {
-	db *sql.DB
+	Pool *sql.DB
 }
 
 func NewPostgres(db *sql.DB) port.DB {
 	return &Postgres{
-		db: db,
+		Pool: db,
 	}
 }
 
@@ -22,7 +22,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 	var retailerId int
 	query := "SELECT * FROM public.create_retailer($1, $2, $3, $4, $5, $6, $7);"
 
-	err := r.db.QueryRowContext(ctx, query,
+	err := r.Pool.QueryRowContext(ctx, query,
 		req.Name,
 		req.Tin,
 		req.Latitude,
@@ -46,7 +46,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 func (r *Postgres) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
 	query := "SELECT * FROM public.create_retailer_user($1, $2);"
 
-	_, err := r.db.QueryContext(ctx, query, req.Retailer_id, req.User_id)
+	_, err := r.Pool.QueryContext(ctx, query, req.Retailer_id, req.User_id)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -61,7 +61,7 @@ func (r *Postgres) CreateRetailerUser(ctx context.Context, req *port.CreateUserA
 func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_retailer_by_id($1);"
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Tin, &response.Latitude, &response.Longitude, &response.GeneralZone, &response.Region, &response.Woreda)
+	err := r.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Tin, &response.Latitude, &response.Longitude, &response.GeneralZone, &response.Region, &response.Woreda)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -75,7 +75,7 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
 	query := "SELECT * FROM public.update_retailer_name($1, $2);"
-	_, err := r.db.QueryContext(ctx, query, req.Id, req.Name)
+	_, err := r.Pool.QueryContext(ctx, query, req.Id, req.Name)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -89,7 +89,7 @@ func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 
 func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error {
 	query := "SELECT * FROM public.update_retailer_tin($1, $2);"
-	_, err := r.db.QueryContext(ctx, query, req.Id, req.Tin)
+	_, err := r.Pool.QueryContext(ctx, query, req.Id, req.Tin)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -105,7 +105,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_all_retailers();"
-	rows, err := r.db.QueryContext(ctx, query)
+	rows, err := r.Pool.QueryContext(ctx, query)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -138,7 +138,7 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_retailer_by_name($1);"
-	rows, err := r.db.QueryContext(ctx, query, name)
+	rows, err := r.Pool.QueryContext(ctx, query, name)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -169,8 +169,8 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	var response port.GetResponse
-	query := "SELECT * FROM public.get_retailer_by_id($1);"
-	err := r.db.QueryRowContext(ctx, query, tin).Scan(&response.Id, &response.Name, &response.Tin, &response.Latitude, &response.Longitude, &response.GeneralZone, &response.Region, &response.Woreda)
+	query := "SELECT * FROM public.get_retailer_by_tin($1);"
+	err := r.Pool.QueryRowContext(ctx, query, tin).Scan(&response.Id, &response.Name, &response.Tin, &response.Latitude, &response.Longitude, &response.GeneralZone, &response.Region, &response.Woreda)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -186,7 +186,7 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 	var response port.GetAllUserResponse
 
 	query := "SELECT * FROM public.get_all_retailer_users($1);"
-	rows, err := r.db.QueryContext(ctx, query, id)
+	rows, err := r.Pool.QueryContext(ctx, query, id)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
