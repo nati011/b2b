@@ -225,6 +225,6 @@ func (re *Retailer) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"retailer_users": (GetAllUsers)(resp)}, http.StatusAccepted)
+		util.WriteJSON(w, util.Envelope{"users": (GetAllUsers)(resp)}, http.StatusAccepted)
 	}
 }
