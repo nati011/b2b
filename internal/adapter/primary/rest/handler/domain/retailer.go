@@ -37,6 +37,7 @@ type GetResponse struct {
 	GeneralZone string `json:"general_zone"`
 	Region      string `json:"region"`
 	Woreda      string `json:"woreda"`
+	Users       []int  `json:"users"`
 }
 
 type GetAllResponse struct {
@@ -52,10 +53,6 @@ type UpdateRequest struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 	Tin  string `json:"tin"`
-}
-
-type GetAllUsers struct {
-	List []int `json:"list"`
 }
 
 type Retailer struct {
@@ -75,7 +72,6 @@ func (r *Retailer) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/retailer", r.GetHandler)
 	mux.HandleFunc("POST /api/v1/retailer", r.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/retailer", r.UpdateHandler)
-	mux.HandleFunc("GET /api/v1/retailer/users", r.GetUsersHandler)
 }
 
 func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +100,26 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"retailer": (GetResponse)(resp)}, http.StatusAccepted)
+		// get all users
+		users_resp, err := re.service.GetAllUsers(r.Context(), resp.Id)
+		if err != nil {
+			switch err {
+			case retailer.ErrIdNotFound:
+			default:
+				util.ServerErrorResponse(w, r, err)
+			}
+		}
+		util.WriteJSON(w, util.Envelope{"retailer": GetResponse{
+			Id:          resp.Id,
+			Name:        resp.Name,
+			Tin:         resp.Tin,
+			Latitude:    resp.Latitude,
+			Longitude:   resp.Longitude,
+			GeneralZone: resp.GeneralZone,
+			Region:      resp.Region,
+			Woreda:      resp.Woreda,
+			Users:       users_resp.List,
+		}}, http.StatusAccepted)
 	} else if paramNameValue != "" || paramTinValue != "" {
 		resp, err := re.service.GetByParam(r.Context(), &retailer.GetByParamRequest{
 			Name: paramNameValue,
@@ -123,7 +138,26 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		handler_resp := GetAllResponse{}
 		for _, i := range resp.List {
-			handler_resp.List = append(handler_resp.List, (GetResponse)(i))
+			// get all users
+			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
+			if err != nil {
+				switch err {
+				case retailer.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, r, err)
+				}
+			}
+			handler_resp.List = append(handler_resp.List, GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+				Users:       users_resp.List,
+			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	} else {
@@ -141,7 +175,26 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		handler_resp := GetAllResponse{}
 		for _, i := range resp.List {
-			handler_resp.List = append(handler_resp.List, (GetResponse)(i))
+			// get all users
+			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
+			if err != nil {
+				switch err {
+				case retailer.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, r, err)
+				}
+			}
+			handler_resp.List = append(handler_resp.List, GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+				Users:       users_resp.List,
+			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	}
@@ -202,29 +255,4 @@ func (re *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	util.WriteJSON(w, util.Envelope{"retailer": id}, http.StatusAccepted)
-}
-
-func (re *Retailer) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
-		if err != nil {
-			util.RequestErrorResponse(w, r, err)
-			return
-		}
-		resp, err := re.service.GetAllUsers(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case retailer.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
-				return
-			default:
-				util.ServerErrorResponse(w, r, err)
-			}
-		}
-		util.WriteJSON(w, util.Envelope{"users": (GetAllUsers)(resp)}, http.StatusAccepted)
-	}
 }
