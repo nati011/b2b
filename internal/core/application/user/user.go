@@ -16,6 +16,7 @@ var (
 	ErrUsernameNotFound      = errors.New("oopsy, username not found")
 	ErrActiveStatusNotFound  = errors.New("oopsy, active_status not found")
 	ErrFirstNameMandatory    = errors.New("oopsy, FirstName not supplied")
+	ErrLastNameMandatory     = errors.New("oopsy, LastName not supplied")
 	ErrPhoneOrEmailMandatory = errors.New("oopsy, phone or email mandatory")
 	ErrEmptyGetContent       = errors.New("oopsy, content is empty")
 	ErrUserAlreadyActive     = errors.New("oopsy, user already active")
@@ -116,6 +117,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	err := create_validateUserInfo(
 		ctx,
 		req.FirstName,
+		req.LastName,
 		req.Email,
 		req.Phone,
 		req.Username,
@@ -128,6 +130,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	//create user
 	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
 		FirstName:  req.FirstName,
+		LastName:   req.LastName,
 		Email:      req.Email,
 		Phone:      req.Phone,
 		Username:   req.Username,
@@ -159,6 +162,7 @@ func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		prep_resp.List = append(prep_resp.List, GetResponse{
 			Id:         i.Id,
 			FirstName:  i.FirstName,
+			LastName:   i.LastName,
 			Email:      i.Email,
 			Phone:      i.Phone,
 			Username:   i.Username,
