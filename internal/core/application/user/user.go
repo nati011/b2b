@@ -51,6 +51,7 @@ type GetAllAssignedRoleResponse struct {
 type UpdateRequest struct {
 	Id         int
 	FirstName  string
+	LastName   string
 	Email      string
 	Phone      string
 	Username   string
@@ -484,7 +485,6 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return GetAllAssignedRoleResponse{}, ErrNoRoleAssigned
 		default:
 			return GetAllAssignedRoleResponse{}, ErrUnknown
 		}
