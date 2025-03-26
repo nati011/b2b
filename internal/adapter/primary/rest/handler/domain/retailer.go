@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -30,15 +31,15 @@ type CreateRequest struct {
 }
 
 type GetResponse struct {
-	Id          int    `json:"id"`
-	Name        string `json:"name"`
-	Tin         string `json:"tin"`
-	Latitude    string `json:"latitude"`
-	Longitude   string `json:"longitude"`
-	GeneralZone string `json:"general_zone"`
-	Region      string `json:"region"`
-	Woreda      string `json:"woreda"`
-	Users       int    `json:"user"`
+	Id          int                                 `json:"id"`
+	Name        string                              `json:"name"`
+	Tin         string                              `json:"tin"`
+	Latitude    string                              `json:"latitude"`
+	Longitude   string                              `json:"longitude"`
+	GeneralZone string                              `json:"general_zone"`
+	Region      string                              `json:"region"`
+	Woreda      string                              `json:"woreda"`
+	Users       application_handler.GetUserResponse `json:"user"`
 }
 
 type GetAllResponse struct {
@@ -114,6 +115,16 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
 		// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
+		resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
+			ID: users_resp.List[0],
+		})
+		if err != nil {
+			switch err {
+			case user.ErrIdNotFound:
+			default:
+				util.ServerErrorResponse(w, r, err)
+			}
+		}
 		if len(users_resp.List) != 0 {
 			util.WriteJSON(w, util.Envelope{"retailer": GetResponse{
 				Id:          resp.Id,
@@ -124,7 +135,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				GeneralZone: resp.GeneralZone,
 				Region:      resp.Region,
 				Woreda:      resp.Woreda,
-				Users:       users_resp.List[0],
+				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
 			}}, http.StatusAccepted)
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
@@ -154,6 +165,18 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
+			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
+			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
+				ID: users_resp.List[0],
+			})
+			if err != nil {
+				switch err {
+				case user.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, r, err)
+				}
+			}
 			handler_resp.List = append(handler_resp.List, GetResponse{
 				Id:          i.Id,
 				Name:        i.Name,
@@ -163,7 +186,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
-				Users:       users_resp.List[0],
+				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
 			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
@@ -193,19 +216,27 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-			if len(users_resp.List) != 0 {
-				util.WriteJSON(w, util.Envelope{"retailer": GetResponse{
-					Id:          resp.Id,
-					Name:        resp.Name,
-					Tin:         resp.Tin,
-					Latitude:    resp.Latitude,
-					Longitude:   resp.Longitude,
-					GeneralZone: resp.GeneralZone,
-					Region:      resp.Region,
-					Woreda:      resp.Woreda,
-					Users:       users_resp.List[0],
-				}}, http.StatusAccepted)
+			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
+				ID: users_resp.List[0],
+			})
+			if err != nil {
+				switch err {
+				case user.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, r, err)
+				}
 			}
+			handler_resp.List = append(handler_resp.List, GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	}
