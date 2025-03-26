@@ -40,6 +40,16 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 			return 0, port.ErrSysUnknown
 		}
 	}
+	err = r.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
+		User_id:     req.UserId,
+		Retailer_id: retailerId,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, port.ErrSysUnknown
+		}
+	}
 
 	return retailerId, nil
 }
