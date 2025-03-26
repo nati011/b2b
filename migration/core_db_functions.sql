@@ -361,7 +361,8 @@ create or replace function public.get_users_by_id (
     user_id INT) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -373,7 +374,8 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, 
-               u.FirstName, 
+               u.firstName,
+               u.lastName,
                u.email, 
                u.phone_number, 
                u.username, 
@@ -391,7 +393,8 @@ create or replace function public.get_users_by_email (
     user_email VARCHAR(255)) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -403,7 +406,8 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, 
-               u.FirstName, 
+               u.firstName,
+               u.lastName,
                u.email, 
                u.phone_number, 
                u.username, 
@@ -421,7 +425,8 @@ create or replace function public.get_users_by_phone (
     user_phone VARCHAR(255)) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -433,7 +438,8 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, 
-               u.FirstName, 
+               u.firstName,
+               u.lastName, 
                u.email, 
                u.phone_number, 
                u.username, 
@@ -451,7 +457,8 @@ create or replace function public.get_users_by_username (
     user_username VARCHAR(255)) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -463,7 +470,8 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, 
-               u.FirstName, 
+               u.firstName,
+               u.lastName,
                u.email, 
                u.phone_number, 
                u.username, 
@@ -481,7 +489,8 @@ create or replace function public.get_users_by_active_status (
     user_active_status BOOLEAN) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -493,7 +502,8 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, 
-               u.FirstName, 
+               u.firstName,
+               u.lastName,
                u.email, 
                u.phone_number, 
                u.username, 
@@ -511,7 +521,8 @@ create or replace function public.get_users_by_external_id (
     user_external_id VARCHAR(255)) 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -522,7 +533,7 @@ RETURNS table (
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT u.id, u.FirstName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
+        SELECT u.id, u.firstName, u.lastName, u.email, u.phone_number, u.username, u.birth_date, u.is_active, u.external_id 
         FROM public.users u
         WHERE u.external_id = user_external_id
         AND u.is_deleted = FALSE
@@ -533,7 +544,8 @@ $$;
 create or replace function public.get_all () 
 RETURNS table (
   id INT,
-  FirstName VARCHAR(255),
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255),
   username VARCHAR(255),
@@ -545,7 +557,8 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT u.id, 
-               u.FirstName, 
+               u.firstName, 
+               u.lastName,
                u.email, 
                u.phone_number, 
                u.username, 
@@ -562,7 +575,8 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_all_users()
 RETURNS TABLE(
     id INT, 
-    fullname VARCHAR(255), 
+    firstName VARCHAR(255),
+    lastName VARCHAR(255), 
     email VARCHAR(255), 
     phone VARCHAR(255), 
     username VARCHAR(255), 
@@ -574,7 +588,8 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT u.id, 
-           u.fullname, 
+           u.firstName, 
+           u.lastName,
            u.email, 
            u.phone_number, 
            u.username, 
@@ -644,7 +659,22 @@ create or replace function public.update_user_FirstName (
 AS $$
     BEGIN
         UPDATE public.users
-        SET FirstName = new_FirstName
+        SET firstName = new_FirstName
+        WHERE id = user_id
+        AND is_deleted = FALSE;
+
+        RETURN user_id;
+    END;
+$$;
+
+create or replace function public.update_user_lastName (
+    user_id INT, 
+    new_lastName VARCHAR(255)) 
+    RETURNS INT LANGUAGE plpgsql 
+AS $$
+    BEGIN
+        UPDATE public.users
+        SET lastName = new_lastName
         WHERE id = user_id
         AND is_deleted = FALSE;
 
@@ -1290,34 +1320,34 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_retailer_by_name (
-    retailer_name VARCHAR(255)
+CREATE OR REPLACE FUNCTION public.get_retailer_by_name (
+    r_retailer_name VARCHAR(255)
 ) 
 RETURNS TABLE (
-  id INT,
-  name VARCHAR(255),
-  tin VARCHAR(255),
-  lat VARCHAR(255),
-  long VARCHAR(255),
-  generalZone VARCHAR(255),
-  region VARCHAR(255),
-  woreda VARCHAR(255)
+    id INT,
+    name VARCHAR(255),
+    tin VARCHAR(255),
+    lat VARCHAR(255),
+    long VARCHAR(255),
+    generalZone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255)
 ) 
 LANGUAGE plpgsql 
 AS $$
-    BEGIN
-        RETURN QUERY
+BEGIN
+    RETURN QUERY
 
-       SELECT  r.id, rb.name, rb.tin, rb_loc.lat, rb_loc.long, 
-        rb_loc.general_zone, rb_loc.region, rb_loc.woreda
-        FROM  public.retailers r
-        JOIN public.retailer_business_info rb 
+    SELECT r.id, rb.name, rb.tin, rb_loc.lat, rb_loc.long, 
+           rb_loc.general_zone, rb_loc.region, rb_loc.woreda
+    FROM public.retailers r
+    JOIN public.retailer_business_info rb 
         ON rb.retailer_id = r.id
-        JOIN public.rb_locations rb_loc 
+    JOIN public.rb_locations rb_loc 
         ON rb_loc.business_id = rb.id
-        WHERE rb.name = retailer_name 
-        AND r.is_deleted = FALSE;
-    END;
+    WHERE rb.name ILIKE '%' || r_retailer_name || '%'
+      AND r.is_deleted = FALSE;
+END;
 $$;
 
 create or replace function public.get_retailer_by_tin (
