@@ -16,7 +16,6 @@ import (
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	user "b2b.nati011.github.com/internal/core/application/user"
-	port "b2b.nati011.github.com/internal/port/application/user"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -193,7 +192,7 @@ func Test_write(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		_, err = testContainer.UserService.GetByParam(ctx, &port.GetByParam{
+		_, err = testContainer.UserService.GetByParam(ctx, &user.GetByParam{
 			ID: id,
 		})
 		if err != nil {
@@ -250,7 +249,7 @@ func Test_read(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		inParam := &port.GetByParam{
+		inParam := &user.GetByParam{
 			Username: "test",
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
