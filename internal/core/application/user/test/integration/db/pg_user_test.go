@@ -176,7 +176,7 @@ func RunContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 
 func Test_Timeout(t *testing.T) {}
 
-func Test_read(t *testing.T) {
+func Test_write(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
@@ -202,7 +202,7 @@ func Test_read(t *testing.T) {
 	})
 }
 
-func Test_write(t *testing.T) {
+func Test_read(t *testing.T) {
 	t.Run("get_all", func(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()

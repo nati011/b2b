@@ -119,6 +119,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			util.RequestErrorResponse(w, r, err)
 			return
+
 		}
 		resp, err := p.service.Get(r.Context(), typedParamId)
 		if err != nil {
