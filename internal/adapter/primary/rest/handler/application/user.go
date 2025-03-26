@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -10,6 +11,18 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
+
+type GetUserResponse struct {
+	Id         int       `json:"id"`
+	FirstName  string    `json:"first_name"`
+	LastName   string    `json:"last_name"`
+	Email      string    `json:"email"`
+	Phone      string    `json:"phone"`
+	Username   string    `json:"username"`
+	DOB        time.Time `json:"dob"`
+	IsActive   bool      `json:"is_active"`
+	ExternalId string    `json:"external_id"`
+}
 
 type UserHandler struct {
 	service user.Provider
