@@ -1941,6 +1941,109 @@ $$;
 -- configurable product -------------------------------------------------
     
     -- writer
+CREATE OR REPLACE FUNCTION public.create_configurable_product(
+  p_product_name VARCHAR(255),
+  p_product_description VARCHAR(255),
+  p_external_id VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.configurable_products (name, 
+                                              description, 
+                                              external_id)
+    VALUES (p_product_name, 
+            p_product_description, 
+            p_external_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_name(
+    i_configurable_product_id INT,
+    new_name VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET name = new_name
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_desc(
+    i_configurable_product_id INT,
+    new_desc VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET description = new_desc
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_externalId(
+    i_configurable_product_id INT,
+    new_external_id VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET external_id = new_external_id
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_isAvailable_status(
+    i_configurable_product_id INT,
+    is_available_status BOOLEAN
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET is_available = is_available_status
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+    -- reader
+
+
+-- configurable product attribute ---------------------------------------
+    
+    -- writer
+    
+    -- reader
+
+-- configurable product member ------------------------------------------
+    
+    -- writer
     
     -- reader
 
