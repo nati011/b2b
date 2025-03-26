@@ -14,6 +14,14 @@ func create_validateFirstName(FirstName string) error {
 	return nil
 }
 
+func create_validateLastName(LastName string) error {
+	//empty name
+	if LastName == "" {
+		return ErrLastNameMandatory
+	}
+	return nil
+}
+
 func create_validateEmailAndPhone(email string, phone string) error {
 	//empty name
 	if email == "" && phone == "" {
@@ -47,6 +55,7 @@ func create_validateDOB(DOB time.Time) error {
 func create_validateUserInfo(
 	ctx context.Context,
 	FirstName string,
+	LastName string,
 	Email string,
 	Phone string,
 	Username string,
@@ -54,6 +63,10 @@ func create_validateUserInfo(
 
 ) error {
 	err := create_validateFirstName(FirstName)
+	if err != nil {
+		return err
+	}
+	err = create_validateLastName(FirstName)
 	if err != nil {
 		return err
 	}
