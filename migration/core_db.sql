@@ -252,9 +252,9 @@ CREATE TABLE IF NOT EXISTS public."configurable_products"
 (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255),
-  description TEXT,
+  description VARCHAR(255),
   external_id VARCHAR(255),
-  is_available BOOLEAN
+  is_available BOOLEAN DEFAULT FALSE
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."configurable_products" IS 'meta-product definition';
