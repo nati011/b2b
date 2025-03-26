@@ -282,6 +282,17 @@ CREATE TABLE IF NOT EXISTS public."cp_members"
 
 COMMENT ON TABLE public."cp_members" IS 'configurable product attribute values(part of EAV)';
 
+CREATE TABLE IF NOT EXISTS public."cp_images"
+(
+  url VARCHAR(255),
+  blur_hash VARCHAR(255),
+  configurable_product_id INT,
+    FOREIGN KEY (configurable_product_id) REFERENCES public."configurable_products"(id) ON DELETE CASCADE
+) INHERITS(public."base");
+
+COMMENT ON TABLE public."p_attributes" IS 'stores images of products';
+
+
 CREATE TABLE IF NOT EXISTS public."o_statuses"
 (
   id SERIAL PRIMARY KEY,
