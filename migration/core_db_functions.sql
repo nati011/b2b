@@ -1938,6 +1938,309 @@ BEGIN
 END;
 $$;
 
+-- configurable product -------------------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_configurable_product(
+  p_product_name VARCHAR(255),
+  p_product_description VARCHAR(255),
+  p_external_id VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.configurable_products (name, 
+                                              description, 
+                                              external_id)
+    VALUES (p_product_name, 
+            p_product_description, 
+            p_external_id) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_name(
+    i_configurable_product_id INT,
+    new_name VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET name = new_name
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_desc(
+    i_configurable_product_id INT,
+    new_desc VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET description = new_desc
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_externalId(
+    i_configurable_product_id INT,
+    new_external_id VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET external_id = new_external_id
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_configurable_product_isAvailable_status(
+    i_configurable_product_id INT,
+    is_available_status BOOLEAN
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.configurable_products
+    SET is_available = is_available_status
+    WHERE id = i_configurable_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+    
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_configurable_products_by_id(
+    cp_product_id INT
+)
+RETURNS TABLE(cp_id INT, 
+              cp_name VARCHAR(255), 
+              cp_description TEXT, 
+              cp_external_id VARCHAR(255), 
+              cp_is_active BOOLEAN)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT cp.id, 
+           cp.name, 
+           cp.description, 
+           cp.external_id, 
+           cp.is_active
+    FROM public.configurable_products cp
+    WHERE cp.id = p_product_id
+      AND cp.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_configurable_products()
+RETURNS TABLE(cp_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT cp.id
+    FROM public.configurable_products cp
+    WHERE cp.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_configurable_products_by_name(
+    cp_name VARCHAR(255) 
+)
+RETURNS TABLE(cp_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT cp.id
+    FROM public.configurable_products cp
+    WHERE cp.name = cp_name
+        AND cp.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_configurable_products_by_ext_id(
+    cp_external_id VARCHAR(255) 
+)
+RETURNS TABLE(cp_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT cp.id
+    FROM public.configurable_products cp
+    WHERE cp.external_id = cp_external_id
+        AND cp.is_deleted = FALSE;
+END;
+$$;
+
+-- configurable product attribute ---------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.add_attribute_to_configurable_product(
+  p_attribute_id INT,
+  cp_product_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO public.cp_attributes (product_attribute_id, configurable_product_id)
+    VALUES (p_attribute_id, cp_product_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.remove_all_configurable_product_attributes(
+    cp_product_id INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+     UPDATE public.cp_attributes
+    SET is_deleted = TRUE
+    WHERE configurable_product_id = cp_product_id;
+
+    RETURN cp_product_id;
+END;
+$$;
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_all_configurable_product_attributes(
+  cp_product_id INT
+)
+RETURNS TABLE(cp_attribute_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+     RETURN QUERY
+    SELECT c.product_id
+    FROM public.cp_attributes c
+    WHERE c.configurable_product_id = cp_product_id
+      AND c.is_deleted = FALSE;
+END;
+$$;
+
+-- configurable product member ------------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.add_product_to_configurable_product(
+  cp_p_id INT,
+  p_product_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO public.cp_members (cp_id, product_id)
+    VALUES (cp_p_id, p_product_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.remove_all_configurable_product_members(
+    cp_product_id INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+     UPDATE public.cp_members
+    SET is_deleted = TRUE
+    WHERE cp_id = cp_product_id;
+
+    RETURN cp_product_id;
+END;
+$$;
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_all_configurable_product_members(
+  cp_product_id INT
+)
+RETURNS TABLE(p_product_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+     RETURN QUERY
+    SELECT c.product_id
+    FROM public.cp_members c
+    WHERE c.cp_id = cp_product_id
+      AND c.is_deleted = FALSE;
+END;
+$$;
+
+-- configurable product image ---------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.add_image_to_configurable_product(
+  i_url VARCHAR(255),
+  i_blur_hash VARCHAR(255),
+  i_configurable_product_id INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.cp_images (url, blur_hash, product_id)
+    VALUES (i_url, i_blur_hash, i_configurable_product_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.remove_all_configurable_product_images(
+    i_configurable_product_id INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.cp_images
+    SET is_deleted = TRUE
+    WHERE product_id = i_configurable_product_id;
+
+    RETURN i_configurable_product_id;
+END;
+$$;
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_images_by_cp_Id(
+    i_configurable_product_id INT
+)
+RETURNS TABLE(image_url VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT url
+    FROM public.cp_images i
+    WHERE i.product_id = i_configurable_product_id
+      AND i.is_deleted = FALSE;
+END;
+$$;
+
 -- category -------------------------------------------------------------
 
     -- writer
@@ -2227,7 +2530,22 @@ BEGIN
 END;
 $$;
     -- reader
-
+CREATE OR REPLACE FUNCTION public.get_attributes_values_by_productId(
+    p_product_id INT
+)
+RETURNS TABLE(p_attribute_name VARCHAR(255), p_attribute_value VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.name, av.name 
+    FROM public.p_attributes p
+    JOIN public.p_attribute_values av
+    ON av.attribute_id = p.id
+    WHERE p.id = p_product_id
+      AND p.is_deleted = FALSE;
+END;
+$$;
 -- product attribute-values ------------------------------------------
     
     -- writer
@@ -2262,6 +2580,23 @@ BEGIN
     JOIN public.p_attribute_values av
     ON av.attribute_id = p.id
     WHERE p.id = p_product_id
+      AND p.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_attributes_values_by_attribute_id(
+    p_attribute_id INT
+)
+RETURNS TABLE(p_attribute_name VARCHAR(255), p_attribute_value VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.name, av.name 
+    FROM public.p_attributes p
+    JOIN public.p_attribute_values av
+    ON av.attribute_id = p.id
+    WHERE av.attribute_id = p_attribute_id
       AND p.is_deleted = FALSE;
 END;
 $$;
