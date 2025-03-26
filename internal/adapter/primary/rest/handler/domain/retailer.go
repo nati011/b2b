@@ -75,7 +75,7 @@ func (r *Retailer) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/retailer", r.GetHandler)
 	mux.HandleFunc("POST /api/v1/retailer", r.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/retailer", r.UpdateHandler)
-	mux.HandleFunc("PUT /api/v1/retailer/users", r.GetUsersHandler)
+	mux.HandleFunc("GET /api/v1/retailer/users", r.GetUsersHandler)
 }
 
 func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
