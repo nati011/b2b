@@ -74,7 +74,6 @@ CREATE TABLE IF NOT EXISTS public."retailer_users"
 (
   user_id INT,
   retailer_id INT,
-	FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,
 	FOREIGN KEY (retailer_id) REFERENCES public."retailers"(id) ON DELETE CASCADE
 ) INHERITS (public."base");
 

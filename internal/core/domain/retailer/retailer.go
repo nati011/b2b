@@ -90,7 +90,7 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 	}
 
 	// create user
-	_, err = r.UserService.Create(ctx, &user.CreateRequest{
+	user_id, err := r.UserService.Create(ctx, &user.CreateRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
@@ -118,7 +118,7 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		GeneralZone: req.GeneralZone,
 		Region:      req.Region,
 		Woreda:      req.Woreda,
-		UserId:      req.UserId,
+		UserId:      user_id,
 	})
 	if err != nil {
 		switch err {
