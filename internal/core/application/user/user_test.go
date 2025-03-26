@@ -6,8 +6,6 @@ import (
 	"os"
 	"testing"
 	"time"
-
-	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
 var testContainer TestContainer
@@ -41,7 +39,7 @@ func Test_create_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		_, err = testContainer.UserService.GetByParam(ctx, &port.GetByParam{
+		_, err = testContainer.UserService.GetByParam(ctx, &GetByParam{
 			ID: id,
 		})
 		if err != nil {
@@ -64,7 +62,7 @@ func Test_create_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		user, err := testContainer.UserService.GetByParam(ctx, &port.GetByParam{
+		user, err := testContainer.UserService.GetByParam(ctx, &GetByParam{
 			ID: id,
 		})
 		if err != nil {
@@ -230,7 +228,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Email: email,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -261,7 +259,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Phone: phone_number,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -292,7 +290,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Username: username,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -323,7 +321,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			IsActive: status,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -367,7 +365,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Username: "test",
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -384,7 +382,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 func Test_getByParam_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
 		ctx := context.Background()
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Email: "test",
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
