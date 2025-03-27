@@ -332,7 +332,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		}
 	}
 	// create attributes
-	for _, i := range req.AttributeKeys {
+	for i := range req.AttributeKeys {
 
 		// get attribute id by name
 		var attribute_id int
