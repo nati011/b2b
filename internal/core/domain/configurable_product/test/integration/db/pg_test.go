@@ -400,7 +400,7 @@ func Test_write(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
-		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+		product_id, err := container.ProductService.Create(ctx, &product.CreateRequest{
 			Name:       "testProduct",
 			Desc:       "test",
 			ExternalID: "123",
@@ -413,6 +413,9 @@ func Test_write(t *testing.T) {
 				"test": "test",
 			},
 		})
+		if err != nil {
+			t.Fatalf("Failed to update name %v", err)
+		}
 		//setup
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
