@@ -98,6 +98,7 @@ func InitProduct() {
 
 func (r *Product) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ProductService
+	r.configurableProductservice = domainService.ConfigurableProductService
 	return nil
 }
 
