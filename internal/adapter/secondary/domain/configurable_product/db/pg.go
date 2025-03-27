@@ -184,7 +184,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		cps = append(cps, resp)
 	}
 
-	if len(cps) != 0 {
+	if len(cps) == 0 {
 		return port.GetAllResponse{}, port.ErrSysNoRows
 	}
 
@@ -235,17 +235,65 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		cps = append(cps, resp)
 	}
 
-	if len(cps) != 0 {
+	if len(cps) == 0 {
 		return port.GetAllResponse{}, port.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
 		List: cps,
 	}, nil
+
 }
 
 func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetAllResponse, error) {
-	return port.GetAllResponse{}, nil
+	// get all Id
+	var cp_Ids []int
+	query := "SELECT * FROM public.get_all_configurable_products_by_ext_id($1);"
+	rows, err := p.Pool.QueryContext(ctx, query, extId)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
+
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var productId int
+		if err := rows.Scan(&productId); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetAllResponse{}, err
+		}
+		cp_Ids = append(cp_Ids, productId)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetAllResponse{}, port.ErrSysUnknown
+	}
+
+	// get member products
+	var cps []port.GetResponse
+	for _, i := range cp_Ids {
+		resp, err := p.Get(ctx, i)
+		if err != nil {
+			switch err {
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		cps = append(cps, resp)
+	}
+
+	if len(cps) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+
+	return port.GetAllResponse{
+		List: cps,
+	}, nil
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {

@@ -337,7 +337,7 @@ func Test_read(t *testing.T) {
 		// get
 		got, err := container.ConfigurableProductService.GetAll(ctx)
 		if err != nil {
-			t.Fatalf("Failed to get by param err: %v", err)
+			t.Fatalf("Failed to get all err: %v", err)
 		}
 		wantLen := 1
 		if len(got.List) != wantLen {
