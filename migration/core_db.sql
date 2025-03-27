@@ -74,7 +74,6 @@ CREATE TABLE IF NOT EXISTS public."retailer_users"
 (
   user_id INT,
   retailer_id INT,
-	FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,
 	FOREIGN KEY (retailer_id) REFERENCES public."retailers"(id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
@@ -117,7 +116,7 @@ COMMENT ON TABLE public."admin_users" IS 'stores admin agents(always on the admi
 CREATE TABLE IF NOT EXISTS public."retailer_business_info" 
 (
   id SERIAL PRIMARY KEY,
-  name TEXT,
+  name VARCHAR(255),
   tin VARCHAR(10) NOT NULL,
   retailer_id INT UNIQUE REFERENCES public."retailers" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -126,8 +125,8 @@ COMMENT ON TABLE public."retailer_business_info" IS 'stores busines information 
 
 CREATE TABLE IF NOT EXISTS public."rb_locations"
 (	
-  lat FLOAT,
-  long FLOAT,
+  lat VARCHAR(255),
+  long VARCHAR(255),
   general_zone VARCHAR(255) NOT NULL,
   region VARCHAR(255) NOT NULL,
   woreda VARCHAR(255) NOT NULL,
@@ -253,9 +252,9 @@ CREATE TABLE IF NOT EXISTS public."configurable_products"
 (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255),
-  description TEXT,
+  description VARCHAR(255),
   external_id VARCHAR(255),
-  is_available BOOLEAN
+  is_available BOOLEAN DEFAULT FALSE
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."configurable_products" IS 'meta-product definition';
@@ -282,6 +281,17 @@ CREATE TABLE IF NOT EXISTS public."cp_members"
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."cp_members" IS 'configurable product attribute values(part of EAV)';
+
+CREATE TABLE IF NOT EXISTS public."cp_images"
+(
+  url VARCHAR(255),
+  blur_hash VARCHAR(255),
+  configurable_product_id INT,
+    FOREIGN KEY (configurable_product_id) REFERENCES public."configurable_products"(id) ON DELETE CASCADE
+) INHERITS(public."base");
+
+COMMENT ON TABLE public."p_attributes" IS 'stores images of products';
+
 
 CREATE TABLE IF NOT EXISTS public."o_statuses"
 (

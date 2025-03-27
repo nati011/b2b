@@ -9,6 +9,7 @@ import (
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
 	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment-partner/db"
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
+	retailer_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
 	user_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
@@ -46,9 +47,14 @@ import (
 // │   └── TransactionService
 // |        └── UserService
 // |
-// ├──  UserService
-// │   └── RoleService
-// │       └── ResourceService
+// ├── RetailerService
+// |   └── UserService
+// │    	└── RoleService
+// │        	└── ResourceService
+// ├── DistributorService
+// 	   └── UserService
+// │    	└── RoleService
+// │        	└── ResourceService
 // |
 // ├── SMSService
 
@@ -87,9 +93,9 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 	container.InitPaymentPartnerService()
 	container.InitPaymentService()
 	container.InitResourceService()
-	// container.InitRetailerService()
 	container.InitRoleService()
 	container.InitUserService()
+	container.InitRetailerService()
 	// container.InitSMSService()
 
 	return &container
@@ -126,10 +132,6 @@ func (m *Container) InitResourceService() {
 	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db))
 }
 
-// func (m *Container) InitRetailerService() {
-// 	m.RetailerService = retailer.NewRetailerService(retailer_db_adapter.NewPostgres(m.db))
-// }
-
 func (m *Container) InitRoleService() {
 	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db), m.ResourceService)
 }
@@ -148,4 +150,8 @@ func (m *Container) InitTransactionService() {
 
 func (m *Container) InitUserService() {
 	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db), m.RoleService)
+}
+
+func (m *Container) InitRetailerService() {
+	m.RetailerService = retailer.NewRetailerService(m.UserService, retailer_db_adapter.NewPostgres(m.db))
 }
