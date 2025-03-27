@@ -1,4 +1,4 @@
-package db
+package adapter
 
 import (
 	"context"
@@ -17,8 +17,13 @@ type MockRetailer struct {
 	Woreda      string
 }
 
+type MockUserAgent struct {
+	Id int
+}
+
 type Mock struct {
-	retailers []MockRetailer
+	retailers  []MockRetailer
+	userAgents []MockUserAgent
 }
 
 func NewMock() port.DB {
@@ -37,23 +42,41 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Region:      req.Region,
 		Woreda:      req.Woreda,
 	})
+
+	err := m.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
+		User_id: req.UserId,
+	})
+	if err != nil {
+		return 0, port.ErrSysUnknown
+	}
+
 	return newId, nil
 }
 
-func (m *Mock) Update(ctx context.Context, req *port.UpdateRequest) error {
+func (m Mock) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
+	m.userAgents = append(m.userAgents, MockUserAgent{
+		Id: req.User_id,
+	})
+	return nil
+}
+
+func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
+	retailers := []MockRetailer{}
 	for _, i := range m.retailers {
 		if i.Id == req.Id {
-			m.retailers = append(m.retailers, MockRetailer{
+			retailers = append(retailers, MockRetailer{
+				Id:          i.Id,
 				Name:        req.Name,
-				Tin:         req.Tin,
-				Latitude:    req.Latitude,
-				Longitude:   req.Longitude,
-				GeneralZone: req.GeneralZone,
-				Region:      req.Region,
-				Woreda:      req.Woreda,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
 			})
 		} else {
-			m.retailers = append(m.retailers, MockRetailer{
+			retailers = append(retailers, MockRetailer{
+				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
 				Latitude:    i.Latitude,
@@ -64,6 +87,38 @@ func (m *Mock) Update(ctx context.Context, req *port.UpdateRequest) error {
 			})
 		}
 	}
+	m.retailers = retailers
+	return nil
+}
+
+func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error {
+	retailers := []MockRetailer{}
+	for _, i := range m.retailers {
+		if i.Id == req.Id {
+			retailers = append(retailers, MockRetailer{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         req.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+			})
+		} else {
+			retailers = append(retailers, MockRetailer{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+			})
+		}
+	}
+	m.retailers = retailers
 	return nil
 }
 
@@ -71,6 +126,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.retailers {
 		if i.Id == id {
 			return port.GetResponse{
+				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
 				Latitude:    i.Latitude,
@@ -88,6 +144,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.retailers {
 		resp = append(resp, port.GetResponse{
+			Id:          i.Id,
 			Name:        i.Name,
 			Tin:         i.Tin,
 			Latitude:    i.Latitude,
@@ -105,10 +162,36 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
-func (m *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
+func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
+	resp := []port.GetResponse{}
 	for _, i := range m.retailers {
 		if i.Name == name {
+			resp = append(resp, port.GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+			})
+		}
+	}
+
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
+	for _, i := range m.retailers {
+		if i.Tin == tin {
 			return port.GetResponse{
+				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
 				Latitude:    i.Latitude,
@@ -122,19 +205,15 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 	return port.GetResponse{}, port.ErrSysNoRows
 }
 
-func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
-	for _, i := range m.retailers {
-		if i.Tin == tin {
-			return port.GetResponse{
-				Name:        i.Name,
-				Tin:         i.Tin,
-				Latitude:    i.Latitude,
-				Longitude:   i.Longitude,
-				GeneralZone: i.GeneralZone,
-				Region:      i.Region,
-				Woreda:      i.Woreda,
-			}, nil
-		}
+func (m *Mock) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUserResponse, error) {
+	var resp = port.GetAllUserResponse{}
+	for _, i := range m.userAgents {
+		resp.List = append(resp.List, port.GetUserResponse{
+			Id: i.Id,
+		})
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	if len(resp.List) == 0 {
+		return port.GetAllUserResponse{}, port.ErrSysNoRows
+	}
+	return resp, nil
 }

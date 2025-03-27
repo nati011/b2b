@@ -43,6 +43,10 @@ type GetOrderByParamRequest struct {
 	Status     string `json:"status"`
 }
 
+var (
+	ErrUnknownCommand = errors.New("unknown command")
+)
+
 func InitOrder() {
 	handler.Register(new(Order))
 }
@@ -173,10 +177,6 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 
 const (
 	CANCEL_COMMAND = "cancel"
-)
-
-var (
-	ErrUnknownCommand = errors.New("unknown command")
 )
 
 func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
