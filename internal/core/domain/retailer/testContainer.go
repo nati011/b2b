@@ -1,6 +1,7 @@
 package retailer
 
 import (
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
 	user "b2b.nati011.github.com/internal/core/application/user"
 )
 
@@ -11,8 +12,8 @@ type TestContainer struct {
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
-	user_testContainer := user.NewTestContainer()
-	container.UserService = user_testContainer.UserService
+	container.UserService = user.NewTestContainer().UserService
+	container.RetailerService = NewRetailerService(container.UserService, db_adapter.NewMock())
 
 	return container
 }
