@@ -404,11 +404,21 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 		}
 		//build attributes
 		attributes := map[string]string{}
-		for _, i := range req.AttributeKeys {
-			attributes = map[string]string{
-				i: "updated",
+		// get all attributes from products
+		for _, j := range req.Product {
+			resp, err := c.ProductService.Get(ctx, j)
+			if err != nil {
+				continue
+			}
+			for key, val := range resp.Attributes {
+				for _, i := range req.AttributeKeys {
+					if key == i {
+						attributes[key] = val
+					}
+				}
 			}
 		}
+
 		err := c.DB.UpdateAttributes(ctx, &port.UpdateAttributes{
 			Id:         req.Id,
 			Attributes: attributes,

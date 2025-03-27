@@ -53,8 +53,11 @@ func (p *ConfigurableProductService) validateAttributekeys(ctx context.Context, 
 			if err != nil {
 				continue
 			}
-			if resp.Attributes[i] != "" {
-				notFound = false
+			for _, k := range resp.Attributes {
+				if k == i {
+					notFound = false
+					break
+				}
 			}
 		}
 		if notFound {
