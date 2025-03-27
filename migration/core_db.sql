@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS public."cp_attributes"
   product_attribute_id INT,
   configurable_product_id INT,
 	FOREIGN KEY (product_attribute_id) REFERENCES public."p_attributes"(id) ON DELETE CASCADE,
-	FOREIGN KEY (configurable_product_id) REFERENCES public."p_attributes"(id) ON DELETE CASCADE
+	FOREIGN KEY (configurable_product_id) REFERENCES public."configurable_products"(id) ON DELETE CASCADE
 	
 ) INHERITS(public."base");
 
