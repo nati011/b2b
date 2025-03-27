@@ -213,7 +213,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			ExternalId:    "test",
 			AttributeKeys: []string{},
 			Products: []int{
-				1,
+				product_id,
 			},
 			Images: []string{
 				"test",
@@ -235,7 +235,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalId: "test",
 			AttributeKeys: []string{
-				"1",
+				"test",
 			},
 			Products: []int{},
 			Images: []string{
@@ -258,7 +258,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalId: "test",
 			AttributeKeys: []string{
-				"1",
+				"test",
 			},
 			Products: []int{
 				product_id,
@@ -284,7 +284,7 @@ func Test_Avail_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalId: "test",
 		AttributeKeys: []string{
-			"1",
+			"test",
 		},
 		Products: []int{
 			product_id,
@@ -369,7 +369,7 @@ func Test_Disable_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalId: "test",
 		AttributeKeys: []string{
-			"1",
+			"test",
 		},
 		Products: []int{
 			product_id,

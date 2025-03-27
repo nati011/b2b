@@ -24,7 +24,6 @@ func NewPackageIntegrationTestContainer() TestContainer {
 }
 
 func (t *TestContainer) cleanup() {
-	t.ProductService = product.NewPackageIntegrationTestContainer().ProductService
 	t.ConfigurableProductService = NewConfigurableProductService(
 		configurableProduct_db.NewMock(),
 		t.ProductService,
