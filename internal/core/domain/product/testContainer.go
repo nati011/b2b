@@ -22,3 +22,13 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	)
 	return container
 }
+
+func (t *TestContainer) cleanup() {
+	t.CategoryService = category.NewCategory(
+		category_db.NewMock(),
+	)
+	t.ProductService = NewProduct(
+		db.NewMock(),
+		t.CategoryService,
+	)
+}

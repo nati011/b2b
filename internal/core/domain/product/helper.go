@@ -34,9 +34,16 @@ func validateImages(images []string) error {
 	return nil
 }
 
-func validatePrice(price int) error {
+func update_validatePrice(price int) error {
 	if price < 0 {
 		return ErrPriceCannotBeNegative
+	}
+	return nil
+}
+
+func create_validatePrice(price int) error {
+	if price == 0 {
+		return ErrPriceNotSupplied
 	}
 	return nil
 }
