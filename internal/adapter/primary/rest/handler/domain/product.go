@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -24,6 +25,15 @@ type CreateProductRequest struct {
 	Attributes    map[string]string `json:"attributes"`
 	DistributorId int               `json:"distributor_id"`
 	CategoryId    []int             `json:"category_id"`
+}
+
+type CreateConfigurableProductRequest struct {
+	Name          string   `json:"name"`
+	Desc          string   `json:"desc"`
+	ExternalId    string   `json:"external_id"`
+	AttributeKeys []string `json:"attributes"`
+	Products      []int    `json:"products"`
+	Images        []string `json:"images"`
 }
 
 type GetProductResponse struct {
@@ -78,7 +88,8 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	service product.Provider
+	service                    product.Provider
+	configurableProductservice configurable_product.Provider
 }
 
 func InitProduct() {
@@ -96,6 +107,8 @@ func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
 	mux.HandleFunc("PATCH /api/v1/product/status", p.StatusHandler)
 	mux.HandleFunc("PATCH /api/v1/product/stock", p.StockHandler)
+
+	mux.HandleFunc("POST /api/v1/configurable_product", p.CreateConfigurableProductHandler)
 }
 
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -125,14 +138,28 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case product.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
 				return
 			default:
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
 
-		util.WriteJSON(w, util.Envelope{"product": resp}, http.StatusAccepted)
+		cp_resp, err := p.configurableProductservice.Get(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case product.ErrIdNotFound:
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+			}
+		}
+		if resp.Id != 0 {
+			util.WriteJSON(w, util.Envelope{"product": resp}, http.StatusAccepted)
+		} else if cp_resp.Id != 0 {
+			util.WriteJSON(w, util.Envelope{"product": cp_resp}, http.StatusAccepted)
+		}
+
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
@@ -225,6 +252,39 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id, err := p.service.Create(r.Context(), (*product.CreateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case product.ErrIdNotFound,
+			product.ErrNameNotSupplied,
+			product.ErrNameDuplicate,
+			product.ErrImagesMustBeAtleastTwo,
+			product.ErrPriceNotSupplied,
+			product.ErrAttributeValuesCannotBeEmpty,
+			product.ErrCategoryNotFound:
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"product": id}, http.StatusAccepted)
+}
+
+func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CreateConfigurableProductRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	id, err := p.configurableProductservice.Create(r.Context(), (*configurable_product.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
 		case product.ErrIdNotFound,
