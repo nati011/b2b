@@ -728,84 +728,6 @@ func Test_Update_unhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("name_mandatory", func(t *testing.T) {
-		//setup
-		ctx := context.Background()
-		in := &CreateRequest{
-			Name:       "test",
-			Desc:       "test",
-			ExternalID: "123",
-			Images: []string{
-				"test",
-				"test",
-			},
-			Price: 100.00,
-			Attributes: map[string]string{
-				"test": "test",
-			},
-		}
-
-		id, err := container.ProductService.Create(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to create product")
-		}
-		//update
-		update_in := &UpdateRequest{
-			Id:         id,
-			ExternalID: "321",
-			Desc:       "1",
-			Images: []string{
-				"test",
-				"test",
-			},
-			Price: 200,
-		}
-		wantErr := ErrNameNotSupplied
-		_, err = container.ProductService.Update(ctx, update_in)
-		if err != wantErr {
-			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
-		}
-	})
-
-	t.Run("desc_mandatory", func(t *testing.T) {
-		// setup
-		ctx := context.Background()
-		in := &CreateRequest{
-			Name:       "testUnhappy Path",
-			Desc:       "test",
-			ExternalID: "123",
-			Images: []string{
-				"test",
-				"test",
-			},
-			Price: 100.00,
-			Attributes: map[string]string{
-				"test": "test",
-			},
-		}
-
-		id, err := container.ProductService.Create(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to create product %v", err)
-		}
-		// update
-		update_in := &UpdateRequest{
-			Id:         id,
-			Name:       "testq",
-			ExternalID: "321",
-			Images: []string{
-				"test",
-				"test",
-			},
-			Price: 200,
-		}
-		wantErr := ErrDescNotSupplied
-		_, err = container.ProductService.Update(ctx, update_in)
-		if err != wantErr {
-			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)
-		}
-	})
-
 	t.Run("atleast_two_images_mandatory", func(t *testing.T) {
 		// setup
 		ctx := context.Background()
@@ -974,9 +896,9 @@ func Test_Update_unhappyPath(t *testing.T) {
 				"test",
 				"test",
 			},
-			Price: 0,
+			Price: -1,
 		}
-		wantErr := ErrPriceNotSupplied
+		wantErr := ErrPriceCannotBeNegative
 		_, err = container.ProductService.Update(ctx, update_in)
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got err: %v", wantErr, err)

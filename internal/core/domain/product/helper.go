@@ -35,8 +35,8 @@ func validateImages(images []string) error {
 }
 
 func validatePrice(price int) error {
-	if price == 0 {
-		return ErrPriceNotSupplied
+	if price < 0 {
+		return ErrPriceCannotBeNegative
 	}
 	return nil
 }
