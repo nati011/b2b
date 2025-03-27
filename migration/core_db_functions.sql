@@ -2038,9 +2038,9 @@ CREATE OR REPLACE FUNCTION public.get_configurable_products_by_id(
 )
 RETURNS TABLE(cp_id INT, 
               cp_name VARCHAR(255), 
-              cp_description TEXT, 
+              cp_description VARCHAR(255), 
               cp_external_id VARCHAR(255), 
-              cp_is_active BOOLEAN)
+              cp_is_available BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2049,9 +2049,9 @@ BEGIN
            cp.name, 
            cp.description, 
            cp.external_id, 
-           cp.is_active
+           cp.is_available
     FROM public.configurable_products cp
-    WHERE cp.id = p_product_id
+    WHERE cp.id = cp_product_id
       AND cp.is_deleted = FALSE
     LIMIT 1;
 END;
@@ -2138,7 +2138,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
      RETURN QUERY
-    SELECT c.product_id
+    SELECT c.configurable_product_id
     FROM public.cp_attributes c
     WHERE c.configurable_product_id = cp_product_id
       AND c.is_deleted = FALSE;
@@ -2205,7 +2205,7 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.cp_images (url, blur_hash, product_id)
+    INSERT INTO public.cp_images (url, blur_hash, configurable_product_id)
     VALUES (i_url, i_blur_hash, i_configurable_product_id);
 END;
 $$;
@@ -2219,7 +2219,7 @@ AS $$
 BEGIN
     UPDATE public.cp_images
     SET is_deleted = TRUE
-    WHERE product_id = i_configurable_product_id;
+    WHERE configurable_product_id = i_configurable_product_id;
 
     RETURN i_configurable_product_id;
 END;
@@ -2236,7 +2236,7 @@ BEGIN
     RETURN QUERY
     SELECT url
     FROM public.cp_images i
-    WHERE i.product_id = i_configurable_product_id
+    WHERE i.configurable_product_id = i_configurable_product_id
       AND i.is_deleted = FALSE;
 END;
 $$;
@@ -2546,6 +2546,23 @@ BEGIN
       AND p.is_deleted = FALSE;
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION public.get_attribute_id_by_name(
+    p_attribute_name VARCHAR(255)
+)
+RETURNS TABLE(attribute_id INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT pa.id
+    FROM public.p_attributes pa
+    WHERE pa.name = p_attribute_name
+      AND pa.is_deleted = FALSE;
+END;
+$$;
+
 -- product attribute-values ------------------------------------------
     
     -- writer

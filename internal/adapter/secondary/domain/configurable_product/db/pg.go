@@ -278,7 +278,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
@@ -286,16 +285,27 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	}
 	// create attributes
 	for _, i := range req.AttributeKeys {
-		query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2, $3);"
 
+		// get attribute id by name
+		var attribute_id int
+		query = "SELECT * FROM public.get_attribute_id_by_name($1)"
+		err = p.Pool.QueryRowContext(ctx, query, i).Scan(&attribute_id)
+		if err != nil {
+			switch err {
+			case sql.ErrNoRows:
+			default:
+				return 0, port.ErrSysUnknown
+			}
+		}
+
+		query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
 		_, err = p.Pool.QueryContext(ctx, query,
-			i,
+			attribute_id,
 			configurable_product_id,
 		)
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
@@ -313,14 +323,13 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
 		}
 	}
 
-	return 0, nil
+	return configurable_product_id, nil
 }
 
 func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
