@@ -22,6 +22,7 @@ var (
 	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
 	ErrUnknown                      = errors.New("oopsy, unkown error")
 	ErrCategoryNotFound             = errors.New("oopsy, category not found")
+	ErrPriceCannotBeNegative        = errors.New("oopsy, price cannot be negative")
 )
 
 type CreateRequest struct {
