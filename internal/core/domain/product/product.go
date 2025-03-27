@@ -126,7 +126,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-	err = validatePrice(int(req.Price))
+	err = create_validatePrice(int(req.Price))
 	if err != nil {
 		return 0, err
 	}
@@ -378,7 +378,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Price != 0 {
-		err = validatePrice(int(req.Price))
+		err = update_validatePrice(int(req.Price))
 		if err != nil {
 			return 0, err
 		}
