@@ -332,32 +332,48 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		}
 	}
 	// create attributes
-	for i := range req.AttributeKeys {
+	for _, v := range req.AttributeKeys {
+		for ak, av := range v {
+			print(av)
+			// get attribute id by name and productId
+			var attribute_ids []int
 
-		// get attribute id by name
-		var attribute_id int
-		query = "SELECT * FROM public.get_attribute_id_by_name($1)"
-		err = p.Pool.QueryRowContext(ctx, query, i).Scan(&attribute_id)
-		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-			default:
-				return 0, port.ErrSysUnknown
+			query = "SELECT * FROM public.get_attribute_id_by_name($1)"
+			rows, err := p.Pool.QueryContext(ctx, query, ak)
+			if err != nil {
+				switch err {
+				case sql.ErrNoRows:
+				default:
+					return 0, port.ErrSysUnknown
+				}
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				var attribute_id int
+				if err := rows.Scan(&attribute_id); err != nil {
+					log.Printf("unable to scan row: %q", err)
+					return 0, err
+				}
+				attribute_ids = append(attribute_ids, attribute_id)
+			}
+
+			for _, i := range attribute_ids {
+				query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
+				_, err = p.Pool.QueryContext(ctx, query,
+					i,
+					configurable_product_id,
+				)
+				if err != nil {
+					switch err {
+					case sql.ErrNoRows:
+					default:
+						return 0, port.ErrSysUnknown
+					}
+				}
 			}
 		}
 
-		query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
-		_, err = p.Pool.QueryContext(ctx, query,
-			attribute_id,
-			configurable_product_id,
-		)
-		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-			default:
-				return 0, port.ErrSysUnknown
-			}
-		}
 	}
 
 	// add configurable product members

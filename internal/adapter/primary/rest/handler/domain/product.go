@@ -50,13 +50,18 @@ type ProductResponse struct {
 	IsActive      bool              `json:"is_active"`
 }
 
+type ConfigurableAttributesResponse struct {
+	ProductId      int    `json:"product_id"`
+	AttributeValue string `json:"attribute_value"`
+}
+
 type GetProductResponse struct {
-	Name                   string            `json:"name"`
-	Desc                   string            `json:"desc"`
-	IsActive               bool              `json:"is_active"`
-	Images                 []string          `json:"images"`
-	ConfigurableAttributes map[string]string `json:"configurable_attributes"`
-	Configurables          []ProductResponse `json:"configurables"`
+	Name                   string                                      `json:"name"`
+	Desc                   string                                      `json:"desc"`
+	IsActive               bool                                        `json:"is_active"`
+	Images                 []string                                    `json:"images"`
+	ConfigurableAttributes map[string][]ConfigurableAttributesResponse `json:"configurable_attributes"`
+	Configurables          []ProductResponse                           `json:"configurables"`
 }
 
 type GetAllProductResponse struct {
@@ -256,12 +261,22 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				IsActive:      i.IsActive,
 			})
 
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+			for attr_key, attr_val := range i.Attributes { // Replace 'someSource' with your actual source
+				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+					{
+						ProductId:      i.Id,
+						AttributeValue: attr_val,
+					},
+				} // Assuming attr_val is of type []string
+			}
+
 			resp = append(resp, GetProductResponse{
 				Name:                   i.Name,
 				Desc:                   i.Desc,
 				IsActive:               i.IsActive,
 				Images:                 i.Images,
-				ConfigurableAttributes: i.Attributes,
+				ConfigurableAttributes: configurableAttribute,
 				Configurables:          configurables,
 			})
 		}
@@ -275,8 +290,10 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
 		for _, j := range cp.List {
 			var configurables []ProductResponse
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
 			for _, i := range j.Products {
 				resp, err := p.service.Get(r.Context(), i)
 				if err != nil {
@@ -301,13 +318,20 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 					Stock:         resp.Stock,
 					IsActive:      resp.IsActive,
 				})
+				for attr_key, _ := range j.Attributes { // Replace 'someSource' with your actual source
+					configurableAttribute[attr_key] = append(configurableAttribute[attr_key], ConfigurableAttributesResponse{
+						ProductId:      resp.Id,
+						AttributeValue: resp.Attributes[attr_key],
+					}) // Assuming attr_val is of type []string
+				}
 			}
+
 			resp = append(resp, GetProductResponse{
 				Name:                   j.Name,
 				Desc:                   j.Desc,
 				IsActive:               j.IsAvailable,
 				Images:                 j.Images,
-				ConfigurableAttributes: j.Attributes,
+				ConfigurableAttributes: configurableAttribute,
 				Configurables:          configurables,
 			})
 		}
@@ -340,6 +364,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 		}
 
 		var configurables []ProductResponse
+		var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
 		for _, i := range cp_resp.Products {
 			resp, err := p.service.Get(r.Context(), i)
 			if err != nil {
@@ -364,15 +389,26 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 				Stock:         resp.Stock,
 				IsActive:      resp.IsActive,
 			})
+
+			for attr_key, _ := range cp_resp.Attributes {
+				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+					{
+						ProductId:      resp.Id,
+						AttributeValue: resp.Attributes[attr_key],
+					},
+				}
+			}
 		}
+
 		util.WriteJSON(w, util.Envelope{"configurable_product": GetProductResponse{
 			Name:                   cp_resp.Name,
 			Desc:                   cp_resp.Desc,
 			IsActive:               cp_resp.IsAvailable,
 			Images:                 cp_resp.Images,
-			ConfigurableAttributes: cp_resp.Attributes,
+			ConfigurableAttributes: configurableAttribute,
 			Configurables:          configurables,
 		}}, http.StatusAccepted)
+
 	} else if paramNameValue != "" {
 		cp_resp, err := p.configurableProductservice.GetByParam(r.Context(),
 			&configurable_product.GetByParamRequest{
@@ -391,6 +427,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 		for _, j := range cp_resp.List {
 
 			var configurables []ProductResponse
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
 			for _, i := range j.Products {
 				resp, err := p.service.Get(r.Context(), i)
 				if err != nil {
@@ -415,13 +452,22 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 					Stock:         resp.Stock,
 					IsActive:      resp.IsActive,
 				})
+				for attr_key, _ := range resp.Attributes {
+					configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+						{
+							ProductId:      resp.Id,
+							AttributeValue: resp.Attributes[attr_key],
+						},
+					}
+				}
 			}
+
 			resp = append(resp, GetProductResponse{
 				Name:                   j.Name,
 				Desc:                   j.Desc,
 				IsActive:               j.IsAvailable,
 				Images:                 j.Images,
-				ConfigurableAttributes: j.Attributes,
+				ConfigurableAttributes: configurableAttribute,
 				Configurables:          configurables,
 			})
 		}
