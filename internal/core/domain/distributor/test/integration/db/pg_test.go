@@ -161,13 +161,13 @@ func Test_Read(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
 		//check
-		resp, err := testContainer.RetailerService.Get(ctx, id)
+		resp, err := testContainer.DistributorService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
@@ -192,11 +192,11 @@ func Test_Read(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := testContainer.RetailerService.GetAll(ctx)
+		resp, err := testContainer.DistributorService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
@@ -225,11 +225,11 @@ func Test_Read(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := testContainer.RetailerService.GetByParam(ctx, &distributor.GetByParamRequest{
+		resp, err := testContainer.DistributorService.GetByParam(ctx, &distributor.GetByParamRequest{
 			Name: in.FirstName + in.LastName,
 		})
 		if err != nil {
@@ -260,11 +260,11 @@ func Test_Read(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := testContainer.RetailerService.GetByParam(ctx, &distributor.GetByParamRequest{
+		resp, err := testContainer.DistributorService.GetByParam(ctx, &distributor.GetByParamRequest{
 			Tin: in.Tin,
 		})
 		if err != nil {
@@ -295,12 +295,12 @@ func Test_Read(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
+		_, err = testContainer.DistributorService.GetAllUsers(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get user agents %v", err)
 		}
@@ -325,13 +325,13 @@ func Test_Write(t *testing.T) {
 
 			Email: "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
 		//check
-		resp, err := testContainer.RetailerService.Get(ctx, id)
+		resp, err := testContainer.DistributorService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
@@ -357,13 +357,13 @@ func Test_Write(t *testing.T) {
 
 			Email: "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
 		//check if user agent has been created
-		_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
+		_, err = testContainer.DistributorService.GetAllUsers(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get user agents %v", err)
 		}
@@ -385,7 +385,7 @@ func Test_Write(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
@@ -393,13 +393,13 @@ func Test_Write(t *testing.T) {
 			Id:   id,
 			Name: "test",
 		}
-		_, err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.DistributorService.Update(ctx, &update_in)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
 
 		//check
-		resp, err := testContainer.RetailerService.Get(ctx, id)
+		resp, err := testContainer.DistributorService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
@@ -424,7 +424,7 @@ func Test_Write(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
@@ -432,13 +432,13 @@ func Test_Write(t *testing.T) {
 			Id:  id,
 			Tin: "1234567891",
 		}
-		_, err = testContainer.RetailerService.Update(ctx, &update_in)
+		_, err = testContainer.DistributorService.Update(ctx, &update_in)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
 
 		// check
-		resp, err := testContainer.RetailerService.Get(ctx, id)
+		resp, err := testContainer.DistributorService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}

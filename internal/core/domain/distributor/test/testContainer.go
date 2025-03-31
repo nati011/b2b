@@ -9,14 +9,14 @@ import (
 )
 
 type TestContainer struct {
-	UserService     user.Provider
-	RetailerService distributor.Provider
+	UserService        user.Provider
+	DistributorService distributor.Provider
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
 	container.UserService = user.NewTestContainer().UserService
-	container.RetailerService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db))
+	container.DistributorService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db))
 
 	return container
 }
