@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	auth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	distributor_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
 	template_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
 	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment-partner/db"
@@ -79,7 +78,7 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
-	container.InitDistributorService()
+	// container.InitDistributorService()
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitTemplateService()
@@ -102,9 +101,9 @@ func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername
 	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret))
 }
 
-func (m *Container) InitDistributorService() {
-	m.DistributorService = distributor.NewDistributorService(distributor_db_adapter.NewPostgres(m.db), m.AuthService)
-}
+// func (m *Container) InitDistributorService() {
+// 	m.DistributorService = distributor.NewDistributorService(distributor_db_adapter.NewPostgres(m.db), m.AuthService)
+// }
 
 func (m *Container) InitEmailService(email_address, smtp_port string) {
 	m.EmailService = email.NewEmailService(email_provider_adapter.NewInbucket(email_address, smtp_port), m.RenderService)
