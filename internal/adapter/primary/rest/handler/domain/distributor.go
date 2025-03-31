@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -32,19 +31,19 @@ type CreateDistributorRequest struct {
 }
 
 type GetDistributorResponse struct {
-	Id          int                                 `json:"id"`
-	Name        string                              `json:"name"`
-	Tin         string                              `json:"tin"`
-	Latitude    string                              `json:"latitude"`
-	Longitude   string                              `json:"longitude"`
-	GeneralZone string                              `json:"general_zone"`
-	Region      string                              `json:"region"`
-	Woreda      string                              `json:"woreda"`
-	Users       application_handler.GetUserResponse `json:"user"`
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	Tin         string `json:"tin"`
+	Latitude    string `json:"latitude"`
+	Longitude   string `json:"longitude"`
+	GeneralZone string `json:"general_zone"`
+	Region      string `json:"region"`
+	Woreda      string `json:"woreda"`
+	Users       []int  `json:"user"`
 }
 
 type GetAllDistributorResponse struct {
-	List []GetResponse `json:"list"`
+	List []GetDistributorResponse `json:"list"`
 }
 
 type GetDistributorByParamRequest struct {
@@ -75,11 +74,19 @@ func (r *Distributor) Init(applicationServices *application_core.Container, doma
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
-	mux.HandleFunc("POST /api/v1/retailer", d.CreateDistributorHandler)
-	mux.HandleFunc("PUT /api/v1/retailer", d.UpdateDistributorHandler)
+	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
+	mux.HandleFunc("POST /api/v1/distributor/user", d.CreateUserHandler)
+	mux.HandleFunc("GET /api/v1/distributor/user", d.GetUserHandler)
+	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 }
 
-func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Request) {
+func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamName = "name"
 	const ParamTin = "tin"
@@ -95,7 +102,7 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			util.RequestErrorResponse(w, r, err)
 			return
 		}
-		resp, err := re.service.Get(r.Context(), typedParamId)
+		resp, err := de.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case retailer.ErrIdNotFound:
@@ -106,7 +113,7 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			}
 		}
 		// get all users
-		users_resp, err := re.service.GetAllUsers(r.Context(), resp.Id)
+		users_resp, err := de.service.GetAllUsers(r.Context(), resp.Id)
 		if err != nil {
 			switch err {
 			case retailer.ErrIdNotFound:
@@ -114,20 +121,9 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
-		// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
-		// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-		resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
-			ID: users_resp.List[0],
-		})
-		if err != nil {
-			switch err {
-			case user.ErrIdNotFound:
-			default:
-				util.ServerErrorResponse(w, r, err)
-			}
-		}
+
 		if len(users_resp.List) != 0 {
-			util.WriteJSON(w, util.Envelope{"retailer": GetResponse{
+			util.WriteJSON(w, util.Envelope{"retailer": GetDistributorResponse{
 				Id:          resp.Id,
 				Name:        resp.Name,
 				Tin:         resp.Tin,
@@ -136,11 +132,11 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				GeneralZone: resp.GeneralZone,
 				Region:      resp.Region,
 				Woreda:      resp.Woreda,
-				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+				Users:       users_resp.List,
 			}}, http.StatusAccepted)
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
-		resp, err := re.service.GetByParam(r.Context(), &distributor.GetByParamRequest{
+		resp, err := de.service.GetByParam(r.Context(), &distributor.GetByParamRequest{
 			Name: paramNameValue,
 			Tin:  paramTinValue,
 		})
@@ -155,10 +151,10 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		handler_resp := GetAllResponse{}
+		handler_resp := GetAllDistributorResponse{}
 		for _, i := range resp.List {
 			// get all users
-			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
+			users_resp, err := de.service.GetAllUsers(r.Context(), i.Id)
 			if err != nil {
 				switch err {
 				case retailer.ErrIdNotFound:
@@ -166,19 +162,8 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
-			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
-				ID: users_resp.List[0],
-			})
-			if err != nil {
-				switch err {
-				case user.ErrIdNotFound:
-				default:
-					util.ServerErrorResponse(w, r, err)
-				}
-			}
-			handler_resp.List = append(handler_resp.List, GetResponse{
+
+			handler_resp.List = append(handler_resp.List, GetDistributorResponse{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -187,12 +172,12 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
-				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+				Users:       users_resp.List,
 			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	} else {
-		resp, err := re.service.GetAll(r.Context())
+		resp, err := de.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case retailer.ErrEmptyGetContent:
@@ -204,10 +189,10 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		handler_resp := GetAllResponse{}
+		handler_resp := GetAllDistributorResponse{}
 		for _, i := range resp.List {
 			// get all users
-			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
+			users_resp, err := de.service.GetAllUsers(r.Context(), i.Id)
 			if err != nil {
 				switch err {
 				case retailer.ErrIdNotFound:
@@ -215,19 +200,8 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
-			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
-				ID: users_resp.List[0],
-			})
-			if err != nil {
-				switch err {
-				case user.ErrIdNotFound:
-				default:
-					util.ServerErrorResponse(w, r, err)
-				}
-			}
-			handler_resp.List = append(handler_resp.List, GetResponse{
+
+			handler_resp.List = append(handler_resp.List, GetDistributorResponse{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -236,14 +210,14 @@ func (re *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
-				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+				Users:       users_resp.List,
 			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	}
 }
 
-func (p *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.Request) {
+func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, r, err)
@@ -251,12 +225,12 @@ func (p *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.Re
 	}
 	defer r.Body.Close()
 
-	var requestBody CreateRequest
+	var requestBody CreateDistributorRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
 	}
-	id, err := p.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
+	id, err := de.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
 		case retailer.ErrIdNotFound,
@@ -273,7 +247,7 @@ func (p *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.Re
 	util.WriteJSON(w, util.Envelope{"retailer": id}, http.StatusAccepted)
 }
 
-func (re *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.Request) {
+func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, r, err)
@@ -281,12 +255,12 @@ func (re *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 	}
 	defer r.Body.Close()
 
-	var requestBody UpdateRequest
+	var requestBody UpdateDistributorRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
 	}
-	id, err := re.service.Update(r.Context(), (*distributor.UpdateRequest)(&requestBody))
+	id, err := de.service.Update(r.Context(), (*distributor.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
 		case retailer.ErrIdNotFound:

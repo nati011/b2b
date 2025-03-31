@@ -15,7 +15,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
-type CreateRequest struct {
+type CreateRetailerRequest struct {
 	Tin         string `json:"tin"`
 	Latitude    string `json:"latitude"`
 	Longitude   string `json:"longitude"`
@@ -30,7 +30,7 @@ type CreateRequest struct {
 	UserId    int    `json:"user_id"`
 }
 
-type GetResponse struct {
+type GetRetailerResponse struct {
 	Id          int                                 `json:"id"`
 	Name        string                              `json:"name"`
 	Tin         string                              `json:"tin"`
@@ -42,16 +42,16 @@ type GetResponse struct {
 	Users       application_handler.GetUserResponse `json:"user"`
 }
 
-type GetAllResponse struct {
-	List []GetResponse `json:"list"`
+type GetAllRetailerResponse struct {
+	List []GetRetailerResponse `json:"list"`
 }
 
-type GetByParamRequest struct {
+type GetRetailerByParamRequest struct {
 	Name string `json:"name"`
 	Tin  string `json:"tin"`
 }
 
-type UpdateRequest struct {
+type UpdateRetailerRequest struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 	Tin  string `json:"tin"`
@@ -76,6 +76,15 @@ func (r *Retailer) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/retailer", r.GetHandler)
 	mux.HandleFunc("POST /api/v1/retailer", r.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/retailer", r.UpdateHandler)
+
+	mux.HandleFunc("POST /api/v1/retailer/user", r.CreateUserHandler)
+	mux.HandleFunc("GET /api/v1/retailer/user", r.GetUserHandler)
+}
+
+func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func (re *Retailer) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +135,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if len(users_resp.List) != 0 {
-			util.WriteJSON(w, util.Envelope{"retailer": GetResponse{
+			util.WriteJSON(w, util.Envelope{"retailer": GetRetailerResponse{
 				Id:          resp.Id,
 				Name:        resp.Name,
 				Tin:         resp.Tin,
@@ -154,7 +163,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		handler_resp := GetAllResponse{}
+		handler_resp := GetAllRetailerResponse{}
 		for _, i := range resp.List {
 			// get all users
 			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
@@ -177,7 +186,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			handler_resp.List = append(handler_resp.List, GetResponse{
+			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -203,7 +212,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		handler_resp := GetAllResponse{}
+		handler_resp := GetAllRetailerResponse{}
 		for _, i := range resp.List {
 			// get all users
 			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
@@ -226,7 +235,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			handler_resp.List = append(handler_resp.List, GetResponse{
+			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -250,7 +259,7 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestBody CreateRequest
+	var requestBody CreateRetailerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
@@ -280,7 +289,7 @@ func (re *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestBody UpdateRequest
+	var requestBody UpdateRetailerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
