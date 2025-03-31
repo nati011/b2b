@@ -36,18 +36,27 @@ type CreateConfigurableProductRequest struct {
 	Images        []string `json:"images"`
 }
 
-type GetProductResponse struct {
+type ProductResponse struct {
 	Id            int               `json:"id"`
 	Name          string            `json:"name"`
 	Desc          string            `json:"desc"`
-	ExternalID    string            `json:"external_id"`
-	Images        []string          `json:"images"`
 	Price         float64           `json:"price"`
+	Stock         int               `json:"stock"`
+	ExternalID    string            `json:"external_id"`
 	Attributes    map[string]string `json:"attributes"`
+	Images        []string          `json:"images"`
 	DistributorId int               `json:"distributor_id"`
 	CategoryId    []int             `json:"categories"`
-	Stock         int               `json:"stock"`
 	IsActive      bool              `json:"is_active"`
+}
+
+type GetProductResponse struct {
+	Name                   string            `json:"name"`
+	Desc                   string            `json:"desc"`
+	IsActive               bool              `json:"is_active"`
+	Images                 []string          `json:"images"`
+	ConfigurableAttributes map[string]string `json:"configurable_attributes"`
+	Configurables          []ProductResponse `json:"configurables"`
 }
 
 type GetAllProductResponse struct {
@@ -110,6 +119,7 @@ func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("PATCH /api/v1/product/stock", p.StockHandler)
 
 	mux.HandleFunc("POST /api/v1/configurable_product", p.CreateConfigurableProductHandler)
+	mux.HandleFunc("GET /api/v1/configurable_product", p.GetConfigurableProductHandler)
 }
 
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -139,28 +149,25 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case product.ErrIdNotFound:
-				return
-			default:
-				util.ServerErrorResponse(w, r, err)
-			}
-		}
-
-		cp_resp, err := p.configurableProductservice.Get(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case product.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
-				return
 			default:
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
 		if resp.Id != 0 {
-			util.WriteJSON(w, util.Envelope{"product": resp}, http.StatusAccepted)
-		} else if cp_resp.Id != 0 {
-			util.WriteJSON(w, util.Envelope{"product": cp_resp}, http.StatusAccepted)
+			util.WriteJSON(w, util.Envelope{"product": ProductResponse{
+				Id:            resp.Id,
+				Name:          resp.Name,
+				Desc:          resp.Desc,
+				ExternalID:    resp.ExternalID,
+				Images:        resp.Images,
+				Price:         resp.Price,
+				Attributes:    resp.Attributes,
+				DistributorId: resp.DistributorId,
+				CategoryId:    resp.CategoryId,
+				Stock:         resp.Stock,
+				IsActive:      resp.IsActive,
+			}}, http.StatusAccepted)
 		}
-
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
@@ -222,20 +229,203 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.WriteJSON(w, util.Envelope{"products": resp}, http.StatusAccepted)
 	} else {
-		// GET ALL
-		resp, err := p.service.GetAll(r.Context())
+		// build
+		var resp []GetProductResponse
+		pr, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case product.ErrEmptyGetContent:
-
-				util.RequestErrorResponse(w, r, err)
-				return
 			default:
 				util.ServerErrorResponse(w, r, err)
 				return
 			}
 		}
+		var configurables []ProductResponse
+		for _, i := range pr.List {
+			configurables = append(configurables, ProductResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        i.Images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			})
+
+			resp = append(resp, GetProductResponse{
+				Name:                   i.Name,
+				Desc:                   i.Desc,
+				IsActive:               i.IsActive,
+				Images:                 i.Images,
+				ConfigurableAttributes: i.Attributes,
+				Configurables:          configurables,
+			})
+		}
+
+		cp, err := p.configurableProductservice.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, r, err)
+				return
+			}
+		}
+		for _, j := range cp.List {
+			var configurables []ProductResponse
+			for _, i := range j.Products {
+				resp, err := p.service.Get(r.Context(), i)
+				if err != nil {
+					if err != nil {
+						switch err {
+						case product.ErrIdNotFound:
+						default:
+							util.ServerErrorResponse(w, r, err)
+						}
+					}
+				}
+				configurables = append(configurables, ProductResponse{
+					Id:            resp.Id,
+					Name:          resp.Name,
+					Desc:          resp.Desc,
+					ExternalID:    resp.ExternalID,
+					Images:        resp.Images,
+					Price:         resp.Price,
+					Attributes:    resp.Attributes,
+					DistributorId: resp.DistributorId,
+					CategoryId:    resp.CategoryId,
+					Stock:         resp.Stock,
+					IsActive:      resp.IsActive,
+				})
+			}
+			resp = append(resp, GetProductResponse{
+				Name:                   j.Name,
+				Desc:                   j.Desc,
+				IsActive:               j.IsAvailable,
+				Images:                 j.Images,
+				ConfigurableAttributes: j.Attributes,
+				Configurables:          configurables,
+			})
+		}
 		util.WriteJSON(w, util.Envelope{"products": resp}, http.StatusAccepted)
+	}
+}
+
+func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	const ParamName = "name"
+	paramValues := r.URL.Query()
+	paramNameValue := paramValues.Get(ParamName)
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, r, err)
+			return
+
+		}
+		cp_resp, err := p.configurableProductservice.Get(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case configurable_product.ErrIdNotFound:
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+			}
+		}
+
+		var configurables []ProductResponse
+		for _, i := range cp_resp.Products {
+			resp, err := p.service.Get(r.Context(), i)
+			if err != nil {
+				if err != nil {
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, r, err)
+					}
+				}
+			}
+			configurables = append(configurables, ProductResponse{
+				Id:            resp.Id,
+				Name:          resp.Name,
+				Desc:          resp.Desc,
+				ExternalID:    resp.ExternalID,
+				Images:        resp.Images,
+				Price:         resp.Price,
+				Attributes:    resp.Attributes,
+				DistributorId: resp.DistributorId,
+				CategoryId:    resp.CategoryId,
+				Stock:         resp.Stock,
+				IsActive:      resp.IsActive,
+			})
+		}
+		util.WriteJSON(w, util.Envelope{"configurable_product": GetProductResponse{
+			Name:                   cp_resp.Name,
+			Desc:                   cp_resp.Desc,
+			IsActive:               cp_resp.IsAvailable,
+			Images:                 cp_resp.Images,
+			ConfigurableAttributes: cp_resp.Attributes,
+			Configurables:          configurables,
+		}}, http.StatusAccepted)
+	} else if paramNameValue != "" {
+		cp_resp, err := p.configurableProductservice.GetByParam(r.Context(),
+			&configurable_product.GetByParamRequest{
+				Name: paramNameValue,
+			})
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, r, err)
+				return
+			default:
+				util.ServerErrorResponse(w, r, err)
+			}
+		}
+		var resp []GetProductResponse
+		for _, j := range cp_resp.List {
+
+			var configurables []ProductResponse
+			for _, i := range j.Products {
+				resp, err := p.service.Get(r.Context(), i)
+				if err != nil {
+					if err != nil {
+						switch err {
+						case product.ErrIdNotFound:
+						default:
+							util.ServerErrorResponse(w, r, err)
+						}
+					}
+				}
+				configurables = append(configurables, ProductResponse{
+					Id:            resp.Id,
+					Name:          resp.Name,
+					Desc:          resp.Desc,
+					ExternalID:    resp.ExternalID,
+					Images:        resp.Images,
+					Price:         resp.Price,
+					Attributes:    resp.Attributes,
+					DistributorId: resp.DistributorId,
+					CategoryId:    resp.CategoryId,
+					Stock:         resp.Stock,
+					IsActive:      resp.IsActive,
+				})
+			}
+			resp = append(resp, GetProductResponse{
+				Name:                   j.Name,
+				Desc:                   j.Desc,
+				IsActive:               j.IsAvailable,
+				Images:                 j.Images,
+				ConfigurableAttributes: j.Attributes,
+				Configurables:          configurables,
+			})
+		}
+		util.WriteJSON(w, util.Envelope{"configurable_products": resp}, http.StatusAccepted)
 	}
 }
 

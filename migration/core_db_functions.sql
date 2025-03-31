@@ -2138,7 +2138,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
      RETURN QUERY
-    SELECT c.configurable_product_id
+    SELECT c.product_attribute_id
     FROM public.cp_attributes c
     WHERE c.configurable_product_id = cp_product_id
       AND c.is_deleted = FALSE;
@@ -2611,7 +2611,7 @@ BEGIN
     RETURN QUERY
     SELECT p.name, av.name 
     FROM public.p_attributes p
-    JOIN public.p_attribute_values av
+    RIGHT JOIN public.p_attribute_values av
     ON av.attribute_id = p.id
     WHERE av.attribute_id = p_attribute_id
       AND p.is_deleted = FALSE;
