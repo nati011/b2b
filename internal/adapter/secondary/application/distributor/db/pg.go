@@ -12,7 +12,7 @@ type Postgres struct {
 	db *sql.DB
 }
 
-func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
+func (p *Postgres) Create(ctx context.Context, req *port.RegisterDistributorRequest) (int, error) {
 	var resourceId int
 	query := "SELECT * FROM public.create_distributor_user($1, $2, $3, $4, $5, $6, $7);"
 
@@ -20,7 +20,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.FirstName,
 		req.LastName,
 		req.Email,
-		req.Phone,
+		req.PhoneNumber,
 		req.Username,
 		req.DOB,
 		req.ExternalId,
@@ -163,7 +163,7 @@ func (p *Postgres) GetBusinessById(ctx context.Context, id int) (port.GetBusines
 
 	return response, nil
 }
-func (p *Postgres) GetByDistributorId(ctx context.Context, distributor_id int) (port.GetBusinessResponse, error) {
+func (p *Postgres) GetBusinessByDistributorId(ctx context.Context, distributor_id int) (port.GetBusinessResponse, error) {
 	var response port.GetBusinessResponse
 
 	query := "SELECT * FROM public.get_distributor_business($1);"
