@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	port "b2b.nati011.github.com/internal/port/application/distributor"
+	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
 type Postgres struct {
