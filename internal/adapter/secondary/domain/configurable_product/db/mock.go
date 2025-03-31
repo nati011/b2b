@@ -16,7 +16,7 @@ type MockConfigurableProduct struct {
 	IsAvailableStatus bool
 	Products          []int
 	Images            []string
-	AttributeKeys     map[string]string
+	AttributeKeys     []map[string]string
 	CategoryId        []int
 	DistributorId     int
 }
@@ -189,9 +189,9 @@ func (m *Mock) UpdateAttributes(ctx context.Context, req *port.UpdateAttributes)
 				Desc:              i.Desc,
 				ExternalId:        i.ExternalId,
 				IsAvailableStatus: i.IsAvailableStatus,
-				AttributeKeys:     req.Attributes,
-				Products:          i.Products,
-				Images:            i.Images,
+				// AttributeKeys:     req.Attributes,
+				Products: i.Products,
+				Images:   i.Images,
 			})
 		}
 	}
@@ -225,11 +225,11 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.configurables {
 		if i.Id == id {
 			return port.GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalId:    i.ExternalId,
-				Attributes:    i.AttributeKeys,
+				Id:         i.Id,
+				Name:       i.Name,
+				Desc:       i.Desc,
+				ExternalId: i.ExternalId,
+				// Attributes:    i.AttributeKeys,
 				Products:      i.Products,
 				IsAvailable:   i.IsAvailableStatus,
 				CategoryId:    i.CategoryId,
@@ -245,11 +245,11 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.configurables {
 		resp = append(resp, port.GetResponse{
-			Id:            i.Id,
-			Name:          i.Name,
-			Desc:          i.Desc,
-			ExternalId:    i.ExternalId,
-			Attributes:    i.AttributeKeys,
+			Id:         i.Id,
+			Name:       i.Name,
+			Desc:       i.Desc,
+			ExternalId: i.ExternalId,
+			// Attributes:    i.AttributeKeys,
 			Products:      i.Products,
 			IsAvailable:   i.IsAvailableStatus,
 			CategoryId:    i.CategoryId,
@@ -271,11 +271,11 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 	for _, i := range m.configurables {
 		if i.Name == name {
 			resp = append(resp, port.GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalId:    i.ExternalId,
-				Attributes:    i.AttributeKeys,
+				Id:         i.Id,
+				Name:       i.Name,
+				Desc:       i.Desc,
+				ExternalId: i.ExternalId,
+				// Attributes:    i.AttributeKeys,
 				Products:      i.Products,
 				IsAvailable:   i.IsAvailableStatus,
 				CategoryId:    i.CategoryId,
@@ -297,11 +297,11 @@ func (m *Mock) GetByExternalId(ctx context.Context, externalId string) (port.Get
 	for _, i := range m.configurables {
 		if i.ExternalId == externalId {
 			resp = append(resp, port.GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalId:    i.ExternalId,
-				Attributes:    i.AttributeKeys,
+				Id:         i.Id,
+				Name:       i.Name,
+				Desc:       i.Desc,
+				ExternalId: i.ExternalId,
+				// Attributes:    i.AttributeKeys,
 				Products:      i.Products,
 				IsAvailable:   i.IsAvailableStatus,
 				CategoryId:    i.CategoryId,

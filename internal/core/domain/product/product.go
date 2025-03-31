@@ -22,6 +22,7 @@ var (
 	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
 	ErrUnknown                      = errors.New("oopsy, unkown error")
 	ErrCategoryNotFound             = errors.New("oopsy, category not found")
+	ErrPriceCannotBeNegative        = errors.New("oopsy, price cannot be negative")
 )
 
 type CreateRequest struct {
@@ -125,7 +126,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-	err = validatePrice(int(req.Price))
+	err = create_validatePrice(int(req.Price))
 	if err != nil {
 		return 0, err
 	}
@@ -377,7 +378,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Price != 0 {
-		err = validatePrice(int(req.Price))
+		err = update_validatePrice(int(req.Price))
 		if err != nil {
 			return 0, err
 		}
