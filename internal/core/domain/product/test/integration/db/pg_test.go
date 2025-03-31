@@ -423,6 +423,7 @@ func Test_read(t *testing.T) {
 
 func Test_write(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &product.CreateRequest{
 			Name:       "test",
@@ -473,7 +474,7 @@ func Test_write(t *testing.T) {
 
 		id, err := container.ProductService.Create(ctx, in)
 		if err != nil {
-			t.Fatalf("Failed to create product")
+			t.Fatalf("Failed to create product err %v", err)
 		}
 
 		//update
