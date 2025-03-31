@@ -52,7 +52,7 @@ func setup() {
 func Test_Create_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		ctx := context.Background()
-		in := &port.RegisterDistributorRequest{
+		in := &RegisterDistributorRequest{
 			FirstName:       "Test User",
 			Email:           "test789@email.com",
 			Password:        "test@123",
@@ -71,7 +71,7 @@ func Test_Create_happyPath(t *testing.T) {
 func Test_Get_All_happyPath(t *testing.T) {
 	ctx := context.Background()
 
-	in := &port.RegisterDistributorRequest{
+	in := &RegisterDistributorRequest{
 		FirstName:       "Test User",
 		Email:           "t6546@email.com",
 		Password:        "test@123",
@@ -106,7 +106,7 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 
 func Test_Get_happyPath(t *testing.T) {
 	ctx := context.Background()
-	in := &port.RegisterDistributorRequest{
+	in := &RegisterDistributorRequest{
 		FirstName:       "Test User",
 		Email:           "tesfhjt2_11@gmail.com",
 		Password:        "test@123",
@@ -161,7 +161,7 @@ func Test_Create_Business_happyPath(t *testing.T) {
 
 func Test_Get_All_Businesses_happyPath(t *testing.T) {
 	ctx := context.Background()
-	in := &port.RegisterDistributorRequest{
+	in := &RegisterDistributorRequest{
 		FirstName:       "Test User",
 		Email:           "tesfh231@gmail.com",
 		Password:        "test@123",
@@ -208,7 +208,7 @@ func Test_Get_Business_happyPath(t *testing.T) {
 
 func Test_Update_Business_happyPath(t *testing.T) {
 	ctx := context.Background()
-	distIn := &port.RegisterDistributorRequest{
+	distIn := &RegisterDistributorRequest{
 		FirstName:       "Test User",
 		Email:           "test475@gmail.com",
 		Password:        "test@123",
@@ -219,7 +219,7 @@ func Test_Update_Business_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create distributor %v", err)
 	}
-	businessIn := &port.CreateBusinessInformation{
+	businessIn := &CreateBusinessInformation{
 		Name: "Test",
 		Tin:  124576,
 

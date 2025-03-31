@@ -46,7 +46,7 @@ func (m *Mock) GetById(ctx context.Context, id int) (port.GetResponse, error) {
 	return resp, nil
 }
 
-func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
+func (m *Mock) Create(ctx context.Context, req *port.RegisterDistributorRequest) (int, error) {
 	distributorId := rand.Int()
 	m.Distributors = append(m.Distributors, MockDistributor{
 		Id: distributorId,
