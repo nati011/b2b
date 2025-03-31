@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS public."p_attribute_values"
 	FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
 ) INHERITS(public."base");
 
-COMMENT ON TABLE public."p_attributes" IS 'stores product attributes values(part of EAV)';
+COMMENT ON TABLE public."p_attribute_values" IS 'stores product attributes values(part of EAV)';
 
 CREATE TABLE IF NOT EXISTS public."p_images"
 (
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS public."p_images"
     FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
 ) INHERITS(public."base");
 
-COMMENT ON TABLE public."p_attributes" IS 'stores images of products';
+COMMENT ON TABLE public."p_images" IS 'stores images of products';
 
 CREATE TABLE IF NOT EXISTS public."configurable_products"
 (
