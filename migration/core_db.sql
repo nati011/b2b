@@ -89,9 +89,9 @@ COMMENT ON TABLE public."distributors" IS 'stores distributor specific informati
 CREATE TABLE IF NOT EXISTS public."distributor_users"
 (
   user_id INT,
-  distributor_id INT,
-	FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,
-	FOREIGN KEY (distributor_id) REFERENCES public."distributors"(id) ON DELETE CASCADE
+  distributor_id INT
+	-- FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,
+	-- FOREIGN KEY (distributor_id) REFERENCES public."distributors"(id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."distributor_users" IS 'stores distributor agents(always on the supply end of the application';
@@ -139,15 +139,18 @@ COMMENT ON TABLE public."rb_locations" IS 'stores location information of busine
 CREATE TABLE IF NOT EXISTS public."distributor_business_info" 
 (
   id SERIAL PRIMARY KEY,
-  name TEXT,
+  name VARCHAR(255),
   tin VARCHAR(10) NOT NULL,
-  distributor_id INT UNIQUE REFERENCES public."distributors" (id) ON DELETE CASCADE
+  distributor_id INT 
+  -- UNIQUE REFERENCES public."distributors" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."distributor_business_info" IS 'stores busines information of distributors';
 
 CREATE TABLE IF NOT EXISTS public."db_locations" 
 (
+  lat VARCHAR(255),
+  long VARCHAR(255),
   general_zone VARCHAR(255) NOT NULL,
   region VARCHAR(255) NOT NULL,
   woreda VARCHAR(255) NOT NULL,

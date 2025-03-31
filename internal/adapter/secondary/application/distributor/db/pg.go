@@ -20,7 +20,7 @@ func NewPostgres(db *sql.DB) port.DB {
 }
 
 func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, error) {
-	var retailerId int
+	var distributorId int
 	query := "SELECT * FROM public.create_distributor($1, $2, $3, $4, $5, $6, $7);"
 
 	err := r.Pool.QueryRowContext(ctx, query,
@@ -31,7 +31,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		req.GeneralZone,
 		req.Region,
 		req.Woreda,
-	).Scan(&retailerId)
+	).Scan(&distributorId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -41,8 +41,8 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		}
 	}
 	_, err = r.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
-		User_id:     req.UserId,
-		Retailer_id: retailerId,
+		User_id:        req.UserId,
+		Distributor_Id: distributorId,
 	})
 	if err != nil {
 		switch err {
@@ -51,7 +51,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		}
 	}
 
-	return retailerId, nil
+	return distributorId, nil
 }
 
 func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
@@ -214,7 +214,7 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 func (r *Postgres) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
 	query := "SELECT * FROM public.create_distributor_user($1, $2);"
 	var retailer_id int
-	err := r.Pool.QueryRowContext(ctx, query, req.Retailer_id, req.User_id).Scan(&retailer_id)
+	err := r.Pool.QueryRowContext(ctx, query, req.Distributor_Id, req.User_id).Scan(&retailer_id)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
