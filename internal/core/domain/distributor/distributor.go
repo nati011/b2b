@@ -62,12 +62,12 @@ type GetAllUsers struct {
 }
 
 type CreateUserRequest struct {
-	Retailer_id int
-	FirstName   string
-	LastName    string
-	Email       string
-	Phone       string
-	UserId      int
+	Distributor_Id int
+	FirstName      string
+	LastName       string
+	Email          string
+	Phone          string
+	UserId         int
 }
 
 type Provider interface {
@@ -115,8 +115,8 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 		}
 	}
 	id, err := d.DB.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
-		User_id:     user_id,
-		Retailer_id: req.Retailer_id,
+		User_id:        user_id,
+		Distributor_Id: req.Distributor_Id,
 	})
 	if err != nil {
 		switch err {

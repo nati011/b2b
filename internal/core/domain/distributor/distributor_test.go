@@ -429,10 +429,10 @@ func Test_Create_Distributor_user(t *testing.T) {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 	user_id, err := testContainer.DistributorService.CreateUser(ctx, &CreateUserRequest{
-		Retailer_id: id,
-		FirstName:   "test_user",
-		LastName:    "test_user",
-		Email:       "test@gmail.com",
+		Distributor_Id: id,
+		FirstName:      "test_user",
+		LastName:       "test_user",
+		Email:          "test@gmail.com",
 	})
 	_, err = testContainer.UserService.GetByParam(ctx, &user.GetByParam{
 		ID: user_id,

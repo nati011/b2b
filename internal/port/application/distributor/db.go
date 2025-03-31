@@ -47,8 +47,8 @@ type GetAllResponse struct {
 }
 
 type CreateUserAgentRequest struct {
-	User_id     int
-	Retailer_id int
+	User_id        int
+	Distributor_Id int
 }
 
 type GetUserResponse struct {

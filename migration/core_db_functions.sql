@@ -804,13 +804,13 @@ $$;
     
     -- writers
 CREATE OR REPLACE FUNCTION public.create_distributor (
-    r_name VARCHAR(255),
-    r_tin VARCHAR(255),
-    r_lat VARCHAR(255),
-    r_long VARCHAR(255),
-    r_generalZone VARCHAR(255),
-    r_region VARCHAR(255),
-    r_woreda VARCHAR(255)
+    d_name VARCHAR(255),
+    d_tin VARCHAR(255),
+    d_lat VARCHAR(255),
+    d_long VARCHAR(255),
+    d_generalZone VARCHAR(255),
+    d_region VARCHAR(255),
+    d_woreda VARCHAR(255)
 ) 
 RETURNS INT 
 LANGUAGE plpgsql 
@@ -823,13 +823,13 @@ AS $$
         RETURNING id INTO new_id;
 
         -- Business info
-        INSERT INTO public.distributor_business_info(name, tin, retailer_id)
-        VALUES(r_name, r_tin, new_id)
+        INSERT INTO public.distributor_business_info(name, tin, distributor_id)
+        VALUES(d_name, d_tin, new_id)
         RETURNING id INTO business_id;
 
         -- business Locations
         INSERT INTO public.db_locations(lat, long, general_zone, region, woreda, business_id)
-        VALUES(r_lat, r_long, r_generalZone, r_region, r_woreda, business_id);  -- Added business_id
+        VALUES(d_lat, d_long, d_generalZone, d_region, d_woreda, business_id);
 
         RETURN new_id;
     END;
@@ -885,12 +885,12 @@ AS $$
     BEGIN
         RETURN QUERY
 
-        SELECT  r.id, rb.name, db.tin, db_loc.lat, db_loc.long, 
+        SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
         db_loc.general_zone, db_loc.region, db_loc.woreda
-        FROM  public.distributor d
-        JOIN public.retailer_business_info db 
+        FROM  public.distributors d
+        JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
-        JOIN public.db_locations rb_loc 
+        JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
         WHERE d.id = d_distributor_id 
         AND d.is_deleted = FALSE
@@ -928,7 +928,7 @@ BEGIN
 END;
 $$;
 
-create or replace function public.get_retailer_by_tin (
+create or replace function public.get_distributor_by_tin (
     distributor_tin VARCHAR(255)
 ) 
 RETURNS TABLE (
@@ -949,7 +949,7 @@ AS $$
        SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
         db_loc.general_zone, db_loc.region, db_loc.woreda
         FROM  public.distributors d
-        JOIN public.retailer_business_info db 
+        JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
@@ -958,7 +958,7 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_retailers () 
+create or replace function public.get_all_distributors () 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -984,25 +984,29 @@ AS $$
     END;
 $$;
 
--- retailer user agent ---------------------------------
+-- distributor user agent ---------------------------------
     
     -- writer
-CREATE OR REPLACE FUNCTION public.create_retailer_user (
-    r_id INT,
-    r_user_id INT
+CREATE OR REPLACE FUNCTION public.create_distributor_user (
+    d_id INT,
+    d_user_id INT
 ) 
 RETURNS INT 
 LANGUAGE plpgsql 
 AS $$
+DECLARE
+    new_id INT;
 BEGIN   
-    INSERT INTO public.retailer_users(user_id, retailer_id)
-    VALUES(r_user_id, r_id);
+    INSERT INTO public.distributor_users(user_id, distributor_id)
+    VALUES(d_user_id, d_id);
+
+    RETURN d_user_id;
 END;
 $$;
 
     -- reader
-CREATE OR REPLACE FUNCTION public.get_all_retailer_users (
-    r_id INT
+CREATE OR REPLACE FUNCTION public.get_all_distributor_users (
+    d_id INT
 ) 
 RETURNS TABLE (
   id INT
@@ -1012,8 +1016,8 @@ AS $$
 BEGIN   
     RETURN QUERY
     SELECT user_id
-    FROM public.retailer_users ru
-    WHERE ru.retailer_id = r_id;
+    FROM public.distributor_users du
+    WHERE du.distributor_id = d_id;
 END;
 $$;
 
