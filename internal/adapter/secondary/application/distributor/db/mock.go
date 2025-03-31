@@ -43,7 +43,7 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Woreda:      req.Woreda,
 	})
 
-	err := m.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
+	_, err := m.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
 		User_id: req.UserId,
 	})
 	if err != nil {
@@ -53,11 +53,11 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 	return newId, nil
 }
 
-func (m Mock) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
+func (m Mock) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
 	m.userAgents = append(m.userAgents, MockUserAgent{
 		Id: req.User_id,
 	})
-	return nil
+	return req.User_id, nil
 }
 
 func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
