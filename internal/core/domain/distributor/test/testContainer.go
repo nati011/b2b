@@ -3,7 +3,7 @@ package test_container
 import (
 	"database/sql"
 
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 )

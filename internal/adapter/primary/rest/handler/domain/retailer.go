@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
@@ -122,7 +123,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
-		// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+		// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 		// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
 		resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
 			ID: users_resp.List[0],
@@ -149,8 +150,8 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
 		resp, err := re.service.GetByParam(r.Context(), &retailer.GetByParamRequest{
-			Name: paramNameValue,
-			Tin:  paramTinValue,
+			Name: strings.Trim(paramNameValue, `"`),
+			Tin:  strings.Trim(paramTinValue, `"`),
 		})
 		if err != nil {
 			switch err {
@@ -174,7 +175,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
 			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
 				ID: users_resp.List[0],
@@ -223,7 +224,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
 			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
 				ID: users_resp.List[0],

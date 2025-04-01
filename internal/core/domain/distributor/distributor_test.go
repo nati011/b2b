@@ -379,6 +379,15 @@ func Test_Get_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
+
+	t.Run("empty_getAll", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
+		_, err := testContainer.DistributorService.GetAll(ctx)
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
 }
 
 func Test_Get_All_Users_happyPath(t *testing.T) {
@@ -410,7 +419,11 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 	})
 }
 
-func Test_Create_Distributor_user(t *testing.T) {
+func Test_Get_All_Users_unhappyPath(t *testing.T) {
+
+}
+
+func Test_Create_Distributor_user_happyPath(t *testing.T) {
 	t.Cleanup(testContainer.Cleanup)
 	in := CreateRequest{
 		Tin:         "1111111111",
@@ -442,5 +455,19 @@ func Test_Create_Distributor_user(t *testing.T) {
 	}
 }
 
-func Test_Get_All_Users_unhappyPath(t *testing.T) {
+func Test_Create_Distributor_user_unhappyPath(t *testing.T) {
+	t.Run("distributorNotFound", func(t *testing.T) {
+		t.Cleanup(testContainer.Cleanup)
+		_, err := testContainer.DistributorService.CreateUser(ctx, &CreateUserRequest{
+			Distributor_Id: 99,
+			FirstName:      "test_user",
+			LastName:       "test_user",
+			Email:          "test@gmail.com",
+		})
+		WantErr := ErrIdNotFound
+		if err != WantErr {
+			t.Errorf("Expected err: %v Got: %v", WantErr, err)
+		}
+	})
+
 }
