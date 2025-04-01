@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 const (
@@ -41,7 +40,7 @@ func setup() {
 func Test_CreateClient_happyPath(t *testing.T) {
 	t.Cleanup(mock.Cleanup)
 	ctx := context.Background()
-	in := port.RegisterUserRequest{
+	in := RegisterUserRequest{
 		Username:        VALID_USERNAME_A,
 		Password:        VALID_PASSWORD,
 		ConfirmPassword: VALID_PASSWORD,
@@ -58,7 +57,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("email_not_supplied", func(t *testing.T) {
 		t.Cleanup(mock.Cleanup)
 		ctx := context.Background()
-		in := port.RegisterUserRequest{
+		in := RegisterUserRequest{
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
 			ConfirmPassword: VALID_PASSWORD,
@@ -74,7 +73,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("password_not_supplied", func(t *testing.T) {
 		t.Cleanup(mock.Cleanup)
 		ctx := context.Background()
-		in := port.RegisterUserRequest{
+		in := RegisterUserRequest{
 			Email:           VALID_EMAIL_A,
 			Username:        VALID_USERNAME_A,
 			ConfirmPassword: VALID_PASSWORD,
@@ -90,7 +89,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("confirmation_password_not_supplied", func(t *testing.T) {
 		t.Cleanup(mock.Cleanup)
 		ctx := context.Background()
-		in := port.RegisterUserRequest{
+		in := RegisterUserRequest{
 			Email:     VALID_EMAIL_A,
 			Username:  VALID_USERNAME_A,
 			Password:  VALID_PASSWORD,
@@ -106,7 +105,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("passwords_dont_match", func(t *testing.T) {
 		t.Cleanup(mock.Cleanup)
 		ctx := context.Background()
-		in := port.RegisterUserRequest{
+		in := RegisterUserRequest{
 			Email:           VALID_EMAIL_A,
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
@@ -123,7 +122,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("FirstName_not_supplied", func(t *testing.T) {
 		t.Cleanup(mock.Cleanup)
 		ctx := context.Background()
-		in := port.RegisterUserRequest{
+		in := RegisterUserRequest{
 			Email:           VALID_EMAIL_A,
 			Username:        VALID_USERNAME_A,
 			Password:        VALID_PASSWORD,
