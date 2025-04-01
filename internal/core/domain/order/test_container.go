@@ -10,6 +10,7 @@ import (
 type TestContainer struct {
 	OrderService   Provider
 	InvoiceService invoice.Provider
+	ProductService product.Provider
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
@@ -17,10 +18,11 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewMock(),
 	)
+	container.ProductService = product.NewPackageIntegrationTestContainer().ProductService
 	container.OrderService = NewOrderService(
 		order_db.NewMock(),
 		container.InvoiceService,
-		product.NewPackageIntegrationTestContainer().ProductService,
+		container.ProductService,
 	)
 
 	return container

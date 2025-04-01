@@ -44,7 +44,7 @@ func main() {
 	InitSMS(cfg.Email, cfg.SMTP)
 
 	application_constainer := application_core.NewContainer(db_pool, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.Email, cfg.SMTP, cfg.KeycloakClientSecret)
-	domain_container := domain_core.NewContainer(db_pool)
+	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
 
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)

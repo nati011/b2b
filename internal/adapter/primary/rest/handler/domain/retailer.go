@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
@@ -15,7 +16,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
-type CreateRequest struct {
+type CreateRetailerRequest struct {
 	Tin         string `json:"tin"`
 	Latitude    string `json:"latitude"`
 	Longitude   string `json:"longitude"`
@@ -27,10 +28,9 @@ type CreateRequest struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
-	UserId    int    `json:"user_id"`
 }
 
-type GetResponse struct {
+type GetRetailerResponse struct {
 	Id          int                                 `json:"id"`
 	Name        string                              `json:"name"`
 	Tin         string                              `json:"tin"`
@@ -42,16 +42,16 @@ type GetResponse struct {
 	Users       application_handler.GetUserResponse `json:"user"`
 }
 
-type GetAllResponse struct {
-	List []GetResponse `json:"list"`
+type GetAllRetailerResponse struct {
+	List []GetRetailerResponse `json:"list"`
 }
 
-type GetByParamRequest struct {
+type GetRetailerByParamRequest struct {
 	Name string `json:"name"`
 	Tin  string `json:"tin"`
 }
 
-type UpdateRequest struct {
+type UpdateRetailerRequest struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 	Tin  string `json:"tin"`
@@ -66,8 +66,8 @@ func InitRetailer() {
 	handler.Register(new(Retailer))
 }
 
-func (r *Retailer) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = applicationServices.RetailerService
+func (r *Retailer) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+	r.service = domainServices.RetailerService
 	r.userService = applicationServices.UserService
 	return nil
 }
@@ -76,6 +76,39 @@ func (r *Retailer) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/retailer", r.GetHandler)
 	mux.HandleFunc("POST /api/v1/retailer", r.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/retailer", r.UpdateHandler)
+
+	mux.HandleFunc("GET /api/v1/retailer/{id}/user", r.GetUserHandler)
+}
+
+func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+
+	resp, err := re.service.Get(r.Context(), typedParamId)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	users_resp, err := re.service.GetAllUsers(r.Context(), resp.Id)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"users": users_resp}, http.StatusAccepted)
 }
 
 func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +146,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, r, err)
 			}
 		}
-		// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+		// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 		// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
 		resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
 			ID: users_resp.List[0],
@@ -126,7 +159,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if len(users_resp.List) != 0 {
-			util.WriteJSON(w, util.Envelope{"retailer": GetResponse{
+			util.WriteJSON(w, util.Envelope{"retailer": GetRetailerResponse{
 				Id:          resp.Id,
 				Name:        resp.Name,
 				Tin:         resp.Tin,
@@ -140,8 +173,8 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
 		resp, err := re.service.GetByParam(r.Context(), &retailer.GetByParamRequest{
-			Name: paramNameValue,
-			Tin:  paramTinValue,
+			Name: strings.Trim(paramNameValue, `"`),
+			Tin:  strings.Trim(paramTinValue, `"`),
 		})
 		if err != nil {
 			switch err {
@@ -154,7 +187,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		handler_resp := GetAllResponse{}
+		handler_resp := GetAllRetailerResponse{}
 		for _, i := range resp.List {
 			// get all users
 			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
@@ -165,7 +198,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
 			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
 				ID: users_resp.List[0],
@@ -177,7 +210,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			handler_resp.List = append(handler_resp.List, GetResponse{
+			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -203,7 +236,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		handler_resp := GetAllResponse{}
+		handler_resp := GetAllRetailerResponse{}
 		for _, i := range resp.List {
 			// get all users
 			users_resp, err := re.service.GetAllUsers(r.Context(), i.Id)
@@ -214,7 +247,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			// ASSEMPTION: retailer has one user ERGO users_resp.List[0]
+			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
 			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
 				ID: users_resp.List[0],
@@ -226,7 +259,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 					util.ServerErrorResponse(w, r, err)
 				}
 			}
-			handler_resp.List = append(handler_resp.List, GetResponse{
+			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -250,11 +283,12 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestBody CreateRequest
+	var requestBody CreateRetailerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
 	}
+
 	id, err := p.service.Create(r.Context(), (*retailer.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
@@ -280,7 +314,7 @@ func (re *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var requestBody UpdateRequest
+	var requestBody UpdateRetailerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, r, err)
 		return
