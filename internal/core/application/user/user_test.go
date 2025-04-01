@@ -28,7 +28,8 @@ func Test_create_happyPath(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName:  "natnael jemaneh asefa",
+			FirstName:  "natnael asefa",
+			LastName:   "jemaneh",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -51,7 +52,8 @@ func Test_create_happyPath(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName:  "natnael jemaneh asefa",
+			FirstName:  "natnael asefa",
+			LastName:   "jemaneh",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -79,6 +81,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
+			FirstName:  "natnael asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -96,6 +99,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
@@ -119,6 +123,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		//just email
 		in_only_email := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			Phone:      "+251949184879",
@@ -135,6 +140,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			Phone:      "011",
@@ -152,6 +158,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			Email:      "natnaeljemaneh001gmail.com",
@@ -172,6 +179,7 @@ func Test_getAll_happyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     "+251949184879",
 			Username:  "test",
@@ -218,6 +226,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Email:      email,
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -248,6 +257,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     phone_number,
 			Username:  "test",
@@ -279,6 +289,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     "+251949184879",
 			Username:  username,
@@ -310,6 +321,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     "+251949184879",
 			Username:  "test",
@@ -340,6 +352,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -354,6 +367,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ = time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in_new := &CreateRequest{
 			FirstName:  "eyoel jemaneh asefa",
+			LastName:   "jemaneh",
 			Email:      "eyoeljemaneh011@gmail.com",
 			Phone:      "+251933184880",
 			Username:   "test",
@@ -402,6 +416,7 @@ func Test_activate_happyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -430,6 +445,7 @@ func Test_activate_unhappyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName: "natnael jemaneh asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -464,6 +480,7 @@ func Test_deactivate_happyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -487,6 +504,7 @@ func Test_deactivate_unhappyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName: "natnael jemaneh asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -516,6 +534,7 @@ func Test_isActive_happyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName: "natnael jemaneh asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -563,6 +582,7 @@ func Test_update_user_happyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -614,6 +634,7 @@ func Test_update_user_unhappyPath(t *testing.T) {
 	in_update := &UpdateRequest{
 		Id:         rand.Int(),
 		FirstName:  "test",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -633,6 +654,7 @@ func Test_remove_user_happyPath(t *testing.T) {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",

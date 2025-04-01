@@ -22,18 +22,22 @@ func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 	}
 }
 
-func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func ServerErrorResponse(w http.ResponseWriter, err error) {
 	logError(err)
 	message := "the server encountered a problem and could not process your request"
 	errorResponse(w, http.StatusInternalServerError, message)
 }
 
-func RequestErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func RequestErrorResponse(w http.ResponseWriter, err error) {
 	logError(err)
 	errorResponse(w, http.StatusBadRequest, err.Error())
 }
 
-func NotFoundResponse(w http.ResponseWriter, r *http.Request) {
+func NotFoundResponse(w http.ResponseWriter) {
 	message := "the requested resource could not be found"
 	errorResponse(w, http.StatusNotFound, message)
+}
+
+func UnauthorizedResponse(w http.ResponseWriter) {
+	errorResponse(w, http.StatusUnauthorized, nil)
 }

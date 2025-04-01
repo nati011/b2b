@@ -44,17 +44,17 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		resp, err := c.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case category.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 		util.WriteJSON(w, util.Envelope{"category": resp}, http.StatusAccepted)
@@ -63,10 +63,10 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case category.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -77,14 +77,14 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateCategoryRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := c.service.Create(r.Context(), (*category.CreateRequest)(&requestBody))
@@ -94,10 +94,10 @@ func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			category.ErrDuplicateName,
 			category.ErrEmptyGetContent:
 
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -112,17 +112,17 @@ func (c *Category) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		err = c.service.Remove(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case category.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}

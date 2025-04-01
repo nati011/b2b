@@ -146,7 +146,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 
 		}
@@ -155,7 +155,8 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case product.ErrIdNotFound:
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
+				return
 			}
 		}
 		if resp.Id != 0 {
@@ -179,7 +180,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if ParamCategoryIdValue != "" {
 			typedCategoryId, err = strconv.Atoi(ParamCategoryIdValue)
 			if err != nil {
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
@@ -188,7 +189,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if ParamPriceMinValue != "" {
 			typedPriceMin, err = strconv.Atoi(ParamPriceMinValue)
 			if err != nil {
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
@@ -197,7 +198,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if ParamPriceMaxValue != "" {
 			typedPriceMax, err = strconv.Atoi(ParamPriceMaxValue)
 			if err != nil {
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
@@ -225,10 +226,10 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case product.ErrCategoryNotFound,
 				product.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -241,7 +242,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case product.ErrEmptyGetContent:
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -262,13 +263,13 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			})
 
 			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
-			for attr_key, attr_val := range i.Attributes { // Replace 'someSource' with your actual source
+			for attr_key, attr_val := range i.Attributes {
 				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
 					{
 						ProductId:      i.Id,
 						AttributeValue: attr_val,
 					},
-				} // Assuming attr_val is of type []string
+				}
 			}
 
 			resp = append(resp, GetProductResponse{
@@ -286,7 +287,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case configurable_product.ErrEmptyGetContent:
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -301,7 +302,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 						switch err {
 						case product.ErrIdNotFound:
 						default:
-							util.ServerErrorResponse(w, r, err)
+							util.ServerErrorResponse(w, err)
 						}
 					}
 				}
@@ -318,11 +319,11 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 					Stock:         resp.Stock,
 					IsActive:      resp.IsActive,
 				})
-				for attr_key, _ := range j.Attributes { // Replace 'someSource' with your actual source
+				for attr_key, _ := range j.Attributes {
 					configurableAttribute[attr_key] = append(configurableAttribute[attr_key], ConfigurableAttributesResponse{
 						ProductId:      resp.Id,
 						AttributeValue: resp.Attributes[attr_key],
-					}) // Assuming attr_val is of type []string
+					})
 				}
 			}
 
@@ -348,7 +349,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 
 		}
@@ -356,10 +357,10 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 		if err != nil {
 			switch err {
 			case configurable_product.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 
@@ -372,7 +373,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 					switch err {
 					case product.ErrIdNotFound:
 					default:
-						util.ServerErrorResponse(w, r, err)
+						util.ServerErrorResponse(w, err)
 					}
 				}
 			}
@@ -417,10 +418,10 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 		if err != nil {
 			switch err {
 			case configurable_product.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 		var resp []GetProductResponse
@@ -435,7 +436,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 						switch err {
 						case product.ErrIdNotFound:
 						default:
-							util.ServerErrorResponse(w, r, err)
+							util.ServerErrorResponse(w, err)
 						}
 					}
 				}
@@ -478,14 +479,14 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := p.service.Create(r.Context(), (*product.CreateRequest)(&requestBody))
@@ -498,10 +499,10 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			product.ErrPriceNotSupplied,
 			product.ErrAttributeValuesCannotBeEmpty,
 			product.ErrCategoryNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -511,14 +512,14 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateConfigurableProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := p.configurableProductservice.Create(r.Context(), (*configurable_product.CreateRequest)(&requestBody))
@@ -531,10 +532,10 @@ func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *htt
 			product.ErrPriceNotSupplied,
 			product.ErrAttributeValuesCannotBeEmpty,
 			product.ErrCategoryNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -544,24 +545,24 @@ func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *htt
 func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody UpdateProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := p.service.Update(r.Context(), (*product.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
 		case product.ErrIdNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -583,7 +584,7 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	if paramCommandValue != "" && paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		switch paramCommandValue {
@@ -594,10 +595,10 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				case product.ErrIdNotFound,
 					product.ErrAlreadyActive:
 
-					util.RequestErrorResponse(w, r, err)
+					util.RequestErrorResponse(w, err)
 					return
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 					return
 				}
 			}
@@ -609,16 +610,16 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				case product.ErrIdNotFound,
 					product.ErrAlreadyInactive:
 
-					util.RequestErrorResponse(w, r, err)
+					util.RequestErrorResponse(w, err)
 					return
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 					return
 				}
 			}
 			return
 		default:
-			util.RequestErrorResponse(w, r, errors.New("unknown command"))
+			util.RequestErrorResponse(w, errors.New("unknown command"))
 		}
 	}
 }
@@ -641,12 +642,12 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 	if paramCommandValue != "" && paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		typedParamAmount, err := strconv.Atoi(ParamAmountValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		switch paramCommandValue {
@@ -663,7 +664,7 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			util.RequestErrorResponse(w, r, errors.New("unknown command"))
+			util.RequestErrorResponse(w, errors.New("unknown command"))
 		}
 	}
 }
