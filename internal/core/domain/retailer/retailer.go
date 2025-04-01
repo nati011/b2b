@@ -28,7 +28,6 @@ type CreateRequest struct {
 	LastName  string
 	Email     string
 	Phone     string
-	UserId    int
 }
 
 type GetResponse struct {

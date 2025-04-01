@@ -28,7 +28,6 @@ type CreateRetailerRequest struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
-	UserId    int    `json:"user_id"`
 }
 
 type GetRetailerResponse struct {
@@ -78,14 +77,38 @@ func (r *Retailer) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/retailer", r.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/retailer", r.UpdateHandler)
 
-	mux.HandleFunc("POST /api/v1/retailer/user", r.CreateUserHandler)
-	mux.HandleFunc("GET /api/v1/retailer/user", r.GetUserHandler)
+	mux.HandleFunc("GET /api/v1/retailer/{id}/user", r.GetUserHandler)
 }
 
 func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-}
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
 
-func (re *Retailer) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := re.service.Get(r.Context(), typedParamId)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	users_resp, err := re.service.GetAllUsers(r.Context(), resp.Id)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"users": users_resp}, http.StatusAccepted)
 }
 
 func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -265,6 +288,7 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, r, err)
 		return
 	}
+
 	id, err := p.service.Create(r.Context(), (*retailer.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
