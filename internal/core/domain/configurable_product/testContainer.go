@@ -4,9 +4,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
-	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
-	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 )
 
 type TestContainer struct {
@@ -17,17 +15,17 @@ type TestContainer struct {
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
-	container.CategoryService = category.NewCategory(
-		category_db.NewMock(),
+	container.ProductService = product.NewPackageIntegrationTestContainer().ProductService
+	container.ConfigurableProductService = NewConfigurableProductService(
+		configurableProduct_db.NewMock(),
+		container.ProductService,
 	)
-	container.ProductService = product.NewProduct(
-		product_db.NewMock(),
-		container.CategoryService,
-	)
-	container.ConfigurableProductService =
-		NewConfigurableProductService(
-			configurableProduct_db.NewMock(),
-			container.ProductService,
-		)
 	return container
+}
+
+func (t *TestContainer) cleanup() {
+	t.ConfigurableProductService = NewConfigurableProductService(
+		configurableProduct_db.NewMock(),
+		t.ProductService,
+	)
 }

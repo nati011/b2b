@@ -4,9 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"strings"
 
-	port "b2b.nati011.github.com/internal/port/application/retailer"
+	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
 type Postgres struct {
@@ -72,7 +71,15 @@ func (r *Postgres) CreateRetailerUser(ctx context.Context, req *port.CreateUserA
 func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_retailer_by_id($1);"
-	err := r.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Tin, &response.Latitude, &response.Longitude, &response.GeneralZone, &response.Region, &response.Woreda)
+	err := r.Pool.QueryRowContext(ctx, query, id).Scan(
+		&response.Id,
+		&response.Name,
+		&response.Tin,
+		&response.Latitude,
+		&response.Longitude,
+		&response.GeneralZone,
+		&response.Region,
+		&response.Woreda)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -130,7 +137,16 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for rows.Next() {
 		var retailer port.GetResponse
-		if err := rows.Scan(&retailer.Id, &retailer.Name, &retailer.Tin, &retailer.Latitude, &retailer.Longitude, &retailer.GeneralZone, &retailer.Region, &retailer.Woreda); err != nil {
+		if err := rows.Scan(
+			&retailer.Id,
+			&retailer.Name,
+			&retailer.Tin,
+			&retailer.Latitude,
+			&retailer.Longitude,
+			&retailer.GeneralZone,
+			&retailer.Region,
+			&retailer.Woreda); err != nil {
+
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -149,7 +165,7 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_retailer_by_name($1);"
-	rows, err := r.Pool.QueryContext(ctx, query, strings.Trim(name, `"`))
+	rows, err := r.Pool.QueryContext(ctx, query, name)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -163,7 +179,15 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	for rows.Next() {
 		var retailer port.GetResponse
-		if err := rows.Scan(&retailer.Id, &retailer.Name, &retailer.Tin, &retailer.Latitude, &retailer.Longitude, &retailer.GeneralZone, &retailer.Region, &retailer.Woreda); err != nil {
+		if err := rows.Scan(
+			&retailer.Id,
+			&retailer.Name,
+			&retailer.Tin,
+			&retailer.Latitude,
+			&retailer.Longitude,
+			&retailer.GeneralZone,
+			&retailer.Region,
+			&retailer.Woreda); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
@@ -181,7 +205,15 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_retailer_by_tin($1);"
-	err := r.Pool.QueryRowContext(ctx, query, strings.Trim(tin, `"`)).Scan(&response.Id, &response.Name, &response.Tin, &response.Latitude, &response.Longitude, &response.GeneralZone, &response.Region, &response.Woreda)
+	err := r.Pool.QueryRowContext(ctx, query, tin).Scan(
+		&response.Id,
+		&response.Name,
+		&response.Tin,
+		&response.Latitude,
+		&response.Longitude,
+		&response.GeneralZone,
+		&response.Region,
+		&response.Woreda)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

@@ -4,27 +4,33 @@ import (
 	"context"
 	"errors"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
-	user "b2b.nati011.github.com/internal/core/application/user"
-	port "b2b.nati011.github.com/internal/port/application/distributor"
+	"b2b.nati011.github.com/internal/core/application/user"
+	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
 var (
-	ErrEmptyGetDistributorContent = errors.New("oopsy, no distributor found")
-	ErrEmptyGetBusinessContent    = errors.New("oopsy, no business found")
-	ErrUnknown                    = errors.New("oopsy, unkown error")
-	SUCCESS_MESSAGE               = "Ahoy!"
-	ErrInvalidTin                 = errors.New("oopsy, tin invalid")
-	ErrDuplicateTin               = errors.New("oopsy, tin already in use")
-	ErrIdNotFound                 = errors.New("oopsy, id not found")
-	ErrEmptyGetContent            = errors.New("oopsy, empty get content")
+	ErrUnknown         = errors.New("oopsy, unknown error")
+	ErrInvalidTin      = errors.New("oopsy, tin invalid")
+	ErrDuplicateTin    = errors.New("oopsy, tin already in use")
+	ErrIdNotFound      = errors.New("oopsy, id not found")
+	ErrEmptyGetContent = errors.New("oopsy, empty get content")
 )
 
-type UpdateRequest struct {
-	Id   int
-	Name string
-	Tin  string
+type CreateRequest struct {
+	Tin         string
+	Latitude    string
+	Longitude   string
+	GeneralZone string
+	Region      string
+	Woreda      string
+
+	FirstName string
+	LastName  string
+	Email     string
+	Phone     string
+	UserId    int
 }
+
 type GetResponse struct {
 	Id          int
 	Name        string
@@ -32,81 +38,100 @@ type GetResponse struct {
 	Latitude    string
 	Longitude   string
 	GeneralZone string
+	Region      string
 	Woreda      string
-	UserId      int
 }
 
 type GetAllResponse struct {
 	List []GetResponse
 }
 
-type GetByIdRequest struct {
-	Id int
-}
-
-type CreateRequest struct {
-}
-
-type BusinessLocation struct {
-	GeneralZone string
-	Region      string
-	Woreda      string
-}
-
-type UpdateBusinessRequest struct {
-	Id            int
-	DistributorId int
-	Name          string
-	Tin           string
-	Location      BusinessLocation
-}
-
-type RegisterDistributorResponse struct {
-	Id      int
-	Message string
-}
-
 type GetByParamRequest struct {
-	Id    int
-	Name  string
-	Email string
-	Tin   string
+	Name string
+	Tin  string
 }
 
-type GetBusinessResponse struct {
-	Id            int
-	Name          string
-	Tin           string
-	DistributorId int
+type UpdateRequest struct {
+	Id   int
+	Name string
+	Tin  string
 }
 
-type CreateBusinessInformation struct {
-	Name          string
-	Tin           string
-	Latitude      string
-	Longitude     string
-	GeneralZone   string
-	Region        string
-	Woreda        string
-	DistributorId int
+type GetAllUsers struct {
+	List []int
+}
+
+type CreateUserRequest struct {
+	Distributor_Id int
+	FirstName      string
+	LastName       string
+	Email          string
+	Phone          string
 }
 
 type Provider interface {
-	Create(ctx context.Context, req *CreateRequest) (response RegisterDistributorResponse, err error)
+	Create(ctx context.Context, req *CreateRequest) (int, error)
+	Get(ctx context.Context, id int) (GetResponse, error)
+	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
-	GetByParam(ctx context.Context, req *GetByParamRequest) (GetResponse, error)
-	GetBusinessByDistributor(ctx context.Context, distributorId int) (GetBusinessResponse, error)
-	GetById(ctx context.Context, id int) (GetResponse, error)
-	Update(ctx context.Context, req *UpdateBusinessRequest) (id int, err error)
+	Update(ctx context.Context, req *UpdateRequest) (int, error)
+	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
+	CreateUser(ctx context.Context, req *CreateUserRequest) (int, error)
 }
 
 type DistributorService struct {
-	db port.DB
+	DB          port.DB
+	UserService user.Provider
 }
 
-func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (resp RegisterDistributorResponse, err error) {
-	//validate
-	err = d.validateTin(ctx, req.Tin)
+func NewDistributorService(up user.Provider, db port.DB) Provider {
+	return &DistributorService{
+		UserService: up,
+		DB:          db,
+	}
+}
+
+func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequest) (int, error) {
+	err := d.validateDistributor(ctx, req.Distributor_Id)
+	if err != nil {
+		return 0, err
+	}
+
+	// create user
+	user_id, err := d.UserService.Create(ctx, &user.CreateRequest{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Phone:     req.Phone,
+	})
+	if err != nil {
+		switch err {
+		case user.ErrEmailNotValid,
+			user.ErrPhoneNotValid,
+			user.ErrPhoneOrEmailMandatory,
+			user.ErrFirstNameMandatory:
+
+			return 0, err
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	id, err := d.DB.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
+		User_id:        user_id,
+		Distributor_Id: req.Distributor_Id,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return id, ErrUnknown
+		}
+	}
+	return id, nil
+}
+
+func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (int, error) {
+	err := d.validateTin(ctx, req.Tin)
 	if err != nil {
 		return 0, err
 	}
@@ -132,7 +157,7 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (re
 	}
 
 	// create retailer
-	id, err := r.DB.Create(ctx, port.CreateRequest{
+	id, err := d.DB.Create(ctx, port.CreateRequest{
 		Name:        req.FirstName + req.LastName,
 		Tin:         req.Tin,
 		Latitude:    req.Latitude,
@@ -151,106 +176,126 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (re
 
 	return id, nil
 }
-
-func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error) {
-	resp, err := d.db.GetAll(ctx)
+func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, error) {
+	resp, err := d.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return GetAllResponse{}, ErrEmptyGetDistributorContent
-		default:
-			return GetAllResponse{}, ErrUnknown
-		}
-	}
-
-	resp_val := GetAllResponse{}
-	for _, i := range resp.List {
-		resp_val.List = append(resp_val.List, GetResponse(i))
-	}
-	return resp_val, nil
-}
-
-func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetResponse, error) {
-	resp, err := d.db.GetById(ctx, req.Id)
-	if err != nil {
-		switch err {
-		case port.ErrSysNoRows:
-			return GetResponse{}, ErrEmptyGetDistributorContent
+			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
 		}
 	}
 
-	resp_val := GetResponse{
-		Id:        resp.Id,
-		Email:     resp.Email,
-		FirstName: resp.FirstName,
-		LastName:  resp.LastName,
-	}
-
-	return resp_val, nil
+	return GetResponse{
+		Id:          resp.Id,
+		Name:        resp.Name,
+		Tin:         resp.Tin,
+		Latitude:    resp.Latitude,
+		Longitude:   resp.Longitude,
+		GeneralZone: resp.GeneralZone,
+		Region:      resp.Region,
+		Woreda:      resp.Woreda,
+	}, nil
 }
+func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
+	resp := port.GetAllResponse{}
 
-func (d *DistributorService) GetBusinessByDistributor(ctx context.Context, distributorId int) (resp GetBusinessResponse, err error) {
-	business, err := d.db.GetBusinessByDistributorId(ctx, distributorId)
-	if err != nil {
-		switch err {
-		case port.ErrSysNoRows:
-			return resp, ErrEmptyGetDistributorContent
-		default:
-			return resp, ErrUnknown
+	if req.Name != "" {
+		resp_name, err := d.DB.GetByName(ctx, req.Name)
+		if err != nil {
+			switch err {
+			case ErrIdNotFound:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		if len(resp_name.List) != 0 {
+			resp.List = append(resp.List, resp_name.List...)
 		}
 	}
 
-	resp = GetBusinessResponse{
-		Id:            business.Id,
-		Name:          business.Name,
-		Tin:           business.Tin,
-		DistributorId: business.DistributorId,
-	}
-	return resp, nil
-}
-func (d *DistributorService) GetById(ctx context.Context, id int) (resp GetResponse, err error) {
-	distributor, err := d.db.GetById(ctx, id)
-	if err != nil {
-		switch err {
-		case port.ErrSysNoRows:
-			return resp, ErrEmptyGetDistributorContent
-		default:
-			return resp, ErrUnknown
+	if req.Tin != "" {
+		resp_tin, err := d.DB.GetByTin(ctx, req.Tin)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		if resp_tin.Id != 0 {
+			resp.List = append(resp.List, resp_tin)
 		}
 	}
-
-	resp = GetResponse{
-		Id:         distributor.Id,
-		Name:       distributor.FirstName,
-		LastName:   distributor.LastName,
-		Email:      distributor.Email,
-		Phone:      distributor.Phone,
-		Username:   distributor.Username,
-		DOB:        distributor.DOB,
-		ExternalId: distributor.ExternalId,
+	if len(resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
 	}
-	return resp, nil
+	service_resp := GetAllResponse{}
+	for _, i := range resp.List {
+		service_resp.List = append(service_resp.List, GetResponse{
+			Id:          i.Id,
+			Name:        i.Name,
+			Tin:         i.Tin,
+			Latitude:    i.Latitude,
+			Longitude:   i.Longitude,
+			GeneralZone: i.GeneralZone,
+			Region:      i.Region,
+			Woreda:      i.Woreda,
+		})
+	}
+	if len(service_resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return service_resp, nil
 }
+func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp := port.GetAllResponse{}
 
-func (d *DistributorService) Update(ctx context.Context, req *UpdateBusinessRequest) (int, error) {
-	_, err := d.db.GetById(
-		ctx,
-		req.Id,
-	)
-
+	resp_name, err := d.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return 0, ErrEmptyGetDistributorContent
-
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	if len(resp_name.List) != 0 {
+		resp.List = append(resp.List, resp_name.List...)
+	}
+	service_resp := GetAllResponse{}
+	for _, i := range resp.List {
+		service_resp.List = append(service_resp.List, GetResponse{
+			Id:          i.Id,
+			Name:        i.Name,
+			Tin:         i.Tin,
+			Latitude:    i.Latitude,
+			Longitude:   i.Longitude,
+			GeneralZone: i.GeneralZone,
+			Region:      i.Region,
+			Woreda:      i.Woreda,
+		})
+	}
+	if len(service_resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return service_resp, nil
+}
+func (d *DistributorService) Update(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate id
+	_, err := d.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return 0, err
 		default:
 			return 0, ErrUnknown
 		}
 	}
+
 	if req.Name != "" {
-		err = d.db.UpdateName(ctx, &port.UpdateNameRequest{
+		err = d.DB.UpdateName(ctx, &port.UpdateNameRequest{
 			Id:   req.Id,
 			Name: req.Name,
 		})
@@ -275,7 +320,7 @@ func (d *DistributorService) Update(ctx context.Context, req *UpdateBusinessRequ
 			}
 		}
 
-		err = d.db.UpdateTin(ctx, &port.UpdateTinRequest{
+		err = d.DB.UpdateTin(ctx, &port.UpdateTinRequest{
 			Id:  req.Id,
 			Tin: req.Tin,
 		})
@@ -287,11 +332,23 @@ func (d *DistributorService) Update(ctx context.Context, req *UpdateBusinessRequ
 		}
 	}
 
-	return id, nil
+	return req.Id, nil
 }
-func NewDistributorService(db port.DB, authService auth.Provider) Provider {
-	return &DistributorService{
-		db:          db,
-		authService: authService,
+func (d *DistributorService) GetAllUsers(ctx context.Context, id int) (GetAllUsers, error) {
+	var response_ids = []int{}
+	users, err := d.DB.GetAllUserAgents(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetAllUsers{}, ErrEmptyGetContent
+		default:
+			return GetAllUsers{}, ErrUnknown
+		}
 	}
+	for _, i := range users.List {
+		response_ids = append(response_ids, i.Id)
+	}
+	return GetAllUsers{
+		List: response_ids,
+	}, nil
 }
