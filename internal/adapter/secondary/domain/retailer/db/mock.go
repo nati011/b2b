@@ -1,12 +1,12 @@
-package db
+package adapter
 
 import (
 	"context"
 
-	port "b2b.nati011.github.com/internal/port/domain/distributor"
+	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
-type MockDistributor struct {
+type MockRetailer struct {
 	Id          int
 	Name        string
 	Tin         string
@@ -22,7 +22,7 @@ type MockUserAgent struct {
 }
 
 type Mock struct {
-	retailers  []MockDistributor
+	retailers  []MockRetailer
 	userAgents []MockUserAgent
 }
 
@@ -32,7 +32,7 @@ func NewMock() port.DB {
 
 func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) {
 	newId := len(m.retailers) + 1
-	m.retailers = append(m.retailers, MockDistributor{
+	m.retailers = append(m.retailers, MockRetailer{
 		Id:          newId,
 		Name:        req.Name,
 		Tin:         req.Tin,
@@ -43,7 +43,7 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Woreda:      req.Woreda,
 	})
 
-	_, err := m.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
+	err := m.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
 		User_id: req.UserId,
 	})
 	if err != nil {
@@ -53,18 +53,18 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 	return newId, nil
 }
 
-func (m Mock) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
+func (m Mock) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
 	m.userAgents = append(m.userAgents, MockUserAgent{
 		Id: req.User_id,
 	})
-	return req.User_id, nil
+	return nil
 }
 
 func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
-	retailers := []MockDistributor{}
+	retailers := []MockRetailer{}
 	for _, i := range m.retailers {
 		if i.Id == req.Id {
-			retailers = append(retailers, MockDistributor{
+			retailers = append(retailers, MockRetailer{
 				Id:          i.Id,
 				Name:        req.Name,
 				Tin:         i.Tin,
@@ -75,7 +75,7 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 				Woreda:      i.Woreda,
 			})
 		} else {
-			retailers = append(retailers, MockDistributor{
+			retailers = append(retailers, MockRetailer{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -92,10 +92,10 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 }
 
 func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error {
-	retailers := []MockDistributor{}
+	retailers := []MockRetailer{}
 	for _, i := range m.retailers {
 		if i.Id == req.Id {
-			retailers = append(retailers, MockDistributor{
+			retailers = append(retailers, MockRetailer{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         req.Tin,
@@ -106,7 +106,7 @@ func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error 
 				Woreda:      i.Woreda,
 			})
 		} else {
-			retailers = append(retailers, MockDistributor{
+			retailers = append(retailers, MockRetailer{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,

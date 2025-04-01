@@ -122,13 +122,13 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 		return 0, err
 	}
 	//get vals
-	attributes := map[string]string{}
+	attributes := make([]map[string]string, 0)
 	for _, i := range req.Products {
 		prod, _ := c.ProductService.Get(ctx, i)
 		for _, i := range req.AttributeKeys {
-			attributes = map[string]string{
+			attributes = append(attributes, map[string]string{
 				i: prod.Attributes[i],
-			}
+			})
 		}
 	}
 
@@ -257,6 +257,7 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 			CategoryId:    i.CategoryId,
 			DistributorId: i.DistributorId,
 			Images:        i.Images,
+			Attributes:    i.Attributes,
 		})
 	}
 	if len(resp) == 0 {
@@ -404,11 +405,21 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 		}
 		//build attributes
 		attributes := map[string]string{}
-		for _, i := range req.AttributeKeys {
-			attributes = map[string]string{
-				i: "updated",
+		// get all attributes from products
+		for _, j := range req.Product {
+			resp, err := c.ProductService.Get(ctx, j)
+			if err != nil {
+				continue
+			}
+			for key, val := range resp.Attributes {
+				for _, i := range req.AttributeKeys {
+					if key == i {
+						attributes[key] = val
+					}
+				}
 			}
 		}
+
 		err := c.DB.UpdateAttributes(ctx, &port.UpdateAttributes{
 			Id:         req.Id,
 			Attributes: attributes,
