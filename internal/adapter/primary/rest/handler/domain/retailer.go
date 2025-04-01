@@ -66,8 +66,8 @@ func InitRetailer() {
 	handler.Register(new(Retailer))
 }
 
-func (r *Retailer) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = applicationServices.RetailerService
+func (r *Retailer) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+	r.service = domainServices.RetailerService
 	r.userService = applicationServices.UserService
 	return nil
 }

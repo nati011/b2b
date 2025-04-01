@@ -66,8 +66,8 @@ func InitDistributor() {
 	handler.Register(new(Distributor))
 }
 
-func (r *Distributor) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = applicationServices.DistributorService
+func (r *Distributor) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+	r.service = domainServices.DistributorService
 	r.userService = applicationServices.UserService
 	return nil
 }
@@ -75,9 +75,10 @@ func (r *Distributor) Init(applicationServices *application_core.Container, doma
 func (d *Distributor) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
+	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
+
 	mux.HandleFunc("POST /api/v1/distributor/user", d.CreateUserHandler)
 	mux.HandleFunc("GET /api/v1/distributor/user", d.GetUserHandler)
-	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 }
 
 func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
