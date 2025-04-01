@@ -1,7 +1,7 @@
 package retailer
 
 import (
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	user "b2b.nati011.github.com/internal/core/application/user"
 )
 
