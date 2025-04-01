@@ -10,7 +10,6 @@ import (
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
-	user_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 
@@ -91,7 +90,7 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()
-	container.InitUserService()
+	// container.InitUserService()
 
 	// container.InitSMSService()
 
@@ -141,6 +140,6 @@ func (m *Container) InitTransactionService() {
 	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db), m.PaymentPartnerService, m.UserService)
 }
 
-func (m *Container) InitUserService() {
-	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db), m.RoleService)
-}
+// func (m *Container) InitUserService() {
+// 	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db), m.RoleService)
+// }
