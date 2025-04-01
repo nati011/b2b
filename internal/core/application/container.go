@@ -8,10 +8,10 @@ import (
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
 	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment-partner/db"
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
-	retailer_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
 	user_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
+	retailer_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 

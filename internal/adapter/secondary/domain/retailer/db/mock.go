@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 
-	port "b2b.nati011.github.com/internal/port/application/retailer"
+	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
 type MockRetailer struct {

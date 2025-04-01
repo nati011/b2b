@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/application/user"
-	port "b2b.nati011.github.com/internal/port/application/retailer"
+	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
 var (
