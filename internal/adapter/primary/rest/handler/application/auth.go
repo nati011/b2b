@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	"b2b.nati011.github.com/internal/core/application/auth"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
-	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 type AuthHandler struct {
@@ -32,16 +32,16 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req port.LoginUserRequest
+	var req auth.LoginUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
 	loginResponse, err := h.service.ClientLogin(r.Context(), req)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		util.UnauthorizedResponse(w)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req port.RefreshTokenRequest
+	var req auth.RefreshTokenRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
