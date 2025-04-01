@@ -1,6 +1,7 @@
 package distributor
 
 import (
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	user "b2b.nati011.github.com/internal/core/application/user"
 )
 
@@ -11,8 +12,13 @@ type TestContainer struct {
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
-	user_testContainer := user.NewTestContainer()
-	container.UserService = user_testContainer.UserService
+	container.UserService = user.NewTestContainer().UserService
+	container.DistributorService = NewDistributorService(container.UserService, db_adapter.NewMock())
 
 	return container
+}
+
+func (t *TestContainer) Cleanup() {
+	t.UserService = user.NewTestContainer().UserService
+	t.DistributorService = NewDistributorService(t.UserService, db_adapter.NewMock())
 }
