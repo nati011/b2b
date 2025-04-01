@@ -125,11 +125,9 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	util.WriteJSON(w, util.Envelope{"users": users_resp}, http.StatusAccepted)
-	return
 }
 
 func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-
 	typedParamId, err := util.GetPathParam(r, 4)
 	if err != nil {
 		util.RequestErrorResponse(w, r, err)
@@ -170,7 +168,6 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		}
 	}
 	util.WriteJSON(w, util.Envelope{"user": id}, http.StatusAccepted)
-
 }
 
 func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Request) {
