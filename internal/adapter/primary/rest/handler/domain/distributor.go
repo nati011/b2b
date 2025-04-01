@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -15,6 +17,11 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
+var (
+	ErrIdNotFound = errors.New("oopsy, distributor id not provided")
+	ErrIdNotValid = errors.New("oopsy, distributor id not valid")
+)
+
 type CreateDistributorRequest struct {
 	Tin         string `json:"tin"`
 	Latitude    string `json:"latitude"`
@@ -23,6 +30,14 @@ type CreateDistributorRequest struct {
 	Region      string `json:"region"`
 	Woreda      string `json:"woreda"`
 
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	UserId    int    `json:"user_id"`
+}
+
+type CreateDistributorUserRequest struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
@@ -77,14 +92,85 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
 	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 
-	mux.HandleFunc("POST /api/v1/distributor/user", d.CreateUserHandler)
-	mux.HandleFunc("GET /api/v1/distributor/user", d.GetUserHandler)
+	mux.HandleFunc("POST /api/v1/distributor/{id}/user", d.CreateUserHandler)
+	mux.HandleFunc("GET /api/v1/distributor/{id}/user", d.GetUserHandler)
 }
 
 func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+
+	resp, err := de.service.Get(r.Context(), typedParamId)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	users_resp, err := de.service.GetAllUsers(r.Context(), resp.Id)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"users": users_resp}, http.StatusAccepted)
+	return
 }
 
 func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CreateDistributorUserRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, r, err)
+		return
+	}
+	id, err := de.service.CreateUser(r.Context(), &distributor.CreateUserRequest{
+		Distributor_Id: typedParamId,
+		FirstName:      requestBody.FirstName,
+		LastName:       requestBody.LastName,
+		Email:          requestBody.Email,
+		Phone:          requestBody.Phone,
+	})
+	if err != nil {
+		switch err {
+		case user.ErrEmailNotValid,
+			user.ErrPhoneNotValid,
+			user.ErrPhoneOrEmailMandatory,
+			user.ErrFirstNameMandatory:
+
+			util.RequestErrorResponse(w, r, err)
+			return
+		default:
+			util.ServerErrorResponse(w, r, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"user": id}, http.StatusAccepted)
+
 }
 
 func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,6 +197,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				return
 			default:
 				util.ServerErrorResponse(w, r, err)
+				return
 			}
 		}
 		// get all users
@@ -120,6 +207,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			case retailer.ErrIdNotFound:
 			default:
 				util.ServerErrorResponse(w, r, err)
+				return
 			}
 		}
 
@@ -138,8 +226,8 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
 		resp, err := de.service.GetByParam(r.Context(), &distributor.GetByParamRequest{
-			Name: paramNameValue,
-			Tin:  paramTinValue,
+			Name: strings.Trim(paramNameValue, `"`),
+			Tin:  strings.Trim(paramTinValue, `"`),
 		})
 		if err != nil {
 			switch err {
@@ -161,6 +249,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				case retailer.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, r, err)
+					return
 				}
 			}
 

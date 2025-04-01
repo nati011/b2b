@@ -980,7 +980,8 @@ AS $$
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
-        ON db_loc.business_id = db.id;
+        ON db_loc.business_id = db.id
+        WHERE d.is_deleted = FALSE;
     END;
 $$;
 
@@ -1219,6 +1220,8 @@ AS $$
 BEGIN   
     INSERT INTO public.retailer_users(user_id, retailer_id)
     VALUES(r_user_id, r_id);
+    
+    RETURN r_user_id;
 END;
 $$;
 
