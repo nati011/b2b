@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	"b2b.nati011.github.com/internal/core/application/auth"
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
@@ -26,7 +25,7 @@ const (
 	INVALID_EMAIL     = ""
 )
 
-var service auth.Provider
+var service Provider
 var mock = provider.NewMockAuthProvider()
 
 func TestMain(m *testing.M) {
@@ -36,7 +35,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = auth.NewAuthService(&mock)
+	service = NewAuthService(&mock)
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
@@ -66,7 +65,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName:       VALID_FirstName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
-		wantErr := auth.ErrEmailNotSupplied
+		wantErr := ErrEmailNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}
@@ -82,7 +81,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName:       VALID_FirstName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
-		wantErr := auth.ErrPasswordNotSupplied
+		wantErr := ErrPasswordNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}
@@ -98,7 +97,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName: VALID_FirstName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
-		wantErr := auth.ErrConfirmationPasswordNotSupplied
+		wantErr := ErrConfirmationPasswordNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}
@@ -115,7 +114,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName:       VALID_FirstName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
-		wantErr := auth.ErrPasswordsDontMatch
+		wantErr := ErrPasswordsDontMatch
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}
@@ -131,7 +130,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			ConfirmPassword: VALID_PASSWORD,
 		}
 		_, err := service.CreateNewClient(ctx, in)
-		wantErr := auth.ErrFirstNameNotSupplied
+		wantErr := ErrFirstNameNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
 		}

@@ -2,10 +2,14 @@ package user
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"math/big"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/application/auth"
 	role "b2b.nati011.github.com/internal/core/application/role"
+	"b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
@@ -103,12 +107,14 @@ type Provider interface {
 type UserService struct {
 	db           port.DB
 	role_service role.Provider
+	auth_service auth.Provider
 }
 
-func NewUser(db port.DB, roleService role.Provider) Provider {
+func NewUser(db port.DB, roleService role.Provider, authService auth.Provider) Provider {
 	return &UserService{
 		db:           db,
 		role_service: roleService,
+		auth_service: authService,
 	}
 }
 
@@ -144,7 +150,52 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		}
 	}
 
+	generated_password, err := generateRandomPassword(10)
+	if err != nil {
+		return 0, ErrUnknown
+	}
+
+	_, err = u.auth_service.CreateNewClient(ctx, provider.RegisterUserRequest{
+		Email:           req.Email,
+		Password:        generated_password,
+		ConfirmPassword: generated_password,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		PhoneNumber:     req.Phone,
+	})
+	if err != nil {
+		switch err {
+		case auth.ErrFirstNameNotSupplied,
+			auth.ErrLastNameNotSupplied,
+			auth.ErrEmailNotSupplied,
+			auth.ErrInvalidEmail,
+			auth.ErrPasswordNotSupplied,
+			auth.ErrConfirmationPasswordNotSupplied,
+			auth.ErrPasswordsDontMatch,
+			auth.ErrUsernameTaken,
+			auth.ErrEmailTaken:
+
+			return 0, err
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
 	return user_id, nil
+}
+func generateRandomPassword(length int) (string, error) {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
+	password := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		randIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		password[i] = charset[randIndex.Int64()]
+	}
+
+	return string(password), nil
 }
 
 func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {
