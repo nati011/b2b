@@ -67,7 +67,6 @@ type CreateUserRequest struct {
 	LastName       string
 	Email          string
 	Phone          string
-	UserId         int
 }
 
 type Provider interface {
@@ -93,7 +92,10 @@ func NewDistributorService(up user.Provider, db port.DB) Provider {
 }
 
 func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequest) (int, error) {
-	//validate distributor
+	err := d.validateDistributor(ctx, req.Distributor_Id)
+	if err != nil {
+		return 0, err
+	}
 
 	// create user
 	user_id, err := d.UserService.Create(ctx, &user.CreateRequest{
@@ -114,6 +116,7 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 			return 0, ErrUnknown
 		}
 	}
+
 	id, err := d.DB.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
 		User_id:        user_id,
 		Distributor_Id: req.Distributor_Id,
@@ -128,7 +131,6 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 }
 
 func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	//validate
 	err := d.validateTin(ctx, req.Tin)
 	if err != nil {
 		return 0, err
@@ -253,7 +255,8 @@ func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error)
 	resp_name, err := d.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case ErrIdNotFound:
+		case port.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}

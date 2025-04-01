@@ -1,7 +1,7 @@
 package distributor
 
 import (
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	user "b2b.nati011.github.com/internal/core/application/user"
 )
 
