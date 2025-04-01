@@ -13,6 +13,7 @@ import (
 	db_resource_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	db_role_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
+	"b2b.nati011.github.com/internal/core/application/auth"
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	user "b2b.nati011.github.com/internal/core/application/user"
@@ -70,6 +71,7 @@ func setup() {
 				),
 			),
 		),
+		auth.NewIntegrationAuthContainer(),
 	)
 
 	testContainer.RoleService = role.NewRole(

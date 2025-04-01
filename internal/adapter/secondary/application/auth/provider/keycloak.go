@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
 	"github.com/Nerzal/gocloak/v13"
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
@@ -45,7 +44,7 @@ func NewKeycloakProvider(
 	keycloakApplicationRealm string,
 	keycloakClientId string,
 	keycloakClientSecret string,
-) auth.Provider {
+) port.Provider {
 	return &KeycloakProvider{
 		KeycloakInstanceURL:      keycloakInstanceURL,
 		KeycloakUsername:         keycloakUsername,

@@ -11,10 +11,6 @@ import (
 	"testing"
 	"time"
 
-	db_resource_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
-	db_role_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
-	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/role"
 	"b2b.nati011.github.com/internal/core/application/user"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -58,30 +54,6 @@ func setup() {
 	}
 
 	testContainer = user.NewIntegrationTestContainer(db)
-	testContainer.UserService = user.NewUser(
-		db_adapter.NewPostgres(
-			db,
-		),
-		role.NewRole(
-			db_role_adapter.NewPostgres(
-				db,
-			), resource.NewResource(
-				db_resource_adapter.NewPostgres(
-					db,
-				),
-			),
-		),
-	)
-
-	testContainer.RoleService = role.NewRole(
-		db_role_adapter.NewPostgres(
-			db,
-		), resource.NewResource(
-			db_resource_adapter.NewPostgres(
-				db,
-			),
-		),
-	)
 
 	err = db.Ping()
 	if err != nil {
