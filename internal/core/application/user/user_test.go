@@ -25,6 +25,7 @@ func setup() {
 func Test_create_happyPath(t *testing.T) {
 
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
@@ -49,6 +50,7 @@ func Test_create_happyPath(t *testing.T) {
 	})
 
 	t.Run("user_active_by_default", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
@@ -78,10 +80,11 @@ func Test_create_happyPath(t *testing.T) {
 
 func Test_create_unhappyPath(t *testing.T) {
 	t.Run("FirstName_mandatory", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName:  "natnael asefa",
+			LastName:   "natnael asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -94,7 +97,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		}
 	})
 	t.Run("phone_or_email_mandatory", func(t *testing.T) {
-		//none
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
@@ -105,22 +108,15 @@ func Test_create_unhappyPath(t *testing.T) {
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
-		if err != ErrPhoneOrEmailMandatory {
-			t.Errorf("Expected Err: %v Got: %v", ErrPhoneOrEmailMandatory, err)
+		wantErr := ErrPhoneOrEmailMandatory
+		if err != wantErr {
+			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
-		//just phone
-		in_only_phone := CreateRequest{
-			FirstName:  "natnael jemaneh asefa",
-			Username:   "test",
-			DOB:        parsedTime,
-			Phone:      "+251949184879",
-			ExternalId: "123",
-		}
-		_, err = testContainer.UserService.Create(ctx, &in_only_phone)
-		if err != nil {
-			t.Errorf("Expected Err: %v Got: %v", nil, err)
-		}
-		//just email
+	})
+
+	t.Run("email_mandatory", func(t *testing.T) {
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		ctx := context.Background()
 		in_only_email := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
 			LastName:   "jemaneh",
@@ -129,13 +125,15 @@ func Test_create_unhappyPath(t *testing.T) {
 			Phone:      "+251949184879",
 			ExternalId: "123",
 		}
-		_, err = testContainer.UserService.Create(ctx, &in_only_email)
-		if err != nil {
-			t.Errorf("Expected Err: %v Got: %v", nil, err)
+		_, err := testContainer.UserService.Create(ctx, &in_only_email)
+		wantErr := ErrEmailNotFound
+		if err != wantErr {
+			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
 	})
 
 	t.Run("phone_validation", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
@@ -154,6 +152,7 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("email_validation", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
@@ -174,6 +173,7 @@ func Test_create_unhappyPath(t *testing.T) {
 
 func Test_getAll_happyPath(t *testing.T) {
 	t.Run("non_empty_content", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -205,6 +205,7 @@ func Test_getAll_happyPath(t *testing.T) {
 
 func Test_getAll_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != ErrEmptyGetContent {
@@ -220,6 +221,7 @@ func Test_getAll_unhappyPath(t *testing.T) {
 func Test_getByParam_happyPath(t *testing.T) {
 
 	t.Run("email", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		email := "natnaeljemaneh001@gmail.com"
 		//setup
@@ -251,6 +253,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("phone", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		phone_number := "+251949184879"
 		//setup
@@ -283,6 +286,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("username", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		username := "test"
 		//setup
@@ -315,6 +319,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("active_status", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		status := true
 		//setup
@@ -347,6 +352,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("aggregate_fetch", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -395,6 +401,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 
 func Test_getByParam_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		inParam := &GetByParam{
 			Email: "test",
@@ -411,6 +418,7 @@ func Test_getByParam_unhappyPath(t *testing.T) {
 }
 
 func Test_activate_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -440,6 +448,7 @@ func Test_activate_happyPath(t *testing.T) {
 }
 
 func Test_activate_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -475,6 +484,7 @@ func Test_activate_unhappyPath(t *testing.T) {
 }
 
 func Test_deactivate_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -499,6 +509,7 @@ func Test_deactivate_happyPath(t *testing.T) {
 }
 
 func Test_deactivate_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -529,6 +540,7 @@ func Test_deactivate_unhappyPath(t *testing.T) {
 }
 
 func Test_isActive_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -568,6 +580,7 @@ func Test_isActive_happyPath(t *testing.T) {
 }
 
 func Test_isActive_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	expectedErr := ErrIdNotFound
 	_, err := testContainer.UserService.IsActive(ctx, rand.Int())
@@ -577,6 +590,7 @@ func Test_isActive_unhappyPath(t *testing.T) {
 }
 
 func Test_update_user_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -627,6 +641,7 @@ func Test_update_user_happyPath(t *testing.T) {
 }
 
 func Test_update_user_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -649,6 +664,7 @@ func Test_update_user_unhappyPath(t *testing.T) {
 }
 
 func Test_remove_user_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -672,6 +688,7 @@ func Test_remove_user_happyPath(t *testing.T) {
 }
 
 func Test_remove_user_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	err := testContainer.UserService.Remove(ctx, rand.Int())
 	expectedErr := ErrIdNotFound

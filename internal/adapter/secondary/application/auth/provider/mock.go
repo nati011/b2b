@@ -26,7 +26,7 @@ func NewMockAuthProvider() MockAuthProvider {
 	return MockAuthProvider{}
 }
 
-func (m *MockAuthProvider) Cleanup() {
+func (m *MockAuthProvider) Teardown() {
 	m.clients = []MockClient{}
 }
 
