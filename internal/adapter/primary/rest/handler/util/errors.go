@@ -1,16 +1,8 @@
 package handler
 
 import (
-	"log"
 	"net/http"
-	"os"
 )
-
-var logger = log.New(os.Stdout, "api: ", log.LstdFlags)
-
-func logError(err error) {
-	logger.Println(err)
-}
 
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 	env := Envelope{"message": message}
