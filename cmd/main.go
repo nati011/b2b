@@ -37,9 +37,12 @@ func main() {
 	validateFlags(cfg)
 
 	db_pool := InitDB(cfg.CoreDBConnectionString, cfg.FileLocation)
-	InitEmail(cfg.Email, cfg.SMTP)
-	// InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.KeycloakClientSecret)
-	InitSMS(cfg.Email, cfg.SMTP)
+
+	//for testing purposes
+	InitAuth(&cfg)
+
+	// InitEmail(cfg.Email, cfg.SMTP)
+	// InitSMS(cfg.Email, cfg.SMTP)
 
 	application_constainer := application_core.NewContainer(db_pool, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.Email, cfg.SMTP, cfg.KeycloakClientSecret)
 	domain_container := domain_core.NewContainer(*application_constainer, db_pool)

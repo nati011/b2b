@@ -16,15 +16,14 @@ var (
 )
 
 type RegisterUserRequest struct {
-	Email           string
-	Password        string
-	ConfirmPassword string
-	BirthDate       time.Time
-	PhoneNumber     string
-	ExternalId      string
-	FirstName       string
-	LastName        string
-	Username        string
+	Email       string
+	Password    string
+	BirthDate   time.Time
+	PhoneNumber string
+	ExternalId  string
+	FirstName   string
+	LastName    string
+	Username    string
 }
 
 type RegisterUserResponse struct {
