@@ -1,6 +1,7 @@
 package handler
 
 import (
+<<<<<<< HEAD
 	"errors"
 	"net/http"
 )
@@ -9,6 +10,11 @@ var (
 	ErrInvalidRequestBody = errors.New("oopsy, invalid request data")
 )
 
+=======
+	"net/http"
+)
+
+>>>>>>> 9deb76f5 (+ add success response writer util)
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 	env := Envelope{"message": message}
 
