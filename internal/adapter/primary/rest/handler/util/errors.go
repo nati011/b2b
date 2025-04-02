@@ -1,6 +1,7 @@
 package handler
 
 import (
+<<<<<<< HEAD
 	"errors"
 	"net/http"
 )
@@ -11,6 +12,11 @@ var (
 	ErrIdRequired         = errors.New("oopsy, Id is required")
 )
 
+=======
+	"net/http"
+)
+
+>>>>>>> 9deb76f5 (+ add success response writer util)
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 	env := Envelope{"message": message}
 
