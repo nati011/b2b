@@ -32,6 +32,10 @@ var (
 	ErrUnknown               = errors.New("oopsy, unknown error")
 	ErrPhoneNotValid         = errors.New("oopsy, phone number not valid")
 	ErrEmailNotValid         = errors.New("oopsy, email not valid")
+
+	ErrEmailTaken        = errors.New("oopsy, email already taken")
+	ErrUserNameTaken     = errors.New("oopsy, username already taken")
+	ErrPasswordMandatory = errors.New("oopsy, password not supplied")
 )
 
 type CreateRequest struct {
@@ -155,26 +159,29 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	}
 
 	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
-		Email:           req.Email,
-		Password:        generated_password,
-		ConfirmPassword: generated_password,
-		FirstName:       req.FirstName,
-		LastName:        req.LastName,
-		PhoneNumber:     req.Phone,
+		Email:       req.Email,
+		Password:    generated_password,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.Phone,
+		Username:    req.Username,
 	})
 	if err != nil {
 		switch err {
-		case auth.ErrFirstNameNotSupplied,
-			auth.ErrLastNameNotSupplied,
-			auth.ErrEmailNotSupplied,
-			auth.ErrInvalidEmail,
-			auth.ErrPasswordNotSupplied,
-			auth.ErrConfirmationPasswordNotSupplied,
-			auth.ErrPasswordsDontMatch,
-			auth.ErrUsernameTaken,
-			auth.ErrEmailTaken:
-
-			return 0, err
+		case auth.ErrFirstNameNotSupplied:
+			return 0, ErrFirstNameMandatory
+		case auth.ErrLastNameNotSupplied:
+			return 0, ErrPhoneOrEmailMandatory
+		case auth.ErrEmailNotSupplied:
+			return 0, ErrPhoneOrEmailMandatory
+		case auth.ErrInvalidEmail:
+			return 0, ErrEmailNotValid
+		case auth.ErrPasswordNotSupplied:
+			return 0, ErrPasswordMandatory
+		case auth.ErrUsernameTaken:
+			return 0, ErrEmailTaken
+		case auth.ErrEmailTaken:
+			return 0, ErrEmailTaken
 		default:
 			return 0, ErrUnknown
 		}
