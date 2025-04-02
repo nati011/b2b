@@ -30,16 +30,9 @@ func validateEmail(email string) error {
 	return nil
 }
 
-func validatePasswords(password, confirmPassword string) error {
+func validatePasswords(password string) error {
 	if password == "" {
 		return ErrPasswordNotSupplied
-	}
-	if confirmPassword == "" {
-		return ErrConfirmationPasswordNotSupplied
-	}
-
-	if password != confirmPassword {
-		return ErrPasswordsDontMatch
 	}
 	return nil
 }

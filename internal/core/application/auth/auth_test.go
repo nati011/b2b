@@ -11,7 +11,8 @@ import (
 const (
 	VALID_PASSWORD   = "test@123"
 	VALID_PASSWORD_B = "yesy"
-	VALID_FirstName  = "ruth tirusew"
+	VALID_FirstName  = "tirusew"
+	VALID_LastName   = "tirusew"
 	VALID_EMAIL_A    = "ruthtirusew944@gmail.com"
 	VALID_EMAIL_B    = "ruthtirusew388@gmail.com"
 	VALID_USERNAME_A = "expired_pineapple"
@@ -38,14 +39,14 @@ func setup() {
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
-	t.Cleanup(mock.Cleanup)
+	t.Cleanup(mock.Teardown)
 	ctx := context.Background()
 	in := RegisterUserRequest{
-		Username:        VALID_USERNAME_A,
-		Password:        VALID_PASSWORD,
-		ConfirmPassword: VALID_PASSWORD,
-		FirstName:       VALID_FirstName,
-		Email:           VALID_EMAIL_A,
+		Username:  VALID_USERNAME_A,
+		Password:  VALID_PASSWORD,
+		FirstName: VALID_FirstName,
+		LastName:  VALID_LastName,
+		Email:     VALID_EMAIL_A,
 	}
 	_, err := service.CreateNewClient(ctx, in)
 	if err != nil {
@@ -55,13 +56,13 @@ func Test_CreateClient_happyPath(t *testing.T) {
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("email_not_supplied", func(t *testing.T) {
-		t.Cleanup(mock.Cleanup)
+		t.Cleanup(mock.Teardown)
 		ctx := context.Background()
 		in := RegisterUserRequest{
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			FirstName:       VALID_FirstName,
+			Username:  VALID_USERNAME_A,
+			Password:  VALID_PASSWORD,
+			FirstName: VALID_FirstName,
+			LastName:  VALID_LastName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrEmailNotSupplied
@@ -71,13 +72,13 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("password_not_supplied", func(t *testing.T) {
-		t.Cleanup(mock.Cleanup)
+		t.Cleanup(mock.Teardown)
 		ctx := context.Background()
 		in := RegisterUserRequest{
-			Email:           VALID_EMAIL_A,
-			Username:        VALID_USERNAME_A,
-			ConfirmPassword: VALID_PASSWORD,
-			FirstName:       VALID_FirstName,
+			Email:     VALID_EMAIL_A,
+			Username:  VALID_USERNAME_A,
+			FirstName: VALID_FirstName,
+			LastName:  VALID_LastName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrPasswordNotSupplied
@@ -86,47 +87,14 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("confirmation_password_not_supplied", func(t *testing.T) {
-		t.Cleanup(mock.Cleanup)
-		ctx := context.Background()
-		in := RegisterUserRequest{
-			Email:     VALID_EMAIL_A,
-			Username:  VALID_USERNAME_A,
-			Password:  VALID_PASSWORD,
-			FirstName: VALID_FirstName,
-		}
-		_, err := service.CreateNewClient(ctx, in)
-		wantErr := ErrConfirmationPasswordNotSupplied
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got : %v", wantErr, err)
-		}
-	})
-
-	t.Run("passwords_dont_match", func(t *testing.T) {
-		t.Cleanup(mock.Cleanup)
-		ctx := context.Background()
-		in := RegisterUserRequest{
-			Email:           VALID_EMAIL_A,
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD_B,
-			FirstName:       VALID_FirstName,
-		}
-		_, err := service.CreateNewClient(ctx, in)
-		wantErr := ErrPasswordsDontMatch
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got : %v", wantErr, err)
-		}
-	})
-
 	t.Run("FirstName_not_supplied", func(t *testing.T) {
-		t.Cleanup(mock.Cleanup)
+		t.Cleanup(mock.Teardown)
 		ctx := context.Background()
 		in := RegisterUserRequest{
-			Email:           VALID_EMAIL_A,
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
+			Email:    VALID_EMAIL_A,
+			Username: VALID_USERNAME_A,
+			Password: VALID_PASSWORD,
+			LastName: VALID_LastName,
 		}
 		_, err := service.CreateNewClient(ctx, in)
 		wantErr := ErrFirstNameNotSupplied

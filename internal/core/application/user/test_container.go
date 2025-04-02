@@ -32,6 +32,17 @@ func NewTestContainer() TestContainer {
 	return c
 }
 
+func (t *TestContainer) Teardown() {
+	role_testContainer := role.NewTestContainer()
+	t.RoleService = role_testContainer.RoleService
+	t.AuthService = auth.NewIntegrationAuthContainer()
+	t.UserService = NewUser(
+		db_user_mock.NewMock(),
+		t.RoleService,
+		t.AuthService,
+	)
+}
+
 func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	c := TestContainer{}
 	c.RoleService = role.NewRole(

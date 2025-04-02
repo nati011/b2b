@@ -9,29 +9,26 @@ import (
 )
 
 var (
-	ErrUsernameTaken                   = errors.New("oopsy, username already taken")
-	ErrEmailTaken                      = errors.New("oopsy, email already taken")
-	ErrFailedToLogin                   = errors.New("oopsy, email or password incorrect")
-	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
-	ErrEmailNotSupplied                = errors.New("oopsy, email mandatory")
-	ErrInvalidEmail                    = errors.New("oopsy, Invalid Email")
-	ErrPasswordNotSupplied             = errors.New("oopsy, password mandatory")
-	ErrConfirmationPasswordNotSupplied = errors.New("oopsy, confirmation password mandatory")
-	ErrFirstNameNotSupplied            = errors.New("oopsy, First Name mandatory")
-	ErrLastNameNotSupplied             = errors.New("oppsy, Last Name mandatory")
-	ErrPasswordsDontMatch              = errors.New("oopsy, passwords dont match")
+	ErrUsernameTaken        = errors.New("oopsy, username already taken")
+	ErrEmailTaken           = errors.New("oopsy, email already taken")
+	ErrFailedToLogin        = errors.New("oopsy, email or password incorrect")
+	ErrUnknown              = errors.New("oopsy, unknown error has occured")
+	ErrEmailNotSupplied     = errors.New("oopsy, email mandatory")
+	ErrInvalidEmail         = errors.New("oopsy, Invalid Email")
+	ErrPasswordNotSupplied  = errors.New("oopsy, password mandatory")
+	ErrFirstNameNotSupplied = errors.New("oopsy, First Name mandatory")
+	ErrLastNameNotSupplied  = errors.New("oppsy, Last Name mandatory")
 )
 
 type RegisterUserRequest struct {
-	Email           string    `json:"email"`
-	Password        string    `json:"password"`
-	ConfirmPassword string    `json:"confirmed_password"`
-	BirthDate       time.Time `json:"birth_date"`
-	PhoneNumber     string    `json:"phone_number"`
-	ExternalId      string    `json:"external_id"`
-	FirstName       string    `json:"first_name"`
-	LastName        string    `json:"last_name"`
-	Username        string    `json:"username"`
+	Email       string    `json:"email"`
+	Password    string    `json:"password"`
+	BirthDate   time.Time `json:"birth_date"`
+	PhoneNumber string    `json:"phone_number"`
+	ExternalId  string    `json:"external_id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Username    string    `json:"username"`
 }
 
 type RegisterUserResponse struct {
@@ -84,7 +81,7 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 		return RegisterUserResponse{}, err
 	}
 
-	err = validatePasswords(req.Password, req.ConfirmPassword)
+	err = validatePasswords(req.Password)
 	if err != nil {
 		return RegisterUserResponse{}, err
 	}
