@@ -39,12 +39,11 @@ func Test_CreateClient_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := auth.RegisterUserRequest{
-		Username:        VALID_USERNAME_A,
-		Password:        VALID_PASSWORD,
-		ConfirmPassword: VALID_PASSWORD,
-		FirstName:       VALID_FIRST_NAME,
-		LastName:        VALID_LAST_NAME,
-		Email:           VALID_EMAIL_A,
+		Username:  VALID_USERNAME_A,
+		Password:  VALID_PASSWORD,
+		FirstName: VALID_FIRST_NAME,
+		LastName:  VALID_LAST_NAME,
+		Email:     VALID_EMAIL_A,
 	}
 
 	_, err := authService.CreateNewClient(ctx, in)
@@ -61,12 +60,11 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		/* create a user with some username x and attempt
 		to create another user with the same username */
 		in_a := auth.RegisterUserRequest{
-			FirstName:       VALID_FIRST_NAME,
-			LastName:        VALID_LAST_NAME,
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			Email:           VALID_EMAIL_A,
+			FirstName: VALID_FIRST_NAME,
+			LastName:  VALID_LAST_NAME,
+			Username:  VALID_USERNAME_A,
+			Password:  VALID_PASSWORD,
+			Email:     VALID_EMAIL_A,
 		}
 
 		_, err := authService.CreateNewClient(ctx, in_a)
@@ -75,11 +73,10 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		}
 
 		in_b := auth.RegisterUserRequest{
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			LastName:        VALID_LAST_NAME,
-			Email:           VALID_EMAIL_B,
+			Username: VALID_USERNAME_A,
+			Password: VALID_PASSWORD,
+			LastName: VALID_LAST_NAME,
+			Email:    VALID_EMAIL_B,
 		}
 
 		_, err = authService.CreateNewClient(ctx, in_b)
@@ -96,21 +93,19 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		/* create a user with some email x and attempt
 		to create another user with the same email */
 		ua := auth.RegisterUserRequest{
-			Username:        VALID_USERNAME_A,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			FirstName:       VALID_FIRST_NAME,
-			Email:           VALID_EMAIL_A,
+			Username:  VALID_USERNAME_A,
+			Password:  VALID_PASSWORD,
+			FirstName: VALID_FIRST_NAME,
+			Email:     VALID_EMAIL_A,
 		}
 
 		authService.CreateNewClient(ctx, ua)
 		ub := auth.RegisterUserRequest{
-			FirstName:       VALID_FIRST_NAME,
-			LastName:        VALID_LAST_NAME,
-			Username:        VALID_USERNAME_B,
-			Password:        VALID_PASSWORD,
-			ConfirmPassword: VALID_PASSWORD,
-			Email:           VALID_EMAIL_A,
+			FirstName: VALID_FIRST_NAME,
+			LastName:  VALID_LAST_NAME,
+			Username:  VALID_USERNAME_B,
+			Password:  VALID_PASSWORD,
+			Email:     VALID_EMAIL_A,
 		}
 
 		_, err := authService.CreateNewClient(ctx, ub)
