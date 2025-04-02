@@ -16,6 +16,10 @@ import (
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
+var (
+	ErrUnknownProductCommand = errors.New("unknown command")
+)
+
 type CreateProductRequest struct {
 	Name          string            `json:"name"`
 	Desc          string            `json:"desc"`
@@ -159,21 +163,20 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		if resp.Id != 0 {
-			util.WriteJSON(w, util.Envelope{"product": ProductResponse{
-				Id:            resp.Id,
-				Name:          resp.Name,
-				Desc:          resp.Desc,
-				ExternalID:    resp.ExternalID,
-				Images:        resp.Images,
-				Price:         resp.Price,
-				Attributes:    resp.Attributes,
-				DistributorId: resp.DistributorId,
-				CategoryId:    resp.CategoryId,
-				Stock:         resp.Stock,
-				IsActive:      resp.IsActive,
-			}}, http.StatusAccepted)
-		}
+		util.OperationSuccessResponse(w, util.Envelope{"product": ProductResponse{
+			Id:            resp.Id,
+			Name:          resp.Name,
+			Desc:          resp.Desc,
+			ExternalID:    resp.ExternalID,
+			Images:        resp.Images,
+			Price:         resp.Price,
+			Attributes:    resp.Attributes,
+			DistributorId: resp.DistributorId,
+			CategoryId:    resp.CategoryId,
+			Stock:         resp.Stock,
+			IsActive:      resp.IsActive,
+		}})
+
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
@@ -224,16 +227,15 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			switch err {
-			case product.ErrCategoryNotFound,
-				product.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, err)
+			case product.ErrUnknown:
+				util.ServerErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"products": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
 		// build
 		var resp []GetProductResponse
@@ -336,7 +338,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				Configurables:          configurables,
 			})
 		}
-		util.WriteJSON(w, util.Envelope{"products": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	}
 }
 
@@ -400,15 +402,14 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 				}
 			}
 		}
-
-		util.WriteJSON(w, util.Envelope{"configurable_product": GetProductResponse{
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": GetProductResponse{
 			Name:                   cp_resp.Name,
 			Desc:                   cp_resp.Desc,
 			IsActive:               cp_resp.IsAvailable,
 			Images:                 cp_resp.Images,
 			ConfigurableAttributes: configurableAttribute,
 			Configurables:          configurables,
-		}}, http.StatusAccepted)
+		}})
 
 	} else if paramNameValue != "" {
 		cp_resp, err := p.configurableProductservice.GetByParam(r.Context(),
@@ -472,7 +473,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 				Configurables:          configurables,
 			})
 		}
-		util.WriteJSON(w, util.Envelope{"configurable_products": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_products": resp})
 	}
 }
 
@@ -506,7 +507,7 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"product": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"product": id})
 }
 
 func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
@@ -525,13 +526,7 @@ func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *htt
 	id, err := p.configurableProductservice.Create(r.Context(), (*configurable_product.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case product.ErrIdNotFound,
-			product.ErrNameNotSupplied,
-			product.ErrNameDuplicate,
-			product.ErrImagesMustBeAtleastTwo,
-			product.ErrPriceNotSupplied,
-			product.ErrAttributeValuesCannotBeEmpty,
-			product.ErrCategoryNotFound:
+		case product.ErrUnknown:
 			util.RequestErrorResponse(w, err)
 			return
 		default:
@@ -539,7 +534,7 @@ func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *htt
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"product": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"product": id})
 }
 
 func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -558,15 +553,15 @@ func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := p.service.Update(r.Context(), (*product.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case product.ErrIdNotFound:
-			util.RequestErrorResponse(w, err)
+		case product.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"product": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"product": id})
 }
 
 const (
@@ -592,34 +587,32 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			err = p.service.Activate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
-				case product.ErrIdNotFound,
-					product.ErrAlreadyActive:
-
-					util.RequestErrorResponse(w, err)
-					return
-				default:
+				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
 					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+
 				}
 			}
-			return
+			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
 		case DEACTIVATE_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
-				case product.ErrIdNotFound,
-					product.ErrAlreadyInactive:
-
-					util.RequestErrorResponse(w, err)
-					return
-				default:
+				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
 					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+
 				}
 			}
-			return
+			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
 		default:
-			util.RequestErrorResponse(w, errors.New("unknown command"))
+			util.RequestErrorResponse(w, ErrUnknownProductCommand)
 		}
 	}
 }
@@ -652,19 +645,35 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		switch paramCommandValue {
 		case RECEIVEGOODS_COMMAND:
-			p.service.ReceiveGoods(r.Context(), &product.GoodsReceivingRequest{
+			err = p.service.ReceiveGoods(r.Context(), &product.GoodsReceivingRequest{
 				Id:     typedParamId,
 				Amount: typedParamAmount,
 			})
-			return
+			if err != nil {
+				switch err {
+				case product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+				default:
+					util.RequestErrorResponse(w, err)
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
 		case DEPLETE_COMMAND:
-			p.service.Dispatch(r.Context(), &product.DispatchRequest{
+			err = p.service.Dispatch(r.Context(), &product.DispatchRequest{
 				Id:     typedParamId,
 				Amount: typedParamAmount,
 			})
-			return
+			if err != nil {
+				switch err {
+				case product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+				default:
+					util.RequestErrorResponse(w, err)
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
 		default:
-			util.RequestErrorResponse(w, errors.New("unknown command"))
+			util.RequestErrorResponse(w, ErrUnknownProductCommand)
 		}
 	}
 }
