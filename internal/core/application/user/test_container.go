@@ -55,6 +55,7 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 			),
 		),
 	)
+	c.AuthService = auth.NewIntegrationAuthContainer()
 	c.UserService = NewUser(
 		db_user_mock.NewPostgres(
 			db,
