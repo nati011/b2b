@@ -6,6 +6,7 @@ import (
 
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
+	transaction_control "b2b.nati011.github.com/internal/core/util/transaction_control"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -65,6 +66,7 @@ type OrderService struct {
 	DB             port.DB
 	InvoiceService invoice.Provider
 	ProductService product.Provider
+	tm             transaction_control.TransactionManager
 }
 
 func NewOrderService(db port.DB,
@@ -75,77 +77,78 @@ func NewOrderService(db port.DB,
 		DB:             db,
 		InvoiceService: is,
 		ProductService: ps,
+		tm:             transaction_control.NewTransactionManager(),
 	}
 }
 
 func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error) {
-	//validate
-	err := o.validate_retailerId(ctx, req.RetailerId)
+
+	id, err := o.tm.WithinTransaction(ctx, func(ctx context.Context) (interface{}, error) {
+		o.tm.Init(ctx)
+
+		// Validate retailer ID
+		if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
+			return 0, err
+		}
+
+		// Validate items
+		if err := o.validate_items(ctx, req.Items); err != nil {
+			return 0, err
+		}
+
+		// Convert items to port format
+		items := make([]port.Item, 0, len(req.Items))
+		for _, i := range req.Items {
+			items = append(items, port.Item{
+				ProductId: i.ProductId,
+				Quantity:  i.Quantity,
+			})
+		}
+
+		// Create order
+		id, err := o.DB.Create(ctx, &port.CreateRequest{
+			RetailerId: req.RetailerId,
+			Items:      items,
+		})
+		if err != nil {
+			return 0, ErrUnknown
+		}
+
+		// Set status to pending
+		if err := o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
+			Id:     id,
+			Status: PENDING_STATUS,
+		}); err != nil {
+			return 0, ErrUnknown
+		}
+
+		// Create invoice
+		lineItems := make([]invoice.Item, 0, len(req.Items))
+		for _, i := range req.Items {
+			lineItems = append(lineItems, invoice.Item{
+				ProductId:       i.ProductId,
+				ProductName:     "",
+				ProductQuantity: i.Quantity,
+				ProductPrice:    1,
+			})
+		}
+
+		if _, err = o.InvoiceService.Create(ctx, &invoice.CreateRequest{
+			Status:    invoice.DRAFT_STATUS,
+			OrderId:   id,
+			SubTotal:  0,
+			LineItems: lineItems,
+			TaxAmount: 0,
+		}); err != nil {
+			return 0, ErrUnknown
+		}
+
+		return id, nil
+	})
+
 	if err != nil {
 		return 0, err
 	}
-	err = o.validate_items(ctx, req.Items)
-	if err != nil {
-		return 0, err
-	}
-
-	//persist
-	items := []port.Item{}
-	for _, i := range req.Items {
-		items = append(items, port.Item{
-			ProductId: i.ProductId,
-			Quantity:  i.Quantity,
-		})
-	}
-	id, err := o.DB.Create(ctx, &port.CreateRequest{
-		RetailerId: req.RetailerId,
-		Items:      items,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
-	//set status to pending
-	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
-		Id:     id,
-		Status: PENDING_STATUS,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
-	//create invoice
-	lineItems := []invoice.Item{}
-	for _, i := range req.Items {
-		lineItems = append(lineItems, invoice.Item{
-			ProductId:       i.ProductId,
-			ProductName:     "",
-			ProductQuantity: i.Quantity,
-			ProductPrice:    1,
-		})
-	}
-
-	//set status to DRAFT upon creation
-	_, err = o.InvoiceService.Create(ctx, &invoice.CreateRequest{
-		Status:    invoice.DRAFT_STATUS,
-		OrderId:   id,
-		SubTotal:  0,
-		LineItems: lineItems,
-		TaxAmount: 0,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
 	return id, nil
 }
 
