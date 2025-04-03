@@ -6,12 +6,15 @@ import (
 	"os"
 	"testing"
 
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	category "b2b.nati011.github.com/internal/core/domain/category"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 var service category.Provider
+var pgContainer *postgres.PostgresContainer
 var db *sql.DB
 
 func TestMain(m *testing.M) {
@@ -21,11 +24,19 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	service = category.NewCategory(
+		db_adapter.NewPostgres(
+			db,
+		),
+	)
 	db = db_test_container.Setup()
 }
 
 func teardown() {
 	db_test_container.Teardown(db)
+}
+
+func Test_Timeout(t *testing.T) {
 }
 
 func Test_Reader(t *testing.T) {
