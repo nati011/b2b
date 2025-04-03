@@ -15,7 +15,6 @@ var db_global *sql.DB
 
 type TestContainer struct {
 	UserService Provider
-
 	RoleService role.Provider
 	AuthService auth.Provider
 }
