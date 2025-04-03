@@ -26,6 +26,26 @@ func RunContainer(ctx context.Context) (*keycloak.KeycloakContainer, error) {
 }
 
 func InitAuth(cfg *config.Config) {
+	/*
+		DEVELOPMENT:
+			Use TestContainers
+		STAGING:
+			Use External service, verify if connection can be established and operations can be performed
+		PRODUCTION:
+			Use External service, verify if connection can be established and operations can be performed
+	*/
+
+	switch cfg.Env {
+	case "development":
+		InitAuthDevelopment(cfg)
+	case "staging":
+		InitAuthStaging(cfg)
+	case "production":
+		InitAuthProduction(cfg)
+	}
+}
+
+func InitAuthDevelopment(cfg *config.Config) {
 	var err error
 	var keycloakContainer *keycloak.KeycloakContainer
 	ctx := context.Background()
@@ -50,4 +70,10 @@ func InitAuth(cfg *config.Config) {
 	cfg.KeycloakApplicationRealm = keycloakAdminClient.Realm
 	cfg.KeycloakClientId = keycloakAdminClient.ClientID
 	cfg.KeycloakInstanceURL = keycloakInstanceUrl
+}
+
+func InitAuthStaging(cfg *config.Config) {
+}
+
+func InitAuthProduction(cfg *config.Config) {
 }
