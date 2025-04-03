@@ -171,15 +171,15 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		case auth.ErrFirstNameNotSupplied:
 			return 0, ErrFirstNameMandatory
 		case auth.ErrLastNameNotSupplied:
-			return 0, ErrPhoneOrEmailMandatory
+			return 0, ErrLastNameMandatory
 		case auth.ErrEmailNotSupplied:
-			return 0, ErrPhoneOrEmailMandatory
+			return 0, ErrEmailNotFound
 		case auth.ErrInvalidEmail:
 			return 0, ErrEmailNotValid
 		case auth.ErrPasswordNotSupplied:
 			return 0, ErrPasswordMandatory
 		case auth.ErrUsernameTaken:
-			return 0, ErrEmailTaken
+			return 0, ErrUserNameTaken
 		case auth.ErrEmailTaken:
 			return 0, ErrEmailTaken
 		default:
