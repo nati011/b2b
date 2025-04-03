@@ -148,9 +148,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 		// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-		resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
-			ID: users_resp.List[0],
-		})
+		resp_user, err := re.userService.Get(r.Context(), users_resp.List[0])
 		if err != nil {
 			switch err {
 			case user.ErrIdNotFound:
@@ -168,7 +166,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				GeneralZone: resp.GeneralZone,
 				Region:      resp.Region,
 				Woreda:      resp.Woreda,
-				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+				Users:       (application_handler.GetUserResponse)(resp_user),
 			}}, http.StatusAccepted)
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
@@ -200,9 +198,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
-				ID: users_resp.List[0],
-			})
+			resp_user, err := re.userService.Get(r.Context(), users_resp.List[0])
 			if err != nil {
 				switch err {
 				case user.ErrIdNotFound:
@@ -219,7 +215,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
-				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+				Users:       (application_handler.GetUserResponse)(resp_user),
 			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
@@ -249,9 +245,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
 			// there isn't a case where a retailer doesnot have a user agent ERGO users_resp.List[0] cannot throw an exception
-			resp_user, err := re.userService.GetByParam(r.Context(), &user.GetByParam{
-				ID: users_resp.List[0],
-			})
+			resp_user, err := re.userService.Get(r.Context(), users_resp.List[0])
 			if err != nil {
 				switch err {
 				case user.ErrIdNotFound:
@@ -268,7 +262,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
-				Users:       (application_handler.GetUserResponse)(resp_user.List[0]),
+				Users:       (application_handler.GetUserResponse)(resp_user),
 			})
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
