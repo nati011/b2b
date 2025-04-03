@@ -62,7 +62,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
@@ -74,10 +74,10 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				resource.ErrEmptyName,
 				resource.ErrEmptyAction:
 
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -88,9 +88,9 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 
@@ -101,14 +101,14 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateResourceRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
@@ -122,10 +122,10 @@ func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request
 			resource.ErrEmptyUpdateContent,
 			resource.ErrEmptyGetContent:
 
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -135,14 +135,14 @@ func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request
 func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody UpdateResourceRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := rs.service.Update(r.Context(), (*resource.UpdateRequest)(&requestBody))
@@ -155,10 +155,10 @@ func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request
 			resource.ErrEmptyUpdateContent,
 			resource.ErrEmptyGetContent:
 
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -173,17 +173,17 @@ func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		err = rs.service.Delete(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case resource.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}

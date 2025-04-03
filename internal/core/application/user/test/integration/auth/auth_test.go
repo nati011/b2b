@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/user"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -146,7 +147,8 @@ func Test_create_auth_client_upon_user_registration(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FirstName: "natnael jemaneh asefa",
+		FirstName: "natnael asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -158,5 +160,13 @@ func Test_create_auth_client_upon_user_registration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
+
 	//verify
+	_, err = testContainer.AuthService.ClientLogin(ctx, auth.LoginUserRequest{
+		Email:    "natnaeljemaneh001@gmail.com",
+		Password: "test",
+	})
+	if err == auth.ErrFailedToLogin {
+		t.Fatalf("failed to login err %v", err)
+	}
 }
