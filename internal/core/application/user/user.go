@@ -9,7 +9,6 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/auth"
 	role "b2b.nati011.github.com/internal/core/application/role"
-	"b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
@@ -155,7 +154,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		return 0, ErrUnknown
 	}
 
-	_, err = u.auth_service.CreateNewClient(ctx, provider.RegisterUserRequest{
+	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
 		Email:           req.Email,
 		Password:        generated_password,
 		ConfirmPassword: generated_password,
