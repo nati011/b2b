@@ -6,10 +6,8 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
-	"b2b.nati011.github.com/internal/core/application/auth"
-
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/auth"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
