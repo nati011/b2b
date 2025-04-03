@@ -43,11 +43,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	loginResponse, err := h.service.ClientLogin(r.Context(), req)
 
 	if err != nil {
-<<<<<<< HEAD
-		util.UnauthorizedErrorResponse(w, r, err)
-=======
 		util.UnauthorizedResponse(w)
->>>>>>> 2461a09b (+ fix handler errors)
 		return
 	}
 
