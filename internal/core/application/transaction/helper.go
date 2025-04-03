@@ -11,9 +11,7 @@ func (t *TransactionService) validateUserId(ctx context.Context, userId int) err
 	if userId == 0 {
 		return ErrUserIdNotSupplied
 	}
-	_, err := t.UserService.GetByParam(ctx, &user.GetByParam{
-		ID: userId,
-	})
+	_, err := t.UserService.Get(ctx, userId)
 	if err != nil {
 		switch err {
 		case user.ErrEmptyGetContent:
