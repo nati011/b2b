@@ -233,7 +233,14 @@ func Test_get_happyPath(t *testing.T) {
 
 func Test_get_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		ctx := context.Background()
 
+		_, err := testContainer.UserService.Get(ctx, 99)
+		expecetedErr := ErrIdNotFound
+		if expecetedErr != err {
+			t.Errorf("Expected err: %v Got: %v", expecetedErr, err)
+		}
 	})
 }
 
@@ -253,7 +260,6 @@ func Test_getAll_unhappyPath(t *testing.T) {
 }
 
 func Test_getByParam_happyPath(t *testing.T) {
-
 	t.Run("email", func(t *testing.T) {
 		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
@@ -410,7 +416,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			LastName:   "jemaneh",
 			Email:      "eyoeljemaneh011@gmail.com",
 			Phone:      "+251933184880",
-			Username:   "test",
+			Username:   "test22",
 			DOB:        parsedTime,
 			ExternalId: "123",
 		}
