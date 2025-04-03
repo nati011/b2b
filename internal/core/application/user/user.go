@@ -652,7 +652,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 	_, err := u.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case ErrEmptyGetContent:
+		case ErrIdNotFound:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
