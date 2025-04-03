@@ -68,7 +68,6 @@ type UpdateRequest struct {
 }
 
 type GetByParam struct {
-	ID         int
 	Email      string
 	Phone      string
 	Username   string
@@ -94,6 +93,7 @@ type GetAllResponse struct {
 
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
+	Get(ctx context.Context, id int) (resp GetResponse, err error)
 	GetAll(ctx context.Context) (resp GetAllResponse, err error)
 	GetByParam(ctx context.Context, req *GetByParam) (resp GetAllResponse, err error)
 	Activate(ctx context.Context, id int) (err error)
@@ -189,6 +189,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 
 	return user_id, nil
 }
+
 func generateRandomPassword(length int) (string, error) {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
 	password := make([]byte, length)
@@ -235,30 +236,21 @@ func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	return prep_resp, nil
 }
 
-func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {
-	prep_resp := GetAllResponse{}
-	if req.ID != 0 {
-		res_id, err := u.db.GetByID(ctx, req.ID)
-		if err != nil {
-			switch err {
-			case port.ErrSysNoRows:
-			default:
-				return GetAllResponse{}, ErrUnknown
-			}
-		}
-		if res_id.Id != 0 {
-			already_present := false
-			for _, i := range prep_resp.List {
-				if i.Id == res_id.Id {
-					already_present = true
-					continue
-				}
-			}
-			if !already_present {
-				prep_resp.List = append(prep_resp.List, (GetResponse)(res_id))
-			}
+func (u *UserService) Get(ctx context.Context, id int) (GetResponse, error) {
+	res, err := u.db.GetByID(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, ErrUnknown
 		}
 	}
+	return GetResponse(res), nil
+}
+
+func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {
+	prep_resp := GetAllResponse{}
 
 	if req.Email != "" {
 		res_email, err := u.db.GetByEmail(ctx, req.Email)
@@ -403,9 +395,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllRe
 
 func (u *UserService) Activate(ctx context.Context, id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -437,9 +427,7 @@ func (u *UserService) Activate(ctx context.Context, id int) error {
 
 func (u *UserService) Deactivate(ctx context.Context, id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -471,9 +459,7 @@ func (u *UserService) Deactivate(ctx context.Context, id int) error {
 
 func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -529,9 +515,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 
 func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAssignedRoleResponse, error) {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -565,9 +549,7 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 
 func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -624,9 +606,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 
 func (u *UserService) HasRole(ctx context.Context, id int, role_id int) (bool, error) {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -669,9 +649,7 @@ func (u *UserService) HasRole(ctx context.Context, id int, role_id int) (bool, e
 
 func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetResponse, error) {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: req.Id,
-	})
+	_, err := u.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -759,9 +737,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 		}
 	}
 
-	resp, err := u.GetByParam(ctx, &GetByParam{
-		ID: req.Id,
-	})
+	resp, err := u.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -769,14 +745,12 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 			return GetResponse{}, ErrUnknown
 		}
 	}
-	return (GetResponse)(resp.List[0]), nil
+	return (GetResponse)(resp), nil
 }
 
 func (u *UserService) Remove(ctx context.Context, id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -799,9 +773,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 
 func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 	// validate id
-	user, err := u.GetByParam(ctx, &GetByParam{
-		ID: id,
-	})
+	user, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -810,7 +782,5 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 			return false, ErrUnknown
 		}
 	}
-
-	//get user id
-	return user.List[0].IsActive, nil
+	return user.IsActive, nil
 }

@@ -93,8 +93,8 @@ func (a *UserHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/user", a.CreateUser)
 	mux.HandleFunc("PATCH /api/v1/user", a.UpdateProfile)
 
-	mux.HandleFunc("PATCH /api/v1/user/status", a.StatusHandler)
-	mux.HandleFunc("PATCH /api/v1/user/role", a.RoleHandler)
+	mux.HandleFunc("PATCH /api/v1/user/{id}/status", a.StatusHandler)
+	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", a.RoleHandler)
 }
 
 const (
@@ -103,15 +103,12 @@ const (
 )
 
 func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
 	const ParamCommand = "command"
 
 	paramValues := r.URL.Query()
 	paramCommandValue := paramValues.Get(ParamCommand)
-	paramIdValue := paramValues.Get(ParamId)
-
-	if paramCommandValue != "" && paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
@@ -157,22 +154,18 @@ const (
 )
 
 func (a *UserHandler) RoleHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	const ParamRole = "role"
 	const ParamCommand = "command"
 
 	paramValues := r.URL.Query()
 	paramCommandValue := paramValues.Get(ParamCommand)
-	paramIdValue := paramValues.Get(ParamId)
-	ParamRoleIdValue := paramValues.Get(ParamRole)
 
-	if paramCommandValue != "" && paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
+	if paramCommandValue != "" {
+		typedParamRoleId, err := util.GetPathParam(r, 6)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		typedParamRoleId, err := strconv.Atoi(ParamRoleIdValue)
+		typedParamId, err := util.GetPathParam(r, 4)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
@@ -263,9 +256,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := a.service.GetByParam(r.Context(), &user.GetByParam{
-			ID: typedParamId,
-		})
+		resp, err := a.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case user.ErrUnknown:
@@ -288,14 +279,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			typedparamIsActiveValue = false
 		}
 
-		typedParamId, err := strconv.Atoi(paramIdValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-		}
-
 		resp, err := a.service.GetByParam(r.Context(), &user.GetByParam{
-			ID:         typedParamId,
 			Email:      strings.Trim(paramEmailValue, `"`),
 			Phone:      strings.Trim(paramPhoneValue, `"`),
 			Username:   strings.Trim(paramUsernameValue, `"`),
