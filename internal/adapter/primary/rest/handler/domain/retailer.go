@@ -83,7 +83,7 @@ func (r *Retailer) Routes(mux *http.ServeMux) {
 func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	typedParamId, err := util.GetPathParam(r, 4)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
@@ -91,10 +91,10 @@ func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case retailer.ErrIdNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -104,7 +104,7 @@ func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case retailer.ErrIdNotFound:
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -124,17 +124,17 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		resp, err := re.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case retailer.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 		// get all users
@@ -143,7 +143,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case retailer.ErrIdNotFound:
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 		// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
@@ -155,7 +155,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case user.ErrIdNotFound:
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 		if len(users_resp.List) != 0 {
@@ -180,10 +180,10 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case retailer.ErrEmptyGetContent:
 
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -195,7 +195,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				switch err {
 				case retailer.ErrIdNotFound:
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 				}
 			}
 			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
@@ -207,7 +207,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				switch err {
 				case user.ErrIdNotFound:
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 				}
 			}
 			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
@@ -229,10 +229,10 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case retailer.ErrEmptyGetContent:
 
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -244,7 +244,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				switch err {
 				case retailer.ErrIdNotFound:
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 				}
 			}
 			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
@@ -256,7 +256,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				switch err {
 				case user.ErrIdNotFound:
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 				}
 			}
 			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
@@ -278,14 +278,14 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateRetailerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
@@ -296,10 +296,10 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			retailer.ErrDuplicateTin,
 			retailer.ErrInvalidTin:
 
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -309,24 +309,24 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 func (re *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody UpdateRetailerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := re.service.Update(r.Context(), (*retailer.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
 		case retailer.ErrIdNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}

@@ -79,7 +79,7 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 
@@ -87,10 +87,10 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case product.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
 		util.WriteJSON(w, util.Envelope{"order": resp}, http.StatusAccepted)
@@ -101,7 +101,7 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if paramRetailerIdValue != "" {
 			typedRetailerId, err = strconv.Atoi(paramRetailerIdValue)
 			if err != nil {
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
@@ -112,10 +112,10 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case order.ErrEmptyGetResponse:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -127,10 +127,10 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case order.ErrEmptyGetResponse:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -142,14 +142,14 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody PlaceOrderRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	var orderItems []order.Item
@@ -165,10 +165,10 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 		case order.ErrRetailerIdNotSupplied,
 			order.ErrAtleastOneOrderItemNeeded,
 			order.ErrItemMemberProductIdOrQuantityEmpty:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -189,7 +189,7 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 	if paramCommandValue != "" && paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		switch paramCommandValue {
@@ -198,16 +198,16 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				switch err {
 				case product.ErrIdNotFound:
-					util.RequestErrorResponse(w, r, err)
+					util.RequestErrorResponse(w, err)
 					return
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 					return
 				}
 			}
 			return
 		default:
-			util.RequestErrorResponse(w, r, ErrUnknownCommand)
+			util.RequestErrorResponse(w, ErrUnknownCommand)
 		}
 	}
 }

@@ -99,7 +99,7 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	typedParamId, err := util.GetPathParam(r, 4)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
@@ -107,10 +107,10 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case retailer.ErrIdNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -120,7 +120,7 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case retailer.ErrIdNotFound:
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -130,20 +130,20 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	typedParamId, err := util.GetPathParam(r, 4)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateDistributorUserRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := de.service.CreateUser(r.Context(), &distributor.CreateUserRequest{
@@ -160,10 +160,10 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 			user.ErrPhoneOrEmailMandatory,
 			user.ErrFirstNameMandatory:
 
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -183,17 +183,17 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		resp, err := de.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case retailer.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -203,7 +203,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			switch err {
 			case retailer.ErrIdNotFound:
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -230,10 +230,10 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			switch err {
 			case retailer.ErrEmptyGetContent:
 
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -245,7 +245,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				switch err {
 				case retailer.ErrIdNotFound:
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 					return
 				}
 			}
@@ -269,10 +269,10 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			switch err {
 			case retailer.ErrEmptyGetContent:
 
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
@@ -284,7 +284,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				switch err {
 				case retailer.ErrIdNotFound:
 				default:
-					util.ServerErrorResponse(w, r, err)
+					util.ServerErrorResponse(w, err)
 				}
 			}
 
@@ -307,14 +307,14 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateDistributorRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := de.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
@@ -324,10 +324,10 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 			retailer.ErrDuplicateTin,
 			retailer.ErrInvalidTin:
 
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
@@ -337,24 +337,24 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody UpdateDistributorRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := de.service.Update(r.Context(), (*distributor.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
 		case retailer.ErrIdNotFound:
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
