@@ -30,11 +30,12 @@ func setup() {
 }
 
 func teardown() {
+	testContainer.TeardownIntegrationTestContainer()
 	db_test_container.Teardown(db)
 }
 
 func Test_create_auth_client_upon_user_registration(t *testing.T) {
-	// t.Cleanup(teardown)
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
