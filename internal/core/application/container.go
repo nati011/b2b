@@ -25,6 +25,10 @@ import (
 	"b2b.nati011.github.com/internal/core/application/template"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/application/user"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
+
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 /* Dependency Tree */
@@ -55,6 +59,9 @@ import (
 type Container struct {
 	db                    *sql.DB
 	AuthService           auth.Provider
+	AuthMiddleware        *util.AuthMiddleware
+	DistributorService    distributor.Provider
+	RetailerService       retailer.Provider
 	EmailService          email.Provider
 	PaymentService        payment.Provider
 	PaymentPartnerService payment_partner.Provider
@@ -93,6 +100,9 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
 	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret))
+	m.AuthMiddleware = util.NewAuthMiddleware(
+		keycloakInstanceURL, keycloakClientId, keycloakClientSecret, keycloakRealm, keycloakPassword,
+	)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port string) {
