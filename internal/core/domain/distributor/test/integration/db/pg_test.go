@@ -22,6 +22,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	testContainer = test_container.NewDBIntegrationTestContainer(
+		db,
+	)
 	db = db_test_container.Setup()
 }
 
