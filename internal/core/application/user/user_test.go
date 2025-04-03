@@ -416,7 +416,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			LastName:   "jemaneh",
 			Email:      "eyoeljemaneh011@gmail.com",
 			Phone:      "+251933184880",
-			Username:   "test",
+			Username:   "test22",
 			DOB:        parsedTime,
 			ExternalId: "123",
 		}
