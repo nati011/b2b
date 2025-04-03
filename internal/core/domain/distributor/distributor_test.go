@@ -4,8 +4,6 @@ import (
 	"context"
 	"os"
 	"testing"
-
-	"b2b.nati011.github.com/internal/core/application/user"
 )
 
 var testContainer TestContainer
@@ -447,9 +445,10 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		LastName:       "test_user",
 		Email:          "test@gmail.com",
 	})
-	_, err = testContainer.UserService.GetByParam(ctx, &user.GetByParam{
-		ID: user_id,
-	})
+	if err != nil {
+		t.Fatalf("Failed to create user %v", user_id)
+	}
+	_, err = testContainer.UserService.Get(ctx, user_id)
 	if err != nil {
 		t.Errorf("Failed to get user %v", err)
 	}

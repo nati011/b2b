@@ -194,9 +194,7 @@ func Test_write(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		_, err = testContainer.UserService.GetByParam(ctx, &user.GetByParam{
-			ID: id,
-		})
+		_, err = testContainer.UserService.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
