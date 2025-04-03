@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/config"
-
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -49,11 +47,9 @@ func main() {
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)
 
-	loggingingMiddleware := util.NewLoggingMiddleware()
-	handler := loggingingMiddleware.Log(mux)
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
-		Handler:      handler,
+		Handler:      mux,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

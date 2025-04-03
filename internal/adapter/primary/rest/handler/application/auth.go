@@ -7,15 +7,13 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	"b2b.nati011.github.com/internal/core/application/auth"
 
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 type AuthHandler struct {
-	service    auth.Provider
-	middleware util.AuthMiddleware
+	service auth.Provider
 }
 
 func InitAuth() {
@@ -24,13 +22,13 @@ func InitAuth() {
 
 func (a *AuthHandler) Init(services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.AuthService
-	a.middleware = *services.AuthMiddleware
 	return nil
 }
 
 func (a *AuthHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/login", a.Login)
 	mux.HandleFunc("POST /api/v1/auth/refresh", a.RefreshToken)
+
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +41,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	loginResponse, err := h.service.ClientLogin(r.Context(), req)
 
 	if err != nil {
-		util.UnauthorizedErrorResponse(w, r, err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -60,7 +58,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	refreshResponse, err := h.service.RefreshToken(r.Context(), req)
 	if err != nil {
-		util.UnauthorizedErrorResponse(w, r, err)
+		http.Error(w, "Authentication failed", http.StatusUnauthorized)
 		return
 	}
 
