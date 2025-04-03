@@ -597,8 +597,7 @@ BEGIN
            u.is_active, 
            u.external_id 
     FROM public.users u
-    WHERE u.is_deleted = FALSE
-    LIMIT 1;
+    WHERE u.is_deleted = FALSE;
 END;
 $$;
 
