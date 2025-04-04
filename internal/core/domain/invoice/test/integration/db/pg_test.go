@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-
+	db = db_test_container.Setup()
 	invoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db),
 	)
@@ -47,7 +47,6 @@ func setup() {
 	// 	panic("failed to create order")
 	// }
 
-	db = db_test_container.Setup()
 }
 
 func teardown() {
