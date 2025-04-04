@@ -43,11 +43,6 @@ type Reader interface {
 	GetAll(context.Context) (GetAllResponse, error)
 }
 
-/*
-1) start a transaction for any writer invocation
-2) commit only when given signal
-3) rollback when given signal
-*/
 type Writer interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	UpdateOrderStatus(context.Context, *UpdateOrderStatusRequest) error
