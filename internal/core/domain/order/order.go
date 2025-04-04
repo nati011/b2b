@@ -12,6 +12,7 @@ import (
 var (
 	ErrIdNotFound                         = errors.New("oopsy, id not found")
 	ErrRetailerIdNotSupplied              = errors.New("oopsy, retailer id mandatory")
+	ErrRetailerIdNotFound                 = errors.New("oopsy, retailer does not exist")
 	ErrAtleastOneOrderItemNeeded          = errors.New("oopsy, order items cannot be empty")
 	ErrItemMemberProductIdOrQuantityEmpty = errors.New("oopsy, either order item member productId or quantity missing")
 	ErrUnknown                            = errors.New("oopsy, unknown error")
@@ -78,50 +79,55 @@ func NewOrderService(db port.DB,
 	}
 }
 
-func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error) {
-	//validate
-	err := o.validate_retailerId(ctx, req.RetailerId)
-	if err != nil {
-		return 0, err
+func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest) error {
+	if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
+		return err
 	}
-	err = o.validate_items(ctx, req.Items)
+
+	if err := o.validate_items(ctx, req.Items); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error) {
+	err := o.validate_placement(ctx, req)
 	if err != nil {
 		return 0, err
 	}
 
-	//persist
-	items := []port.Item{}
+	items := make([]port.Item, 0, len(req.Items))
 	for _, i := range req.Items {
 		items = append(items, port.Item{
 			ProductId: i.ProductId,
 			Quantity:  i.Quantity,
 		})
 	}
-	id, err := o.DB.Create(ctx, &port.CreateRequest{
+
+	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
 		RetailerId: req.RetailerId,
 		Items:      items,
 	})
 	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
+		return 0, ErrUnknown
 	}
 
-	//set status to pending
-	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
-		Id:     id,
+	// set status to pending
+	if err := o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
+		Id:     order_id,
 		Status: PENDING_STATUS,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
+	}); err != nil {
+		o.Cancel(ctx, order_id)
+		return 0, ErrUnknown
 	}
 
-	//create invoice
-	lineItems := []invoice.Item{}
+	//TODO
+	/*
+		get name and price
+	*/
+
+	// create invoice
+	lineItems := make([]invoice.Item, 0, len(req.Items))
 	for _, i := range req.Items {
 		lineItems = append(lineItems, invoice.Item{
 			ProductId:       i.ProductId,
@@ -131,22 +137,38 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		})
 	}
 
-	//set status to DRAFT upon creation
-	_, err = o.InvoiceService.Create(ctx, &invoice.CreateRequest{
+	//TODO
+	/*
+		get subtotal and taxAmount
+	*/
+
+	if _, err = o.InvoiceService.Create(ctx, &invoice.CreateRequest{
 		Status:    invoice.DRAFT_STATUS,
-		OrderId:   id,
+		OrderId:   order_id,
 		SubTotal:  0,
 		LineItems: lineItems,
 		TaxAmount: 0,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
+	}); err != nil {
+		o.Cancel(ctx, order_id)
+		return 0, ErrUnknown
 	}
 
-	return id, nil
+	//TODO
+	/*
+		reserve stock
+		deplete stock
+	*/
+
+	//TODO
+	/*
+		send sms
+	*/
+
+	//TODO
+	/*
+		send email
+	*/
+	return order_id, nil
 }
 
 func (o *OrderService) Cancel(ctx context.Context, id int) error {
