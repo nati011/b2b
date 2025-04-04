@@ -14,7 +14,7 @@ func (o *OrderService) validate_retailerId(ctx context.Context, id int) error {
 	if err != nil {
 		switch err {
 		case product.ErrIdNotFound:
-			return ErrRetailerIdNotSupplied
+			return ErrRetailerIdNotFound
 		default:
 			return ErrUnknown
 		}
