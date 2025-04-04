@@ -3,18 +3,18 @@ package order
 import (
 	"context"
 
-	product "b2b.nati011.github.com/internal/core/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 func (o *OrderService) validate_retailerId(ctx context.Context, id int) error {
 	if id == 0 {
 		return ErrRetailerIdNotSupplied
 	}
-	_, err := o.ProductService.Get(ctx, id)
+	_, err := o.RetailerService.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case product.ErrIdNotFound:
-			return ErrRetailerIdNotSupplied
+		case retailer.ErrIdNotFound:
+			return ErrRetailerIdNotFound
 		default:
 			return ErrUnknown
 		}
