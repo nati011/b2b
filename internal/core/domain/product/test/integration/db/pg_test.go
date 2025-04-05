@@ -25,6 +25,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	db = db_test_container.Setup()
 	container = test_container.NewDBIntegrationTestContainer(
 		db,
 	)
@@ -32,7 +33,6 @@ func setup() {
 	categoryId, _ = container.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
 	})
-	db = db_test_container.Setup()
 }
 
 func teardown() {
