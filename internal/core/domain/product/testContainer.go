@@ -23,10 +23,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	return container
 }
 
-func (t *TestContainer) cleanup() {
-	t.CategoryService = category.NewCategory(
-		category_db.NewMock(),
-	)
+func (t *TestContainer) Teardown() {
 	t.ProductService = NewProduct(
 		db.NewMock(),
 		t.CategoryService,
