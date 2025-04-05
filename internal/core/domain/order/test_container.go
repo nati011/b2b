@@ -32,3 +32,12 @@ func NewPackageIntegrationTestContainer() TestContainer {
 
 	return container
 }
+
+func (t *TestContainer) Teardown() {
+	t.OrderService = NewOrderService(
+		order_db.NewMock(),
+		t.InvoiceService,
+		t.ProductService,
+		t.RetailerService,
+	)
+}
