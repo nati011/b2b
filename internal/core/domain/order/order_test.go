@@ -49,10 +49,19 @@ func setup() {
 			"test": "test",
 		},
 	})
+	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+		Id:     product_id,
+		Amount: 100,
+	})
+}
+
+func teardown() {
+	container.Teardown()
 }
 
 func Test_Place_Order_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -77,6 +86,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 	})
 
 	t.Run("pendingStatusByDefault", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -108,6 +118,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 
 func Test_Place_Order_unhappyPath(t *testing.T) {
 	t.Run("retailerIdMandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			Items: []Item{
@@ -124,6 +135,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("atleastOneItemMandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -137,6 +149,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("ItemParamsComplete", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -154,6 +167,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 }
 
 func Test_Cancel_Order_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
 		RetailerId: retailer_id,
@@ -185,6 +199,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 
 func Test_Cancel_Order_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//check
 		err := container.OrderService.Cancel(ctx, 99)
@@ -195,6 +210,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("alreadyCanceled", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -224,6 +240,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
 		RetailerId: retailer_id,
@@ -250,6 +267,7 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//check
 		_, err := container.OrderService.Get(ctx, 99)
@@ -261,6 +279,7 @@ func Test_Get_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_All_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
 		RetailerId: retailer_id,
@@ -287,6 +306,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 
 func Test_Get_All_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		_, err := container.OrderService.GetAll(ctx)
 		wantErr := ErrEmptyGetResponse
@@ -298,6 +318,7 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 
 func Test_Get_By_Param_happyPath(t *testing.T) {
 	t.Run("getByRetailerId", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -325,6 +346,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByStatus", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -352,6 +374,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 	})
 
 	t.Run("aggregate", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
@@ -382,6 +405,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 
 func Test_Get_By_Param_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		_, err := container.OrderService.GetByParam(ctx, &GetByParamRequest{
 			Status:     PENDING_STATUS,
