@@ -30,6 +30,7 @@ func setup() {
 }
 
 func teardown() {
+	testContainer.Teardown(db)
 	db_test_container.Teardown(db)
 }
 
