@@ -24,12 +24,13 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	db = db_test_container.Setup()
 	service = category.NewCategory(
 		db_adapter.NewPostgres(
 			db,
 		),
 	)
-	db = db_test_container.Setup()
+
 }
 
 func teardown() {
