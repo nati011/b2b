@@ -21,7 +21,12 @@ func setup() {
 	testContainer = product.NewPackageIntegrationTestContainer()
 }
 
+func teardown() {
+	testContainer.Teardown()
+}
+
 func Test_Add_Category_To_Product_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
@@ -70,6 +75,7 @@ func Test_Add_Category_To_Product_happyPath(t *testing.T) {
 
 func Test_Add_Category_To_Product_unhappyPath(t *testing.T) {
 	t.Run("category_not_found", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 
 		//create product with category
@@ -99,13 +105,14 @@ func Test_Add_Category_To_Product_unhappyPath(t *testing.T) {
 }
 
 func Test_Update_product_Category_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
 	})
 	if err != nil {
-		t.Errorf("Failed to create category")
+		t.Fatalf("Failed to create category %v", err)
 	}
 
 	//create product with category
@@ -184,6 +191,7 @@ func Test_Update_product_Category_happyPath(t *testing.T) {
 }
 
 func Test_Update_Product_Category_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
@@ -240,6 +248,7 @@ func Test_Update_Product_Category_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_Products_By_Category_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
@@ -320,6 +329,7 @@ func Test_Get_Products_By_Category_happyPath(t *testing.T) {
 }
 
 func Test_Get_Products_By_Category_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 
 	//create product with category
@@ -352,6 +362,7 @@ func Test_Get_Products_By_Category_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_Categories_of_product_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//create category
 	category_id, err := testContainer.CategoryService.Create(ctx, &category.CreateRequest{
