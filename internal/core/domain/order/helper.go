@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 
+	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
@@ -42,7 +43,7 @@ func (o *OrderService) validate_items(ctx context.Context, items []Item) error {
 		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case product.ErrIdNotFound:
 				return ErrItemMemberProductNotFound
 			default:
 				return ErrUnknown
