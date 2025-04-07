@@ -15,8 +15,13 @@ type TestContainer struct {
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
-	container.UserService = user.NewTestContainer().UserService
+	container.UserService = user.NewIntegrationTestContainer(db).UserService
 	container.RetailerService = retailer.NewRetailerService(container.UserService, db_adapter.NewPostgres(db))
 
 	return container
+}
+
+func (t *TestContainer) Teardown(db *sql.DB) {
+	t.UserService = user.NewIntegrationTestContainer(db).UserService
+	t.RetailerService = retailer.NewRetailerService(t.UserService, db_adapter.NewPostgres(db))
 }
