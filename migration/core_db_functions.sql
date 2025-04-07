@@ -198,7 +198,8 @@ $$;
 
 
 -- Roles ----------------------------------------
--- writers
+    
+    -- writers
 create or replace function public.create_role (
     r_name VARCHAR(255), 
     r_desc VARCHAR(255)) 
@@ -261,7 +262,7 @@ AS $$
     END;
 $$;
 
--- readers
+    -- readers
 create or replace function public.get_roles_by_id (
     role_id INT) 
 RETURNS table (
@@ -313,7 +314,8 @@ AS $$
 $$;
 
 -- role_resources ----------------------------------------
--- writers
+    
+    -- writers
 create or replace function public.add_resource_to_role (
   role_identifier INT,
   resource_identifier INT
@@ -601,7 +603,7 @@ BEGIN
 END;
 $$;
 
---writers
+    --writers
 create or replace function public.create_user (
   u_firstname VARCHAR(255),
   u_lastname VARCHAR(255),
@@ -640,7 +642,50 @@ AS $$
     END;
 $$;
 
-create or replace function public.delete_user (
+CREATE OR REPLACE FUNCTION public.create_and_activate_user (
+    u_firstname VARCHAR(255),
+    u_lastname VARCHAR(255),
+    u_email VARCHAR(255),
+    u_phone VARCHAR(255),
+    u_username VARCHAR(255),
+    u_dob DATE,
+    u_external_id VARCHAR(255)
+) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.users 
+    (
+        firstName, 
+        lastName,
+        email, 
+        phone_number, 
+        username, 
+        birth_date,
+        external_id,
+        is_active
+    )
+    VALUES 	
+    (
+        u_firstname, 
+        u_lastname,
+        u_email, 
+        u_phone, 
+        u_username, 
+        u_dob, 
+        u_external_id,
+        TRUE
+    )
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.delete_user (
     u_id INT) 
     RETURNS VOID LANGUAGE plpgsql 
 AS $$
@@ -648,8 +693,10 @@ AS $$
         UPDATE public.users
         SET is_deleted = TRUE
         WHERE id = u_id;
+
+        PERFORM public.remove_user_connection(u_id);
     END;
-    $$;
+$$;
 
 create or replace function public.update_user_FirstName (
     user_id INT, 
@@ -1017,7 +1064,8 @@ BEGIN
     RETURN QUERY
     SELECT user_id
     FROM public.distributor_users du
-    WHERE du.distributor_id = d_id;
+    WHERE du.distributor_id = d_id
+     AND du.is_deleted = FALSE;
 END;
 $$;
 
@@ -1224,6 +1272,25 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.remove_user_connection (
+    r_user_id INT
+) 
+RETURNS INT 
+LANGUAGE plpgsql 
+AS $$
+BEGIN   
+    UPDATE public.retailer_users
+    SET is_deleted = TRUE
+    WHERE user_id = r_user_id;
+
+    UPDATE public.distributor_users
+    SET is_deleted = TRUE
+    WHERE user_id = r_user_id;
+    
+    RETURN r_user_id;
+END;
+$$;
+
     -- reader
 CREATE OR REPLACE FUNCTION public.get_all_retailer_users (
     r_id INT
@@ -1237,7 +1304,8 @@ BEGIN
     RETURN QUERY
     SELECT user_id
     FROM public.retailer_users ru
-    WHERE ru.retailer_id = r_id;
+    WHERE ru.retailer_id = r_id
+    AND ru.is_deleted = FALSE;
 END;
 $$;
 

@@ -58,6 +58,35 @@ func Test_write(t *testing.T) {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
 	})
+
+	t.Run("remove", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := user.CreateRequest{
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "natnael",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			ExternalId: "123",
+		}
+		id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//remove
+		err = testContainer.UserService.Remove(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to remove user err: %v", err)
+		}
+		_, err = testContainer.UserService.Get(ctx, id)
+		if err != nil {
+			t.Errorf("Expected err: %v Got err: %v", nil, err)
+		}
+	})
 }
 
 func Test_read(t *testing.T) {

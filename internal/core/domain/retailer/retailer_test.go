@@ -2,12 +2,16 @@ package retailer
 
 import (
 	"context"
+	"database/sql"
 	"os"
 	"testing"
+
+	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 )
 
 var testContainer TestContainer
 var ctx context.Context
+var db *sql.DB
 
 func TestMain(m *testing.M) {
 	setup()
@@ -16,12 +20,17 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	db = db_test_container.Setup()
 	ctx = context.Background()
-	testContainer = NewPackageIntegrationTestContainer()
+	testContainer = NewDBIntegrationTestContainer(db)
+}
+
+func teardown() {
+	testContainer.Teardown()
 }
 
 func Test_Create_happyPath(t *testing.T) {
-	t.Cleanup(testContainer.Cleanup)
+	t.Cleanup(teardown)
 	in := CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
@@ -52,7 +61,7 @@ func Test_Create_happyPath(t *testing.T) {
 
 func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("validate_invalid_Tin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		// tin :has tobe 10 digits
 		in := CreateRequest{
 			Tin:         "111111111",
@@ -74,7 +83,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("validate_duplicate_Tin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		//setup
 		_, err := testContainer.RetailerService.Create(ctx, &CreateRequest{
 			Tin:         "1234567891",
@@ -114,7 +123,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 
 func Test_Update_happyPath(t *testing.T) {
 	t.Run("updateName", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		//setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -152,7 +161,7 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("updateTin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -193,7 +202,7 @@ func Test_Update_happyPath(t *testing.T) {
 
 func Test_Update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		update_in := UpdateRequest{
 			Id:   99,
 			Name: "test",
@@ -207,7 +216,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("duplicate_Tin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		//setup
 		id, err := testContainer.RetailerService.Create(ctx, &CreateRequest{
 			Tin:         "1234567891",
@@ -239,7 +248,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 
 func Test_Get_happyPath(t *testing.T) {
 	t.Run("getById", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		//setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -267,7 +276,7 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByName", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -301,7 +310,7 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByTin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -334,7 +343,7 @@ func Test_Get_happyPath(t *testing.T) {
 		}
 	})
 	t.Run("getAll", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -368,7 +377,7 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		_, err := testContainer.RetailerService.GetByParam(ctx, &GetByParamRequest{
 			Tin: "test",
 		})
@@ -382,7 +391,7 @@ func Test_Get_unhappyPath(t *testing.T) {
 func Test_Get_All_Users_happyPath(t *testing.T) {
 	t.Run("getAllUsers", func(t *testing.T) {
 		//setup
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(teardown)
 		in := CreateRequest{
 			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
@@ -404,9 +413,41 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get user agents %v", err)
 		}
-
 	})
 }
 
 func Test_Get_All_Users_unhappyPath(t *testing.T) {
+	//setup
+	t.Cleanup(teardown)
+	in := CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+
+		FirstName: "test",
+		LastName:  "test",
+		Email:     "test@gmail.com",
+	}
+	id, err := testContainer.RetailerService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	retailer_users, err := testContainer.RetailerService.GetAllUsers(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get user agents %v", err)
+	}
+	//remove retailer
+	err = testContainer.UserService.Remove(ctx, retailer_users.List[0])
+	if err != nil {
+		t.Fatalf("Failed to remove user agent with id: %v  err: %v", retailer_users.List[0], err)
+	}
+
+	_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
+	wantErr := ErrRetailerHasNoUsers
+	if err != wantErr {
+		t.Errorf("Expected err: %v got: %v", wantErr, err)
+	}
 }
