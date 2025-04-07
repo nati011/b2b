@@ -83,8 +83,9 @@ func Test_write(t *testing.T) {
 			t.Fatalf("Failed to remove user err: %v", err)
 		}
 		_, err = testContainer.UserService.Get(ctx, id)
-		if err != nil {
-			t.Errorf("Expected err: %v Got err: %v", nil, err)
+		wantErr := user.ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v got: %v", wantErr, err)
 		}
 	})
 }
