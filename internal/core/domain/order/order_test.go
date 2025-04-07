@@ -417,3 +417,40 @@ func Test_Get_By_Param_unhappyPath(t *testing.T) {
 		}
 	})
 }
+
+func Test_Update_Status(t *testing.T) {
+	t.Run("update_status", func(t *testing.T) {
+		ctx := context.Background()
+		in := &PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  19},
+			},
+		}
+		id, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		//update
+		_, err = container.OrderService.UpdateStatus(ctx, &UpdateRequest{
+			Id:     id,
+			Status: "New",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := container.OrderService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantStatus := "New"
+		if resp.Status != wantStatus {
+			t.Errorf("Expected status: %v got: %v", wantStatus, resp.Status)
+		}
+	})
+}

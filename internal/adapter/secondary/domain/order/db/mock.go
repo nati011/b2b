@@ -14,7 +14,7 @@ type MockOrder struct {
 	Id         int
 	RetailerId int
 	Items      []Item
-	Total      float32
+	Total      float64
 	Status     string
 }
 
