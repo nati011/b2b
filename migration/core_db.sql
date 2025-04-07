@@ -295,21 +295,11 @@ CREATE TABLE IF NOT EXISTS public."cp_images"
 
 COMMENT ON TABLE public."p_attributes" IS 'stores images of products';
 
-
-CREATE TABLE IF NOT EXISTS public."o_statuses"
-(
-  id SERIAL PRIMARY KEY,
-  value VARCHAR(255),
-  description TEXT
-) INHERITS(public."base");
-
-COMMENT ON TABLE public."o_statuses" IS 'order states';
-
 CREATE TABLE IF NOT EXISTS public."orders"
 (
   id SERIAL PRIMARY KEY,
   retailer_id INT,
-  status_id INT,
+  status VARCHAR(255),
   total MONEY,
 	FOREIGN KEY (retailer_id) REFERENCES public."users"(id) ON DELETE CASCADE,
 	FOREIGN KEY (status_id) REFERENCES public."o_statuses"(id) ON DELETE CASCADE
@@ -321,6 +311,8 @@ CREATE TABLE IF NOT EXISTS public."o_items"
 (
   order_id INT,
   product_id INT,
+  quantity INT,
+  price DECIMAL(12, 2),
   FOREIGN KEY (order_id) REFERENCES public."orders" (id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
