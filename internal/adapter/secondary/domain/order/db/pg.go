@@ -158,6 +158,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	err := p.Pool.QueryRowContext(ctx, query,
 		req.RetailerId,
 		req.Status,
+		req.Total,
 	).Scan(&orderId)
 	if err != nil {
 		switch err {
@@ -169,12 +170,12 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	//orderItem
 	for _, i := range req.Items {
 		query = "SELECT * FROM public.create_order_item($1, $2, $3, $4);"
-		err := p.Pool.QueryRowContext(ctx, query,
+		_, err := p.Pool.QueryContext(ctx, query,
 			orderId,
 			i.ProductId,
 			i.Quantity,
 			i.Price,
-		).Scan()
+		)
 		if err != nil {
 			switch err {
 			default:
