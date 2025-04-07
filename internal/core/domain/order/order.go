@@ -6,6 +6,7 @@ import (
 
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -63,19 +64,23 @@ type Provider interface {
 }
 
 type OrderService struct {
-	DB             port.DB
-	InvoiceService invoice.Provider
-	ProductService product.Provider
+	DB              port.DB
+	InvoiceService  invoice.Provider
+	ProductService  product.Provider
+	RetailerService retailer.Provider
 }
 
-func NewOrderService(db port.DB,
+func NewOrderService(
+	db port.DB,
 	is invoice.Provider,
-	ps product.Provider) Provider {
+	ps product.Provider,
+	rs retailer.Provider) Provider {
 
 	return &OrderService{
-		DB:             db,
-		InvoiceService: is,
-		ProductService: ps,
+		DB:              db,
+		InvoiceService:  is,
+		ProductService:  ps,
+		RetailerService: rs,
 	}
 }
 
@@ -120,11 +125,8 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		o.Cancel(ctx, order_id)
 		return 0, ErrUnknown
 	}
-
-	//TODO
-	/*
-		get name and price
-	*/
+  // TODO
+	// get name and price
 
 	// create invoice
 	lineItems := make([]invoice.Item, 0, len(req.Items))
@@ -159,7 +161,10 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		deplete stock
 	*/
 
-	//TODO
+	// o.InvoiceService.Cancel(ctxm order_id)
+	// o.Cancel(ctx, order_id)
+	
+  //TODO
 	/*
 		send sms
 	*/

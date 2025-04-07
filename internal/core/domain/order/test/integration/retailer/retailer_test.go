@@ -32,7 +32,7 @@ func Test_validate_retailer_upon_registration(t *testing.T) {
 		},
 	}
 	_, err := testContainer.OrderService.Place(ctx, in)
-	wantErr := order.ErrRetailerIdNotSupplied
+	wantErr := order.ErrRetailerIdNotFound
 	if err != wantErr {
 		t.Errorf("Expected err : %v Got: %v", wantErr, err)
 	}
