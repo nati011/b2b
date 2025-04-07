@@ -189,7 +189,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 func (p *Postgres) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderStatusRequest) error {
 	query := "SELECT * FROM public.update_order_status($1, $2);"
-	_, err := p.Pool.QueryContext(ctx, query, req.Id, req.Status)
+	_, err := p.Pool.ExecContext(ctx, query, req.Id, req.Status)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
