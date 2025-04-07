@@ -43,14 +43,12 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 }
 
 func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
-	resp := port.GetResponse{}
 	for _, i := range m.Categories {
-		resp = port.GetResponse(i)
+		if i.Id == id {
+			return port.GetResponse(i), nil
+		}
 	}
-	if resp.Id != id {
-		return resp, port.ErrSysNoRows
-	}
-	return resp, nil
+	return port.GetResponse{}, port.ErrSysNoRows
 }
 
 func (m *Mock) Remove(ctx context.Context, id int) error {
