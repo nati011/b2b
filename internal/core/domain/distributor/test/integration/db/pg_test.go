@@ -26,7 +26,6 @@ func setup() {
 	testContainer = test_container.NewDBIntegrationTestContainer(
 		db,
 	)
-
 }
 
 func teardown() {

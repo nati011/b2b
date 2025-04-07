@@ -13,17 +13,20 @@ var (
 type Item struct {
 	ProductId int
 	Quantity  int
+	Price     float64
 }
 type CreateRequest struct {
 	RetailerId int
 	Items      []Item
+	Status     string
+	Total      float64
 }
 
 type GetResponse struct {
 	Id         int
 	RetailerId int
 	Items      []Item
-	Total      float32
+	Total      float64
 	Status     string
 }
 
