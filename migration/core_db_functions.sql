@@ -2496,16 +2496,20 @@ CREATE OR REPLACE FUNCTION public.create_order(
   o_status VARCHAR(255),
   o_total DECIMAL(12,2)
 )
-RETURNS VOID
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    new_id INT;
 BEGIN
     INSERT INTO public.orders (retailer_id, 
                                status, 
                                total)
     VALUES (o_retailer_id, 
             o_status, 
-            o_total);
+            o_total)
+    RETURNING id INTO new_id;
+    RETURN new_id;
 END;
 $$;
 
@@ -2532,7 +2536,7 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_id(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total )
+              total DECIMAL(2,12))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2554,7 +2558,7 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total )
+              total DECIMAL(2,12))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2575,7 +2579,7 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_status(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total )
+              total DECIMAL(2,12))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2590,13 +2594,11 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_orders(
-    o_status VARCHAR(255)
-)
+CREATE OR REPLACE FUNCTION public.get_all_orders()
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total )
+              ttotal DECIMAL(2,12))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2622,12 +2624,14 @@ CREATE OR REPLACE FUNCTION public.create_order_item(
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    new_id INT;
 BEGIN
     INSERT INTO 
     public.o_items (order_id, 
                     product_id, 
-                    o_quantity,
-                    o_price)
+                    quantity,
+                    price)
     VALUES (o_order_id, 
             o_product_id, 
             o_quantity,
@@ -2636,3 +2640,23 @@ END;
 $$;
 
     -- reader
+CREATE OR REPLACE FUNCTION public.get_order_items_by_order_id(
+    oi_order_id INT
+)
+RETURNS TABLE(o_order_id INT,
+              o_product_id INT,
+              o_quantity INT,
+              o_price DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT oi.order_id, 
+           oi.product_id, 
+           oi.quantity, 
+           oi.price
+    FROM public.o_items oi
+    WHERE oi.order_id = oi_order_id
+      AND oi.is_deleted = FALSE;
+END;
+$$;
