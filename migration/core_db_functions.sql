@@ -21,7 +21,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.update_resource_name(
     resource_id INT,
-    new_name TEXT
+    new_name VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -38,7 +38,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.update_resource_action(
     resource_id INT,
-    new_action TEXT
+    new_action VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -121,7 +121,7 @@ AS $$
 
 create or replace function public.update_resource_action (
     resource_id INT, 
-    new_action TEXT) 
+    new_action VARCHAR(255)) 
 RETURNS INT 
 LANGUAGE plpgsql 
 AS $$
@@ -219,7 +219,7 @@ $$;
 
 create or replace function public.update_role_name (
     role_id INT, 
-    new_name TEXT) 
+    new_name VARCHAR(255)) 
 RETURNS INT 
 LANGUAGE plpgsql 
 AS $$
@@ -236,7 +236,7 @@ $$;
 
 create or replace function public.update_role_desc (
     role_id INT, 
-    new_desc TEXT) 
+    new_desc VARCHAR(255)) 
 RETURNS INT 
 LANGUAGE plpgsql 
 AS $$
@@ -1637,7 +1637,7 @@ CREATE OR REPLACE FUNCTION public.get_products_by_id(
 )
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
-              product_description TEXT, 
+              product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
               distributor_id INT)
@@ -1663,7 +1663,7 @@ CREATE OR REPLACE FUNCTION public.get_products_by_name(
 )
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
-              product_description TEXT, 
+              product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
               distributor_id INT)
@@ -1689,7 +1689,7 @@ CREATE OR REPLACE FUNCTION public.get_products_by_externalId(
 )
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
-              product_description TEXT, 
+              product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
               distributor_id INT)
@@ -1715,7 +1715,7 @@ CREATE OR REPLACE FUNCTION public.get_products_by_distributorId(
 )
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
-              product_description TEXT, 
+              product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
               distributor_id INT)
@@ -1739,7 +1739,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_all_products()
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
-              product_description TEXT, 
+              product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
               distributor_id INT)
@@ -2485,5 +2485,178 @@ BEGIN
     ON av.attribute_id = p.id
     WHERE av.attribute_id = p_attribute_id
       AND p.is_deleted = FALSE;
+END;
+$$;
+
+--- Order ---------------------------------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_order(
+  o_retailer_id INT,
+  o_status VARCHAR(255),
+  o_total DECIMAL(12,2)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.orders (retailer_id, 
+                               status, 
+                               total)
+    VALUES (o_retailer_id, 
+            o_status, 
+            o_total)
+    RETURNING id INTO new_id;
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_order_status(
+    order_id INT,
+    new_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.orders
+    SET status = new_status
+    WHERE id = order_id
+      AND is_deleted = FALSE;
+
+    RETURN order_id;
+END;
+$$;
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_orders_by_id(
+    o_order_id INT
+)
+RETURNS TABLE(id INT, 
+              retailer_id INT,
+              status VARCHAR(255),
+              total DECIMAL(2,12))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT o.id, 
+           o.retailer_id, 
+           o.status, 
+           o.total
+    FROM public.orders o
+    WHERE o.id = o_order_id
+      AND o.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
+    o_retailer_id INT
+)
+RETURNS TABLE(id INT, 
+              retailer_id INT,
+              status VARCHAR(255),
+              total DECIMAL(2,12))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT o.id, 
+           o.retailer_id, 
+           o.status, 
+           o.total
+    FROM public.orders o
+    WHERE o.retailer_id = o_retailer_id
+      AND o.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_orders_by_status(
+    o_status VARCHAR(255)
+)
+RETURNS TABLE(id INT, 
+              retailer_id INT,
+              status VARCHAR(255),
+              total DECIMAL(2,12))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT o.id, 
+           o.retailer_id, 
+           o.status, 
+           o.total
+    FROM public.orders o
+    WHERE o.status = o_status
+      AND o.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_orders()
+RETURNS TABLE(id INT, 
+              retailer_id INT,
+              status VARCHAR(255),
+              ttotal DECIMAL(2,12))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT o.id, 
+           o.retailer_id, 
+           o.status, 
+           o.total
+    FROM public.orders o
+    WHERE o.is_deleted = FALSE;
+END;
+$$;
+
+-- Order Item ------------------------------------------
+    
+    -- writer
+CREATE OR REPLACE FUNCTION public.create_order_item(
+  o_order_id INT,
+  o_product_id INT,
+  o_quantity INT,
+  o_price DECIMAL(12,2)
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO 
+    public.o_items (order_id, 
+                    product_id, 
+                    quantity,
+                    price)
+    VALUES (o_order_id, 
+            o_product_id, 
+            o_quantity,
+            o_price);
+END;
+$$;
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_order_items_by_order_id(
+    oi_order_id INT
+)
+RETURNS TABLE(o_order_id INT,
+              o_product_id INT,
+              o_quantity INT,
+              o_price DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT oi.order_id, 
+           oi.product_id, 
+           oi.quantity, 
+           oi.price
+    FROM public.o_items oi
+    WHERE oi.order_id = oi_order_id
+      AND oi.is_deleted = FALSE;
 END;
 $$;
