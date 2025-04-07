@@ -102,10 +102,20 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	}
 
 	items := make([]port.Item, 0, len(req.Items))
+
 	for _, i := range req.Items {
+		//fetch price from product
+		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
 		items = append(items, port.Item{
 			ProductId: i.ProductId,
 			Quantity:  i.Quantity,
+			Price:     prod_resp.Price,
 		})
 	}
 
@@ -125,7 +135,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		o.Cancel(ctx, order_id)
 		return 0, ErrUnknown
 	}
-  // TODO
+	// TODO
 	// get name and price
 
 	// create invoice
@@ -163,8 +173,8 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 
 	// o.InvoiceService.Cancel(ctxm order_id)
 	// o.Cancel(ctx, order_id)
-	
-  //TODO
+
+	//TODO
 	/*
 		send sms
 	*/
