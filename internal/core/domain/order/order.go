@@ -125,7 +125,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 			Quantity:  i.Quantity,
 			Price:     prod_resp.Price,
 		})
-		itemsTotal += prod_resp.Price
+		itemsTotal += prod_resp.Price * float64(i.Quantity)
 	}
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
