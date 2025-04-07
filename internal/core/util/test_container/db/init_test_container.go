@@ -44,7 +44,7 @@ func Setup() *sql.DB {
 	}
 
 	// ddl
-	script, err := migration.Core_db_functions()
+	script, err := migration.Core_db_schema()
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +54,7 @@ func Setup() *sql.DB {
 	}
 
 	// functions
-	script, err = migration.Core_db_schema()
+	script, err = migration.Core_db_functions()
 	if err != nil {
 		panic(err)
 	}
