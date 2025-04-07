@@ -28,6 +28,7 @@ type CreateRetailerRequest struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
+	Username  string `json:"username"`
 }
 
 type GetRetailerResponse struct {

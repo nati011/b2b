@@ -2,9 +2,8 @@ package user
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
-	"math/big"
+	"log"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/auth"
@@ -20,6 +19,7 @@ var (
 	ErrActiveStatusNotFound  = errors.New("oopsy, active_status not found")
 	ErrFirstNameMandatory    = errors.New("oopsy, FirstName not supplied")
 	ErrLastNameMandatory     = errors.New("oopsy, LastName not supplied")
+	ErrUsernameMandatory     = errors.New("oopsy, Username not supplied")
 	ErrPhoneOrEmailMandatory = errors.New("oopsy, phone or email mandatory")
 	ErrEmptyGetContent       = errors.New("oopsy, content is empty")
 	ErrUserAlreadyActive     = errors.New("oopsy, user already active")
@@ -154,6 +154,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	}
 
 	generated_password, err := generateRandomPassword(10)
+	log.Printf(generated_password)
 	if err != nil {
 		return 0, ErrUnknown
 	}
@@ -174,6 +175,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			return 0, ErrLastNameMandatory
 		case auth.ErrEmailNotSupplied:
 			return 0, ErrEmailNotFound
+		case auth.ErrUsernameNotSupplied:
+			return 0, ErrUsernameMandatory
 		case auth.ErrInvalidEmail:
 			return 0, ErrEmailNotValid
 		case auth.ErrPasswordNotSupplied:
@@ -188,21 +191,6 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	}
 
 	return user_id, nil
-}
-
-func generateRandomPassword(length int) (string, error) {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
-	password := make([]byte, length)
-
-	for i := 0; i < length; i++ {
-		randIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return "", err
-		}
-		password[i] = charset[randIndex.Int64()]
-	}
-
-	return string(password), nil
 }
 
 func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {

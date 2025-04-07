@@ -41,7 +41,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	loginResponse, err := h.service.ClientLogin(r.Context(), req)
 
 	if err != nil {
-		util.UnauthorizedResponse(w)
+		util.UnauthorizedErrorResponse(w, r, err)
 		return
 	}
 
