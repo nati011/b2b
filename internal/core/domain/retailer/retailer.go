@@ -28,6 +28,7 @@ type CreateRequest struct {
 	LastName  string
 	Email     string
 	Phone     string
+	Username  string
 }
 
 type GetResponse struct {
@@ -93,6 +94,7 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
+		Username:  req.Username,
 		Phone:     req.Phone,
 	})
 	if err != nil {

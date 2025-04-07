@@ -28,7 +28,7 @@ type CreateRequest struct {
 	LastName  string
 	Email     string
 	Phone     string
-	UserId    int
+	Username  string
 }
 
 type GetResponse struct {
@@ -65,6 +65,7 @@ type CreateUserRequest struct {
 	Distributor_Id int
 	FirstName      string
 	LastName       string
+	Username       string
 	Email          string
 	Phone          string
 }
@@ -101,6 +102,7 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 	user_id, err := d.UserService.Create(ctx, &user.CreateRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
+		Username:  req.Username,
 		Email:     req.Email,
 		Phone:     req.Phone,
 	})
@@ -109,6 +111,7 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 		case user.ErrEmailNotValid,
 			user.ErrPhoneNotValid,
 			user.ErrPhoneOrEmailMandatory,
+			user.ErrUsernameMandatory,
 			user.ErrFirstNameMandatory:
 
 			return 0, err
@@ -142,21 +145,18 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		LastName:  req.LastName,
 		Email:     req.Email,
 		Phone:     req.Phone,
+		Username:  req.Username,
 	})
 	if err != nil {
 		switch err {
-		case user.ErrEmailNotValid,
-			user.ErrPhoneNotValid,
-			user.ErrPhoneOrEmailMandatory,
-			user.ErrFirstNameMandatory:
-
-			return 0, err
-		default:
+		case user.ErrUnknown:
 			return 0, ErrUnknown
+		default:
+			return 0, err
 		}
 	}
 
-	// create retailer
+	// create distributor
 	id, err := d.DB.Create(ctx, port.CreateRequest{
 		Name:        req.FirstName + req.LastName,
 		Tin:         req.Tin,

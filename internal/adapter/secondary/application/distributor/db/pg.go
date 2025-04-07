@@ -203,6 +203,7 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		&response.Woreda)
 
 	if err != nil {
+		print(err)
 		switch err {
 		case sql.ErrNoRows:
 			return port.GetResponse{}, port.ErrSysNoRows

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"b2b.nati011.github.com/config"
 	keycloak "github.com/stillya/testcontainers-keycloak"
@@ -35,14 +36,14 @@ func InitAuth(cfg *config.Config) {
 			Use External service, verify if connection can be established and operations can be performed
 	*/
 
-	switch cfg.Env {
-	case "development":
-		InitAuthDevelopment(cfg)
-	case "staging":
-		InitAuthStaging(cfg)
-	case "production":
-		InitAuthProduction(cfg)
-	}
+	// switch cfg.Env {
+	// case "development":
+	// 	InitAuthDevelopment(cfg)
+	// case "staging":
+	// 	InitAuthStaging(cfg)
+	// case "production":
+	// 	InitAuthProduction(cfg)
+	// }
 }
 
 func InitAuthDevelopment(cfg *config.Config) {
@@ -63,7 +64,11 @@ func InitAuthDevelopment(cfg *config.Config) {
 	if err != nil {
 		panic(err)
 	}
-
+	log.Printf(keycloakInstanceUrl)
+	log.Printf(keycloakAdminClient.Username)
+	log.Printf(keycloakAdminClient.Password)
+	log.Printf(keycloakAdminClient.ClientID)
+	log.Printf(keycloakAdminClient.Realm)
 	cfg.KeycloakUsername = keycloakAdminClient.Username
 	cfg.KeycloakPassword = keycloakAdminClient.Password
 	cfg.KeycloakRealm = keycloakAdminClient.Realm
