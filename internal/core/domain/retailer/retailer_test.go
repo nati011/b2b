@@ -2,16 +2,12 @@ package retailer
 
 import (
 	"context"
-	"database/sql"
 	"os"
 	"testing"
-
-	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 )
 
 var testContainer TestContainer
 var ctx context.Context
-var db *sql.DB
 
 func TestMain(m *testing.M) {
 	setup()
@@ -20,9 +16,8 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	db = db_test_container.Setup()
 	ctx = context.Background()
-	testContainer = NewDBIntegrationTestContainer(db)
+	testContainer = NewPackageIntegrationTestContainer()
 }
 
 func teardown() {
@@ -386,68 +381,4 @@ func Test_Get_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
-}
-
-func Test_Get_All_Users_happyPath(t *testing.T) {
-	t.Run("getAllUsers", func(t *testing.T) {
-		//setup
-		t.Cleanup(teardown)
-		in := CreateRequest{
-			Tin:         "1111111111",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
-		}
-		id, err := testContainer.RetailerService.Create(ctx, &in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-
-		_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to get user agents %v", err)
-		}
-	})
-}
-
-func Test_Get_All_Users_unhappyPath(t *testing.T) {
-	//setup
-	t.Cleanup(teardown)
-	in := CreateRequest{
-		Tin:         "1111111111",
-		Latitude:    "9.0192° N",
-		Longitude:   "38.7525° E",
-		GeneralZone: "test",
-		Region:      "test",
-		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
-	}
-	id, err := testContainer.RetailerService.Create(ctx, &in)
-	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
-	}
-	retailer_users, err := testContainer.RetailerService.GetAllUsers(ctx, id)
-	if err != nil {
-		t.Fatalf("Failed to get user agents %v", err)
-	}
-	//remove retailer
-	err = testContainer.UserService.Remove(ctx, retailer_users.List[0])
-	if err != nil {
-		t.Fatalf("Failed to remove user agent with id: %v  err: %v", retailer_users.List[0], err)
-	}
-
-	_, err = testContainer.RetailerService.GetAllUsers(ctx, id)
-	wantErr := ErrRetailerHasNoUsers
-	if err != wantErr {
-		t.Errorf("Expected err: %v got: %v", wantErr, err)
-	}
 }

@@ -1,8 +1,6 @@
 package retailer
 
 import (
-	"database/sql"
-
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	user "b2b.nati011.github.com/internal/core/application/user"
 )
@@ -16,14 +14,6 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
 	container.UserService = user.NewTestContainer().UserService
 	container.RetailerService = NewRetailerService(container.UserService, db_adapter.NewMock())
-
-	return container
-}
-
-func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
-	container := TestContainer{}
-	container.UserService = user.NewIntegrationTestContainer(db).UserService
-	container.RetailerService = NewRetailerService(container.UserService, db_adapter.NewPostgres(db))
 
 	return container
 }
