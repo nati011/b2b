@@ -10,6 +10,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/product"
 	product_test "b2b.nati011.github.com/internal/core/domain/product/test"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
+	retailer_test "b2b.nati011.github.com/internal/core/domain/retailer/test"
 )
 
 type TestContainer struct {
@@ -24,7 +25,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db),
 	)
-	container.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
+	container.RetailerService = retailer_test.NewDBIntegrationTestContainer(db).RetailerService
 
 	container.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
 	container.OrderService = order.NewOrderService(
