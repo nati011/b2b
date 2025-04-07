@@ -125,8 +125,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		o.Cancel(ctx, order_id)
 		return 0, ErrUnknown
 	}
-
-	// TODO
+  // TODO
 	// get name and price
 
 	// create invoice
@@ -164,8 +163,8 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 
 	// o.InvoiceService.Cancel(ctxm order_id)
 	// o.Cancel(ctx, order_id)
-
-	//TODO
+	
+  //TODO
 	/*
 		send sms
 	*/

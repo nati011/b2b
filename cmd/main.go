@@ -46,7 +46,18 @@ func main() {
 	// InitEmail(cfg.Email, cfg.SMTP)
 	// InitSMS(cfg.Email, cfg.SMTP)
 
-	application_constainer := application_core.NewContainer(db_pool, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.Email, cfg.SMTP, cfg.KeycloakClientSecret)
+	application_constainer := application_core.NewContainer(
+		db_pool,
+		cfg.KeycloakInstanceURL,
+		cfg.KeycloakUsername,
+		cfg.KeycloakPassword,
+		cfg.KeycloakRealm,
+		cfg.KeycloakApplicationRealm,
+		cfg.KeycloakClientId,
+		cfg.Email,
+		cfg.SMTP,
+		cfg.KeycloakClientSecret)
+
 	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
 
 	mux := http.NewServeMux()
@@ -61,7 +72,7 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	log.Printf("starting %s server on %s", cfg.Env, srv.Addr)
+	log.Printf("Ahoy! running %s on %s ...", cfg.Env, srv.Addr)
 
 	err := srv.ListenAndServe()
 	if err != nil {
