@@ -76,6 +76,18 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
+		decodedToken, mapClaims, err := am.client.DecodeAccessToken(
+			r.Context(),
+			token,
+			am.Realm,
+		)
+		print(decodedToken)
+		print(mapClaims)
+		if err != nil {
+			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), "auth_info", result)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

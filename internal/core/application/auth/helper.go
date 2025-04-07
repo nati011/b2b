@@ -30,6 +30,13 @@ func validateEmail(email string) error {
 	return nil
 }
 
+func validateUsername(username string) error {
+	if username == "" {
+		return ErrUsernameNotSupplied
+	}
+	return nil
+}
+
 func validatePasswords(password string) error {
 	if password == "" {
 		return ErrPasswordNotSupplied

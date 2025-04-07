@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 	"regexp"
 	"time"
 )
@@ -135,4 +137,19 @@ func update_validateUserInfo(
 		return err
 	}
 	return nil
+}
+
+func generateRandomPassword(length int) (string, error) {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
+	password := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		randIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		password[i] = charset[randIndex.Int64()]
+	}
+
+	return string(password), nil
 }

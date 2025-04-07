@@ -282,6 +282,7 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 		req.ExternalId,
 	).Scan(&resourceId)
 	if err != nil {
+		panic(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return 0, port.ErrSysNoRows
