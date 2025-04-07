@@ -19,6 +19,7 @@ var db *sql.DB
 var categoryId int
 
 func TestMain(m *testing.M) {
+
 	setup()
 	code := m.Run()
 	os.Exit(code)
