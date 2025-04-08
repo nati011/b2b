@@ -2670,7 +2670,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.record_transaction(
     t_user_id INT,
     t_partner_id INT,
-    t_amount DECIMAL(2,12)
+    t_amount DECIMAL(12,2)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -2679,12 +2679,15 @@ DECLARE
     new_id INT;
 BEGIN
     INSERT INTO 
-    public.transactions (t_user_id, 
-                         t_partner_id, 
-                         t_amount)
-    VALUES (user_id, 
-            partner_id, 
-            amount);
+    public.transactions (user_id, 
+                         partner_id, 
+                         amount)
+    VALUES (t_user_id, 
+            t_partner_id, 
+            t_amount)
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
 END;
 $$;    
 
@@ -2730,7 +2733,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_all_transactions()
 RETURNS TABLE(id INT,
               user_id INT,
-              amount DECIMAL(2,12),
+              amount DECIMAL(12,2),
               partner_id INT,
               date TIMESTAMP)
 LANGUAGE plpgsql
@@ -2748,7 +2751,7 @@ CREATE OR REPLACE FUNCTION public.get_transactions_by_partner_id(
 )
 RETURNS TABLE(id INT,
               user_id INT,
-              amount DECIMAL(2,12),
+              amount DECIMAL(12,2),
               partner_id INT,
               date TIMESTAMP)
 LANGUAGE plpgsql
@@ -2767,7 +2770,7 @@ CREATE OR REPLACE FUNCTION public.get_transactions_by_date(
 )
 RETURNS TABLE(id INT,
               user_id INT,
-              amount DECIMAL(2,12),
+              amount DECIMAL(12,2),
               partner_id INT,
               date TIMESTAMP)
 LANGUAGE plpgsql
