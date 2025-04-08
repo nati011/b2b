@@ -33,6 +33,7 @@ type RegisterUserRequest struct {
 }
 
 type RegisterUserResponse struct {
+	Id       string `json:"id"`
 	Username string `json:"username"`
 }
 
@@ -65,6 +66,7 @@ type Provider interface {
 	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
+	DeleteClient(ctx context.Context, userId string) error
 }
 
 type AuthService struct {
@@ -106,8 +108,19 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 		}
 	}
 	return RegisterUserResponse{
+		Id:       resp.Id,
 		Username: resp.Username,
 	}, nil
+}
+
+func (a *AuthService) DeleteClient(ctx context.Context, userId string) error {
+	err := a.authProvider.DeleteClient(ctx, userId)
+
+	if err != nil {
+		return ErrUnknown
+	}
+	return nil
+
 }
 
 func (a *AuthService) ClientLogin(ctx context.Context, rq LoginUserRequest) (LoginAuthResponse, error) {

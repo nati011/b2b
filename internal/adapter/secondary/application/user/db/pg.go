@@ -282,7 +282,6 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 		req.ExternalId,
 	).Scan(&resourceId)
 	if err != nil {
-		panic(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return 0, port.ErrSysNoRows
@@ -292,6 +291,29 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 	}
 
 	return resourceId, nil
+}
+
+func (p *Postgres) CreateUserProvider(ctx context.Context, req *port.CreateUserProviderRequest) error {
+	var resourceId any
+	query := "SELECT * FROM public.create_user_provider($1, $2);"
+
+	err := p.db.QueryRowContext(ctx, query,
+		req.UserId,
+		req.ProviderId,
+	).Scan(&resourceId)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
+	}
+
+	log.Print(resourceId)
+
+	return nil
 }
 
 func (p *Postgres) Delete(ctx context.Context, id int) error {

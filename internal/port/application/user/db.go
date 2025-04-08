@@ -22,6 +22,11 @@ type CreateRequest struct {
 	ExternalId string
 }
 
+type CreateUserProviderRequest struct {
+	UserId     int
+	ProviderId string
+}
+
 type GetResponse struct {
 	Id         int
 	FirstName  string
@@ -97,6 +102,7 @@ type Reader interface {
 
 type Writer interface {
 	Create(context.Context, *CreateRequest) (int, error)
+	CreateUserProvider(context.Context, *CreateUserProviderRequest) error
 	CreateAndActivate(context.Context, *CreateRequest) (int, error)
 	UpdateFirstName(context.Context, *UpdateFirstNameRequest) (int, error)
 	UpdateEmail(context.Context, *UpdateEmailRequest) (int, error)

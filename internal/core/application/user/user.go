@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/auth"
@@ -136,30 +135,12 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		return 0, err
 	}
 
-	//create user
-	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-		Email:      req.Email,
-		Phone:      req.Phone,
-		Username:   req.Username,
-		DOB:        req.DOB,
-		ExternalId: req.ExternalId,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
 	generated_password, err := generateRandomPassword(10)
-	log.Printf(generated_password)
 	if err != nil {
 		return 0, ErrUnknown
 	}
 
-	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
+	providerResponse, err := u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
 		Email:       req.Email,
 		Password:    generated_password,
 		FirstName:   req.FirstName,
@@ -185,6 +166,35 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			return 0, ErrUserNameTaken
 		case auth.ErrEmailTaken:
 			return 0, ErrEmailTaken
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//create user
+	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
+		FirstName:  req.FirstName,
+		LastName:   req.LastName,
+		Email:      req.Email,
+		Phone:      req.Phone,
+		Username:   req.Username,
+		DOB:        req.DOB,
+		ExternalId: req.ExternalId,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
+		UserId:     user_id,
+		ProviderId: providerResponse.Id,
+	})
+
+	if err != nil {
+		switch err {
 		default:
 			return 0, ErrUnknown
 		}
