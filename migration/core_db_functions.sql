@@ -640,6 +640,29 @@ AS $$
     END;
 $$;
 
+
+create or replace function public.create_user_provider(
+u_id INT,
+p_id VARCHAR(255)
+) RETURNS INT LANGUAGE plpgsql 
+AS $$
+    DECLARE
+        new_id INT;
+    BEGIN
+        INSERT INTO public.user_providers
+        (
+        user_id, 
+        provider_id)
+        
+        VALUES 	
+        (
+        u_id, 
+        p_id);
+
+        RETURN new_id;
+    END;
+$$;
+
 create or replace function public.delete_user (
     u_id INT) 
     RETURNS VOID LANGUAGE plpgsql 
