@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 
@@ -19,7 +20,8 @@ type AuthMiddleware struct {
 }
 
 var (
-	ErrUnAuthorized = errors.New("oopsy, unauthorized user")
+	ErrUnAuthorized      = errors.New("oopsy, unauthorized user")
+	ErrFailedToAuthorize = errors.New("oopsy, failed to authorize user")
 )
 
 func NewAuthMiddleware(
@@ -76,19 +78,21 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		decodedToken, mapClaims, err := am.client.DecodeAccessToken(
+		decodedToken, _, err := am.client.DecodeAccessToken(
 			r.Context(),
 			token,
 			am.Realm,
 		)
-		print(decodedToken)
-		print(mapClaims)
+
+		claims := decodedToken.Claims
+
 		if err != nil {
 			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "auth_info", result)
+		log.Print(claims)
+		ctx := context.WithValue(r.Context(), "claims", claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
