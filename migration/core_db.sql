@@ -349,7 +349,7 @@ CREATE TABLE IF NOT EXISTS public."transactions"
 (
   id SERIAL PRIMARY KEY,
   user_id INT,
-  amount DECIMAL(2,12),
+  amount DECIMAL(12,2),
   partner_id INT,
   date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_Id) REFERENCES public."users" (id) ON DELETE CASCADE
