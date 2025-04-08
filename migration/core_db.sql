@@ -344,3 +344,15 @@ CREATE TABLE IF NOT EXISTS public."invoice_line_items"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores invoice line items';
+
+CREATE TABLE IF NOT EXISTS public."transactions"
+(
+  id SERIAL PRIMARY KEY,
+  user_id INT,
+  amount DECIMAL(12,2),
+  partner_id INT,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_Id) REFERENCES public."users" (id) ON DELETE CASCADE
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."invoices" IS 'stores transactions';
