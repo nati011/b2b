@@ -127,7 +127,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
+			return port.GetAllResponse{}, nil
 		default:
 			return port.GetAllResponse{}, port.ErrSysUnknown
 		}
