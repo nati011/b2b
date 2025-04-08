@@ -2635,7 +2635,10 @@ BEGIN
     VALUES (o_order_id, 
             o_product_id, 
             o_quantity,
-            o_price);
+            o_price)
+    RETURNING id INTO new_id;
+    
+    RETURN new_id;
 END;
 $$;
 
@@ -2658,5 +2661,122 @@ BEGIN
     FROM public.o_items oi
     WHERE oi.order_id = oi_order_id
       AND oi.is_deleted = FALSE;
+END;
+$$;
+
+--- transaction -------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.record_transaction(
+    t_user_id INT,
+    t_partner_id INT,
+    t_amount DECIMAL(2,12)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO 
+    public.transactions (t_user_id, 
+                         t_partner_id, 
+                         t_amount)
+    VALUES (user_id, 
+            partner_id, 
+            amount);
+END;
+$$;    
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_transaction_by_id(
+    t_id INT
+)
+RETURNS TABLE(id INT,
+              user_id INT,
+              amount DECIMAL(2,12),
+              partner_id INT,
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    FROM public.transactions t
+    WHERE t.id = t_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_transactions_by_user_id(
+    t_user_id INT
+)
+RETURNS TABLE(id INT,
+              user_id INT,
+              amount DECIMAL(2,12),
+              partner_id INT,
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    FROM public.transactions t
+    WHERE t.user_id = t_user_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_transactions()
+RETURNS TABLE(id INT,
+              user_id INT,
+              amount DECIMAL(2,12),
+              partner_id INT,
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    FROM public.transactions t
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_transactions_by_partner_id(
+    t_partner_id INT
+)
+RETURNS TABLE(id INT,
+              user_id INT,
+              amount DECIMAL(2,12),
+              partner_id INT,
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    FROM public.transactions t
+    WHERE t.partner_id = t_partner_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_transactions_by_date(
+    t_date TIMESTAMP
+)
+RETURNS TABLE(id INT,
+              user_id INT,
+              amount DECIMAL(2,12),
+              partner_id INT,
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    FROM public.transactions t
+    WHERE t.date = t_date
+      AND t.is_deleted = FALSE;
 END;
 $$;
