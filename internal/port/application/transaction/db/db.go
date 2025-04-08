@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrSysNoRows = errors.New("no rows")
+	ErrSysNoRows  = errors.New("no rows")
+	ErrSysUnknown = errors.New("unknown error")
 )
 
 type GetResponse struct {
@@ -38,7 +39,6 @@ type Reader interface {
 
 type Writer interface {
 	Create(context.Context, *CreateRequest) (int, error)
-	Delete(context.Context, int) error
 }
 
 type DB interface {
