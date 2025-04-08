@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS public."user_roles"
 COMMENT ON TABLE public."user_roles" IS 'stores role user mappings';
 
 
+CREATE TABLE IF NOT EXISTS  public."user_providers"
+(
+user_id INT,
+provider_id VARCHAR(255),
+FOREIGN KEY(user_id) REFERENCES public."users"(id) ON DELETE CASCADE
+) INHERITS (public."base")
+
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
   id SERIAL PRIMARY KEY,

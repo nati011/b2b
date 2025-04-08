@@ -18,6 +18,11 @@ type MockUser struct {
 	ExternalId string
 }
 
+type MockUserProvider struct {
+	Id         int
+	ProviderId string
+}
+
 type MockRole struct {
 	Id int
 }
@@ -27,9 +32,10 @@ type MockResource struct {
 }
 
 type Mock struct {
-	users     []MockUser
-	roles     []MockRole
-	resources []MockResource
+	users        []MockUser
+	userProvider []MockUserProvider
+	roles        []MockRole
+	resources    []MockResource
 }
 
 func NewMock() port.DB {
@@ -220,6 +226,15 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 		ExternalId: req.ExternalId,
 	})
 	return newUserId, nil
+}
+
+func (m *Mock) CreateUserProvider(ctx context.Context, req *port.CreateUserProviderRequest) error {
+	m.userProvider = append(m.userProvider, MockUserProvider{
+		req.UserId,
+		req.ProviderId,
+	})
+
+	return nil
 }
 
 func (m *Mock) CreateAndActivate(ctx context.Context, req *port.CreateRequest) (int, error) {
@@ -458,7 +473,7 @@ func (m *Mock) AssignRole(ctx context.Context, id int, roleId int) error {
 
 func (m *Mock) RemoveAssignedRole(ctx context.Context, id int, roleId int) error {
 	for _, i := range m.roles {
-		if i.Id != i.Id {
+		if i.Id != id {
 			m.roles = append(m.roles, MockRole{
 				Id: i.Id,
 			})
