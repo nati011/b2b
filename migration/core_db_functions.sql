@@ -2621,7 +2621,7 @@ CREATE OR REPLACE FUNCTION public.create_order_item(
   o_quantity INT,
   o_price DECIMAL(12,2)
 )
-RETURNS VOID
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -2678,10 +2678,9 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO 
-    public.transactions (user_id, 
-                         partner_id, 
-                         amount)
+    INSERT INTO public.transactions (user_id, 
+                                      partner_id, 
+                                      amount)
     VALUES (t_user_id, 
             t_partner_id, 
             t_amount)
@@ -2689,7 +2688,7 @@ BEGIN
 
     RETURN new_id;
 END;
-$$;    
+$$;  
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_transaction_by_id(
@@ -2742,7 +2741,7 @@ BEGIN
     RETURN QUERY
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
-      AND t.is_deleted = FALSE;
+    WHERE t.is_deleted = FALSE;
 END;
 $$;
 
