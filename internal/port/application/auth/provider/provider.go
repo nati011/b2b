@@ -27,6 +27,7 @@ type RegisterUserRequest struct {
 }
 
 type RegisterUserResponse struct {
+	Id       string
 	Username string
 }
 
@@ -59,4 +60,5 @@ type Provider interface {
 	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
+	DeleteClient(ctx context.Context, userId string) error
 }

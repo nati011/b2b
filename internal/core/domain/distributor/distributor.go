@@ -170,6 +170,7 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 	if err != nil {
 		switch err {
 		default:
+			d.UserService.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
 	}
