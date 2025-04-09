@@ -124,6 +124,7 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 	if err != nil {
 		switch err {
 		default:
+			r.UserService.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
 	}
