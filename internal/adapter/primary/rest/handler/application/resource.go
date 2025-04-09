@@ -24,14 +24,14 @@ type UpdateResourceRequest struct {
 	Name   string `json:"name"`
 }
 
-type GetResponse struct {
+type GetResourceResponse struct {
 	Id     int    `json:"id"`
 	Action string `json:"action"`
 	Name   string `json:"name"`
 }
 
-type GetAllResponse struct {
-	List []GetResponse `json:"resources"`
+type GetAllResourceResponse struct {
+	List []GetResourceResponse `json:"resources"`
 }
 
 type Resource struct {
