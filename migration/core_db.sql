@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS public."products"
 (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255),
-  description TEXT,
+  description VARCHAR(255),
   external_id VARCHAR(255),
   is_active BOOLEAN DEFAULT FALSE,
   distributor_id INT
@@ -214,7 +214,7 @@ COMMENT ON TABLE public."s_ledger" IS 'ledger for stock movement';
 
 CREATE TABLE IF NOT EXISTS public."p_prices" 
 (
-  price DECIMAL(12, 2),
+  price DECIMAL(12,2),
   product_id INT,
   FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -290,29 +290,18 @@ CREATE TABLE IF NOT EXISTS public."cp_images"
   url VARCHAR(255),
   blur_hash VARCHAR(255),
   configurable_product_id INT,
-    FOREIGN KEY (configurable_product_id) REFERENCES public."configurable_products"(id) ON DELETE CASCADE
+  FOREIGN KEY (configurable_product_id) REFERENCES public."configurable_products"(id) ON DELETE CASCADE
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."p_attributes" IS 'stores images of products';
-
-
-CREATE TABLE IF NOT EXISTS public."o_statuses"
-(
-  id SERIAL PRIMARY KEY,
-  value VARCHAR(255),
-  description TEXT
-) INHERITS(public."base");
-
-COMMENT ON TABLE public."o_statuses" IS 'order states';
 
 CREATE TABLE IF NOT EXISTS public."orders"
 (
   id SERIAL PRIMARY KEY,
   retailer_id INT,
-  status_id INT,
-  total MONEY,
-	FOREIGN KEY (retailer_id) REFERENCES public."users"(id) ON DELETE CASCADE,
-	FOREIGN KEY (status_id) REFERENCES public."o_statuses"(id) ON DELETE CASCADE
+  status VARCHAR(255),
+  total DECIMAL(12,2),
+	FOREIGN KEY (retailer_id) REFERENCES public."users"(id) ON DELETE CASCADE
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."orders" IS 'stores orders';
@@ -321,6 +310,8 @@ CREATE TABLE IF NOT EXISTS public."o_items"
 (
   order_id INT,
   product_id INT,
+  quantity INT,
+  price DECIMAL(12,2),
   FOREIGN KEY (order_id) REFERENCES public."orders" (id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -353,3 +344,27 @@ CREATE TABLE IF NOT EXISTS public."invoice_line_items"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores invoice line items';
+
+CREATE TABLE IF NOT EXISTS public."transactions"
+(
+  id SERIAL PRIMARY KEY,
+  user_id INT,
+  amount DECIMAL(12,2),
+  partner_id INT,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_Id) REFERENCES public."users" (id) ON DELETE CASCADE
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."invoices" IS 'stores transactions';
+
+
+CREATE TABLE IF NOT EXISTS public."payment_partners"
+(
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255),
+  icon VARCHAR(255),
+  status VARCHAR(255),
+  init_payment_url VARCHAR(255)
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."invoices" IS 'stores payment processing partners';

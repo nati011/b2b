@@ -244,6 +244,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
+	//activate by default
 	var resourceId int
 	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6, $7);"
 
@@ -270,7 +271,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6, $7);"
+	query := "SELECT * FROM public.create_and_activate_user($1, $2, $3, $4, $5, $6, $7);"
 
 	err := p.db.QueryRowContext(ctx, query,
 		req.FirstName,
