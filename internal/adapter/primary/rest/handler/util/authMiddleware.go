@@ -43,19 +43,19 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 
 		token := parts[1]
 		if token == "" {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 
@@ -67,12 +67,12 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 			am.Realm,
 		)
 		if err != nil {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 
 		if !*result.Active {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 

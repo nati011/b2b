@@ -57,7 +57,7 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, err)
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"category": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"category": resp})
 	} else {
 		resp, err := c.service.GetAll(r.Context())
 		if err != nil {
@@ -70,7 +70,7 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"categories": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"category": resp})
 	}
 }
 
@@ -90,18 +90,15 @@ func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := c.service.Create(r.Context(), (*category.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case category.ErrDescIsNotSupplied,
-			category.ErrDuplicateName,
-			category.ErrEmptyGetContent:
-
+		default:
 			util.RequestErrorResponse(w, err)
 			return
-		default:
+		case category.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"category": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"category": id})
 }
 
 func (c *Category) DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -127,5 +124,5 @@ func (c *Category) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"category": paramIdValue}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"category": paramIdValue})
 }
