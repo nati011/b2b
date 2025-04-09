@@ -374,6 +374,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 				default:
 					util.ServerErrorResponse(w, err)
 				}
+
 			}
 			configurables = append(configurables, ProductResponse{
 				Id:            resp.Id,
@@ -581,7 +582,6 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				default:
 					util.RequestErrorResponse(w, err)
 					return
-
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
@@ -595,7 +595,6 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				default:
 					util.RequestErrorResponse(w, err)
 					return
-
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
@@ -641,8 +640,10 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 				switch err {
 				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
+					return
 				default:
 					util.RequestErrorResponse(w, err)
+					return
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
@@ -655,8 +656,10 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 				switch err {
 				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
+					return
 				default:
 					util.RequestErrorResponse(w, err)
+					return
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
