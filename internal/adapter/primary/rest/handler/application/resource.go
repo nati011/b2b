@@ -78,7 +78,6 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
 		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
 	} else {
 		resp, err := rs.service.GetAll(r.Context())
