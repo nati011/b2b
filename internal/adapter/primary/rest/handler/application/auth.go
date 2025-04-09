@@ -46,10 +46,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loginResponse, err := h.service.ClientLogin(r.Context(), requestBody)
-
 	if err != nil {
-		util.UnauthorizedResponse(w)
-		return
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse})
 }
@@ -69,8 +73,13 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	refreshResponse, err := h.service.RefreshToken(r.Context(), requestBody)
 	if err != nil {
-		util.UnauthorizedErrorResponse(w, r, err)
-		return
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
 	}
 
 	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})

@@ -127,7 +127,7 @@ func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
+			util.OperationSuccessResponse(w, util.Envelope{"user": typedParamId})
 		case DEACTIVATE_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
@@ -141,7 +141,7 @@ func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
+			util.OperationSuccessResponse(w, util.Envelope{"user": typedParamId})
 		default:
 			util.RequestErrorResponse(w, ErrUnknownUserCommand)
 		}
@@ -229,7 +229,7 @@ func (a *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"id": id})
+	util.OperationSuccessResponse(w, util.Envelope{"user": id})
 }
 
 func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -337,5 +337,5 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"id": id})
+	util.OperationSuccessResponse(w, util.Envelope{"user": id})
 }

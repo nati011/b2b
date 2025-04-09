@@ -286,14 +286,11 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := p.service.Create(r.Context(), (*retailer.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case retailer.ErrIdNotFound,
-			retailer.ErrDuplicateTin,
-			retailer.ErrInvalidTin:
-
-			util.RequestErrorResponse(w, err)
+		case retailer.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
