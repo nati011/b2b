@@ -28,14 +28,16 @@ var (
 type CreateRequest struct {
 	Name             string
 	Icon             string
+	Status           string
 	Init_payment_url string
 }
 
 type GetResponse struct {
-	Id     int
-	Name   string
-	Icon   string
-	Status string
+	Id               int
+	Name             string
+	Icon             string
+	Status           string
+	Init_payment_url string
 }
 
 type GetAllResponse struct {
@@ -84,17 +86,9 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
 		Name:             req.Name,
 		Icon:             req.Icon,
+		Status:           INACTIVE_STATUS,
 		Init_payment_url: req.Init_payment_url,
 	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
-	//set status to INACTIVE
-	_, err = p.DB.UpdateStatus(ctx, id, INACTIVE_STATUS)
 	if err != nil {
 		switch err {
 		default:
@@ -111,7 +105,7 @@ func (p *PartnerService) Get(ctx context.Context, id int) (GetResponse, error) {
 		case port.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
-			return GetResponse{}, nil
+			return GetResponse{}, ErrUnknown
 		}
 	}
 	return GetResponse(resp), nil

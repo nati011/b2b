@@ -9,11 +9,12 @@ import (
 )
 
 var (
-	ErrUnknown         = errors.New("oopsy, unknown error")
-	ErrInvalidTin      = errors.New("oopsy, tin invalid")
-	ErrDuplicateTin    = errors.New("oopsy, tin already in use")
-	ErrIdNotFound      = errors.New("oopsy, id not found")
-	ErrEmptyGetContent = errors.New("oopsy, empty get content")
+	ErrUnknown            = errors.New("oopsy, unknown error")
+	ErrInvalidTin         = errors.New("oopsy, tin invalid")
+	ErrDuplicateTin       = errors.New("oopsy, tin already in use")
+	ErrIdNotFound         = errors.New("oopsy, id not found")
+	ErrEmptyGetContent    = errors.New("oopsy, empty get content")
+	ErrRetailerHasNoUsers = errors.New("oopys, retailer has no users")
 )
 
 type CreateRequest struct {
@@ -298,7 +299,7 @@ func (r *RetailerService) GetAllUsers(ctx context.Context, id int) (GetAllUsers,
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return GetAllUsers{}, ErrEmptyGetContent
+			return GetAllUsers{}, ErrRetailerHasNoUsers
 		default:
 			return GetAllUsers{}, ErrUnknown
 		}

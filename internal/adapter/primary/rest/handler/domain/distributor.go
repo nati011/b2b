@@ -126,7 +126,7 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"users": users_resp}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"users": users_resp})
 }
 
 func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -158,19 +158,15 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		switch err {
-		case user.ErrEmailNotValid,
-			user.ErrPhoneNotValid,
-			user.ErrPhoneOrEmailMandatory,
-			user.ErrFirstNameMandatory:
-
+		default:
 			util.RequestErrorResponse(w, err)
 			return
-		default:
+		case user.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"user": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"user": id})
 }
 
 func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +208,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		if len(users_resp.List) != 0 {
-			util.WriteJSON(w, util.Envelope{"distributor": GetDistributorResponse{
+			util.OperationSuccessResponse(w, util.Envelope{"distributor": GetDistributorResponse{
 				Id:          resp.Id,
 				Name:        resp.Name,
 				Tin:         resp.Tin,
@@ -222,7 +218,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Region:      resp.Region,
 				Woreda:      resp.Woreda,
 				Users:       users_resp.List,
-			}}, http.StatusAccepted)
+			}})
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
 		resp, err := de.service.GetByParam(r.Context(), &distributor.GetByParamRequest{
@@ -232,7 +228,6 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			switch err {
 			case distributor.ErrEmptyGetContent:
-
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -265,7 +260,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Users:       users_resp.List,
 			})
 		}
-		util.WriteJSON(w, util.Envelope{"distributors": handler_resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
 	} else {
 		resp, err := de.service.GetAll(r.Context())
 		if err != nil {
@@ -303,7 +298,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Users:       users_resp.List,
 			})
 		}
-		util.WriteJSON(w, util.Envelope{"distributors": handler_resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
 	}
 }
 
@@ -331,7 +326,7 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"distributor": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"distributor": id})
 }
 
 func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.Request) {
@@ -358,5 +353,5 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"distributor": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"distributor": id})
 }
