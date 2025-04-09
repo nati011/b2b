@@ -300,12 +300,10 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			for _, i := range j.Products {
 				resp, err := p.service.Get(r.Context(), i)
 				if err != nil {
-					if err != nil {
-						switch err {
-						case product.ErrIdNotFound:
-						default:
-							util.ServerErrorResponse(w, err)
-						}
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, err)
 					}
 				}
 				configurables = append(configurables, ProductResponse{
@@ -321,7 +319,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 					Stock:         resp.Stock,
 					IsActive:      resp.IsActive,
 				})
-				for attr_key, _ := range j.Attributes {
+				for attr_key := range j.Attributes {
 					configurableAttribute[attr_key] = append(configurableAttribute[attr_key], ConfigurableAttributesResponse{
 						ProductId:      resp.Id,
 						AttributeValue: resp.Attributes[attr_key],
@@ -371,12 +369,10 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 		for _, i := range cp_resp.Products {
 			resp, err := p.service.Get(r.Context(), i)
 			if err != nil {
-				if err != nil {
-					switch err {
-					case product.ErrIdNotFound:
-					default:
-						util.ServerErrorResponse(w, err)
-					}
+				switch err {
+				case product.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, err)
 				}
 			}
 			configurables = append(configurables, ProductResponse{
@@ -393,7 +389,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 				IsActive:      resp.IsActive,
 			})
 
-			for attr_key, _ := range cp_resp.Attributes {
+			for attr_key := range cp_resp.Attributes {
 				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
 					{
 						ProductId:      resp.Id,
@@ -433,12 +429,10 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 			for _, i := range j.Products {
 				resp, err := p.service.Get(r.Context(), i)
 				if err != nil {
-					if err != nil {
-						switch err {
-						case product.ErrIdNotFound:
-						default:
-							util.ServerErrorResponse(w, err)
-						}
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, err)
 					}
 				}
 				configurables = append(configurables, ProductResponse{
@@ -454,7 +448,7 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 					Stock:         resp.Stock,
 					IsActive:      resp.IsActive,
 				})
-				for attr_key, _ := range resp.Attributes {
+				for attr_key := range resp.Attributes {
 					configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
 						{
 							ProductId:      resp.Id,

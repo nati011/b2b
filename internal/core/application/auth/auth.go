@@ -14,6 +14,7 @@ var (
 	ErrFailedToLogin        = errors.New("oopsy, email or password incorrect")
 	ErrUnknown              = errors.New("oopsy, unknown error has occured")
 	ErrEmailNotSupplied     = errors.New("oopsy, email mandatory")
+	ErrUsernameNotSupplied  = errors.New("oopsy, username mandatory")
 	ErrInvalidEmail         = errors.New("oopsy, Invalid Email")
 	ErrPasswordNotSupplied  = errors.New("oopsy, password mandatory")
 	ErrFirstNameNotSupplied = errors.New("oopsy, First Name mandatory")
@@ -89,7 +90,10 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 	if err != nil {
 		return RegisterUserResponse{}, err
 	}
-
+	err = validateUsername(req.Username)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
 	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest(req))
 	if err != nil {
 		switch err {
