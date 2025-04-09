@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -18,11 +17,6 @@ type AuthMiddleware struct {
 	Realm        string
 	Password     string
 }
-
-var (
-	ErrUnAuthorized      = errors.New("oopsy, unauthorized user")
-	ErrFailedToAuthorize = errors.New("oopsy, failed to authorize user")
-)
 
 func NewAuthMiddleware(
 	BaseURL string,
@@ -87,7 +81,7 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		claims := decodedToken.Claims
 
 		if err != nil {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 
