@@ -87,7 +87,7 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		claims := decodedToken.Claims
 
 		if err != nil {
-			UnauthorizedErrorResponse(w, r, ErrUnAuthorized)
+			UnauthorizedResponse(w)
 			return
 		}
 
