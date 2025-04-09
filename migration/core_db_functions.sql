@@ -267,13 +267,13 @@ create or replace function public.get_roles_by_id (
     role_id INT) 
 RETURNS table (
   id INT,
-  description VARCHAR(255),
-  name VARCHAR(255)
+  name VARCHAR(255),
+  description VARCHAR(255)
 ) LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.id, r.description, r.name
+        SELECT r.id, r.name, r.description
         FROM public.roles r
         WHERE r.id = role_id
         AND r.is_deleted = FALSE
@@ -284,13 +284,13 @@ $$;
 create or replace function public.get_roles_by_name (
     role_name VARCHAR(255)) 
 RETURNS table (id INT, 
-               action VARCHAR(255), 
-               name VARCHAR(255)) 
+               name VARCHAR(255), 
+               description VARCHAR(255)) 
 LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.id, r.description, r.name
+        SELECT r.id, r.name, r.description
         FROM public.roles r
         WHERE r.name = role_name
         AND r.is_deleted = FALSE
@@ -301,13 +301,13 @@ $$;
 create or replace function public.get_all_roles () 
 RETURNS table (
   id INT,
-  description VARCHAR(255),
-  name VARCHAR(255)
+  name VARCHAR(255),
+  description VARCHAR(255)
 ) LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.id, r.description, r.name
+        SELECT r.id, r.name, r.description
         FROM public.roles r
         WHERE r.is_deleted = FALSE;
     END;

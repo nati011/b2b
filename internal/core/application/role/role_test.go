@@ -35,7 +35,6 @@ func Test_create_happyPath(t *testing.T) {
 		t.Errorf("Failed to create role err: %v", err)
 	}
 
-	//get resource
 	getResp, _ := service.GetAll(ctx)
 	if len(getResp.List) == 0 {
 		t.Errorf("No resources were created for role")
