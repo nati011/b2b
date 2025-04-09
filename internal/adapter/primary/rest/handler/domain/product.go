@@ -300,12 +300,10 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			for _, i := range j.Products {
 				resp, err := p.service.Get(r.Context(), i)
 				if err != nil {
-					if err != nil {
-						switch err {
-						case product.ErrIdNotFound:
-						default:
-							util.ServerErrorResponse(w, err)
-						}
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, err)
 					}
 				}
 				configurables = append(configurables, ProductResponse{
@@ -371,13 +369,12 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 		for _, i := range cp_resp.Products {
 			resp, err := p.service.Get(r.Context(), i)
 			if err != nil {
-				if err != nil {
-					switch err {
-					case product.ErrIdNotFound:
-					default:
-						util.ServerErrorResponse(w, err)
-					}
+				switch err {
+				case product.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, err)
 				}
+
 			}
 			configurables = append(configurables, ProductResponse{
 				Id:            resp.Id,
@@ -433,12 +430,10 @@ func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.R
 			for _, i := range j.Products {
 				resp, err := p.service.Get(r.Context(), i)
 				if err != nil {
-					if err != nil {
-						switch err {
-						case product.ErrIdNotFound:
-						default:
-							util.ServerErrorResponse(w, err)
-						}
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, err)
 					}
 				}
 				configurables = append(configurables, ProductResponse{
