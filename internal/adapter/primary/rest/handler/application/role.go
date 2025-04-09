@@ -68,13 +68,14 @@ func InitRole() {
 }
 
 func (r *Role) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	r.service = domainService.ApplicationServices.RoleService
 	return nil
 }
 
 func (r *Role) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/role", r.GetHandler)
 	mux.HandleFunc("POST /api/v1/role", r.CreateHandler)
-	mux.HandleFunc("PATCH /api/v1/role", r.CommandHandler)
+	mux.HandleFunc("PATCH /api/v1/role/{id}", r.CommandHandler)
 	mux.HandleFunc("PUT /api/v1/role", r.UpdateHandler)
 }
 
@@ -116,6 +117,7 @@ func (ro *Role) CommandHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+			util.OperationSuccessResponse(w, util.Envelope{"resource": typedParamResourceId})
 		case REMOVE_RESOURCE_COMMAND:
 			err = ro.service.RemoveResource(r.Context(), &role.RemoveResourceRequest{
 				ResourceId: typedParamResourceId,
@@ -131,6 +133,7 @@ func (ro *Role) CommandHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+			util.OperationSuccessResponse(w, util.Envelope{"resource": typedParamResourceId})
 		default:
 			util.RequestErrorResponse(w, ErrUnknownCommand)
 			return
