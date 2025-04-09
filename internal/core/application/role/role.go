@@ -102,7 +102,7 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 				return GetResponse{}, ErrUnknown
 			}
 		}
-		if resp.Id != 0 {
+		if resp.Id == req.Id {
 			return GetResponse{
 				Id:   resp.Id,
 				Desc: resp.Desc,
@@ -120,7 +120,7 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 				return GetResponse{}, ErrUnknown
 			}
 		}
-		if resp.Id != 0 {
+		if resp.Name == req.Name {
 			return GetResponse{
 				Id:   resp.Id,
 				Desc: resp.Desc,
