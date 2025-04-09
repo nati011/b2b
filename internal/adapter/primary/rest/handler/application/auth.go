@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
@@ -32,35 +33,45 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req auth.LoginUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+	var requestBody auth.LoginUserRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return
 	}
 
-	loginResponse, err := h.service.ClientLogin(r.Context(), req)
+	loginResponse, err := h.service.ClientLogin(r.Context(), requestBody)
 
 	if err != nil {
 		util.UnauthorizedResponse(w)
 		return
 	}
-
-	json.NewEncoder(w).Encode(loginResponse)
+	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse})
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req auth.RefreshTokenRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+	var requestBody auth.RefreshTokenRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
-	refreshResponse, err := h.service.RefreshToken(r.Context(), req)
+	refreshResponse, err := h.service.RefreshToken(r.Context(), requestBody)
 	if err != nil {
 		util.UnauthorizedErrorResponse(w, r, err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(refreshResponse)
+	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
 }
