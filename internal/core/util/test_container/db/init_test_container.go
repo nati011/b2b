@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
+	"b2b.nati011.github.com/migration"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -44,13 +44,21 @@ func Setup() *sql.DB {
 	}
 
 	// ddl
-	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
+	script, err := migration.Core_db_schema()
+	if err != nil {
+		panic(err)
+	}
+	err = runMigration(db, script)
 	if err != nil {
 		log.Fatalf("Error running ddl migration: %v", err)
 	}
 
 	// functions
-	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
+	script, err = migration.Core_db_functions()
+	if err != nil {
+		panic(err)
+	}
+	err = runMigration(db, script)
 	if err != nil {
 		log.Fatalf("Error running stored func migration: %v", err)
 	}
@@ -98,15 +106,9 @@ func Teardown(db *sql.DB) {
 	}
 }
 
-func runMigration(db *sql.DB, filename string) error {
-	// Read the SQL file
-	sqlBytes, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("could not read file: %w", err)
-	}
-
+func runMigration(db *sql.DB, script []byte) error {
 	// Execute the SQL
-	_, err = db.Exec(string(sqlBytes))
+	_, err := db.Exec(string(script))
 	if err != nil {
 		return fmt.Errorf("could not execute SQL: %w", err)
 	}

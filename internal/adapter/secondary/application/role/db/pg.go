@@ -21,10 +21,8 @@ func NewPostgres(DB *sql.DB) port.DB {
 func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 
-	// Adjust the query to select the appropriate fields
 	query := "SELECT * FROM public.get_roles_by_id($1);"
 
-	// Use Scan to match the number of returned columns
 	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name, &response.Desc)
 	if err != nil {
 		switch err {
@@ -129,8 +127,6 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Name).Scan(&resourceId)
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
-			return 0, nil
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -200,12 +196,12 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 	defer rows.Close()
 
 	for rows.Next() {
-		var resourceID int                             // Declare a variable to hold the scanned resource_id
-		if err := rows.Scan(&resourceID); err != nil { // Use the address of resourceID
+		var resourceID int
+		if err := rows.Scan(&resourceID); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResourcesResponse{}, err
 		}
-		response.List = append(response.List, resourceID) // Append the scanned ID
+		response.List = append(response.List, resourceID)
 	}
 
 	if err := rows.Err(); err != nil {

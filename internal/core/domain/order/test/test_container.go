@@ -1,0 +1,54 @@
+package order
+
+import (
+	"database/sql"
+
+	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
+	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
+	"b2b.nati011.github.com/internal/core/domain/invoice"
+	"b2b.nati011.github.com/internal/core/domain/order"
+	"b2b.nati011.github.com/internal/core/domain/product"
+	product_test "b2b.nati011.github.com/internal/core/domain/product/test"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
+	retailer_test "b2b.nati011.github.com/internal/core/domain/retailer/test"
+)
+
+type TestContainer struct {
+	OrderService    order.Provider
+	InvoiceService  invoice.Provider
+	ProductService  product.Provider
+	RetailerService retailer.Provider
+}
+
+func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
+	container := TestContainer{}
+	container.InvoiceService = invoice.NewInvoice(
+		invoice_db.NewPostgres(db),
+	)
+	container.RetailerService = retailer_test.NewDBIntegrationTestContainer(db).RetailerService
+
+	container.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
+	container.OrderService = order.NewOrderService(
+		order_db.NewPostgres(db),
+		container.InvoiceService,
+		container.ProductService,
+		container.RetailerService,
+	)
+
+	return container
+}
+
+func (t *TestContainer) Teardown(db *sql.DB) {
+	t.InvoiceService = invoice.NewInvoice(
+		invoice_db.NewPostgres(db),
+	)
+	t.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
+
+	t.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
+	t.OrderService = order.NewOrderService(
+		order_db.NewPostgres(db),
+		t.InvoiceService,
+		t.ProductService,
+		t.RetailerService,
+	)
+}

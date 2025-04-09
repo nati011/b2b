@@ -487,17 +487,11 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := p.service.Create(r.Context(), (*product.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case product.ErrIdNotFound,
-			product.ErrNameNotSupplied,
-			product.ErrNameDuplicate,
-			product.ErrImagesMustBeAtleastTwo,
-			product.ErrPriceNotSupplied,
-			product.ErrAttributeValuesCannotBeEmpty,
-			product.ErrCategoryNotFound:
-			util.RequestErrorResponse(w, err)
+		case product.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
