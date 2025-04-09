@@ -14,7 +14,6 @@ import (
 	"b2b.nati011.github.com/internal/core/application/user"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
-	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 var (
@@ -34,15 +33,15 @@ type CreateDistributorRequest struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
-	UserId    int    `json:"user_id"`
+	Username  string `json:"username"`
 }
 
 type CreateDistributorUserRequest struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
+	Username  string `json:"username"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
-	UserId    int    `json:"user_id"`
 }
 
 type GetDistributorResponse struct {
@@ -75,20 +74,23 @@ type UpdateDistributorRequest struct {
 type Distributor struct {
 	service     distributor.Provider
 	userService user.Provider
+	middleware  util.AuthMiddleware
 }
 
 func InitDistributor() {
 	handler.Register(new(Distributor))
 }
 
-func (r *Distributor) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
-	r.service = domainServices.DistributorService
-	r.userService = applicationServices.UserService
+func (d *Distributor) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+	d.service = domainServices.DistributorService
+	d.userService = applicationServices.UserService
+	d.middleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
+	distributorHandler := http.HandlerFunc(d.GetDistributorHandler)
+	mux.Handle("GET /api/v1/distributor", d.middleware.Authenticate(distributorHandler))
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
 	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 
@@ -106,7 +108,7 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := de.service.Get(r.Context(), typedParamId)
 	if err != nil {
 		switch err {
-		case retailer.ErrIdNotFound:
+		case distributor.ErrIdNotFound:
 			util.RequestErrorResponse(w, err)
 			return
 		default:
@@ -118,7 +120,7 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	users_resp, err := de.service.GetAllUsers(r.Context(), resp.Id)
 	if err != nil {
 		switch err {
-		case retailer.ErrIdNotFound:
+		case distributor.ErrIdNotFound:
 		default:
 			util.ServerErrorResponse(w, err)
 			return
@@ -150,6 +152,7 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		Distributor_Id: typedParamId,
 		FirstName:      requestBody.FirstName,
 		LastName:       requestBody.LastName,
+		Username:       requestBody.Username,
 		Email:          requestBody.Email,
 		Phone:          requestBody.Phone,
 	})
@@ -185,7 +188,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		resp, err := de.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
-			case retailer.ErrIdNotFound:
+			case distributor.ErrIdNotFound:
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -197,7 +200,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		users_resp, err := de.service.GetAllUsers(r.Context(), resp.Id)
 		if err != nil {
 			switch err {
-			case retailer.ErrIdNotFound:
+			case distributor.ErrIdNotFound:
 			default:
 				util.ServerErrorResponse(w, err)
 				return
@@ -224,7 +227,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		})
 		if err != nil {
 			switch err {
-			case retailer.ErrEmptyGetContent:
+			case distributor.ErrEmptyGetContent:
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -238,7 +241,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			users_resp, err := de.service.GetAllUsers(r.Context(), i.Id)
 			if err != nil {
 				switch err {
-				case retailer.ErrIdNotFound:
+				case distributor.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, err)
 					return
@@ -262,7 +265,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		resp, err := de.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
-			case retailer.ErrEmptyGetContent:
+			case distributor.ErrEmptyGetContent:
 
 				util.RequestErrorResponse(w, err)
 				return
@@ -277,7 +280,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			users_resp, err := de.service.GetAllUsers(r.Context(), i.Id)
 			if err != nil {
 				switch err {
-				case retailer.ErrIdNotFound:
+				case distributor.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, err)
 				}
@@ -315,7 +318,7 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 	id, err := de.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case retailer.ErrUnknown:
+		case distributor.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		default:
@@ -342,7 +345,7 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 	id, err := de.service.Update(r.Context(), (*distributor.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case retailer.ErrIdNotFound:
+		case distributor.ErrIdNotFound:
 			util.RequestErrorResponse(w, err)
 			return
 		default:

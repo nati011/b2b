@@ -38,10 +38,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
+
 	defer r.Body.Close()
 	var requestBody auth.LoginUserRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
+
 		return
 	}
 
