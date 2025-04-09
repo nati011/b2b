@@ -2782,3 +2782,141 @@ BEGIN
       AND t.is_deleted = FALSE;
 END;
 $$;
+
+--- payment_partner --------------------------------------
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_payment_partner_by_id(
+    p_id INT
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              icon VARCHAR(255),
+              status VARCHAR(255),
+              init_payment_url VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    FROM public.payment_partners p
+    WHERE p.id = p_id
+      AND p.is_deleted = FALSE
+      LIMIT 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_payment_partners()
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              icon VARCHAR(255),
+              status VARCHAR(255),
+              init_payment_url VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    FROM public.payment_partners p
+    WHERE p.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_payment_partner_by_name(
+    p_name VARCHAR(255)
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              icon VARCHAR(255),
+              status VARCHAR(255),
+              init_payment_url VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    FROM public.payment_partners p
+    WHERE p.name = p_name
+      AND p.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_payment_partner_by_status(
+    p_status VARCHAR(255)
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              icon VARCHAR(255),
+              status VARCHAR(255),
+              init_payment_url VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    FROM public.payment_partners p
+    WHERE p.status = p_status
+      AND p.is_deleted = FALSE;
+END;
+$$;
+
+    -- writer
+
+CREATE OR REPLACE FUNCTION public.create_payment_partner(
+    p_name VARCHAR(255),
+    p_icon VARCHAR(255),
+    p_status VARCHAR(255),
+    p_init_payment_url VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO 
+    public.payment_partners (name, icon, status, init_payment_url)
+    VALUES (p_name, 
+            p_icon, 
+            p_status,
+            p_init_payment_url)
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;  
+
+
+CREATE OR REPLACE FUNCTION public.update_payment_partner_status(
+    p_id INT,
+    new_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.payment_partners
+    SET status = new_status
+    WHERE id = p_id
+      AND is_deleted = FALSE;
+
+    RETURN p_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_payment_partner_name(
+    p_id INT,
+    new_name VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.payment_partners
+    SET name = new_name
+    WHERE id = p_id
+      AND is_deleted = FALSE;
+
+    RETURN p_id;
+END;
+$$;
