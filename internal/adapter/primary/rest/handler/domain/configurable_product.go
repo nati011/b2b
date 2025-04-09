@@ -49,13 +49,24 @@ func (r *ConfigurableProduct) Init(applicationServices *application_core.Contain
 }
 
 func (p *ConfigurableProduct) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/configurable_product/all", p.GetAllConfigurableProductsHandler)
 	mux.HandleFunc("POST /api/v1/configurable_product", p.CreateConfigurableProductHandler)
-	// mux.HandleFunc("GET /api/v1/configurable_product", p.GetAllConfigurableProductsHandler)
 	mux.HandleFunc("PUT /api/v1/configurable_product", p.UpdateHandler)
 	mux.HandleFunc("PUT /api/v1/configurable_product/available", p.UpdateAvailabilityHandler)
 	mux.HandleFunc("PUT /api/v1/configurable_product/disable", p.DisableConfigurableProductHandler)
 }
 
+func (p *ConfigurableProduct) GetAllConfigurableProductsHandler(w http.ResponseWriter, r *http.Request) {
+	configurable_products, err := p.service.GetAll(r.Context())
+	if err != nil {
+		switch err {
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"configurable_products": configurable_products})
+}
 func (p *ConfigurableProduct) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
