@@ -6,7 +6,7 @@ import (
 	auth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	template_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
-	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment-partner/db"
+	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment_partner/db"
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
