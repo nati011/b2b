@@ -24,10 +24,6 @@ func ServerErrorResponse(w http.ResponseWriter, err error) {
 	errorResponse(w, http.StatusInternalServerError, message)
 }
 
-func UnauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	errorResponse(w, http.StatusUnauthorized, err.Error())
-}
-
 func RequestErrorResponse(w http.ResponseWriter, err error) {
 	logError(err)
 	errorResponse(w, http.StatusBadRequest, err.Error())

@@ -20,3 +20,8 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 
 	return container
 }
+
+func (t *TestContainer) Teardown(db *sql.DB) {
+	t.UserService = user.NewTestContainer().UserService
+	t.DistributorService = distributor.NewDistributorService(t.UserService, db_adapter.NewPostgres(db))
+}

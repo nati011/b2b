@@ -25,10 +25,16 @@ import (
 // Container
 // ├── CategoryService
 // │   └── ProductService
-// │       └── ConfigurableProductService
-// |
-// └── InvoiceService
-//     └── OrderService
+// │     └── ConfigurableProductService
+// │
+// ├── InvoiceService
+// │   └── OrderService
+// │
+// ├── RetailerService
+// │   └── OrderService
+// │
+// ├── ProductService
+// │   └── OrderService
 
 type Container struct {
 	db                         *sql.DB
@@ -47,13 +53,16 @@ func NewContainer(application_core application_core.Container, db *sql.DB) *Cont
 	container.db = db
 	container.ApplicationServices = application_core
 
-	//ORDER ORDER!!
+	// ORDER ORDER!!
+
+	//	messing up the order creates chaos
+
 	container.InitCategoryService()
 	container.InitProductService()
 	container.InitConfigrableProductService()
 	container.InitInvoiceService()
-	container.InitOrderService()
 	container.InitRetailerService()
+	container.InitOrderService()
 	container.InitDistributorService()
 
 	return &container
@@ -78,7 +87,7 @@ func (m *Container) InitInvoiceService() {
 }
 
 func (m *Container) InitOrderService() {
-	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db), m.InvoiceService, m.ProductService)
+	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db), m.InvoiceService, m.ProductService, m.RetailerService)
 }
 
 func (m *Container) InitDistributorService() {

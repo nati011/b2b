@@ -70,14 +70,11 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			switch err {
-			case resource.ErrEmptyGetContent,
-				resource.ErrEmptyName,
-				resource.ErrEmptyAction:
-
-				util.RequestErrorResponse(w, err)
+			case resource.ErrUnknown:
+				util.ServerErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
@@ -93,8 +90,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, err)
 			}
 		}
-
-		util.WriteJSON(w, util.Envelope{"resources": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"resources": resp})
 	}
 }
 
@@ -115,21 +111,15 @@ func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request
 	id, err := rs.service.Create(r.Context(), (*resource.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case resource.ErrDuplicateName,
-			resource.ErrEmptyAction,
-			resource.ErrEmptyName,
-			resource.ErrIdNotFound,
-			resource.ErrEmptyUpdateContent,
-			resource.ErrEmptyGetContent:
-
+		default:
 			util.RequestErrorResponse(w, err)
 			return
-		default:
+		case resource.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"resource": id})
 }
 
 func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -148,21 +138,15 @@ func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request
 	id, err := rs.service.Update(r.Context(), (*resource.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case resource.ErrDuplicateName,
-			resource.ErrEmptyAction,
-			resource.ErrEmptyName,
-			resource.ErrIdNotFound,
-			resource.ErrEmptyUpdateContent,
-			resource.ErrEmptyGetContent:
-
-			util.RequestErrorResponse(w, err)
+		case resource.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"resource": id})
 }
 
 func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -188,5 +172,5 @@ func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request
 			}
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": paramIdValue}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"resource": paramIdValue})
 }
