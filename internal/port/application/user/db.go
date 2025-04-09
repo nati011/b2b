@@ -90,6 +90,15 @@ type GetAllAssignedRoleResponse struct {
 	List []GetAssignedRoleResponse
 }
 
+type UserProvider struct {
+	UserId     int
+	ProviderId string
+}
+
+type GetUserProviderResponse struct {
+	List []UserProvider
+}
+
 type Reader interface {
 	GetByID(ctx context.Context, id int) (GetResponse, error)
 	GetByEmail(ctx context.Context, email string) (GetAllResponse, error)
@@ -115,6 +124,7 @@ type Writer interface {
 	AssignRole(ctx context.Context, id int, roleId int) error
 	RemoveAssignedRole(ctx context.Context, id int, roleId int) error
 	GetAllAssignedRole(ctx context.Context, id int) (GetAllAssignedRoleResponse, error)
+	GetUserProvider(ctx context.Context, id int) (GetUserProviderResponse, error)
 }
 
 type DB interface {
