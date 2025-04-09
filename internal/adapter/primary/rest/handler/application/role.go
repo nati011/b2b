@@ -37,7 +37,7 @@ type GetRoleResponse struct {
 }
 
 type GetAllRoleResponse struct {
-	List []GetResponse `json:"roles"`
+	List []GetRoleResponse `json:"roles"`
 }
 
 type AddResourceToRoleRequest struct {
@@ -72,10 +72,10 @@ func (r *Role) Init(applicationServices *application_core.Container, domainServi
 }
 
 func (r *Role) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET", r.GetHandler)
-	mux.HandleFunc("POST", r.CreateHandler)
-	mux.HandleFunc("PATCH", r.CommandHandler)
-	mux.HandleFunc("PUT", r.UpdateHandler)
+	mux.HandleFunc("GET /api/v1/role", r.GetHandler)
+	mux.HandleFunc("POST /api/v1/role", r.CreateHandler)
+	mux.HandleFunc("PATCH /api/v1/role", r.CommandHandler)
+	mux.HandleFunc("PUT /api/v1/role", r.UpdateHandler)
 }
 
 const (
