@@ -34,6 +34,7 @@ func setup() {
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "test",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -47,7 +48,6 @@ func Test_Save_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		ctx := context.Background()
 		//setup
-
 		in := &CreateRequest{
 			User_Id:    user_id,
 			Amount:     1,

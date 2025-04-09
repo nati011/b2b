@@ -254,6 +254,8 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllUserResponse{}, port.ErrSysUnknown
 	}
-
+	if len(response.List) == 0 {
+		return response, port.ErrSysNoRows
+	}
 	return response, nil
 }

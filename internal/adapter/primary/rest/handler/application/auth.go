@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
@@ -32,35 +33,56 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req auth.LoginUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return
 	}
 
-	loginResponse, err := h.service.ClientLogin(r.Context(), req)
+	defer r.Body.Close()
+	var requestBody auth.LoginUserRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
 
-	if err != nil {
-		util.UnauthorizedErrorResponse(w, r, err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(loginResponse)
+	loginResponse, err := h.service.ClientLogin(r.Context(), requestBody)
+	if err != nil {
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse})
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req auth.RefreshTokenRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	refreshResponse, err := h.service.RefreshToken(r.Context(), req)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.UnauthorizedErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+	var requestBody auth.RefreshTokenRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(refreshResponse)
+	refreshResponse, err := h.service.RefreshToken(r.Context(), requestBody)
+	if err != nil {
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
 }
