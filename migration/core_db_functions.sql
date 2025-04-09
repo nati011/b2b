@@ -603,6 +603,21 @@ BEGIN
 END;
 $$;
 
+create or replace function public.get_user_provider(
+id INT) Returns TABLE(
+user_id INT,
+provider_id VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT 
+    up.user_id, 
+    up.provider_id FROM public.user_providers up 
+    WHERE up.is_deleted = FALSE AND up.user_id=id;
+
+END;
+$$;
+
     --writers
 create or replace function public.create_user (
   u_firstname VARCHAR(255),
@@ -1307,6 +1322,11 @@ BEGIN
     WHERE user_id = r_user_id;
 
     UPDATE public.distributor_users
+    SET is_deleted = TRUE
+    WHERE user_id = r_user_id;
+
+
+    UPDATE public.user_providers
     SET is_deleted = TRUE
     WHERE user_id = r_user_id;
     

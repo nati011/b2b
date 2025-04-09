@@ -213,6 +213,24 @@ func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
+func (m *Mock) GetUserProvider(context.Context, int) (port.GetUserProviderResponse, error) {
+	resp := []port.UserProvider{}
+	for _, i := range m.userProvider {
+
+		resp = append(resp, port.UserProvider{
+			UserId:     i.Id,
+			ProviderId: i.ProviderId,
+		})
+	}
+	if len(resp) == 0 {
+		return port.GetUserProviderResponse{}, port.ErrSysNoRows
+	}
+
+	return port.GetUserProviderResponse{
+		List: resp,
+	}, nil
+}
+
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	newUserId := len(m.users) + 1
 	m.users = append(m.users, MockUser{
