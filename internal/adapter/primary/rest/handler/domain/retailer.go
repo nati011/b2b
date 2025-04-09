@@ -297,7 +297,7 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"retailer": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"retailer": id})
 }
 
 func (re *Retailer) UpdateHandler(w http.ResponseWriter, r *http.Request) {
