@@ -55,6 +55,15 @@ type GetAllAssignedRoleResponse struct {
 	List []GetAssignedRoleResponse
 }
 
+type UserProvider struct {
+	UserId     int
+	ProviderId string
+}
+
+type GetUserProviderResponse struct {
+	List []UserProvider
+}
+
 type UpdateRequest struct {
 	Id         int
 	FirstName  string
@@ -182,6 +191,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		ExternalId: req.ExternalId,
 	})
 	if err != nil {
+		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
 			return 0, ErrUnknown
@@ -196,6 +206,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	if err != nil {
 		switch err {
 		default:
+			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
 	}
@@ -245,6 +256,27 @@ func (u *UserService) Get(ctx context.Context, id int) (GetResponse, error) {
 		}
 	}
 	return GetResponse(res), nil
+}
+
+func (u *UserService) GetUserProvider(ctx context.Context, id int) (GetUserProviderResponse, error) {
+	user_providers, err := u.db.GetUserProvider(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetUserProviderResponse{}, ErrIdNotFound
+		default:
+			return GetUserProviderResponse{}, ErrUnknown
+		}
+	}
+
+	resp := GetUserProviderResponse{}
+	for _, i := range user_providers.List {
+		resp.List = append(resp.List, UserProvider{
+			UserId:     i.UserId,
+			ProviderId: i.ProviderId,
+		})
+	}
+	return resp, nil
 }
 
 func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {
@@ -755,6 +787,25 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
+		}
+	}
+
+	resp, err := u.GetUserProvider(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+			return ErrIdNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+	for _, i := range resp.List {
+		err = u.auth_service.DeleteClient(ctx, i.ProviderId)
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
 		}
 	}
 

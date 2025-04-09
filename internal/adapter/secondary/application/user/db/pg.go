@@ -34,6 +34,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.IsActive,
 		&response.ExternalId)
 	if err != nil {
+		log.Print(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return port.GetResponse{}, port.ErrSysNoRows
@@ -205,6 +206,39 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
+	}
+
+	return response, nil
+}
+
+func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserProviderResponse, error) {
+	var response port.GetUserProviderResponse
+
+	query := "SELECT * FROM public.get_user_provider($1);"
+	rows, err := p.db.QueryContext(ctx, query, id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetUserProviderResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetUserProviderResponse{}, port.ErrSysUnknown
+		}
+
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userProvider port.UserProvider
+		if err := rows.Scan(&userProvider.UserId, &userProvider.ProviderId); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetUserProviderResponse{}, err
+		}
+		response.List = append(response.List, userProvider)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetUserProviderResponse{}, port.ErrSysUnknown
 	}
 
 	return response, nil
