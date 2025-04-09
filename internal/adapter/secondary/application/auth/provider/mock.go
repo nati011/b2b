@@ -30,6 +30,10 @@ func (m *MockAuthProvider) Teardown() {
 	m.clients = []MockClient{}
 }
 
+func (m *MockAuthProvider) DeleteClient(ctx context.Context, userId string) error {
+	panic("unimplemented")
+}
+
 func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	// check if username or password is taken
 	for _, index := range m.clients {

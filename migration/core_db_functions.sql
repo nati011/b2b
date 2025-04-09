@@ -603,6 +603,21 @@ BEGIN
 END;
 $$;
 
+create or replace function public.get_user_provider(
+id INT) Returns TABLE(
+user_id INT,
+provider_id VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT 
+    up.user_id, 
+    up.provider_id FROM public.user_providers up 
+    WHERE up.is_deleted = FALSE AND up.user_id=id;
+
+END;
+$$;
+
     --writers
 create or replace function public.create_user (
   u_firstname VARCHAR(255),
@@ -637,6 +652,28 @@ AS $$
         u_external_id)
 
         RETURNING id INTO new_id;
+
+        RETURN new_id;
+    END;
+$$;
+
+create or replace function public.create_user_provider(
+u_id INT,
+p_id VARCHAR(255)
+) RETURNS INT LANGUAGE plpgsql 
+AS $$
+    DECLARE
+        new_id INT;
+    BEGIN
+        INSERT INTO public.user_providers
+        (
+        user_id, 
+        provider_id)
+        
+        VALUES 	
+        (
+        u_id, 
+        p_id);
 
         RETURN new_id;
     END;
@@ -1286,7 +1323,11 @@ BEGIN
     UPDATE public.distributor_users
     SET is_deleted = TRUE
     WHERE user_id = r_user_id;
-    
+
+    UPDATE public.user_providers
+    SET is_deleted = TRUE
+    WHERE user_id = r_user_id;
+
     RETURN r_user_id;
 END;
 $$;
@@ -2781,6 +2822,7 @@ BEGIN
     WHERE t.date = t_date
       AND t.is_deleted = FALSE;
 END;
+
 $$;
 
 --- payment_partner --------------------------------------

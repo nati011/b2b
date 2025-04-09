@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/auth"
@@ -54,6 +53,15 @@ type GetAssignedRoleResponse struct {
 
 type GetAllAssignedRoleResponse struct {
 	List []GetAssignedRoleResponse
+}
+
+type UserProvider struct {
+	UserId     int
+	ProviderId string
+}
+
+type GetUserProviderResponse struct {
+	List []UserProvider
 }
 
 type UpdateRequest struct {
@@ -136,30 +144,12 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		return 0, err
 	}
 
-	//create user
-	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-		Email:      req.Email,
-		Phone:      req.Phone,
-		Username:   req.Username,
-		DOB:        req.DOB,
-		ExternalId: req.ExternalId,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
 	generated_password, err := generateRandomPassword(10)
-	log.Printf(generated_password)
 	if err != nil {
 		return 0, ErrUnknown
 	}
 
-	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
+	providerResponse, err := u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
 		Email:       req.Email,
 		Password:    generated_password,
 		FirstName:   req.FirstName,
@@ -186,6 +176,37 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		case auth.ErrEmailTaken:
 			return 0, ErrEmailTaken
 		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//create user
+	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
+		FirstName:  req.FirstName,
+		LastName:   req.LastName,
+		Email:      req.Email,
+		Phone:      req.Phone,
+		Username:   req.Username,
+		DOB:        req.DOB,
+		ExternalId: req.ExternalId,
+	})
+	if err != nil {
+		u.auth_service.DeleteClient(ctx, providerResponse.Id)
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
+		UserId:     user_id,
+		ProviderId: providerResponse.Id,
+	})
+
+	if err != nil {
+		switch err {
+		default:
+			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
 	}
@@ -235,6 +256,27 @@ func (u *UserService) Get(ctx context.Context, id int) (GetResponse, error) {
 		}
 	}
 	return GetResponse(res), nil
+}
+
+func (u *UserService) GetUserProvider(ctx context.Context, id int) (GetUserProviderResponse, error) {
+	user_providers, err := u.db.GetUserProvider(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetUserProviderResponse{}, ErrIdNotFound
+		default:
+			return GetUserProviderResponse{}, ErrUnknown
+		}
+	}
+
+	resp := GetUserProviderResponse{}
+	for _, i := range user_providers.List {
+		resp.List = append(resp.List, UserProvider{
+			UserId:     i.UserId,
+			ProviderId: i.ProviderId,
+		})
+	}
+	return resp, nil
 }
 
 func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {
@@ -745,6 +787,25 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
+		}
+	}
+
+	resp, err := u.GetUserProvider(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+			return ErrIdNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+	for _, i := range resp.List {
+		err = u.auth_service.DeleteClient(ctx, i.ProviderId)
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
 		}
 	}
 

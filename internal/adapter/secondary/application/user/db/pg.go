@@ -34,6 +34,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.IsActive,
 		&response.ExternalId)
 	if err != nil {
+		log.Print(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return port.GetResponse{}, port.ErrSysNoRows
@@ -210,6 +211,39 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	return response, nil
 }
 
+func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserProviderResponse, error) {
+	var response port.GetUserProviderResponse
+
+	query := "SELECT * FROM public.get_user_provider($1);"
+	rows, err := p.db.QueryContext(ctx, query, id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetUserProviderResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetUserProviderResponse{}, port.ErrSysUnknown
+		}
+
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userProvider port.UserProvider
+		if err := rows.Scan(&userProvider.UserId, &userProvider.ProviderId); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetUserProviderResponse{}, err
+		}
+		response.List = append(response.List, userProvider)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetUserProviderResponse{}, port.ErrSysUnknown
+	}
+
+	return response, nil
+}
+
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
@@ -283,7 +317,6 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 		req.ExternalId,
 	).Scan(&resourceId)
 	if err != nil {
-		panic(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return 0, port.ErrSysNoRows
@@ -293,6 +326,29 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 	}
 
 	return resourceId, nil
+}
+
+func (p *Postgres) CreateUserProvider(ctx context.Context, req *port.CreateUserProviderRequest) error {
+	var resourceId any
+	query := "SELECT * FROM public.create_user_provider($1, $2);"
+
+	err := p.db.QueryRowContext(ctx, query,
+		req.UserId,
+		req.ProviderId,
+	).Scan(&resourceId)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
+	}
+
+	log.Print(resourceId)
+
+	return nil
 }
 
 func (p *Postgres) Delete(ctx context.Context, id int) error {
