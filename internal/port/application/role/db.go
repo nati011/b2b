@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	ErrSysUnknown = errors.New("oopsy, duplicate name")
+	ErrSysUnknown = errors.New("unknown error")
+	ErrNoRows     = errors.New("no rows")
 )
 
 type CreateRequest struct {
