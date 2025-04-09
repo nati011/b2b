@@ -30,6 +30,3 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 
 func (t *TestContainer) TeardownIntegrationTestContainer(db *sql.DB) {
 }
-
-//update user info
-//remove
