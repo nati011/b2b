@@ -86,14 +86,14 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		resp, err := o.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
-			case product.ErrIdNotFound:
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+			default:
 				util.RequestErrorResponse(w, err)
 				return
-			default:
-				util.ServerErrorResponse(w, err)
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"order": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"order": resp})
 	} else if paramRetailerIdValue != "" || paramStatus != "" {
 		// get by param
 		var typedRetailerId int
@@ -111,16 +111,15 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			switch err {
-			case order.ErrEmptyGetResponse:
-				util.RequestErrorResponse(w, err)
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"orders": resp}, http.StatusAccepted)
-
+		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 	} else {
 		// get all
 		resp, err := o.service.GetAll(r.Context())
@@ -134,7 +133,7 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"orders": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 	}
 
 }
@@ -162,17 +161,15 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		switch err {
-		case order.ErrRetailerIdNotSupplied,
-			order.ErrAtleastOneOrderItemNeeded,
-			order.ErrItemMemberProductIdOrQuantityEmpty:
-			util.RequestErrorResponse(w, err)
+		case order.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"order": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"order": id})
 }
 
 const (
@@ -197,17 +194,17 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 			err = p.service.Cancel(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
-				case product.ErrIdNotFound:
-					util.RequestErrorResponse(w, err)
+				case product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
 					return
 				default:
-					util.ServerErrorResponse(w, err)
+					util.RequestErrorResponse(w, err)
 					return
 				}
 			}
-			return
 		default:
 			util.RequestErrorResponse(w, ErrUnknownCommand)
 		}
+		util.OperationSuccessResponse(w, util.Envelope{"order": typedParamId})
 	}
 }
