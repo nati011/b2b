@@ -260,9 +260,6 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 			Attributes:    i.Attributes,
 		})
 	}
-	if len(resp) == 0 {
-		return GetAllResponse{}, ErrEmptyGetContent
-	}
 
 	return GetAllResponse{
 		List: resp,
