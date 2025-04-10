@@ -115,8 +115,8 @@ func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/product", p.GetHandler)
 	mux.HandleFunc("POST /api/v1/product", p.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
-	mux.HandleFunc("PATCH /api/v1/product/status", p.StatusHandler)
-	mux.HandleFunc("PATCH /api/v1/product/stock", p.StockHandler)
+	mux.HandleFunc("PATCH /api/v1/product/{id}/status", p.StatusHandler)
+	mux.HandleFunc("PATCH /api/v1/product/{id}/stock", p.StockHandler)
 }
 
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -411,7 +411,7 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "product successfully activated"})
 		case DEACTIVATE_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
@@ -424,7 +424,7 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "product successfully deactivated"})
 		default:
 			util.RequestErrorResponse(w, ErrUnknownProductCommand)
 		}
@@ -471,7 +471,7 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "performed product goods received successfully"})
 		case DEPLETE_COMMAND:
 			err = p.service.Dispatch(r.Context(), &product.DispatchRequest{
 				Id:     typedParamId,
@@ -487,7 +487,7 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"id": typedParamId})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "performed product goods received successfully"})
 		default:
 			util.RequestErrorResponse(w, ErrUnknownProductCommand)
 		}
