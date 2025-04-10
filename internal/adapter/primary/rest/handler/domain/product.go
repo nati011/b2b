@@ -471,7 +471,7 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "performed product goods received successfully"})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "product goods received successful"})
 		case DEPLETE_COMMAND:
 			err = p.service.Dispatch(r.Context(), &product.DispatchRequest{
 				Id:     typedParamId,
@@ -487,7 +487,7 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "performed product goods received successfully"})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "product depletion successful"})
 		default:
 			util.RequestErrorResponse(w, ErrUnknownProductCommand)
 		}
