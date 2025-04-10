@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+
 	// "errors"
 	"io"
 	"net/http"
@@ -13,6 +15,10 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
+)
+
+var (
+	ErrUnknownCPCommand = errors.New("unknown command")
 )
 
 type CreateConfigurableProductRequest struct {
@@ -49,24 +55,48 @@ func (r *ConfigurableProduct) Init(applicationServices *application_core.Contain
 }
 
 func (p *ConfigurableProduct) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/configurable_product/all", p.GetAllConfigurableProductsHandler)
+	mux.HandleFunc("GET /api/v1/configurable_product", p.GetConfigurableProductsHandler)
 	mux.HandleFunc("POST /api/v1/configurable_product", p.CreateConfigurableProductHandler)
 	mux.HandleFunc("PUT /api/v1/configurable_product", p.UpdateHandler)
-	mux.HandleFunc("PUT /api/v1/configurable_product/available", p.UpdateAvailabilityHandler)
-	mux.HandleFunc("PUT /api/v1/configurable_product/disable", p.DisableConfigurableProductHandler)
+	mux.HandleFunc("PATCH /api/v1/configurable_product/{id}/status", p.StatusCommandHandler)
 }
 
-func (p *ConfigurableProduct) GetAllConfigurableProductsHandler(w http.ResponseWriter, r *http.Request) {
-	configurable_products, err := p.service.GetAll(r.Context())
-	if err != nil {
-		switch err {
-		default:
-			util.ServerErrorResponse(w, err)
+func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
 			return
 		}
+		resp, err := cp.service.Get(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case configurable_product.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": resp})
+	} else {
+		configurable_products, err := cp.service.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_products": configurable_products})
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"configurable_products": configurable_products})
 }
+
 func (p *ConfigurableProduct) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -91,7 +121,7 @@ func (p *ConfigurableProduct) CreateConfigurableProductHandler(w http.ResponseWr
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"product": id})
+	util.OperationSuccessResponse(w, util.Envelope{"configurable_product": id})
 }
 
 func (p *ConfigurableProduct) UpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,63 +148,54 @@ func (p *ConfigurableProduct) UpdateHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 	}
+	util.OperationSuccessResponse(w, util.Envelope{"configurable_product": requestBody.Id})
 
 }
 
-func (p *ConfigurableProduct) UpdateAvailabilityHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
+const (
+	AVAIL_CP_COMMAND   = "activate"
+	DISABLE_CP_COMMAND = "deactivate"
+)
 
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
+func (p *ConfigurableProduct) StatusCommandHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamCommand = "command"
+	paramValues := r.URL.Query()
+	paramCommandValue := paramValues.Get(ParamCommand)
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
-
 		}
-		err = p.service.Avail(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case configurable_product.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
+		switch paramCommandValue {
+		case AVAIL_CP_COMMAND:
+			err = p.service.Avail(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case configurable_product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
 			}
-		}
-	} else {
-		util.RequestErrorResponse(w, util.ErrIdRequired)
-	}
-
-}
-
-func (p *ConfigurableProduct) DisableConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
-
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-
-		}
-		err = p.service.Disable(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case configurable_product.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "configurable product successfully activated"})
+		case DISABLE_CP_COMMAND:
+			err = p.service.Disable(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case configurable_product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
 			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "configurable product successfully deactivated"})
+		default:
+			util.RequestErrorResponse(w, ErrUnknownCPCommand)
 		}
-	} else {
-		util.RequestErrorResponse(w, util.ErrIdRequired)
 	}
-
 }
