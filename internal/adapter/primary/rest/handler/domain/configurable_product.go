@@ -63,8 +63,12 @@ func (p *ConfigurableProduct) Routes(mux *http.ServeMux) {
 
 func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
+	const ParamName = "name"
+	const ParamExternalId = "external_id"
 	paramValues := r.URL.Query()
 	paramIdValue := paramValues.Get(ParamId)
+	paramNameValue := paramValues.Get(ParamName)
+	ParamExternalIdValue := paramValues.Get(ParamExternalId)
 
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
@@ -84,6 +88,36 @@ func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWri
 			}
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": resp})
+	} else if paramNameValue != "" {
+		cp_name_resp, err := cp.service.GetByParam(r.Context(),
+			&configurable_product.GetByParamRequest{
+				Name: paramNameValue,
+			})
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_products": cp_name_resp})
+	} else if ParamExternalIdValue != "" {
+		cp_extId_resp, err := cp.service.GetByParam(r.Context(),
+			&configurable_product.GetByParamRequest{
+				ExternalId: ParamExternalIdValue,
+			})
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_products": cp_extId_resp})
 	} else {
 		configurable_products, err := cp.service.GetAll(r.Context())
 		if err != nil {
