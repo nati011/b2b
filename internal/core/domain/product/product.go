@@ -488,7 +488,7 @@ func (p *ProductService) Dispatch(ctx context.Context, req *DispatchRequest) err
 		return ErrIdNotFound
 	}
 
-	//validate stock qty
+	//validate stock quantity
 	if prod.Stock < req.Amount {
 		return ErrStockUnavailable
 	}
