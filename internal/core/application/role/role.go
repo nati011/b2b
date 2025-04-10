@@ -46,6 +46,10 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type GetAllResourcesResponse struct {
+	List []int
+}
+
 type AddResourceRequest struct {
 	ResourceId int
 	RoleId     int
@@ -71,7 +75,7 @@ type Provider interface {
 
 	AddResource(context.Context, *AddResourceRequest) error
 	RemoveResource(context.Context, *RemoveResourceRequest) error
-
+	GetAllResources(context.Context, int) (GetAllResourcesResponse, error)
 	HasResource(context.Context, *HasResourceRequest) (bool, error)
 }
 
@@ -325,6 +329,25 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 		}
 	}
 	return nil
+}
+
+func (r *RoleProvider) GetAllResources(ctx context.Context, id int) (GetAllResourcesResponse, error) {
+	//check if role exists
+	err := r.validateId(ctx, id)
+	if err != nil {
+		return GetAllResourcesResponse{}, err
+	}
+
+	//check if resource already exists in role
+	resp, err := r.db.GetAllResources(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrNoRows:
+		default:
+			return GetAllResourcesResponse{}, ErrUnknown
+		}
+	}
+	return GetAllResourcesResponse(resp), nil
 }
 
 func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRequest) error {
