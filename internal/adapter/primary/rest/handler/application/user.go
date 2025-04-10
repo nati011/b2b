@@ -72,7 +72,7 @@ type GetUserResponse struct {
 }
 
 type GetAllUserResponse struct {
-	List []GetResponse `json:"list"`
+	List []GetUserResponse `json:"list"`
 }
 
 type UserHandler struct {
@@ -98,8 +98,8 @@ func (a *UserHandler) Routes(mux *http.ServeMux) {
 }
 
 const (
-	ACTIVATE_COMMAND   = "activate"
-	DEACTIVATE_COMMAND = "deactivate"
+	ACTIVATE_USER_COMMAND   = "activate"
+	DEACTIVATE_USER_COMMAND = "deactivate"
 )
 
 func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +114,7 @@ func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		switch paramCommandValue {
-		case ACTIVATE_COMMAND:
+		case ACTIVATE_USER_COMMAND:
 			err = p.service.Activate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
@@ -128,7 +128,7 @@ func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"user": typedParamId})
-		case DEACTIVATE_COMMAND:
+		case DEACTIVATE_USER_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {

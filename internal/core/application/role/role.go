@@ -16,8 +16,8 @@ var (
 	ErrEmptyUpdateContent          = errors.New("oopsy, update content empty")
 	ErrEmptyGetContent             = errors.New("oopsy, get content empty")
 	ErrResourceAlreadyExistsInRole = errors.New("oopsy, resource already exists in role")
-	ErrResourcNotFound             = errors.New("oopsy, resource not found in role")
-	ErrResourceNotFound            = errors.New("oopsy, resource not found in role")
+	ErrResourceNotFound            = errors.New("oopsy, resource not found")
+	ErrResourceNotFoundInRole      = errors.New("oopsy, resource not found in role")
 )
 
 type CreateRequest struct {
@@ -46,6 +46,10 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type GetAllResourcesResponse struct {
+	List []int
+}
+
 type AddResourceRequest struct {
 	ResourceId int
 	RoleId     int
@@ -71,7 +75,7 @@ type Provider interface {
 
 	AddResource(context.Context, *AddResourceRequest) error
 	RemoveResource(context.Context, *RemoveResourceRequest) error
-
+	GetAllResources(context.Context, int) (GetAllResourcesResponse, error)
 	HasResource(context.Context, *HasResourceRequest) (bool, error)
 }
 
@@ -290,17 +294,16 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 	}
 
 	//check if resource exists
-	resResp, err := r.resource_service.Get(ctx, &resource.GetRequest{
+	_, err = r.resource_service.Get(ctx, &resource.GetRequest{
 		Id: req.ResourceId,
 	})
 	if err != nil {
 		switch err {
+		case resource.ErrIdNotFound:
+			return ErrResourceNotFound
 		default:
 			return ErrUnknown
 		}
-	}
-	if resResp.Id == 0 {
-		return ErrResourceNotFound
 	}
 
 	//check if resource already exists in role
@@ -326,6 +329,25 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 		}
 	}
 	return nil
+}
+
+func (r *RoleProvider) GetAllResources(ctx context.Context, id int) (GetAllResourcesResponse, error) {
+	//check if role exists
+	err := r.validateId(ctx, id)
+	if err != nil {
+		return GetAllResourcesResponse{}, err
+	}
+
+	//check if resource already exists in role
+	resp, err := r.db.GetAllResources(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrNoRows:
+		default:
+			return GetAllResourcesResponse{}, ErrUnknown
+		}
+	}
+	return GetAllResourcesResponse(resp), nil
 }
 
 func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRequest) error {
@@ -364,7 +386,7 @@ func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRe
 		}
 	}
 	if !hasResource {
-		return ErrResourceNotFound
+		return ErrResourceNotFoundInRole
 	}
 
 	//remove role

@@ -43,12 +43,15 @@ CREATE TABLE IF NOT EXISTS public."user_roles"
 COMMENT ON TABLE public."user_roles" IS 'stores role user mappings';
 
 
-CREATE TABLE IF NOT EXISTS  public."user_providers"
+CREATE TABLE IF NOT EXISTS public."user_providers"
 (
-user_id INT,
-provider_id VARCHAR(255),
-FOREIGN KEY(user_id) REFERENCES public."users"(id) ON DELETE CASCADE
+    user_id INT,
+    provider_id VARCHAR(255),
+    PRIMARY KEY(user_id, provider_id),
+    FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE
 ) INHERITS (public."base");
+
+COMMENT ON TABLE public."user_providers" IS 'stores user provider mappings';
 
 CREATE TABLE IF NOT EXISTS public."resources" 
 (
@@ -363,7 +366,6 @@ CREATE TABLE IF NOT EXISTS public."transactions"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores transactions';
-
 
 CREATE TABLE IF NOT EXISTS public."payment_partners"
 (
