@@ -72,7 +72,7 @@ type GetUserResponse struct {
 }
 
 type GetAllUserResponse struct {
-	List []GetResponse `json:"list"`
+	List []GetUserResponse `json:"list"`
 }
 
 type UserHandler struct {

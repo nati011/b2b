@@ -80,14 +80,11 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
-	container.InitResourceService()
-	container.InitRoleService()
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(email_address, smtp_port)
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
-	container.InitPaymentPartnerService()
 	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()

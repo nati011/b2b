@@ -16,8 +16,8 @@ var (
 	ErrEmptyUpdateContent          = errors.New("oopsy, update content empty")
 	ErrEmptyGetContent             = errors.New("oopsy, get content empty")
 	ErrResourceAlreadyExistsInRole = errors.New("oopsy, resource already exists in role")
-	ErrResourcNotFound             = errors.New("oopsy, resource not found in role")
-	ErrResourceNotFound            = errors.New("oopsy, resource not found in role")
+	ErrResourceNotFound            = errors.New("oopsy, resource not found")
+	ErrResourceNotFoundInRole      = errors.New("oopsy, resource not found in role")
 )
 
 type CreateRequest struct {
@@ -290,17 +290,16 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 	}
 
 	//check if resource exists
-	resResp, err := r.resource_service.Get(ctx, &resource.GetRequest{
+	_, err = r.resource_service.Get(ctx, &resource.GetRequest{
 		Id: req.ResourceId,
 	})
 	if err != nil {
 		switch err {
+		case resource.ErrIdNotFound:
+			return ErrResourceNotFound
 		default:
 			return ErrUnknown
 		}
-	}
-	if resResp.Id == 0 {
-		return ErrResourceNotFound
 	}
 
 	//check if resource already exists in role
@@ -364,7 +363,7 @@ func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRe
 		}
 	}
 	if !hasResource {
-		return ErrResourceNotFound
+		return ErrResourceNotFoundInRole
 	}
 
 	//remove role
