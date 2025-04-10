@@ -31,15 +31,6 @@ type CreateProductRequest struct {
 	CategoryId    []int             `json:"category_id"`
 }
 
-type CreateConfigurableProductRequest struct {
-	Name          string   `json:"name"`
-	Desc          string   `json:"desc"`
-	ExternalId    string   `json:"external_id"`
-	AttributeKeys []string `json:"attributes"`
-	Products      []int    `json:"products"`
-	Images        []string `json:"images"`
-}
-
 type ProductResponse struct {
 	Id            int               `json:"id"`
 	Name          string            `json:"name"`
@@ -126,8 +117,6 @@ func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
 	mux.HandleFunc("PATCH /api/v1/product/status", p.StatusHandler)
 	mux.HandleFunc("PATCH /api/v1/product/stock", p.StockHandler)
-
-	mux.HandleFunc("POST /api/v1/configurable_product", p.CreateConfigurableProductHandler)
 	mux.HandleFunc("GET /api/v1/configurable_product", p.GetConfigurableProductHandler)
 }
 
@@ -493,33 +482,6 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			util.RequestErrorResponse(w, err)
-			return
-		}
-	}
-	util.OperationSuccessResponse(w, util.Envelope{"product": id})
-}
-
-func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	defer r.Body.Close()
-
-	var requestBody CreateConfigurableProductRequest
-	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	id, err := p.configurableProductservice.Create(r.Context(), (*configurable_product.CreateRequest)(&requestBody))
-	if err != nil {
-		switch err {
-		case product.ErrUnknown:
-			util.RequestErrorResponse(w, err)
-			return
-		default:
-			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
