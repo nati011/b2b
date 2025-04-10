@@ -23,6 +23,7 @@ var (
 	ErrUnknown                      = errors.New("oopsy, unkown error")
 	ErrCategoryNotFound             = errors.New("oopsy, category not found")
 	ErrPriceCannotBeNegative        = errors.New("oopsy, price cannot be negative")
+	ErrStockUnavailable             = errors.New("oopsy, requested quantity greater than stock")
 )
 
 type CreateRequest struct {
@@ -482,11 +483,15 @@ func (p *ProductService) ReceiveGoods(ctx context.Context, req *GoodsReceivingRe
 
 func (p *ProductService) Dispatch(ctx context.Context, req *DispatchRequest) error {
 	//validate Id
-	_, err := p.Get(ctx, req.Id)
+	prod, err := p.Get(ctx, req.Id)
 	if err != nil {
 		return ErrIdNotFound
 	}
 
+	//validate stock qty
+	if prod.Stock < req.Amount {
+		return ErrStockUnavailable
+	}
 	err = p.DB.Dispatch(ctx, &port.DispatchRequest{
 		Id:     req.Id,
 		Amount: req.Amount,
