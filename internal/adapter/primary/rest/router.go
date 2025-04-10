@@ -16,6 +16,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	application_handler.InitHealth()
 	application_handler.InitResource()
 	application_handler.InitUser()
+	application_handler.InitPaymentPartner()
 
 	domain_handler.InitRetailer()
 	domain_handler.InitDistributor()
