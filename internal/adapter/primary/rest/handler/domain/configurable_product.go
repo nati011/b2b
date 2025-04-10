@@ -19,7 +19,7 @@ type CreateConfigurableProductRequest struct {
 	Name          string   `json:"name"`
 	Desc          string   `json:"desc"`
 	ExternalId    string   `json:"external_id"`
-	AttributeKeys []string `json:"attributes"`
+	AttributeKeys []string `json:"attribute_keys"`
 	Products      []int    `json:"products"`
 	Images        []string `json:"images"`
 }
@@ -84,10 +84,10 @@ func (p *ConfigurableProduct) CreateConfigurableProductHandler(w http.ResponseWr
 	if err != nil {
 		switch err {
 		case configurable_product.ErrUnknown:
-			util.RequestErrorResponse(w, err)
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
