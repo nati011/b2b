@@ -167,7 +167,7 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "Payment Option Activated Successfully"})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option activated successfully"})
 		case DEACTIVATE_PAYMENT_OPTION_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
@@ -180,8 +180,9 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "Payment Option Deactivated Successfully"})
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option deactivated successfully"})
 		default:
+			util.RequestErrorResponse(w, ErrUnknownUserCommand)
 		}
 	}
 }
