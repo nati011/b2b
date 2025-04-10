@@ -68,6 +68,39 @@ func Test_Read(t *testing.T) {
 			t.Errorf("Expected status: %v Got: %v", wantStatus, has_resource_status)
 		}
 	})
+	t.Run("get_resource", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		id, _ := container.RoleService.Create(ctx, &role.CreateRequest{
+			Desc: "test",
+			Name: "test",
+		})
+		resId, err := container.ResourceService.Create(ctx, &resource.CreateRequest{
+			Action: "test",
+			Name:   "taken",
+		})
+		if err != nil {
+			t.Errorf("Failed")
+		}
+		err = container.RoleService.AddResource(ctx, &role.AddResourceRequest{
+			ResourceId: resId,
+			RoleId:     id,
+		})
+		if err != nil {
+			t.Errorf("Failed to add resource")
+		}
+		// Get All
+		got, err := container.RoleService.GetAllResources(ctx, id)
+		if err != nil {
+			t.Errorf("Failed to get role by Id err %v", err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len:%v Want:%v", wantLen, len(got.List))
+		}
+	})
+
 }
 
 func Test_Write(t *testing.T) {

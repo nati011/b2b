@@ -74,6 +74,7 @@ func (r *Role) Init(applicationServices *application_core.Container, domainServi
 
 func (r *Role) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/role", r.GetHandler)
+	mux.HandleFunc("GET /api/v1/role/resource", r.GetAllResourcesHandler)
 	mux.HandleFunc("POST /api/v1/role", r.CreateHandler)
 	mux.HandleFunc("PATCH /api/v1/role/{id}", r.CommandHandler)
 	mux.HandleFunc("PUT /api/v1/role", r.UpdateHandler)
@@ -221,6 +222,45 @@ func (ro *Role) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		util.WriteJSON(w, util.Envelope{"role": resp}, http.StatusAccepted)
+	} else {
+		resp, err := ro.service.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case role.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"roles": resp})
+	}
+}
+
+func (ro *Role) GetAllResourcesHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		resp, err := ro.service.GetAllResources(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case role.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.WriteJSON(w, util.Envelope{"resources": resp}, http.StatusAccepted)
 	} else {
 		resp, err := ro.service.GetAll(r.Context())
 		if err != nil {
