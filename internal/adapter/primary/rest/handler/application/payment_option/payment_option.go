@@ -1,0 +1,210 @@
+package payment_option
+
+import (
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+
+	"strconv"
+
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	domain_core "b2b.nati011.github.com/internal/core/domain"
+)
+
+var (
+	ErrUnknownUserCommand = errors.New("unknown user command")
+)
+
+type CreatePaymentPartnerRequest struct {
+	Name             string `json:"name"`
+	Icon             string `json:"icon"`
+	Status           string `json:"status"`
+	Init_payment_url string `json:"init_payment_url"`
+}
+
+type GetResponse struct {
+	Id               int    `json:"id"`
+	Name             string `json:"name"`
+	Icon             string `json:"icon"`
+	Status           string `json:"status"`
+	Init_payment_url string `json:"init_payment_url"`
+}
+
+type GetAllResponse struct {
+	List []GetResponse `json:"payment_options"`
+}
+
+type GetByParamRequest struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type PaymentPartner struct {
+	service payment_partner.Provider
+}
+
+func InitPaymentPartner() {
+	handler.Register(new(PaymentPartner))
+}
+
+func (r *PaymentPartner) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	r.service = applicationServices.PaymentPartnerService
+	return nil
+}
+
+func (p *PaymentPartner) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/payment_option", p.GetPaymentPartnersHandler)
+	mux.HandleFunc("GET /api/v1/payment_option/active", p.GetActivePaymentPartnersHandler)
+	mux.HandleFunc("POST /api/v1/payment_option", p.CreatePaymentPartnerHandler)
+	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/status", p.StatusCommandHandler)
+}
+
+func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	const ParamName = "name"
+	const ParamStatus = "status"
+
+	paramValues := r.URL.Query()
+	paramNameValue := paramValues.Get(ParamName)
+	paramStatusValue := paramValues.Get(ParamStatus)
+
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+
+		}
+		resp, err := p.service.Get(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case payment_partner.ErrIdNotFound:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"payment_option": paymentResponseMapper(resp)})
+	} else if paramNameValue != "" || paramStatusValue != "" {
+		params := &payment_partner.GetByParamRequest{
+			Name:   paramNameValue,
+			Status: paramStatusValue,
+		}
+
+		resp, err := p.service.GetByParam(r.Context(), params)
+		if err != nil {
+			switch err {
+			case payment_partner.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"payment_options": allPaymentResponseMapper(resp)})
+
+	} else {
+		resp, err := p.service.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"payment_options": allPaymentResponseMapper(resp)})
+	}
+}
+
+func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := p.service.GetActive(r.Context())
+	if err != nil {
+		switch err {
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"payment_options": allPaymentResponseMapper(resp)})
+}
+
+func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CreatePaymentPartnerRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	id, err := p.service.Create(r.Context(), (*payment_partner.CreateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case payment_partner.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"payment_option": id})
+}
+
+const (
+	ACTIVATE_PAYMENT_OPTION_COMMAND   = "activate"
+	DEACTIVATE_PAYMENT_OPTION_COMMAND = "deactivate"
+)
+
+func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamCommand = "command"
+	paramValues := r.URL.Query()
+	paramCommandValue := paramValues.Get(ParamCommand)
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		switch paramCommandValue {
+		case ACTIVATE_PAYMENT_OPTION_COMMAND:
+			err = p.service.Activate(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case payment_partner.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option activated successfully"})
+		case DEACTIVATE_PAYMENT_OPTION_COMMAND:
+			err = p.service.Deactivate(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case payment_partner.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option deactivated successfully"})
+		default:
+			util.RequestErrorResponse(w, ErrUnknownUserCommand)
+		}
+	}
+}
