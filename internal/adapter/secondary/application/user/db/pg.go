@@ -34,7 +34,6 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.IsActive,
 		&response.ExternalId)
 	if err != nil {
-		log.Print(err.Error())
 		switch err {
 		case sql.ErrNoRows:
 			return port.GetResponse{}, port.ErrSysNoRows
