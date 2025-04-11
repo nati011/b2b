@@ -38,8 +38,7 @@ func (p *PaymentPartner) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/payment_option", p.GetPaymentPartnersHandler)
 	mux.HandleFunc("GET /api/v1/payment_option/active", p.GetActivePaymentPartnersHandler)
 	mux.HandleFunc("POST /api/v1/payment_option", p.CreatePaymentPartnerHandler)
-	mux.HandleFunc("PUT /api/v1/payment_option/activate", p.ActivatePaymentPartnerHandler)
-	mux.HandleFunc("PUT /api/v1/payment_option/deactivate", p.DectivatePaymentPartnerHandler)
+	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/status", p.StatusCommandHandler)
 }
 
 func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
@@ -137,65 +136,53 @@ func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *h
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"product": id})
+	util.OperationSuccessResponse(w, util.Envelope{"payment_option": id})
 }
 
-func (p *PaymentPartner) ActivatePaymentPartnerHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
+const (
+	ACTIVATE_PAYMENT_OPTION_COMMAND   = "activate"
+	DEACTIVATE_PAYMENT_OPTION_COMMAND = "deactivate"
+)
 
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
+func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamCommand = "command"
+	paramValues := r.URL.Query()
+	paramCommandValue := paramValues.Get(ParamCommand)
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
-
 		}
-		err = p.service.Activate(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case payment_partner.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
+		switch paramCommandValue {
+		case ACTIVATE_PAYMENT_OPTION_COMMAND:
+			err = p.service.Activate(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case payment_partner.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
 			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"detail": "Payment Option Activated Successfully"})
-	} else {
-		util.RequestErrorResponse(w, util.ErrIdRequired)
-	}
-
-}
-
-func (p *PaymentPartner) DectivatePaymentPartnerHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
-
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-
-		}
-		err = p.service.Deactivate(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case payment_partner.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option activated successfully"})
+		case DEACTIVATE_PAYMENT_OPTION_COMMAND:
+			err = p.service.Deactivate(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case payment_partner.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
 			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option deactivated successfully"})
+		default:
+			util.RequestErrorResponse(w, ErrUnknownUserCommand)
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"detail": "Payment Option Deactivated Successfully"})
-	} else {
-		util.RequestErrorResponse(w, util.ErrIdRequired)
 	}
-
 }

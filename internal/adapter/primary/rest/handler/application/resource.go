@@ -24,14 +24,14 @@ type UpdateResourceRequest struct {
 	Name   string `json:"name"`
 }
 
-type GetResponse struct {
+type GetResourceResponse struct {
 	Id     int    `json:"id"`
 	Action string `json:"action"`
 	Name   string `json:"name"`
 }
 
-type GetAllResponse struct {
-	List []GetResponse `json:"resources"`
+type GetAllResourceResponse struct {
+	List []GetResourceResponse `json:"resources"`
 }
 
 type Resource struct {
@@ -78,7 +78,6 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
 		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
 	} else {
 		resp, err := rs.service.GetAll(r.Context())
