@@ -603,22 +603,18 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_user_provider(
-    id INT
-) RETURNS TABLE(
-    user_id INT,
-    provider_id VARCHAR(255)
-) LANGUAGE plpgsql AS $$
+CREATE OR REPLACE function public.get_user_provider(id INT) 
+RETURNS TABLE(user_id INT,
+              provider_id VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        up.user_id, 
-        up.provider_id 
-    FROM 
-        public.user_providers up 
-    WHERE 
-        up.is_deleted = FALSE 
-        AND up.user_id = id;
+    SELECT up.user_id, up.provider_id 
+    FROM public.user_providers up 
+    WHERE up.is_deleted = FALSE 
+    AND up.user_id=id;
+
 END;
 $$;
 
