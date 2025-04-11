@@ -204,6 +204,7 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		default:
 			util.RequestErrorResponse(w, ErrUnknownCommand)
+			return
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"order": typedParamId})
 	}

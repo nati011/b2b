@@ -984,6 +984,47 @@ func Test_dispatch_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
+
+	t.Run("requested_quantity_greater_than_stock", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: 2,
+		})
+		if err != nil {
+			t.Fatalf("Failed to initiate goods receiving")
+		}
+
+		err = container.ProductService.Dispatch(ctx, &DispatchRequest{
+			Id:     id,
+			Amount: 3,
+		})
+		wantErr := ErrStockUnavailable
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
 }
 
 func Test_Activate_happyPath(t *testing.T) {

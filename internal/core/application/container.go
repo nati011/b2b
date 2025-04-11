@@ -88,7 +88,6 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 	container.InitEmailService(email_address, smtp_port)
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
-	container.InitPaymentPartnerService()
 	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()
