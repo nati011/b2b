@@ -12,7 +12,6 @@ var product_id int
 var container TestContainer
 
 func TestMain(m *testing.M) {
-	setup()
 	code := m.Run()
 	os.Exit(code)
 }
@@ -30,14 +29,16 @@ func setup() {
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
-			"test": "test",
+			"test":         "test",
+			"another_test": "another_test",
 		},
 	})
 }
 
 func Test_Create_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -70,7 +71,8 @@ func Test_Create_happyPath(t *testing.T) {
 	})
 
 	t.Run("inactiveByDefault", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 
 		in := &CreateRequest{
@@ -108,7 +110,8 @@ func Test_Create_happyPath(t *testing.T) {
 
 func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("name_mandatory", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Desc:       "test",
@@ -133,7 +136,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("duplicate_name", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -180,7 +184,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("desc_mandatory", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -205,7 +210,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("atleast_one_attributeKey_mandatory", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:          "test",
@@ -228,7 +234,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("atleast_one_product_mandatory", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -251,7 +258,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("atleast_two_images_mandatory", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -276,8 +284,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 }
 
 func Test_Avail_happyPath(t *testing.T) {
-	t.Cleanup(container.cleanup)
-	//setup
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name:       "test",
@@ -314,7 +322,8 @@ func Test_Avail_happyPath(t *testing.T) {
 
 func Test_Avail_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		err := container.ConfigurableProductService.Avail(ctx, 99)
 		wantErr := ErrIdNotFound
@@ -324,8 +333,8 @@ func Test_Avail_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("already_available", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
-		// setup
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -361,8 +370,8 @@ func Test_Avail_unhappyPath(t *testing.T) {
 }
 
 func Test_Disable_happyPath(t *testing.T) {
-	t.Cleanup(container.cleanup)
-	// setup
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name:       "test",
@@ -407,7 +416,8 @@ func Test_Disable_happyPath(t *testing.T) {
 
 func Test_Disable_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		err := container.ConfigurableProductService.Disable(ctx, 99)
 		expectedErr := ErrIdNotFound
@@ -417,8 +427,8 @@ func Test_Disable_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("already_disabled", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
-		// setup
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -449,8 +459,8 @@ func Test_Disable_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_happyPath(t *testing.T) {
-	t.Cleanup(container.cleanup)
-	//setup
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name:       "test",
@@ -486,43 +496,18 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
-		// setup
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
-		in := &CreateRequest{
-			Name:       "test",
-			Desc:       "test",
-			ExternalId: "test",
-			AttributeKeys: []string{
-				"test",
-				"test",
-			},
-			Products: []int{
-				product_id,
-			},
-			Images: []string{
-				"test",
-				"test",
-			},
-		}
-		id, err := container.ConfigurableProductService.Create(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-
-		// Get
-		got, err := container.ConfigurableProductService.Get(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to Get err: %v", err)
-		}
-
-		if got.Id != id {
-			t.Errorf("Expected resp Id: %v Got: %v", id, got.Id)
+		_, err := container.ConfigurableProductService.Get(ctx, 99)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v: %v", wantErr, err)
 		}
 	})
 
 	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		// Get
 		wantErr := ErrIdNotFound
@@ -536,8 +521,8 @@ func Test_Get_unhappyPath(t *testing.T) {
 
 func Test_GetByParam_happyPath(t *testing.T) {
 	t.Run("byName", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
-		//setup
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -573,8 +558,8 @@ func Test_GetByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("byExtId", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
-		// setup
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:       "test",
@@ -612,7 +597,8 @@ func Test_GetByParam_happyPath(t *testing.T) {
 
 func Test_GetByParam_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		_, err := container.ConfigurableProductService.GetByParam(ctx, &GetByParamRequest{
 			Name: "test",
@@ -625,8 +611,8 @@ func Test_GetByParam_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_All_happyPath(t *testing.T) {
-	t.Cleanup(container.cleanup)
-	// setup
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name:       "test",
@@ -662,7 +648,8 @@ func Test_Get_All_happyPath(t *testing.T) {
 
 func Test_Get_All_unhappyPath(t *testing.T) {
 	t.Run("emptyContent", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		wantErr := ErrEmptyGetContent
 		_, err := container.ConfigurableProductService.GetAll(ctx)
@@ -674,9 +661,9 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 
 func Test_Update_happyPath(t *testing.T) {
 	t.Run("name", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
@@ -718,9 +705,9 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("desc", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
@@ -762,9 +749,9 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("extId", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
@@ -806,9 +793,9 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("product", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
@@ -852,9 +839,9 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("isAvailableStatus", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
@@ -896,9 +883,9 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("images", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
@@ -943,15 +930,15 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("attributes", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		//setup
+		setup()
 		in := &CreateRequest{
 			Name:       "test",
 			Desc:       "test",
 			ExternalId: "test",
 			AttributeKeys: []string{
-				"test",
+				"another_test",
 			},
 			Products: []int{
 				product_id,
@@ -985,16 +972,23 @@ func Test_Update_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantAttributeKey := "test"
-		if resp.Attributes[wantAttributeKey] != wantAttributeKey {
-			t.Errorf("Expected %v Got: %v", resp.Attributes[wantAttributeKey], wantAttributeKey)
+		want := map[string]string{
+			"test": "test",
+		}
+		for got_key, _ := range resp.Attributes[0] {
+			for want_key, _ := range want {
+				if got_key != want_key {
+					t.Errorf("Expected key %v Got: %v", want_key, got_key)
+				}
+			}
 		}
 	})
 }
 
 func Test_Update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(container.cleanup)
+		t.Cleanup(container.Teardown)
+		setup()
 		ctx := context.Background()
 		err := container.ConfigurableProductService.Update(ctx, &UpdateRequest{
 			Id: 99,
