@@ -23,7 +23,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	return container
 }
 
-func (t *TestContainer) cleanup() {
+func (t *TestContainer) Teardown() {
 	t.ConfigurableProductService = NewConfigurableProductService(
 		configurableProduct_db.NewMock(),
 		t.ProductService,

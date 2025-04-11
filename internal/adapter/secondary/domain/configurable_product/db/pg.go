@@ -67,7 +67,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.Images = productImages
 
 	// get attribute-values
-	var productAttruteValue = map[string]string{}
+	var productAttruteValue = []map[string]string{}
 	query = "SELECT * FROM public.get_all_configurable_product_attributes($1)"
 	rows, err = p.Pool.QueryContext(ctx, query, id)
 	if err != nil {
@@ -105,7 +105,9 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 				return port.GetResponse{}, err
 			}
 
-			productAttruteValue[attributeName] = attributeValue
+			productAttruteValue = append(productAttruteValue, map[string]string{
+				attributeName: attributeValue,
+			})
 		}
 
 	}
@@ -541,18 +543,21 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 		}
 	}
 	//attach new attributes
-	for _, i := range req.Attributes {
-		query := "SELECT * FROM public.add_attribute_to_configurable_product($1, $2, $3);"
+	for _, i := range req.AttributeKeys {
+		query := "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
 
-		_, err := p.Pool.QueryContext(ctx, query, i, req.Id)
-		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-				return port.ErrSysNoRows
-			default:
-				return port.ErrSysUnknown
+		for key := range i {
+			_, err := p.Pool.QueryContext(ctx, query, key, req.Id)
+			if err != nil {
+				switch err {
+				case sql.ErrNoRows:
+					return port.ErrSysNoRows
+				default:
+					return port.ErrSysUnknown
+				}
 			}
 		}
+
 	}
 	return nil
 }
