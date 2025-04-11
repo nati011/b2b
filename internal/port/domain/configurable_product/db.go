@@ -30,7 +30,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalId    string
-	Attributes    map[string]string
+	Attributes    []map[string]string
 	Products      []int
 	IsAvailable   bool
 	PriceRange    PriceRangeResponse
@@ -74,8 +74,8 @@ type UpdateImagesRequest struct {
 }
 
 type UpdateAttributes struct {
-	Id         int
-	Attributes map[string]string
+	Id            int
+	AttributeKeys []map[string]string
 }
 
 type Reader interface {
