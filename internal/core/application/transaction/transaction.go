@@ -125,9 +125,6 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 	for _, i := range resp.List {
 		ret_resp.List = append(ret_resp.List, GetResponse(i))
 	}
-	// if len(ret_resp.List) == 0 {
-	// 	return GetAllResponse{}, ErrEmptyGetContent
-	// }
 	return ret_resp, nil
 }
 
