@@ -307,11 +307,13 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 					Stock:         resp.Stock,
 					IsActive:      resp.IsActive,
 				})
-				for attr_key := range j.Attributes {
-					configurableAttribute[attr_key] = append(configurableAttribute[attr_key], ConfigurableAttributesResponse{
-						ProductId:      resp.Id,
-						AttributeValue: resp.Attributes[attr_key],
-					})
+				for _, attribute := range j.Attributes {
+					for key, value := range attribute {
+						configurableAttribute[key] = append(configurableAttribute[key], ConfigurableAttributesResponse{
+							ProductId:      resp.Id,
+							AttributeValue: resp.Attributes[value],
+						})
+					}
 				}
 			}
 

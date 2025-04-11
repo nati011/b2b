@@ -10,24 +10,25 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
-var testContainer configurable_product.TestContainer
+var container configurable_product.TestContainer
 var productService product.Provider
 var configurableProductService configurable_product.Provider
 
 func TestMain(m *testing.M) {
-	setup()
 	code := m.Run()
 	os.Exit(code)
 }
 
 func setup() {
-	testContainer = configurable_product.NewPackageIntegrationTestContainer()
-	productService = testContainer.ProductService
-	configurableProductService = testContainer.ConfigurableProductService
+	container = configurable_product.NewPackageIntegrationTestContainer()
+	productService = container.ProductService
+	configurableProductService = container.ConfigurableProductService
 }
 
 func Test_Create_ValidateProduct_happyPath(t *testing.T) {
 	//create product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &product.CreateRequest{
 		Name:       "test",
@@ -72,6 +73,8 @@ func Test_Create_ValidateProduct_happyPath(t *testing.T) {
 
 func Test_Create_ValidateProduct_unhappyPath(t *testing.T) {
 	// create configurable product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in_cp := &configurable_product.CreateRequest{
 		Name:       "test",
@@ -97,6 +100,8 @@ func Test_Create_ValidateProduct_unhappyPath(t *testing.T) {
 }
 func Test_Create_ValidateAttribute_keys_happyPath(t *testing.T) {
 	//create product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &product.CreateRequest{
 		Name:       "test",
@@ -141,6 +146,8 @@ func Test_Create_ValidateAttribute_keys_happyPath(t *testing.T) {
 
 func Test_Create_ValidateAttribute_keys_unhappyPath(t *testing.T) {
 	//create product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &product.CreateRequest{
 		Name:       "test",
@@ -186,6 +193,8 @@ func Test_Create_ValidateAttribute_keys_unhappyPath(t *testing.T) {
 
 func Test_Create_PopulateAttributeValues(t *testing.T) {
 	//create product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &product.CreateRequest{
 		Name:       "test",
@@ -234,7 +243,7 @@ func Test_Create_PopulateAttributeValues(t *testing.T) {
 		t.Fatalf("Failed to fetch product err: %v", err)
 	}
 	for _, i := range resp.Attributes {
-		if i != wantAttributes["test"] {
+		if i["test"] != wantAttributes["test"] {
 			t.Errorf("Failed to populate attributes")
 		}
 	}
@@ -242,6 +251,8 @@ func Test_Create_PopulateAttributeValues(t *testing.T) {
 
 func Test_Update_ValidateProduct_happyPath(t *testing.T) {
 	// create product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &product.CreateRequest{
 		Name:       "test",
@@ -297,6 +308,8 @@ func Test_Update_ValidateProduct_happyPath(t *testing.T) {
 
 func Test_Update_ValidateProduct_unhappyPath(t *testing.T) {
 	// create product
+	t.Cleanup(container.Teardown)
+	setup()
 	ctx := context.Background()
 	in := &product.CreateRequest{
 		Name:       "test",
