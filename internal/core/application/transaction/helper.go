@@ -14,7 +14,7 @@ func (t *TransactionService) validateUserId(ctx context.Context, userId int) err
 	_, err := t.UserService.Get(ctx, userId)
 	if err != nil {
 		switch err {
-		case user.ErrEmptyGetContent:
+		case user.ErrIdNotFound:
 			return ErrUserDoesNotExist
 		default:
 			return ErrUnknown
