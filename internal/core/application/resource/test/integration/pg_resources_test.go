@@ -162,8 +162,13 @@ func Test_getAll(t *testing.T) {
 		Name:   "test",
 	})
 
+	pagination := &resource.Pagination{
+		Limit:  3,
+		Offset: 0,
+	}
+
 	// Get All
-	got, err := service.GetAll(ctx)
+	got, err := service.GetAll(ctx, pagination)
 	if err != nil {
 		t.Errorf("Failed to get resource by Id err %v", err)
 	}
