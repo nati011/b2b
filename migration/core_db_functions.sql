@@ -105,7 +105,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_resources()
+CREATE OR REPLACE FUNCTION public.get_all_resources(
+r_limit INT,
+r_offset INT
+)
 RETURNS TABLE(
     id INT, action VARCHAR(255), 
     name VARCHAR(255))
@@ -115,7 +118,9 @@ AS $$
         RETURN QUERY
         SELECT r.id, r.action, r.name
         FROM public.resources r
-        WHERE r.is_deleted = FALSE;
+        WHERE r.is_deleted = FALSE
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
     $$;
 

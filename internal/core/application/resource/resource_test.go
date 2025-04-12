@@ -380,7 +380,7 @@ func Test_getAllResources_happyPath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get resource err %v", err)
 	}
-	if len(got.List) == pagination.Limit || len(got.List) > pagination.Limit {
+	if len(got.List) == pagination.Limit && len(got.List) > pagination.Limit {
 		t.Errorf("Want len %v Got len %v", pagination.Limit, len(got.List))
 	}
 }

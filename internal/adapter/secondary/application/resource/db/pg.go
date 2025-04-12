@@ -57,8 +57,16 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_resources();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	// Default limit and offset
+	limit := 10
+	offset := pagination.Offset
+
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+
+	query := "SELECT * FROM public.get_all_resources($1, $2);"
+	rows, err := p.Pool.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
