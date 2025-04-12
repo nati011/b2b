@@ -44,6 +44,11 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type Pagination struct {
+	Limit  int
+	Offset int
+}
+
 type GetByParamRequest struct {
 	Name   string
 	Status string
@@ -54,9 +59,9 @@ type Provider interface {
 	Get(context.Context, int) (GetResponse, error)
 	Activate(context.Context, int) error
 	Deactivate(context.Context, int) error
-	GetAll(context.Context) (GetAllResponse, error)
-	GetActive(context.Context) (GetAllResponse, error)
-	GetByParam(context.Context, *GetByParamRequest) (GetAllResponse, error)
+	GetAll(context.Context, *Pagination) (GetAllResponse, error)
+	GetActive(context.Context, *Pagination) (GetAllResponse, error)
+	GetByParam(context.Context, *GetByParamRequest, *Pagination) (GetAllResponse, error)
 }
 
 type PartnerService struct {
@@ -163,8 +168,11 @@ func (p *PartnerService) Deactivate(ctx context.Context, id int) error {
 	return nil
 }
 
-func (p *PartnerService) GetAll(ctx context.Context) (GetAllResponse, error) {
-	resp, err := p.DB.GetAll(ctx)
+func (p *PartnerService) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
+	resp, err := p.DB.GetAll(ctx, &port.Pagination{
+		Limit:  pagination.Limit,
+		Offset: pagination.Offset,
+	})
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -180,8 +188,11 @@ func (p *PartnerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	return resp_val, nil
 }
 
-func (p *PartnerService) GetActive(ctx context.Context) (GetAllResponse, error) {
-	resp, err := p.DB.GetByStatus(ctx, ACTIVE_STATUS)
+func (p *PartnerService) GetActive(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
+	resp, err := p.DB.GetByStatus(ctx, ACTIVE_STATUS, &port.Pagination{
+		Limit:  pagination.Limit,
+		Offset: pagination.Offset,
+	})
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -197,10 +208,13 @@ func (p *PartnerService) GetActive(ctx context.Context) (GetAllResponse, error) 
 	return resp_val, nil
 }
 
-func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
+func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest, pagination *Pagination) (GetAllResponse, error) {
 	var resp GetAllResponse
 	if req.Name != "" {
-		resp_name, err := p.DB.GetByName(ctx, req.Name)
+		resp_name, err := p.DB.GetByName(ctx, req.Name, &port.Pagination{
+			Limit:  pagination.Limit,
+			Offset: pagination.Offset,
+		})
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
@@ -214,7 +228,10 @@ func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest)
 	}
 
 	if req.Status != "" {
-		resp_name, err := p.DB.GetByStatus(ctx, req.Status)
+		resp_name, err := p.DB.GetByStatus(ctx, req.Status, &port.Pagination{
+			Limit:  pagination.Limit,
+			Offset: pagination.Offset,
+		})
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
