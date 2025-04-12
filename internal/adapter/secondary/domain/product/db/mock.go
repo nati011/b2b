@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"math/rand"
@@ -76,7 +75,6 @@ func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.Ge
 	responses := port.GetAllResponse{}
 	count := 0
 	for _, i := range m.products {
-		log.Print(count)
 		count++
 		if count > pagination.Limit {
 			break
