@@ -54,7 +54,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_all_resources();"
