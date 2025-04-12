@@ -41,7 +41,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_all_payment_partners();"
@@ -80,7 +80,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return response, nil
 }
 
-func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+func (p *Postgres) GetByStatus(ctx context.Context, status string, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_payment_partner_by_status($1);"
@@ -119,7 +119,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	return response, nil
 }
 
-func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
+func (p *Postgres) GetByName(ctx context.Context, name string, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_payment_partner_by_name($1);"
