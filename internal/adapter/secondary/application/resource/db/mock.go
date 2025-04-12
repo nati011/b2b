@@ -46,7 +46,7 @@ func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 	return port.GetResponse{}, nil
 }
 
-func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range p.resources {
 		response = append(response, port.GetResponse{
