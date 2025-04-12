@@ -1,4 +1,4 @@
-package handler
+package configurable_product
 
 import (
 	"encoding/json"

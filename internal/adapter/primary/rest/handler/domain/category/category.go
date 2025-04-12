@@ -1,4 +1,4 @@
-package handler
+package category
 
 import (
 	"encoding/json"
