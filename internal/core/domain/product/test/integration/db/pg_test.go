@@ -120,7 +120,11 @@ func Test_read(t *testing.T) {
 		}
 
 		//get-all
-		resp, err := container.ProductService.GetAll(ctx)
+		pagination := &product.Pagination{
+			Limit:  5,
+			Offset: 0,
+		}
+		resp, err := container.ProductService.GetAll(ctx, pagination)
 		if err != nil {
 			t.Errorf("Expected err:%v Got err: %v", nil, err)
 		}

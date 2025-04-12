@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"math/rand"
@@ -71,9 +72,15 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	return port.GetResponse{}, port.ErrSysNoRows
 }
 
-func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	responses := port.GetAllResponse{}
+	count := 0
 	for _, i := range m.products {
+		log.Print(count)
+		count++
+		if count > pagination.Limit {
+			break
+		}
 		responses.List = append(responses.List,
 			port.GetResponse{
 				Id:            i.Id,
@@ -89,6 +96,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 				IsActive:      i.IsActive,
 			},
 		)
+
 	}
 	if len(responses.List) == 0 {
 		return responses, port.ErrSysNoRows
