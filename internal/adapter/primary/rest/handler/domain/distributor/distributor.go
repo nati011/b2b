@@ -1,4 +1,4 @@
-package handler
+package distributor
 
 import (
 	"encoding/json"
