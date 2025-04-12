@@ -2853,7 +2853,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_payment_partners()
+CREATE OR REPLACE FUNCTION public.get_all_payment_partners(
+p_limit INT,
+p_offset INT
+)
 RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
@@ -2865,12 +2868,16 @@ BEGIN
     RETURN QUERY
     SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
-    WHERE p.is_deleted = FALSE;
+    WHERE p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_payment_partner_by_name(
-    p_name VARCHAR(255)
+    p_name VARCHAR(255),
+    p_limit INT,
+    p_offset INT
 )
 RETURNS TABLE(id int,
               name VARCHAR(255),
@@ -2884,12 +2891,16 @@ BEGIN
     SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.name = p_name
-      AND p.is_deleted = FALSE;
+      AND p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_payment_partner_by_status(
-    p_status VARCHAR(255)
+    p_status VARCHAR(255),
+    p_limit INT,
+    p_offset INT
 )
 RETURNS TABLE(id int,
               name VARCHAR(255),
@@ -2903,9 +2914,12 @@ BEGIN
     SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.status = p_status
-      AND p.is_deleted = FALSE;
+      AND p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
+
 
     -- writer
 
