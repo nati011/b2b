@@ -1777,7 +1777,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_products()
+CREATE OR REPLACE FUNCTION public.get_all_products(
+p_limit INT,
+p_offset INT
+)
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
               product_description VARCHAR(255), 
@@ -1795,7 +1798,9 @@ BEGIN
            p.is_active, 
            p.distributor_id
     FROM public.products p
-    WHERE p.is_deleted = FALSE;
+    WHERE p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
