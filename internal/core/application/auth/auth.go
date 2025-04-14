@@ -22,19 +22,19 @@ var (
 )
 
 type RegisterUserRequest struct {
-	Email       string
-	Password    string
-	BirthDate   time.Time
-	PhoneNumber string
-	ExternalId  string
-	FirstName   string
-	LastName    string
-	Username    string
+	Email       string    `json:"email"`
+	Password    string    `json:"password"`
+	BirthDate   time.Time `json:"birth_date"`
+	PhoneNumber string    `json:"phone_number"`
+	ExternalId  string    `json:"external_id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Username    string    `json:"username"`
 }
 
 type RegisterUserResponse struct {
-	Id       string
-	Username string
+	Id       string `json:"id"`
+	Username string `json:"username"`
 }
 
 type RefreshTokenRequest struct {
@@ -42,7 +42,7 @@ type RefreshTokenRequest struct {
 }
 
 type LoginAuthResponse struct {
-	JWT JWT
+	JWT JWT `json:"jwt"`
 }
 
 type LoginUserRequest struct {

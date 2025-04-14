@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"time"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -12,47 +11,6 @@ import (
 	"b2b.nati011.github.com/internal/core/application/auth"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
-
-type RegisterUserRequest struct {
-	Email       string    `json:"email"`
-	Password    string    `json:"password"`
-	BirthDate   time.Time `json:"birth_date"`
-	PhoneNumber string    `json:"phone_number"`
-	ExternalId  string    `json:"external_id"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	Username    string    `json:"username"`
-}
-
-type RegisterUserResponse struct {
-	Id       string `json:"id"`
-	Username string `json:"username"`
-}
-
-type RefreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken"`
-}
-
-type LoginAuthResponse struct {
-	JWT JWT
-}
-
-type LoginUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type JWT struct {
-	AccessToken      string `json:"access_token"`
-	IDToken          string `json:"id_token"`
-	ExpiresIn        int    `json:"expires_in"`
-	RefreshExpiresIn int    `json:"refresh_expires_in"`
-	RefreshToken     string `json:"refresh_token"`
-	TokenType        string `json:"token_type"`
-	NotBeforePolicy  int    `json:"not_before_policy"`
-	SessionState     string `json:"session_state"`
-	Scope            string `json:"scope"`
-}
 
 type AuthHandler struct {
 	service    auth.Provider
@@ -98,9 +56,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"body": LoginAuthResponse{
-		JWT: JWT(loginResponse.JWT),
-	}})
+	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse.JWT})
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +83,5 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	util.OperationSuccessResponse(w, util.Envelope{"body": LoginAuthResponse{
-		JWT: JWT(refreshResponse.JWT),
-	}})
+	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
 }
