@@ -26,7 +26,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return port.GetAllResponse{}, nil
+			return port.GetAllResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetAllResponse{}, port.ErrSysUnknown
 		}
@@ -77,7 +77,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return 0, nil
+			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -93,7 +93,7 @@ func (p *Postgres) Remove(ctx context.Context, id int) error {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil
+			return port.ErrSysNoRows
 		default:
 			return port.ErrSysUnknown
 		}
