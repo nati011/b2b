@@ -303,7 +303,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_roles () 
+create or replace function public.get_all_roles (
+r_limit INT,
+r_offset INT
+) 
 RETURNS table (
   id INT,
   name VARCHAR(255),
@@ -314,7 +317,9 @@ AS $$
         RETURN QUERY
         SELECT r.id, r.name, r.description
         FROM public.roles r
-        WHERE r.is_deleted = FALSE;
+        WHERE r.is_deleted = FALSE
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
 $$;
 

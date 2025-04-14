@@ -156,7 +156,6 @@ func (r *ResourceProvider) Delete(ctx context.Context, id int) error {
 }
 
 func (r *ResourceProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, error) {
-	// TODO: split to get by param and get by Id
 	//either id or name need tobe provided
 	if req.Id == 0 && req.Name == "" {
 		return GetResponse{}, ErrEmptyGetContent

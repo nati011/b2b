@@ -52,9 +52,14 @@ func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 	return port.GetResponse{}, nil
 }
 
-func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
+	count := 0
 	for _, i := range p.roles {
+		count++
+		if count > pagination.Limit {
+			break
+		}
 		response = append(response, port.GetResponse{
 			Id:   i.Id,
 			Name: i.Name,
