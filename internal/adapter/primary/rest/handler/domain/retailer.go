@@ -1,4 +1,4 @@
-package comain
+package domain
 
 import (
 	"encoding/json"
