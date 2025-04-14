@@ -1,4 +1,4 @@
-package retailer
+package comain
 
 import (
 	"encoding/json"

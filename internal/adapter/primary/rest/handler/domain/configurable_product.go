@@ -1,4 +1,4 @@
-package configurable_product
+package domain
 
 import (
 	"encoding/json"
@@ -30,7 +30,35 @@ type CreateConfigurableProductRequest struct {
 	Images        []string `json:"images"`
 }
 
-type UpdateRequest struct {
+type PriceRangeResponse struct {
+	Min int `json:"min"`
+	Max int `json:"max"`
+}
+
+type GetConfigurableProductResponse struct {
+	Id            int                 `json:"id"`
+	Name          string              `json:"name"`
+	Desc          string              `json:"desc"`
+	ExternalId    string              `json:"external_id"`
+	Attributes    []map[string]string `json:"attributes"`
+	Products      []int               `json:"products"`
+	IsAvailable   bool                `json:"is_available"`
+	PriceRange    PriceRangeResponse  `json:"price_range"`
+	CategoryId    []int               `json:"category_id"`
+	DistributorId int                 `json:"distributor_id"`
+	Images        []string            `json:"images"`
+}
+
+type GetAllConfigurableProductsResponse struct {
+	List []GetConfigurableProductResponse `json:"configurable_products"`
+}
+
+type GetConfigurableProductsByParamRequest struct {
+	Name       string `json:"name"`
+	ExternalId string `json:"external_id"`
+}
+
+type UpdateConfigurableProductRequest struct {
 	Id                int      `json:"id"`
 	Name              string   `json:"name"`
 	Desc              string   `json:"desc"`
@@ -87,7 +115,20 @@ func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWri
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": resp})
+		get_response := GetConfigurableProductResponse{}
+		get_response.Id = resp.Id
+		get_response.Name = resp.Name
+		get_response.Desc = resp.Desc
+		get_response.ExternalId = resp.ExternalId
+		get_response.Attributes = resp.Attributes
+		get_response.Products = resp.Products
+		get_response.IsAvailable = resp.IsAvailable
+		get_response.PriceRange = PriceRangeResponse(resp.PriceRange)
+		get_response.CategoryId = resp.CategoryId
+		get_response.DistributorId = resp.DistributorId
+		get_response.Images = resp.Images
+
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": get_response})
 	} else if paramNameValue != "" {
 		cp_name_resp, err := cp.service.GetByParam(r.Context(),
 			&configurable_product.GetByParamRequest{
@@ -166,7 +207,7 @@ func (p *ConfigurableProduct) UpdateHandler(w http.ResponseWriter, r *http.Reque
 	}
 	defer r.Body.Close()
 
-	var requestBody UpdateRequest
+	var requestBody UpdateConfigurableProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return
