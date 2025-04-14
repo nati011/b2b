@@ -1,4 +1,4 @@
-package handler
+package application
 
 import (
 	"net/http"
@@ -17,6 +17,24 @@ type CreateTransactionRequest struct {
 	User_Id    int   `json:"user_id"`
 	Amount     int64 `json:"amount"`
 	Partner_Id int   `json:"partner_id"`
+}
+
+type GetByParamRequest struct {
+	Date       time.Time `json:"date"`
+	Partner_Id int       `json:"partner_id"`
+	User_Id    int       `json:"user_id"`
+}
+
+type GetResponse struct {
+	Id         int       `json:"id"`
+	User_Id    int       `json:"user_id"`
+	Date       time.Time `json:"date"`
+	Amount     int64     `json:"amount"`
+	Partner_Id int       `json:"partner_id"`
+}
+
+type GetAllResponse struct {
+	List []GetResponse `json:"transactions"`
 }
 
 type Transaction struct {
@@ -55,6 +73,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 			return
 
 		}
+
 		resp, err := p.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
@@ -64,7 +83,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transaction": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"transaction": GetResponse(resp)})
 	} else if paramPartnerIdValue != "" || paramDateValue != "" || paramUserIdValue != "" {
 		typedPartnerId, err := strconv.Atoi(paramPartnerIdValue)
 		if err != nil {
@@ -76,7 +95,6 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 			util.RequestErrorResponse(w, err)
 			return
 		}
-
 		parsedDate, err := time.Parse(paramDateValue, "2024-09-19 14:00:00")
 		if err != nil {
 			util.RequestErrorResponse(w, err)
@@ -100,10 +118,14 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": resp})
+		var response GetAllResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
 
 	} else {
-		transactions, err := p.service.GetAll(r.Context())
+		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			default:
@@ -111,6 +133,10 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": transactions})
+		var response GetAllResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
 	}
 }

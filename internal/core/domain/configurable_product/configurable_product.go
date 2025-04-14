@@ -37,6 +37,7 @@ type PriceRangeResponse struct {
 	Min int
 	Max int
 }
+
 type GetResponse struct {
 	Id            int
 	Name          string

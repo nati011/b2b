@@ -1,4 +1,4 @@
-package handler
+package application
 
 import (
 	"encoding/json"
@@ -53,6 +53,10 @@ type RemoveResourceFromRoleRequest struct {
 type HasResourceInRoleRequest struct {
 	ResourceId int `json:"resource_id"`
 	RoleId     int `json:"role_id"`
+}
+
+type GetAllResourcesResponse struct {
+	List []int `json:"resources"`
 }
 
 var (
@@ -234,7 +238,11 @@ func (ro *Role) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"roles": resp})
+		var response GetAllRoleResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, (GetRoleResponse)(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"roles": response})
 	}
 }
 
@@ -260,7 +268,9 @@ func (ro *Role) GetAllResourcesHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"resources": resp}, http.StatusAccepted)
+		var response GetAllResourcesResponse
+		response.List = append(response.List, resp.List...)
+		util.WriteJSON(w, util.Envelope{"resources": response}, http.StatusAccepted)
 	} else {
 		resp, err := ro.service.GetAll(r.Context())
 		if err != nil {

@@ -1,4 +1,4 @@
-package handler
+package domain
 
 import (
 	"encoding/json"
@@ -15,6 +15,15 @@ import (
 
 type CreateCategoryRequest struct {
 	Name string `json:"name"`
+}
+
+type GetCategoryResponse struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type GetAllCategoryResponse struct {
+	List []GetCategoryResponse `json:"categories"`
 }
 
 type Category struct {
@@ -57,7 +66,7 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, err)
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"category": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"category": GetCategoryResponse(resp)})
 	} else {
 		resp, err := c.service.GetAll(r.Context())
 		if err != nil {
@@ -70,7 +79,11 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"category": resp})
+		var get_all_response GetAllCategoryResponse
+		for _, i := range resp.List {
+			get_all_response.List = append(get_all_response.List, GetCategoryResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"category": get_all_response})
 	}
 }
 
