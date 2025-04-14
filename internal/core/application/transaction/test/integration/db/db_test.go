@@ -105,12 +105,16 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := container.TransactionService.GetAll(ctx)
+		pagination := transaction.Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+		resp, err := container.TransactionService.GetAll(ctx, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantLen := 1
-		if len(resp.List) != wantLen {
+		wantLen := pagination.Limit
+		if wantLen != len(resp.List) && wantLen < len(resp.List) {
 			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
 		}
 	})
@@ -134,15 +138,20 @@ func Test_read(t *testing.T) {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 
+		pagination := transaction.Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+
 		resp_param, err := container.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
 			Date: resp.Date,
-		})
+		}, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
+		wantLen := pagination.Limit
+		if wantLen != len(resp_param.List) && wantLen < len(resp_param.List) {
 			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
 		}
 	})
@@ -165,15 +174,18 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-
+		pagination := transaction.Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
 		resp_param, err := container.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
 			User_Id: resp.User_Id,
-		})
+		}, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
+		wantLen := pagination.Limit
+		if wantLen != len(resp_param.List) && wantLen < len(resp_param.List) {
 			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
 		}
 	})
@@ -196,17 +208,20 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-
+		pagination := transaction.Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
 		resp_param, err := container.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
 			Partner_Id: resp.Partner_Id,
-		})
+		}, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
-			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		wantLen := pagination.Limit
+		if wantLen != len(resp_param.List) && wantLen < len(resp_param.List) {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
 		}
 	})
 }

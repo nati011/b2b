@@ -40,6 +40,11 @@ type CreateRequest struct {
 	Partner_Id int
 }
 
+type Pagination struct {
+	Limit  int
+	Offset int
+}
+
 type GetByParamRequest struct {
 	Date       time.Time
 	Partner_Id int
@@ -49,8 +54,8 @@ type GetByParamRequest struct {
 type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	Get(context.Context, int) (GetResponse, error)
-	GetAll(context.Context) (GetAllResponse, error)
-	GetByParam(context.Context, *GetByParamRequest) (GetAllResponse, error)
+	GetAll(context.Context, *Pagination) (GetAllResponse, error)
+	GetByParam(context.Context, *GetByParamRequest, *Pagination) (GetAllResponse, error)
 }
 
 type TransactionService struct {
@@ -111,8 +116,11 @@ func (t *TransactionService) Get(ctx context.Context, id int) (GetResponse, erro
 	return GetResponse(resp), nil
 }
 
-func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error) {
-	resp, err := t.DB.GetAll(ctx)
+func (t *TransactionService) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
+	resp, err := t.DB.GetAll(ctx, &port.Pagination{
+		Limit:  pagination.Limit,
+		Offset: pagination.Offset,
+	})
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -131,10 +139,14 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 	return ret_resp, nil
 }
 
-func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
+func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequest, pagination *Pagination) (GetAllResponse, error) {
 	ret_resp := GetAllResponse{}
 	if req.Partner_Id != 0 {
-		resp, err := t.DB.GetByPartnerId(ctx, req.Partner_Id)
+
+		resp, err := t.DB.GetByPartnerId(ctx, req.Partner_Id, &port.Pagination{
+			Limit:  pagination.Limit,
+			Offset: pagination.Offset,
+		})
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
@@ -157,7 +169,10 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 	}
 
 	if req.User_Id != 0 {
-		resp, err := t.DB.GetByUserId(ctx, req.User_Id)
+		resp, err := t.DB.GetByUserId(ctx, req.User_Id, &port.Pagination{
+			Limit:  pagination.Limit,
+			Offset: pagination.Offset,
+		})
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
@@ -180,7 +195,10 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 	}
 
 	if !req.Date.IsZero() {
-		resp, err := t.DB.GetByDate(ctx, req.Date)
+		resp, err := t.DB.GetByDate(ctx, req.Date, &port.Pagination{
+			Limit:  pagination.Limit,
+			Offset: pagination.Offset,
+		})
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
