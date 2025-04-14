@@ -38,7 +38,7 @@ type RegisterUserResponse struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string
+	RefreshToken string `json:"refresh_token"`
 }
 
 type LoginAuthResponse struct {
