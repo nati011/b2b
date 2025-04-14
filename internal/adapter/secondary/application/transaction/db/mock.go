@@ -62,9 +62,11 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	return port.GetResponse{}, port.ErrSysNoRows
 }
 
-func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
+	count := 0
 	for _, i := range m.resources {
+		count++
 		response = append(response, port.GetResponse{
 			Id:         i.Id,
 			User_Id:    i.User_Id,
@@ -72,6 +74,9 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Amount:     i.Amount,
 			Partner_Id: i.Partner_Id,
 		})
+		if count > pagination.Limit && count == pagination.Limit {
+			break
+		}
 	}
 	if len(response) == 0 {
 		return port.GetAllResponse{}, port.ErrSysNoRows
@@ -81,7 +86,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
-func (m *Mock) GetByDate(ctx context.Context, date time.Time) (port.GetAllResponse, error) {
+func (m *Mock) GetByDate(ctx context.Context, date time.Time, pagination *port.Pagination) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
 		if i.Date == date {
@@ -102,7 +107,7 @@ func (m *Mock) GetByDate(ctx context.Context, date time.Time) (port.GetAllRespon
 	}, nil
 }
 
-func (m *Mock) GetByUserId(ctx context.Context, userId int) (port.GetAllResponse, error) {
+func (m *Mock) GetByUserId(ctx context.Context, userId int, pagination *port.Pagination) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
 		if i.User_Id == userId {
@@ -123,7 +128,7 @@ func (m *Mock) GetByUserId(ctx context.Context, userId int) (port.GetAllResponse
 	}, nil
 }
 
-func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int) (port.GetAllResponse, error) {
+func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int, pagination *port.Pagination) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
 		if i.Partner_Id == partnerId {

@@ -2767,7 +2767,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_user_id(
-    t_user_id INT
+    t_user_id INT,
+    t_limit INT,
+    t_offset INT
 )
 RETURNS TABLE(id INT,
               user_id INT,
@@ -2781,11 +2783,16 @@ BEGIN
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
     WHERE t.user_id = t_user_id
-      AND t.is_deleted = FALSE;
+    AND t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_transactions()
+CREATE OR REPLACE FUNCTION public.get_all_transactions(
+    t_limit INT,
+    t_offset INT
+)
 RETURNS TABLE(id INT,
               user_id INT,
               amount DECIMAL(12,2),
@@ -2797,12 +2804,16 @@ BEGIN
     RETURN QUERY
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
-    WHERE t.is_deleted = FALSE;
+    WHERE t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_partner_id(
-    t_partner_id INT
+    t_partner_id INT,
+    t_limit INT,
+    t_offset INT
 )
 RETURNS TABLE(id INT,
               user_id INT,
@@ -2816,12 +2827,16 @@ BEGIN
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
     WHERE t.partner_id = t_partner_id
-      AND t.is_deleted = FALSE;
+    AND t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_date(
-    t_date TIMESTAMP
+    t_date TIMESTAMP,
+    t_limit INT,
+    t_offset INT
 )
 RETURNS TABLE(id INT,
               user_id INT,
@@ -2835,7 +2850,9 @@ BEGIN
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
     WHERE t.date = t_date
-      AND t.is_deleted = FALSE;
+    AND t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 
 $$;
