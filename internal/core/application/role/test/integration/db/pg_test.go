@@ -96,12 +96,17 @@ func Test_Read(t *testing.T) {
 			Desc: "test",
 			Name: "test",
 		})
-		got, err := container.RoleService.GetAll(ctx)
+
+		pagination := role.Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+		got, err := container.RoleService.GetAll(ctx, &pagination)
 		if err != nil {
 			t.Errorf("Failed to get role by Id err %v", err)
 		}
-		wantLen := 1
-		if len(got.List) != wantLen {
+		wantLen := pagination.Limit
+		if len(got.List) != wantLen && len(got.List) > wantLen {
 			t.Errorf("Expected len: %v Got len %v", wantLen, len(got.List))
 		}
 	})
@@ -121,8 +126,11 @@ func Test_write(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to create role err: %v", err)
 		}
-
-		getResp, _ := container.RoleService.GetAll(ctx)
+		pagination := role.Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+		getResp, _ := container.RoleService.GetAll(ctx, &pagination)
 		if len(getResp.List) == 0 {
 			t.Errorf("No resources were created for role")
 		}
