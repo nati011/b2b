@@ -1,4 +1,4 @@
-package handler
+package application
 
 import (
 	"encoding/json"
@@ -89,7 +89,11 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, err)
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"resources": resp})
+		var response GetAllResourceResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, (GetResourceResponse)(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"resources": response})
 	}
 }
 
