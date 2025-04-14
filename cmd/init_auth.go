@@ -35,14 +35,14 @@ func InitAuth(cfg *config.Config) {
 			Use External service, verify if connection can be established and operations can be performed
 	*/
 
-	// switch cfg.Env {
-	// case "development":
-	// 	InitAuthDevelopment(cfg)
-	// case "staging":
-	// 	InitAuthStaging(cfg)
-	// case "production":
-	// 	InitAuthProduction(cfg)
-	// }
+	switch cfg.Env {
+	case "development":
+		InitAuthDevelopment(cfg)
+	case "staging":
+		InitAuthStaging(cfg)
+	case "production":
+		InitAuthProduction(cfg)
+	}
 }
 
 func InitAuthDevelopment(cfg *config.Config) {
