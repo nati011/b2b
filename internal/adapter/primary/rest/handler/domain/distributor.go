@@ -1,4 +1,4 @@
-package distributor
+package domain
 
 import (
 	"encoding/json"
