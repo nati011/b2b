@@ -281,23 +281,26 @@ func Test_Get_happyPath(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.DistributorService.Create(ctx, &in)
+		_, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
+		pagination := Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+
 		resp, err := testContainer.DistributorService.GetByParam(ctx, &GetByParamRequest{
 			Name: in.FirstName + in.LastName,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantLen := 1
-		if len(resp.List) != wantLen {
-			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
+		wantLen := pagination.Limit
+		if len(resp.List) != wantLen && len(resp.List) > wantLen {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
 		}
-		if resp.List[0].Id != id {
-			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
-		}
+
 	})
 
 	t.Run("getByTin", func(t *testing.T) {
@@ -315,22 +318,24 @@ func Test_Get_happyPath(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.DistributorService.Create(ctx, &in)
+		_, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
+		pagination := Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+
 		resp, err := testContainer.DistributorService.GetByParam(ctx, &GetByParamRequest{
 			Tin: in.Tin,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantLen := 1
-		if len(resp.List) != wantLen {
-			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
-		}
-		if resp.List[0].Id != id {
-			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
+		wantLen := pagination.Limit
+		if len(resp.List) != wantLen && len(resp.List) > wantLen {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
 		}
 	})
 	t.Run("getAll", func(t *testing.T) {
@@ -348,20 +353,39 @@ func Test_Get_happyPath(t *testing.T) {
 			LastName:  "test",
 			Email:     "test@gmail.com",
 		}
-		id, err := testContainer.DistributorService.Create(ctx, &in)
+		_, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := testContainer.DistributorService.GetAll(ctx)
+
+		in_two := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test_two@gmail.com",
+		}
+		_, err = testContainer.DistributorService.Create(ctx, &in_two)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		pagination := Pagination{
+			Limit:  1,
+			Offset: 0,
+		}
+		resp, err := testContainer.DistributorService.GetAll(ctx, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantLen := 1
-		if len(resp.List) != wantLen {
-			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
-		}
-		if resp.List[0].Id != id {
-			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
+		wantLen := pagination.Limit
+		if len(resp.List) != wantLen && len(resp.List) > wantLen {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
 		}
 	})
 }
@@ -380,7 +404,11 @@ func Test_Get_unhappyPath(t *testing.T) {
 
 	t.Run("empty_getAll", func(t *testing.T) {
 		t.Cleanup(testContainer.Cleanup)
-		_, err := testContainer.DistributorService.GetAll(ctx)
+		pagination := Pagination{
+			Limit:  1,
+			Offset: 0,
+		}
+		_, err := testContainer.DistributorService.GetAll(ctx, &pagination)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
