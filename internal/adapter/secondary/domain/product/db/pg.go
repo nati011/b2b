@@ -124,7 +124,6 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetResponse{}, port.ErrSysUnknown
 		}
@@ -492,7 +491,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -506,7 +504,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
@@ -520,7 +517,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -534,7 +530,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
@@ -548,7 +543,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -564,7 +558,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
@@ -576,7 +569,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
