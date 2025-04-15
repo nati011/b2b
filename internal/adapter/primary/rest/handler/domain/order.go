@@ -86,11 +86,19 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		resp, err := o.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
+<<<<<<< HEAD
 			case order.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 			default:
 				util.RequestErrorResponse(w, err)
 				return
+=======
+			case product.ErrIdNotFound:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 			}
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"order": resp})
@@ -111,11 +119,19 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			switch err {
+<<<<<<< HEAD
 			case order.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
 			default:
 				util.RequestErrorResponse(w, err)
+=======
+			case order.ErrEmptyGetResponse:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 				return
 			}
 		}
@@ -161,11 +177,21 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case order.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		default:
 			util.RequestErrorResponse(w, err)
+=======
+		case order.ErrRetailerIdNotSupplied,
+			order.ErrAtleastOneOrderItemNeeded,
+			order.ErrItemMemberProductIdOrQuantityEmpty:
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 			return
 		}
 	}
@@ -194,17 +220,28 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 			err = p.service.Cancel(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
+<<<<<<< HEAD
 				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
 					return
 				default:
 					util.RequestErrorResponse(w, err)
+=======
+				case product.ErrIdNotFound:
+					util.RequestErrorResponse(w, err)
+					return
+				default:
+					util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 					return
 				}
 			}
 		default:
 			util.RequestErrorResponse(w, ErrUnknownCommand)
+<<<<<<< HEAD
 			return
+=======
+>>>>>>> 1734bfa2 (resolve conflict)
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"order": typedParamId})
 	}

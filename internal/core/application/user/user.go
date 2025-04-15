@@ -198,9 +198,24 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		}
 	}
 
+<<<<<<< HEAD
 	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,
+=======
+	generated_password, err := generateRandomPassword(10)
+	if err != nil {
+		return 0, ErrUnknown
+	}
+
+	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
+		Email:           req.Email,
+		Password:        generated_password,
+		ConfirmPassword: generated_password,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		PhoneNumber:     req.Phone,
+>>>>>>> 1734bfa2 (resolve conflict)
 	})
 
 	if err != nil {
