@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 	"regexp"
 	"time"
 )
@@ -10,6 +12,14 @@ func create_validateFirstName(FirstName string) error {
 	//empty name
 	if FirstName == "" {
 		return ErrFirstNameMandatory
+	}
+	return nil
+}
+
+func create_validateLastName(LastName string) error {
+	//empty name
+	if LastName == "" {
+		return ErrLastNameMandatory
 	}
 	return nil
 }
@@ -47,6 +57,7 @@ func create_validateDOB(DOB time.Time) error {
 func create_validateUserInfo(
 	ctx context.Context,
 	FirstName string,
+	LastName string,
 	Email string,
 	Phone string,
 	Username string,
@@ -54,6 +65,10 @@ func create_validateUserInfo(
 
 ) error {
 	err := create_validateFirstName(FirstName)
+	if err != nil {
+		return err
+	}
+	err = create_validateLastName(FirstName)
 	if err != nil {
 		return err
 	}
@@ -122,4 +137,19 @@ func update_validateUserInfo(
 		return err
 	}
 	return nil
+}
+
+func generateRandomPassword(length int) (string, error) {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
+	password := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		randIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		password[i] = charset[randIndex.Int64()]
+	}
+
+	return string(password), nil
 }

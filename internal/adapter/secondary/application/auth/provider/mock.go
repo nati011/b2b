@@ -2,11 +2,13 @@ package provider
 
 import (
 	"context"
+	"strconv"
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 )
 
 type MockClient struct {
+	userId    string
 	firstName string
 	lastName  string
 	email     string
@@ -26,12 +28,29 @@ func NewMockAuthProvider() MockAuthProvider {
 	return MockAuthProvider{}
 }
 
-func (m *MockAuthProvider) Cleanup() {
+func (m *MockAuthProvider) Teardown() {
 	m.clients = []MockClient{}
 }
 
+func (m *MockAuthProvider) DeleteClient(ctx context.Context, userId string) error {
+	for _, i := range m.clients {
+		if i.userId != userId {
+			m.clients = append(m.clients, MockClient{
+				userId:    i.userId,
+				firstName: i.firstName,
+				lastName:  i.lastName,
+				email:     i.email,
+				username:  i.username,
+				password:  i.password,
+			})
+		}
+	}
+	return nil
+}
+
 func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
-	// check if username or password is taken
+	newId := strconv.Itoa(len(m.clients) + 1)
+	// check if username or email is taken
 	for _, index := range m.clients {
 		if index.username == req.Username {
 			return port.RegisterUserResponse{}, port.ErrSysUsernameTaken
@@ -39,7 +58,9 @@ func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.Registe
 			return port.RegisterUserResponse{}, port.ErrSysEmailTaken
 		}
 	}
+
 	m.clients = append(m.clients, MockClient{
+		userId:    newId,
 		firstName: req.FirstName,
 		lastName:  req.LastName,
 		email:     req.Email,
@@ -48,6 +69,7 @@ func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.Registe
 	})
 
 	return port.RegisterUserResponse{
+		Id:       newId,
 		Username: req.Username,
 	}, nil
 }

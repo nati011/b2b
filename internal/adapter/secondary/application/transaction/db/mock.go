@@ -11,7 +11,7 @@ type GetResponse struct {
 	Id         int
 	User_Id    int
 	Date       time.Time
-	Amount     int64
+	Amount     int32
 	Partner_Id int
 }
 

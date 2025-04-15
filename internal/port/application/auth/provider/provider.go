@@ -16,34 +16,32 @@ var (
 )
 
 type RegisterUserRequest struct {
-	Email           string    `json:"email"`
-	Password        string    `json:"password"`
-	ConfirmPassword string    `json:"confirmed_password"`
-	BirthDate       time.Time `json:"birth_date"`
-	PhoneNumber     string    `json:"phone_number"`
-	ExternalId      string    `json:"external_id"`
-	FirstName       string    `json:"first_name"`
-	LastName        string    `json:"last_name"`
-	Username        string    `json:"username"`
+	Email       string
+	Password    string
+	BirthDate   time.Time
+	PhoneNumber string
+	ExternalId  string
+	FirstName   string
+	LastName    string
+	Username    string
 }
 
 type RegisterUserResponse struct {
-	Username string `json:"username"`
-	Message  string `json:"message"`
+	Id       string
+	Username string
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken"`
+	RefreshToken string
 }
 
 type LoginAuthResponse struct {
-	JWT     JWT
-	Message string `json:"message"`
+	JWT JWT
 }
 
 type LoginUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string
+	Password string
 }
 
 type JWT struct {
@@ -57,8 +55,10 @@ type JWT struct {
 	SessionState     string
 	Scope            string
 }
+
 type Provider interface {
 	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
+	DeleteClient(ctx context.Context, userId string) error
 }

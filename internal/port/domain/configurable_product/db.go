@@ -6,14 +6,15 @@ import (
 )
 
 var (
-	ErrSysNoRows = errors.New("no rows")
+	ErrSysNoRows  = errors.New("no rows")
+	ErrSysUnknown = errors.New("unknown error")
 )
 
 type CreateRequest struct {
 	Name              string
 	Desc              string
 	ExternalId        string
-	AttributeKeys     map[string]string
+	AttributeKeys     []map[string]string
 	Products          []int
 	Images            []string
 	IsAvailableStatus bool
@@ -29,7 +30,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalId    string
-	Attributes    map[string]string
+	Attributes    []map[string]string
 	Products      []int
 	IsAvailable   bool
 	PriceRange    PriceRangeResponse
@@ -73,8 +74,8 @@ type UpdateImagesRequest struct {
 }
 
 type UpdateAttributes struct {
-	Id         int
-	Attributes map[string]string
+	Id            int
+	AttributeKeys []map[string]string
 }
 
 type Reader interface {

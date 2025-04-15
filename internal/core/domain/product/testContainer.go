@@ -22,3 +22,10 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	)
 	return container
 }
+
+func (t *TestContainer) Teardown() {
+	t.ProductService = NewProduct(
+		db.NewMock(),
+		t.CategoryService,
+	)
+}

@@ -1,4 +1,4 @@
-package handler
+package application
 
 import (
 	"encoding/json"
@@ -24,14 +24,14 @@ type UpdateResourceRequest struct {
 	Name   string `json:"name"`
 }
 
-type GetResponse struct {
+type GetResourceResponse struct {
 	Id     int    `json:"id"`
 	Action string `json:"action"`
 	Name   string `json:"name"`
 }
 
-type GetAllResponse struct {
-	List []GetResponse `json:"resources"`
+type GetAllResourceResponse struct {
+	List []GetResourceResponse `json:"resources"`
 }
 
 type Resource struct {
@@ -62,7 +62,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
@@ -70,99 +70,86 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			switch err {
-			case resource.ErrEmptyGetContent,
-				resource.ErrEmptyName,
-				resource.ErrEmptyAction:
-
-				util.RequestErrorResponse(w, r, err)
+			case resource.ErrUnknown:
+				util.ServerErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-
 		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
 	} else {
 		resp, err := rs.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
-
-		util.WriteJSON(w, util.Envelope{"resources": resp}, http.StatusAccepted)
+		var response GetAllResourceResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, (GetResourceResponse)(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"resources": response})
 	}
 }
 
 func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateResourceRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 
 	id, err := rs.service.Create(r.Context(), (*resource.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case resource.ErrDuplicateName,
-			resource.ErrEmptyAction,
-			resource.ErrEmptyName,
-			resource.ErrIdNotFound,
-			resource.ErrEmptyUpdateContent,
-			resource.ErrEmptyGetContent:
-
-			util.RequestErrorResponse(w, r, err)
-			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
+			return
+		case resource.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"resource": id})
 }
 
 func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody UpdateResourceRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := rs.service.Update(r.Context(), (*resource.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case resource.ErrDuplicateName,
-			resource.ErrEmptyAction,
-			resource.ErrEmptyName,
-			resource.ErrIdNotFound,
-			resource.ErrEmptyUpdateContent,
-			resource.ErrEmptyGetContent:
-
-			util.RequestErrorResponse(w, r, err)
+		case resource.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"resource": id})
 }
 
 func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request) {
@@ -173,20 +160,20 @@ func (rs *Resource) DeleteResourceHandler(w http.ResponseWriter, r *http.Request
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		err = rs.service.Delete(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case resource.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"resource": paramIdValue}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"resource": paramIdValue})
 }

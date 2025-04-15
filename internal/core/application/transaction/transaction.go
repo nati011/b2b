@@ -118,15 +118,12 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 		case port.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
-			return GetAllResponse{}, nil
+			return GetAllResponse{}, ErrUnknown
 		}
 	}
 	ret_resp := GetAllResponse{}
 	for _, i := range resp.List {
 		ret_resp.List = append(ret_resp.List, GetResponse(i))
-	}
-	if len(ret_resp.List) == 0 {
-		return GetAllResponse{}, ErrEmptyGetContent
 	}
 	return ret_resp, nil
 }
@@ -139,7 +136,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return GetAllResponse{}, nil
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 
@@ -162,7 +159,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return GetAllResponse{}, nil
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 
@@ -185,7 +182,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return GetAllResponse{}, nil
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 
