@@ -127,7 +127,11 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := de.service.Get(r.Context(), typedParamId)
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case distributor.ErrIdNotFound:
+=======
+		case retailer.ErrIdNotFound:
+>>>>>>> 1734bfa2 (resolve conflict)
 			util.RequestErrorResponse(w, err)
 			return
 		default:
@@ -177,10 +181,21 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		default:
 			util.RequestErrorResponse(w, err)
 			return
 		case user.ErrUnknown:
+=======
+		case user.ErrEmailNotValid,
+			user.ErrPhoneNotValid,
+			user.ErrPhoneOrEmailMandatory,
+			user.ErrFirstNameMandatory:
+
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+>>>>>>> 1734bfa2 (resolve conflict)
 			util.ServerErrorResponse(w, err)
 			return
 		}
@@ -207,7 +222,11 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		resp, err := de.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
+<<<<<<< HEAD
 			case distributor.ErrIdNotFound:
+=======
+			case retailer.ErrIdNotFound:
+>>>>>>> 1734bfa2 (resolve conflict)
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -246,7 +265,12 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		})
 		if err != nil {
 			switch err {
+<<<<<<< HEAD
 			case distributor.ErrEmptyGetContent:
+=======
+			case retailer.ErrEmptyGetContent:
+
+>>>>>>> 1734bfa2 (resolve conflict)
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -325,6 +349,7 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
+<<<<<<< HEAD
 =======
 	UserId    int    `json:"user_id"`
 }
@@ -375,6 +400,8 @@ func (h *DistributorHandler) CreateHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		util.RequestErrorResponse(w, r, err)
 >>>>>>> 8f0b9404 (init distributor refactor)
+=======
+>>>>>>> 1734bfa2 (resolve conflict)
 		return
 	}
 	defer r.Body.Close()
@@ -388,11 +415,22 @@ func (h *DistributorHandler) CreateHandler(w http.ResponseWriter, r *http.Reques
 	id, err := de.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case distributor.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		default:
 			util.RequestErrorResponse(w, err)
+=======
+		case retailer.ErrIdNotFound,
+			retailer.ErrDuplicateTin,
+			retailer.ErrInvalidTin:
+
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 			return
 		}
 	}
@@ -415,7 +453,11 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 	id, err := de.service.Update(r.Context(), (*distributor.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case distributor.ErrIdNotFound:
+=======
+		case retailer.ErrIdNotFound:
+>>>>>>> 1734bfa2 (resolve conflict)
 			util.RequestErrorResponse(w, err)
 			return
 		default:

@@ -199,11 +199,20 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			switch err {
+<<<<<<< HEAD
 			case product.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
 			default:
 				util.RequestErrorResponse(w, err)
+=======
+			case product.ErrCategoryNotFound,
+				product.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 				return
 			}
 		}
@@ -215,11 +224,243 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			case product.ErrEmptyGetContent:
 			default:
 				util.ServerErrorResponse(w, err)
+<<<<<<< HEAD
+=======
+				return
+			}
+		}
+		var configurables []ProductResponse
+		for _, i := range pr.List {
+			configurables = append(configurables, ProductResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        i.Images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			})
+
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+			for attr_key, attr_val := range i.Attributes {
+				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+					{
+						ProductId:      i.Id,
+						AttributeValue: attr_val,
+					},
+				}
+			}
+
+			resp = append(resp, GetProductResponse{
+				Name:                   i.Name,
+				Desc:                   i.Desc,
+				IsActive:               i.IsActive,
+				Images:                 i.Images,
+				ConfigurableAttributes: configurableAttribute,
+				Configurables:          configurables,
+			})
+		}
+
+		cp, err := p.configurableProductservice.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 				return
 			}
 		}
 
+<<<<<<< HEAD
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+=======
+		for _, j := range cp.List {
+			var configurables []ProductResponse
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+			for _, i := range j.Products {
+				resp, err := p.service.Get(r.Context(), i)
+				if err != nil {
+					if err != nil {
+						switch err {
+						case product.ErrIdNotFound:
+						default:
+							util.ServerErrorResponse(w, err)
+						}
+					}
+				}
+				configurables = append(configurables, ProductResponse{
+					Id:            resp.Id,
+					Name:          resp.Name,
+					Desc:          resp.Desc,
+					ExternalID:    resp.ExternalID,
+					Images:        resp.Images,
+					Price:         resp.Price,
+					Attributes:    resp.Attributes,
+					DistributorId: resp.DistributorId,
+					CategoryId:    resp.CategoryId,
+					Stock:         resp.Stock,
+					IsActive:      resp.IsActive,
+				})
+				for attr_key, _ := range j.Attributes {
+					configurableAttribute[attr_key] = append(configurableAttribute[attr_key], ConfigurableAttributesResponse{
+						ProductId:      resp.Id,
+						AttributeValue: resp.Attributes[attr_key],
+					})
+				}
+			}
+
+			resp = append(resp, GetProductResponse{
+				Name:                   j.Name,
+				Desc:                   j.Desc,
+				IsActive:               j.IsAvailable,
+				Images:                 j.Images,
+				ConfigurableAttributes: configurableAttribute,
+				Configurables:          configurables,
+			})
+		}
+		util.WriteJSON(w, util.Envelope{"products": resp}, http.StatusAccepted)
+	}
+}
+
+func (p *Product) GetConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	const ParamName = "name"
+	paramValues := r.URL.Query()
+	paramNameValue := paramValues.Get(ParamName)
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+
+		}
+		cp_resp, err := p.configurableProductservice.Get(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case configurable_product.ErrIdNotFound:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+			}
+		}
+
+		var configurables []ProductResponse
+		var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+		for _, i := range cp_resp.Products {
+			resp, err := p.service.Get(r.Context(), i)
+			if err != nil {
+				if err != nil {
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, err)
+					}
+				}
+			}
+			configurables = append(configurables, ProductResponse{
+				Id:            resp.Id,
+				Name:          resp.Name,
+				Desc:          resp.Desc,
+				ExternalID:    resp.ExternalID,
+				Images:        resp.Images,
+				Price:         resp.Price,
+				Attributes:    resp.Attributes,
+				DistributorId: resp.DistributorId,
+				CategoryId:    resp.CategoryId,
+				Stock:         resp.Stock,
+				IsActive:      resp.IsActive,
+			})
+
+			for attr_key, _ := range cp_resp.Attributes {
+				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+					{
+						ProductId:      resp.Id,
+						AttributeValue: resp.Attributes[attr_key],
+					},
+				}
+			}
+		}
+
+		util.WriteJSON(w, util.Envelope{"configurable_product": GetProductResponse{
+			Name:                   cp_resp.Name,
+			Desc:                   cp_resp.Desc,
+			IsActive:               cp_resp.IsAvailable,
+			Images:                 cp_resp.Images,
+			ConfigurableAttributes: configurableAttribute,
+			Configurables:          configurables,
+		}}, http.StatusAccepted)
+
+	} else if paramNameValue != "" {
+		cp_resp, err := p.configurableProductservice.GetByParam(r.Context(),
+			&configurable_product.GetByParamRequest{
+				Name: paramNameValue,
+			})
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+			}
+		}
+		var resp []GetProductResponse
+		for _, j := range cp_resp.List {
+
+			var configurables []ProductResponse
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+			for _, i := range j.Products {
+				resp, err := p.service.Get(r.Context(), i)
+				if err != nil {
+					if err != nil {
+						switch err {
+						case product.ErrIdNotFound:
+						default:
+							util.ServerErrorResponse(w, err)
+						}
+					}
+				}
+				configurables = append(configurables, ProductResponse{
+					Id:            resp.Id,
+					Name:          resp.Name,
+					Desc:          resp.Desc,
+					ExternalID:    resp.ExternalID,
+					Images:        resp.Images,
+					Price:         resp.Price,
+					Attributes:    resp.Attributes,
+					DistributorId: resp.DistributorId,
+					CategoryId:    resp.CategoryId,
+					Stock:         resp.Stock,
+					IsActive:      resp.IsActive,
+				})
+				for attr_key, _ := range resp.Attributes {
+					configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+						{
+							ProductId:      resp.Id,
+							AttributeValue: resp.Attributes[attr_key],
+						},
+					}
+				}
+			}
+
+			resp = append(resp, GetProductResponse{
+				Name:                   j.Name,
+				Desc:                   j.Desc,
+				IsActive:               j.IsAvailable,
+				Images:                 j.Images,
+				ConfigurableAttributes: configurableAttribute,
+				Configurables:          configurables,
+			})
+		}
+		util.WriteJSON(w, util.Envelope{"configurable_products": resp}, http.StatusAccepted)
+>>>>>>> 1734bfa2 (resolve conflict)
 	}
 }
 
@@ -239,6 +480,7 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := p.service.Create(r.Context(), (*product.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case product.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
@@ -248,6 +490,56 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"product": id})
+=======
+		case product.ErrIdNotFound,
+			product.ErrNameNotSupplied,
+			product.ErrNameDuplicate,
+			product.ErrImagesMustBeAtleastTwo,
+			product.ErrPriceNotSupplied,
+			product.ErrAttributeValuesCannotBeEmpty,
+			product.ErrCategoryNotFound:
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"product": id}, http.StatusAccepted)
+}
+
+func (p *Product) CreateConfigurableProductHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CreateConfigurableProductRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	id, err := p.configurableProductservice.Create(r.Context(), (*configurable_product.CreateRequest)(&requestBody))
+	if err != nil {
+		switch err {
+		case product.ErrIdNotFound,
+			product.ErrNameNotSupplied,
+			product.ErrNameDuplicate,
+			product.ErrImagesMustBeAtleastTwo,
+			product.ErrPriceNotSupplied,
+			product.ErrAttributeValuesCannotBeEmpty,
+			product.ErrCategoryNotFound:
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.WriteJSON(w, util.Envelope{"product": id}, http.StatusAccepted)
+>>>>>>> 1734bfa2 (resolve conflict)
 }
 
 func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -266,11 +558,19 @@ func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := p.service.Update(r.Context(), (*product.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case product.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		default:
 			util.RequestErrorResponse(w, err)
+=======
+		case product.ErrIdNotFound:
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 			return
 		}
 	}
@@ -298,11 +598,21 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			err = p.service.Activate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
+<<<<<<< HEAD
 				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
 					return
 				default:
 					util.RequestErrorResponse(w, err)
+=======
+				case product.ErrIdNotFound,
+					product.ErrAlreadyActive:
+
+					util.RequestErrorResponse(w, err)
+					return
+				default:
+					util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 					return
 				}
 			}
@@ -311,17 +621,31 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
+<<<<<<< HEAD
 				case product.ErrUnknown:
 					util.ServerErrorResponse(w, err)
 					return
 				default:
 					util.RequestErrorResponse(w, err)
+=======
+				case product.ErrIdNotFound,
+					product.ErrAlreadyInactive:
+
+					util.RequestErrorResponse(w, err)
+					return
+				default:
+					util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 					return
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"detail": "product successfully deactivated"})
 		default:
+<<<<<<< HEAD
 			util.RequestErrorResponse(w, ErrUnknownProductCommand)
+=======
+			util.RequestErrorResponse(w, errors.New("unknown command"))
+>>>>>>> 1734bfa2 (resolve conflict)
 		}
 	}
 }
@@ -384,7 +708,11 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"detail": "product depletion successful"})
 		default:
+<<<<<<< HEAD
 			util.RequestErrorResponse(w, ErrUnknownProductCommand)
+=======
+			util.RequestErrorResponse(w, errors.New("unknown command"))
+>>>>>>> 1734bfa2 (resolve conflict)
 		}
 	}
 }

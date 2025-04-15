@@ -68,11 +68,22 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		resp, err := rs.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
+<<<<<<< HEAD
 			case resource.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
 			default:
 				util.RequestErrorResponse(w, err)
+=======
+			case resource.ErrEmptyGetContent,
+				resource.ErrEmptyName,
+				resource.ErrEmptyAction:
+
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 				return
 			}
 		}
@@ -112,10 +123,23 @@ func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request
 	id, err := rs.service.Create(r.Context(), (*resource.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		default:
 			util.RequestErrorResponse(w, err)
 			return
 		case resource.ErrUnknown:
+=======
+		case resource.ErrDuplicateName,
+			resource.ErrEmptyAction,
+			resource.ErrEmptyName,
+			resource.ErrIdNotFound,
+			resource.ErrEmptyUpdateContent,
+			resource.ErrEmptyGetContent:
+
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+>>>>>>> 1734bfa2 (resolve conflict)
 			util.ServerErrorResponse(w, err)
 			return
 		}
@@ -139,11 +163,25 @@ func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request
 	id, err := rs.service.Update(r.Context(), (*resource.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
 		case resource.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		default:
 			util.RequestErrorResponse(w, err)
+=======
+		case resource.ErrDuplicateName,
+			resource.ErrEmptyAction,
+			resource.ErrEmptyName,
+			resource.ErrIdNotFound,
+			resource.ErrEmptyUpdateContent,
+			resource.ErrEmptyGetContent:
+
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+>>>>>>> 1734bfa2 (resolve conflict)
 			return
 		}
 	}
