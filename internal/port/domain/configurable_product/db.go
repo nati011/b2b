@@ -75,7 +75,7 @@ type UpdateImagesRequest struct {
 
 type UpdateAttributes struct {
 	Id            int
-	AttributeKeys []map[string]string
+	AttributeKeys []string
 }
 
 type Reader interface {
