@@ -1,7 +1,7 @@
 package retailer
 
 import (
-	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/retailer/db"
+	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	user "b2b.nati011.github.com/internal/core/application/user"
 )
 
@@ -16,4 +16,9 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.RetailerService = NewRetailerService(container.UserService, db_adapter.NewMock())
 
 	return container
+}
+
+func (t *TestContainer) Teardown() {
+	t.UserService = user.NewTestContainer().UserService
+	t.RetailerService = NewRetailerService(t.UserService, db_adapter.NewMock())
 }

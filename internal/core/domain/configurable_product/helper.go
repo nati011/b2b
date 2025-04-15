@@ -46,20 +46,23 @@ func (p *ConfigurableProductService) validateAttributekeys(ctx context.Context, 
 		return ErrAttributeKeysMustBeAtleastOne
 	}
 	//validate attributes exist in all products
+	notFound := true
 	for _, i := range attributeKeys {
-		notFound := true
 		for _, j := range products {
 			resp, err := p.ProductService.Get(ctx, j)
 			if err != nil {
 				continue
 			}
-			if resp.Attributes[i] != "" {
-				notFound = false
+			for k := range resp.Attributes {
+				if k == i {
+					notFound = false
+					break
+				}
 			}
 		}
-		if notFound {
-			return ErrAttributeKeysDoNotExistInProduct
-		}
+	}
+	if notFound {
+		return ErrAttributeKeysDoNotExistInProduct
 	}
 
 	return nil

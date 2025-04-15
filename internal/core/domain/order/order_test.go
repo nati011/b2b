@@ -5,14 +5,13 @@ import (
 	"os"
 	"testing"
 
-	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
-	db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
-	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
-var service Provider
-var productId int
+var container TestContainer
+var retailer_id int
+var product_id int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -21,14 +20,23 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	productService := product.NewPackageIntegrationTestContainer().ProductService
-	service = NewOrderService(
-		db.NewMock(),
-		invoice.NewInvoice(invoice_db.NewMock()),
-		productService,
-	)
 	ctx := context.Background()
-	productId, _ = productService.Create(ctx, &product.CreateRequest{
+	container = NewPackageIntegrationTestContainer()
+	retailer_id, _ = container.RetailerService.Create(ctx, &retailer.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+
+		FirstName: "test",
+		LastName:  "test",
+
+		Email: "test@gmail.com",
+	})
+
+	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
@@ -41,25 +49,34 @@ func setup() {
 			"test": "test",
 		},
 	})
+	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+		Id:     product_id,
+		Amount: 100,
+	})
+}
+
+func teardown() {
+	container.Teardown()
 }
 
 func Test_Place_Order_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		id, err := service.Place(ctx, in)
+		id, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		resp, err := service.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
@@ -69,21 +86,22 @@ func Test_Place_Order_happyPath(t *testing.T) {
 	})
 
 	t.Run("pendingStatusByDefault", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		id, err := service.Place(ctx, in)
+		id, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		resp, err := service.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
@@ -100,15 +118,16 @@ func Test_Place_Order_happyPath(t *testing.T) {
 
 func Test_Place_Order_unhappyPath(t *testing.T) {
 	t.Run("retailerIdMandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		_, err := service.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		wantErr := ErrRetailerIdNotSupplied
 		if err != wantErr {
 			t.Fatalf("Expected err: %v Got err: %v", wantErr, err)
@@ -116,12 +135,13 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("atleastOneItemMandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items:      []Item{},
 		}
-		_, err := service.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		wantErr := ErrAtleastOneOrderItemNeeded
 		if err != wantErr {
 			t.Fatalf("Expected err: %v Got err: %v", wantErr, err)
@@ -129,15 +149,16 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("ItemParamsComplete", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId},
+					ProductId: product_id},
 			},
 		}
-		_, err := service.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		wantErr := ErrItemMemberProductIdOrQuantityEmpty
 		if err != wantErr {
 			t.Fatalf("Expected err: %v Got err: %v", wantErr, err)
@@ -146,26 +167,27 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 }
 
 func Test_Cancel_Order_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		RetailerId: 1,
+		RetailerId: retailer_id,
 		Items: []Item{
 			{
-				ProductId: productId,
+				ProductId: product_id,
 				Quantity:  19},
 		},
 	}
-	id, err := service.Place(ctx, in)
+	id, err := container.OrderService.Place(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
 
-	err = service.Cancel(ctx, id)
+	err = container.OrderService.Cancel(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to cancel order err:%v", err)
 	}
 
-	got, err := service.Get(ctx, id)
+	got, err := container.OrderService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
@@ -177,9 +199,10 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 
 func Test_Cancel_Order_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//check
-		err := service.Cancel(ctx, 99)
+		err := container.OrderService.Cancel(ctx, 99)
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -187,27 +210,28 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("alreadyCanceled", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		id, err := service.Place(ctx, in)
+		id, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 
-		err = service.Cancel(ctx, id)
+		err = container.OrderService.Cancel(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to cancel order err:%v", err)
 		}
 
 		//cancel again
-		err = service.Cancel(ctx, id)
+		err = container.OrderService.Cancel(ctx, id)
 		wantErr := ErrAlreadyCanceled
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err:%v", wantErr, err)
@@ -216,21 +240,22 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		RetailerId: 1,
+		RetailerId: retailer_id,
 		Items: []Item{
 			{
-				ProductId: productId,
+				ProductId: product_id,
 				Quantity:  19},
 		},
 	}
-	id, err := service.Place(ctx, in)
+	id, err := container.OrderService.Place(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
 	//check
-	got, err := service.Get(ctx, id)
+	got, err := container.OrderService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to fetch order err: err %v", err)
 	}
@@ -242,9 +267,10 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//check
-		_, err := service.Get(ctx, 99)
+		_, err := container.OrderService.Get(ctx, 99)
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -253,21 +279,22 @@ func Test_Get_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_All_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		RetailerId: 1,
+		RetailerId: retailer_id,
 		Items: []Item{
 			{
-				ProductId: productId,
+				ProductId: product_id,
 				Quantity:  19},
 		},
 	}
-	_, err := service.Place(ctx, in)
+	_, err := container.OrderService.Place(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
 	//check
-	got, err := service.GetAll(ctx)
+	got, err := container.OrderService.GetAll(ctx)
 	if err != nil {
 		t.Fatalf("Failed to fetch order err: err %v", err)
 	}
@@ -279,8 +306,9 @@ func Test_Get_All_happyPath(t *testing.T) {
 
 func Test_Get_All_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
-		_, err := service.GetAll(ctx)
+		_, err := container.OrderService.GetAll(ctx)
 		wantErr := ErrEmptyGetResponse
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -290,21 +318,22 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 
 func Test_Get_By_Param_happyPath(t *testing.T) {
 	t.Run("getByRetailerId", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		_, err := service.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
+		got, err := container.OrderService.GetByParam(ctx, &GetByParamRequest{
 			RetailerId: 1,
 		})
 		if err != nil {
@@ -317,21 +346,22 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByStatus", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		_, err := service.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
+		got, err := container.OrderService.GetByParam(ctx, &GetByParamRequest{
 			Status: PENDING_STATUS,
 		})
 		if err != nil {
@@ -344,21 +374,22 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 	})
 
 	t.Run("aggregate", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []Item{
 				{
-					ProductId: productId,
+					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
-		_, err := service.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		got, err := service.GetByParam(ctx, &GetByParamRequest{
+		got, err := container.OrderService.GetByParam(ctx, &GetByParamRequest{
 			Status:     PENDING_STATUS,
 			RetailerId: 1,
 		})
@@ -374,14 +405,52 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 
 func Test_Get_By_Param_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
-		_, err := service.GetByParam(ctx, &GetByParamRequest{
+		_, err := container.OrderService.GetByParam(ctx, &GetByParamRequest{
 			Status:     PENDING_STATUS,
 			RetailerId: 1,
 		})
 		wantErr := ErrEmptyGetResponse
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Update_Status(t *testing.T) {
+	t.Run("update_status", func(t *testing.T) {
+		ctx := context.Background()
+		in := &PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  19},
+			},
+		}
+		id, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		//update
+		_, err = container.OrderService.UpdateStatus(ctx, &UpdateRequest{
+			Id:     id,
+			Status: "New",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := container.OrderService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantStatus := "New"
+		if resp.Status != wantStatus {
+			t.Errorf("Expected status: %v got: %v", wantStatus, resp.Status)
 		}
 	})
 }

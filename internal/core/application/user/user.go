@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/application/auth"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/user"
 )
@@ -16,6 +17,8 @@ var (
 	ErrUsernameNotFound      = errors.New("oopsy, username not found")
 	ErrActiveStatusNotFound  = errors.New("oopsy, active_status not found")
 	ErrFirstNameMandatory    = errors.New("oopsy, FirstName not supplied")
+	ErrLastNameMandatory     = errors.New("oopsy, LastName not supplied")
+	ErrUsernameMandatory     = errors.New("oopsy, Username not supplied")
 	ErrPhoneOrEmailMandatory = errors.New("oopsy, phone or email mandatory")
 	ErrEmptyGetContent       = errors.New("oopsy, content is empty")
 	ErrUserAlreadyActive     = errors.New("oopsy, user already active")
@@ -28,6 +31,10 @@ var (
 	ErrUnknown               = errors.New("oopsy, unknown error")
 	ErrPhoneNotValid         = errors.New("oopsy, phone number not valid")
 	ErrEmailNotValid         = errors.New("oopsy, email not valid")
+
+	ErrEmailTaken        = errors.New("oopsy, email already taken")
+	ErrUserNameTaken     = errors.New("oopsy, username already taken")
+	ErrPasswordMandatory = errors.New("oopsy, password not supplied")
 )
 
 type CreateRequest struct {
@@ -48,9 +55,19 @@ type GetAllAssignedRoleResponse struct {
 	List []GetAssignedRoleResponse
 }
 
+type UserProvider struct {
+	UserId     int
+	ProviderId string
+}
+
+type GetUserProviderResponse struct {
+	List []UserProvider
+}
+
 type UpdateRequest struct {
 	Id         int
 	FirstName  string
+	LastName   string
 	Email      string
 	Phone      string
 	Username   string
@@ -58,10 +75,35 @@ type UpdateRequest struct {
 	ExternalId string
 }
 
+type GetByParam struct {
+	Email      string
+	Phone      string
+	Username   string
+	IsActive   bool
+	ExternalId string
+}
+
+type GetResponse struct {
+	Id         int
+	FirstName  string
+	LastName   string
+	Email      string
+	Phone      string
+	Username   string
+	DOB        time.Time
+	IsActive   bool
+	ExternalId string
+}
+
+type GetAllResponse struct {
+	List []GetResponse
+}
+
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
-	GetAll(ctx context.Context) (resp port.GetAllResponse, err error)
-	GetByParam(ctx context.Context, req *port.GetByParam) (resp port.GetAllResponse, err error)
+	Get(ctx context.Context, id int) (resp GetResponse, err error)
+	GetAll(ctx context.Context) (resp GetAllResponse, err error)
+	GetByParam(ctx context.Context, req *GetByParam) (resp GetAllResponse, err error)
 	Activate(ctx context.Context, id int) (err error)
 	Deactivate(ctx context.Context, id int) (err error)
 	IsActive(ctx context.Context, id int) (resp bool, err error)
@@ -69,19 +111,21 @@ type Provider interface {
 	RemoveAssignedRole(ctx context.Context, id int, role_id int) (err error)
 	GetAllAssignedRoles(ctx context.Context, id int) (resp GetAllAssignedRoleResponse, err error)
 	HasRole(ctx context.Context, id int, role_id int) (resp bool, err error)
-	Update(ctx context.Context, req *UpdateRequest) (resp port.GetResponse, err error)
+	Update(ctx context.Context, req *UpdateRequest) (resp GetResponse, err error)
 	Remove(ctx context.Context, id int) (err error)
 }
 
 type UserService struct {
 	db           port.DB
 	role_service role.Provider
+	auth_service auth.Provider
 }
 
-func NewUser(db port.DB, roleService role.Provider) Provider {
+func NewUser(db port.DB, roleService role.Provider, authService auth.Provider) Provider {
 	return &UserService{
 		db:           db,
 		role_service: roleService,
+		auth_service: authService,
 	}
 }
 
@@ -90,6 +134,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	err := create_validateUserInfo(
 		ctx,
 		req.FirstName,
+		req.LastName,
 		req.Email,
 		req.Phone,
 		req.Username,
@@ -99,9 +144,46 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		return 0, err
 	}
 
+	generated_password, err := generateRandomPassword(10)
+	if err != nil {
+		return 0, ErrUnknown
+	}
+
+	providerResponse, err := u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
+		Email:       req.Email,
+		Password:    generated_password,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.Phone,
+		Username:    req.Username,
+	})
+	if err != nil {
+		switch err {
+		case auth.ErrFirstNameNotSupplied:
+			return 0, ErrFirstNameMandatory
+		case auth.ErrLastNameNotSupplied:
+			return 0, ErrLastNameMandatory
+		case auth.ErrEmailNotSupplied:
+			return 0, ErrEmailNotFound
+		case auth.ErrUsernameNotSupplied:
+			return 0, ErrUsernameMandatory
+		case auth.ErrInvalidEmail:
+			return 0, ErrEmailNotValid
+		case auth.ErrPasswordNotSupplied:
+			return 0, ErrPasswordMandatory
+		case auth.ErrUsernameTaken:
+			return 0, ErrUserNameTaken
+		case auth.ErrEmailTaken:
+			return 0, ErrEmailTaken
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
 	//create user
 	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
 		FirstName:  req.FirstName,
+		LastName:   req.LastName,
 		Email:      req.Email,
 		Phone:      req.Phone,
 		Username:   req.Username,
@@ -109,8 +191,22 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		ExternalId: req.ExternalId,
 	})
 	if err != nil {
+		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
+		UserId:     user_id,
+		ProviderId: providerResponse.Id,
+	})
+
+	if err != nil {
+		switch err {
+		default:
+			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
 	}
@@ -118,21 +214,22 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	return user_id, nil
 }
 
-func (u *UserService) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	res, err := u.db.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return port.GetAllResponse{}, ErrEmptyGetContent
+			return GetAllResponse{}, ErrEmptyGetContent
 		default:
-			return port.GetAllResponse{}, ErrUnknown
+			return GetAllResponse{}, ErrUnknown
 		}
 	}
-	prep_resp := port.GetAllResponse{}
+	prep_resp := GetAllResponse{}
 	for _, i := range res.List {
-		prep_resp.List = append(prep_resp.List, port.GetResponse{
+		prep_resp.List = append(prep_resp.List, GetResponse{
 			Id:         i.Id,
 			FirstName:  i.FirstName,
+			LastName:   i.LastName,
 			Email:      i.Email,
 			Phone:      i.Phone,
 			Username:   i.Username,
@@ -143,35 +240,47 @@ func (u *UserService) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}
 
 	if len(prep_resp.List) == 0 {
-		return port.GetAllResponse{}, ErrEmptyGetContent
+		return GetAllResponse{}, ErrEmptyGetContent
 	}
 	return prep_resp, nil
 }
 
-func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (port.GetAllResponse, error) {
-	prep_resp := port.GetAllResponse{}
-	if req.ID != 0 {
-		res_id, err := u.db.GetByID(ctx, req.ID)
-		if err != nil {
-			switch err {
-			case port.ErrSysNoRows:
-			default:
-				return port.GetAllResponse{}, ErrUnknown
-			}
-		}
-		if res_id.Id != 0 {
-			already_present := false
-			for _, i := range prep_resp.List {
-				if i.Id == res_id.Id {
-					already_present = true
-					continue
-				}
-			}
-			if !already_present {
-				prep_resp.List = append(prep_resp.List, res_id)
-			}
+func (u *UserService) Get(ctx context.Context, id int) (GetResponse, error) {
+	res, err := u.db.GetByID(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, ErrUnknown
 		}
 	}
+	return GetResponse(res), nil
+}
+
+func (u *UserService) GetUserProvider(ctx context.Context, id int) (GetUserProviderResponse, error) {
+	user_providers, err := u.db.GetUserProvider(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetUserProviderResponse{}, ErrIdNotFound
+		default:
+			return GetUserProviderResponse{}, ErrUnknown
+		}
+	}
+
+	resp := GetUserProviderResponse{}
+	for _, i := range user_providers.List {
+		resp.List = append(resp.List, UserProvider{
+			UserId:     i.UserId,
+			ProviderId: i.ProviderId,
+		})
+	}
+	return resp, nil
+}
+
+func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {
+	prep_resp := GetAllResponse{}
 
 	if req.Email != "" {
 		res_email, err := u.db.GetByEmail(ctx, req.Email)
@@ -179,7 +288,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return port.GetAllResponse{}, ErrUnknown
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 
@@ -195,7 +304,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			}
 			if !already_present {
 				for _, i := range res_email.List {
-					prep_resp.List = append(prep_resp.List, port.GetResponse(i))
+					prep_resp.List = append(prep_resp.List, (GetResponse)(i))
 				}
 			}
 		}
@@ -207,7 +316,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return port.GetAllResponse{}, ErrUnknown
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		if len(res_phone.List) != 0 {
@@ -222,7 +331,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			}
 			if !already_present {
 				for _, i := range res_phone.List {
-					prep_resp.List = append(prep_resp.List, port.GetResponse(i))
+					prep_resp.List = append(prep_resp.List, (GetResponse)(i))
 				}
 			}
 		}
@@ -234,7 +343,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return port.GetAllResponse{}, ErrUnknown
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		if len(res_username.List) != 0 {
@@ -249,7 +358,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			}
 			if !already_present {
 				for _, i := range res_username.List {
-					prep_resp.List = append(prep_resp.List, port.GetResponse(i))
+					prep_resp.List = append(prep_resp.List, (GetResponse)(i))
 				}
 			}
 		}
@@ -260,7 +369,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 		switch err {
 		case port.ErrSysNoRows:
 		default:
-			return port.GetAllResponse{}, ErrUnknown
+			return GetAllResponse{}, ErrUnknown
 		}
 	}
 	if len(res_isActive.List) != 0 {
@@ -275,7 +384,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 		}
 		if !already_present {
 			for _, i := range res_isActive.List {
-				prep_resp.List = append(prep_resp.List, port.GetResponse(i))
+				prep_resp.List = append(prep_resp.List, (GetResponse)(i))
 			}
 		}
 	}
@@ -286,7 +395,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			switch err {
 			case port.ErrSysNoRows:
 			default:
-				return port.GetAllResponse{}, ErrUnknown
+				return GetAllResponse{}, ErrUnknown
 			}
 		}
 
@@ -302,23 +411,21 @@ func (u *UserService) GetByParam(ctx context.Context, req *port.GetByParam) (por
 			}
 			if !already_present {
 				for _, i := range res_externalId.List {
-					prep_resp.List = append(prep_resp.List, port.GetResponse(i))
+					prep_resp.List = append(prep_resp.List, (GetResponse)(i))
 				}
 			}
 		}
 	}
 
 	if len(prep_resp.List) == 0 {
-		return port.GetAllResponse{}, ErrEmptyGetContent
+		return GetAllResponse{}, ErrEmptyGetContent
 	}
 	return prep_resp, nil
 }
 
 func (u *UserService) Activate(ctx context.Context, id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -350,9 +457,7 @@ func (u *UserService) Activate(ctx context.Context, id int) error {
 
 func (u *UserService) Deactivate(ctx context.Context, id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -384,9 +489,7 @@ func (u *UserService) Deactivate(ctx context.Context, id int) error {
 
 func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -442,9 +545,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 
 func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAssignedRoleResponse, error) {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -459,7 +560,6 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return GetAllAssignedRoleResponse{}, ErrNoRoleAssigned
 		default:
 			return GetAllAssignedRoleResponse{}, ErrUnknown
 		}
@@ -479,9 +579,7 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 
 func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -538,9 +636,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 
 func (u *UserService) HasRole(ctx context.Context, id int, role_id int) (bool, error) {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -581,17 +677,15 @@ func (u *UserService) HasRole(ctx context.Context, id int, role_id int) (bool, e
 	return false, nil
 }
 
-func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetResponse, error) {
+func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetResponse, error) {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: req.Id,
-	})
+	_, err := u.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case ErrEmptyGetContent:
-			return port.GetResponse{}, ErrIdNotFound
+		case ErrIdNotFound:
+			return GetResponse{}, ErrIdNotFound
 		default:
-			return port.GetResponse{}, ErrUnknown
+			return GetResponse{}, ErrUnknown
 		}
 	}
 
@@ -605,7 +699,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetR
 		req.DOB,
 	)
 	if err != nil {
-		return port.GetResponse{}, err
+		return GetResponse{}, err
 	}
 
 	if req.FirstName != "" {
@@ -617,7 +711,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetR
 		if err != nil {
 			switch err {
 			default:
-				return port.GetResponse{}, ErrUnknown
+				return GetResponse{}, ErrUnknown
 			}
 		}
 	}
@@ -630,7 +724,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetR
 		if err != nil {
 			switch err {
 			default:
-				return port.GetResponse{}, ErrUnknown
+				return GetResponse{}, ErrUnknown
 			}
 		}
 	}
@@ -643,7 +737,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetR
 		if err != nil {
 			switch err {
 			default:
-				return port.GetResponse{}, ErrUnknown
+				return GetResponse{}, ErrUnknown
 			}
 		}
 	}
@@ -656,7 +750,7 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetR
 		if err != nil {
 			switch err {
 			default:
-				return port.GetResponse{}, ErrUnknown
+				return GetResponse{}, ErrUnknown
 			}
 		}
 	}
@@ -668,35 +762,50 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (port.GetR
 		if err != nil {
 			switch err {
 			default:
-				return port.GetResponse{}, ErrUnknown
+				return GetResponse{}, ErrUnknown
 			}
 		}
 	}
 
-	resp, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: req.Id,
-	})
+	resp, err := u.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
 		default:
-			return port.GetResponse{}, ErrUnknown
+			return GetResponse{}, ErrUnknown
 		}
 	}
-	return resp.List[0], nil
+	return (GetResponse)(resp), nil
 }
 
 func (u *UserService) Remove(ctx context.Context, id int) error {
 	//validate id
-	_, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	_, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
+		}
+	}
+
+	resp, err := u.GetUserProvider(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+			return ErrIdNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+	for _, i := range resp.List {
+		err = u.auth_service.DeleteClient(ctx, i.ProviderId)
+		if err != nil {
+			switch err {
+			default:
+				return ErrUnknown
+			}
 		}
 	}
 
@@ -713,9 +822,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 
 func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 	// validate id
-	user, err := u.GetByParam(ctx, &port.GetByParam{
-		ID: id,
-	})
+	user, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -724,7 +831,5 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 			return false, ErrUnknown
 		}
 	}
-
-	//get user id
-	return user.List[0].IsActive, nil
+	return user.IsActive, nil
 }

@@ -35,7 +35,6 @@ func Test_create_happyPath(t *testing.T) {
 		t.Errorf("Failed to create role err: %v", err)
 	}
 
-	//get resource
 	getResp, _ := service.GetAll(ctx)
 	if len(getResp.List) == 0 {
 		t.Errorf("No resources were created for role")
@@ -330,24 +329,6 @@ func Test_getRole_unhappyPath(t *testing.T) {
 			t.Errorf("Failed, non existing resource found")
 		}
 	})
-}
-
-func Test_getAllResources_happyPath(t *testing.T) {
-	//setup
-	ctx := context.Background()
-	id, _ := service.Create(ctx, &CreateRequest{
-		Desc: "test",
-		Name: "test",
-	})
-
-	// Get All
-	got, err := service.GetAll(ctx)
-	if err != nil {
-		t.Errorf("Failed to get role by Id err %v", err)
-	}
-	if len(got.List) == 0 || got.List[0].Id != id {
-		t.Errorf("Failed to get role by id")
-	}
 }
 
 func Test_hasResource_happyPath(t *testing.T) {

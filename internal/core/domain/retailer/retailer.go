@@ -5,15 +5,16 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/application/user"
-	port "b2b.nati011.github.com/internal/port/application/retailer"
+	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
 var (
-	ErrUnknown         = errors.New("oopsy, unknown error")
-	ErrInvalidTin      = errors.New("oopsy, tin invalid")
-	ErrInvalidLatitude = errors.New("oopsy, latitude invalid")
-	ErrIdNotFound      = errors.New("oopsy, id not found")
-	ErrEmptyGetContent = errors.New("oopsy, empty get content")
+	ErrUnknown            = errors.New("oopsy, unknown error")
+	ErrInvalidTin         = errors.New("oopsy, tin invalid")
+	ErrDuplicateTin       = errors.New("oopsy, tin already in use")
+	ErrIdNotFound         = errors.New("oopsy, id not found")
+	ErrEmptyGetContent    = errors.New("oopsy, empty get content")
+	ErrRetailerHasNoUsers = errors.New("oopys, retailer has no users")
 )
 
 type CreateRequest struct {
@@ -28,11 +29,12 @@ type CreateRequest struct {
 	LastName  string
 	Email     string
 	Phone     string
-	UserId    int
+	Username  string
 }
 
 type GetResponse struct {
 	Id          int
+	Name        string
 	Tin         string
 	Latitude    string
 	Longitude   string
@@ -56,11 +58,17 @@ type UpdateRequest struct {
 	Tin  string
 }
 
+type GetAllUsers struct {
+	List []int
+}
+
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
-	Update(ctx context.Context, req *UpdateRequest) error
+	GetAll(ctx context.Context) (GetAllResponse, error)
+	Update(ctx context.Context, req *UpdateRequest) (int, error)
+	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
 }
 
 type RetailerService struct {
@@ -77,31 +85,26 @@ func NewRetailerService(up user.Provider, db port.DB) Provider {
 
 func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate
-	err := validateLat(req.Latitude)
-	if err != nil {
-		return 0, err
-	}
-
-	err = validateLong(req.Longitude)
-	if err != nil {
-		return 0, err
-	}
-
-	err = validateTin(req.Tin)
+	err := r.validateTin(ctx, req.Tin)
 	if err != nil {
 		return 0, err
 	}
 
 	// create user
-	_, err = r.UserService.Create(ctx, &user.CreateRequest{
+	user_id, err := r.UserService.Create(ctx, &user.CreateRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
+		Username:  req.Username,
 		Phone:     req.Phone,
 	})
 	if err != nil {
 		switch err {
-		case user.ErrEmailNotValid, user.ErrPhoneNotValid, user.ErrPhoneOrEmailMandatory, user.ErrFirstNameMandatory:
+		case user.ErrEmailNotValid,
+			user.ErrPhoneNotValid,
+			user.ErrPhoneOrEmailMandatory,
+			user.ErrFirstNameMandatory:
+
 			return 0, err
 		default:
 			return 0, ErrUnknown
@@ -117,14 +120,16 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		GeneralZone: req.GeneralZone,
 		Region:      req.Region,
 		Woreda:      req.Woreda,
-		UserId:      req.UserId,
+		UserId:      user_id,
 	})
 	if err != nil {
 		switch err {
 		default:
+			r.UserService.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
 	}
+
 	return id, nil
 }
 
@@ -141,6 +146,7 @@ func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) 
 
 	return GetResponse{
 		Id:          resp.Id,
+		Name:        resp.Name,
 		Tin:         resp.Tin,
 		Latitude:    resp.Latitude,
 		Longitude:   resp.Longitude,
@@ -151,9 +157,158 @@ func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) 
 }
 
 func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+	resp := port.GetAllResponse{}
+
+	if req.Name != "" {
+		resp_name, err := r.DB.GetByName(ctx, req.Name)
+		if err != nil {
+			switch err {
+			case ErrIdNotFound:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		if len(resp_name.List) != 0 {
+			resp.List = append(resp.List, resp_name.List...)
+		}
+	}
+
+	if req.Tin != "" {
+		resp_tin, err := r.DB.GetByTin(ctx, req.Tin)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		if resp_tin.Id != 0 {
+			resp.List = append(resp.List, resp_tin)
+		}
+	}
+	if len(resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	service_resp := GetAllResponse{}
+	for _, i := range resp.List {
+		service_resp.List = append(service_resp.List, GetResponse{
+			Id:          i.Id,
+			Name:        i.Name,
+			Tin:         i.Tin,
+			Latitude:    i.Latitude,
+			Longitude:   i.Longitude,
+			GeneralZone: i.GeneralZone,
+			Region:      i.Region,
+			Woreda:      i.Woreda,
+		})
+	}
+	if len(service_resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return service_resp, nil
 }
 
-func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) error {
-	return nil
+func (r *RetailerService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp := port.GetAllResponse{}
+
+	resp_name, err := r.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	if len(resp_name.List) != 0 {
+		resp.List = append(resp.List, resp_name.List...)
+	}
+	service_resp := GetAllResponse{}
+	for _, i := range resp.List {
+		service_resp.List = append(service_resp.List, GetResponse{
+			Id:          i.Id,
+			Name:        i.Name,
+			Tin:         i.Tin,
+			Latitude:    i.Latitude,
+			Longitude:   i.Longitude,
+			GeneralZone: i.GeneralZone,
+			Region:      i.Region,
+			Woreda:      i.Woreda,
+		})
+	}
+	if len(service_resp.List) == 0 {
+		return GetAllResponse{}, ErrEmptyGetContent
+	}
+	return service_resp, nil
+}
+
+func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate id
+	_, err := r.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return 0, err
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	if req.Name != "" {
+		err = r.DB.UpdateName(ctx, &port.UpdateNameRequest{
+			Id:   req.Id,
+			Name: req.Name,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	if req.Tin != "" {
+		err = r.validateTin(ctx, req.Tin)
+		if err != nil {
+			switch err {
+			case ErrInvalidTin:
+				return 0, err
+			case ErrDuplicateTin:
+				return 0, err
+			default:
+				return 0, ErrUnknown
+			}
+		}
+
+		err = r.DB.UpdateTin(ctx, &port.UpdateTinRequest{
+			Id:  req.Id,
+			Tin: req.Tin,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
+	return req.Id, nil
+}
+
+func (r *RetailerService) GetAllUsers(ctx context.Context, id int) (GetAllUsers, error) {
+	var response_ids = []int{}
+	users, err := r.DB.GetAllUserAgents(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetAllUsers{}, ErrRetailerHasNoUsers
+		default:
+			return GetAllUsers{}, ErrUnknown
+		}
+	}
+	for _, i := range users.List {
+		response_ids = append(response_ids, i.Id)
+	}
+	return GetAllUsers{
+		List: response_ids,
+	}, nil
 }

@@ -4,10 +4,9 @@ import (
 	"database/sql"
 
 	auth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-	distributor_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/distributor/db"
 	template_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
-	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment-partner/db"
+	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment_partner/db"
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
@@ -28,6 +27,8 @@ import (
 	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
+
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 /* Dependency Tree */
@@ -44,15 +45,21 @@ import (
 // │   └── TransactionService
 // |        └── UserService
 // |
-// ├──  UserService
-// │   └── RoleService
-// │       └── ResourceService
+// ├── RetailerService
+// |   └── UserService
+// │    	└── RoleService
+// │        	└── ResourceService
+// ├── DistributorService
+// 	   └── UserService
+// │    	└── RoleService
+// │        	└── ResourceService
 // |
 // ├── SMSService
 
 type Container struct {
 	db                    *sql.DB
 	AuthService           auth.Provider
+	AuthMiddleware        *util.AuthMiddleware
 	DistributorService    distributor.Provider
 	RetailerService       retailer.Provider
 	EmailService          email.Provider
@@ -73,20 +80,18 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
-	container.InitDistributorService()
 	container.InitResourceService()
+	container.InitUserService()
 	container.InitRoleService()
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(email_address, smtp_port)
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
-	container.InitPaymentPartnerService()
 	container.InitPaymentService()
 	container.InitResourceService()
-	// container.InitRetailerService()
 	container.InitRoleService()
-	container.InitUserService()
+
 	// container.InitSMSService()
 
 	return &container
@@ -94,10 +99,9 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
 	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret))
-}
-
-func (m *Container) InitDistributorService() {
-	m.DistributorService = distributor.NewDistributorService(distributor_db_adapter.NewPostgres(m.db), m.AuthService)
+	m.AuthMiddleware = util.NewAuthMiddleware(
+		keycloakInstanceURL, keycloakClientId, keycloakClientSecret, keycloakRealm, keycloakPassword,
+	)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port string) {
@@ -120,10 +124,6 @@ func (m *Container) InitResourceService() {
 	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db))
 }
 
-// func (m *Container) InitRetailerService() {
-// 	m.RetailerService = retailer.NewRetailerService(retailer_db_adapter.NewPostgres(m.db))
-// }
-
 func (m *Container) InitRoleService() {
 	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db), m.ResourceService)
 }
@@ -141,5 +141,5 @@ func (m *Container) InitTransactionService() {
 }
 
 func (m *Container) InitUserService() {
-	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db), m.RoleService)
+	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db), m.RoleService, m.AuthService)
 }

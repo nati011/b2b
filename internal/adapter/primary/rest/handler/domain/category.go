@@ -1,4 +1,4 @@
-package handler
+package domain
 
 import (
 	"encoding/json"
@@ -15,6 +15,15 @@ import (
 
 type CreateCategoryRequest struct {
 	Name string `json:"name"`
+}
+
+type GetCategoryResponse struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type GetAllCategoryResponse struct {
+	List []GetCategoryResponse `json:"categories"`
 }
 
 type Category struct {
@@ -44,64 +53,65 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		resp, err := c.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case category.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"category": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, util.Envelope{"category": GetCategoryResponse(resp)})
 	} else {
 		resp, err := c.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case category.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"categories": resp}, http.StatusAccepted)
+		var get_all_response GetAllCategoryResponse
+		for _, i := range resp.List {
+			get_all_response.List = append(get_all_response.List, GetCategoryResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"category": get_all_response})
 	}
 }
 
 func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	defer r.Body.Close()
 
 	var requestBody CreateCategoryRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, r, err)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := c.service.Create(r.Context(), (*category.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case category.ErrDescIsNotSupplied,
-			category.ErrDuplicateName,
-			category.ErrEmptyGetContent:
-
-			util.RequestErrorResponse(w, r, err)
-			return
 		default:
-			util.ServerErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
+			return
+		case category.ErrUnknown:
+			util.ServerErrorResponse(w, err)
 			return
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"category": id}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"category": id})
 }
 
 func (c *Category) DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -112,20 +122,20 @@ func (c *Category) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
-			util.RequestErrorResponse(w, r, err)
+			util.RequestErrorResponse(w, err)
 			return
 		}
 		err = c.service.Remove(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case category.ErrIdNotFound:
-				util.RequestErrorResponse(w, r, err)
+				util.RequestErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, r, err)
+				util.ServerErrorResponse(w, err)
 				return
 			}
 		}
 	}
-	util.WriteJSON(w, util.Envelope{"category": paramIdValue}, http.StatusAccepted)
+	util.OperationSuccessResponse(w, util.Envelope{"category": paramIdValue})
 }
