@@ -313,15 +313,15 @@ func Test_Get_happyPath(t *testing.T) {
 	if got.Price != in.Price {
 		t.Errorf("Expected price:%v Got: %v", got.Price, in.Price)
 	}
-	for i, v := range got.Attributes {
+	for i, v := range in.Attributes {
 		if got.Attributes[i] != v {
-			t.Errorf("Expected attr:%v Got: %v", got.Attributes[i], v)
+			t.Errorf("Expected attr: %v Got: %v", v, got.Attributes[i])
 		}
 	}
 
-	for i, v := range got.Images {
+	for i, v := range in.Images {
 		if got.Images[i] != v {
-			t.Errorf("Expected attr:%v Got: %v", got.Images[i], v)
+			t.Errorf("Expected attr:%v Got: %v", v, got.Images[i])
 		}
 	}
 }
