@@ -148,19 +148,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"product": ProductResponse{
-			Id:            resp.Id,
-			Name:          resp.Name,
-			Desc:          resp.Desc,
-			ExternalID:    resp.ExternalID,
-			Images:        resp.Images,
-			Price:         resp.Price,
-			Attributes:    resp.Attributes,
-			DistributorId: resp.DistributorId,
-			CategoryId:    resp.CategoryId,
-			Stock:         resp.Stock,
-			IsActive:      resp.IsActive,
-		}})
+		util.OperationSuccessResponse(w, util.Envelope{"product": resp})
 
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int

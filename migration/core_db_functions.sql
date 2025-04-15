@@ -2504,10 +2504,10 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT p.name, av.name 
-    FROM public.p_attributes p
-    JOIN public.p_attribute_values av
+    FROM public.p_attribute_values av
+    JOIN public.p_attributes p
     ON av.attribute_id = p.id
-    WHERE p.id = p_product_id
+    WHERE av.product_id = p_product_id
       AND p.is_deleted = FALSE;
 END;
 $$;
