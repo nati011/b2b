@@ -28,7 +28,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return port.GetResponse{}, nil
+			return port.GetResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetResponse{}, port.ErrSysUnknown
 		}
@@ -45,7 +45,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return port.GetResponse{}, nil
+			return port.GetResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetResponse{}, port.ErrSysUnknown
 		}
@@ -70,7 +70,7 @@ func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (por
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return port.GetAllResponse{}, nil
+			return port.GetAllResponse{}, port.ErrSysNoRows
 		default:
 			return port.GetAllResponse{}, port.ErrSysUnknown
 		}
@@ -103,7 +103,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return 0, nil
+			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -120,7 +120,7 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return resourceId, nil
+			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -137,7 +137,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return 0, nil
+			return 0, port.ErrSysNoRows
 		default:
 			return 0, port.ErrSysUnknown
 		}
@@ -153,7 +153,7 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil
+			return port.ErrSysNoRows
 		default:
 			return port.ErrSysUnknown
 		}

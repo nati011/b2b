@@ -1,4 +1,4 @@
-package handler
+package application
 
 import (
 	"encoding/json"
@@ -43,7 +43,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var requestBody auth.LoginUserRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
-
 		return
 	}
 
@@ -57,7 +56,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse})
+	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse.JWT})
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
