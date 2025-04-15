@@ -25,11 +25,6 @@ type CreateRequest struct {
 	Desc string
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type UpdateRequest struct {
 	Id   int
 	Name string
@@ -72,7 +67,7 @@ type HasResourceRequest struct {
 
 type Provider interface {
 	Get(context.Context, *GetRequest) (GetResponse, error)
-	GetAll(context.Context, *Pagination) (GetAllResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
 
 	Create(context.Context, *CreateRequest) (int, error)
 	Update(context.Context, *UpdateRequest) (int, error)
@@ -166,11 +161,8 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 	return GetResponse{}, ErrEmptyGetContent
 }
 
-func (r *RoleProvider) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
-	allResources, err := r.db.GetAll(ctx, &port.Pagination{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	})
+func (r *RoleProvider) GetAll(ctx context.Context) (GetAllResponse, error) {
+	allResources, err := r.db.GetAll(ctx)
 	if err != nil {
 		switch err {
 		default:

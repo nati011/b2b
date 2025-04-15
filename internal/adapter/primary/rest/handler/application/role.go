@@ -227,35 +227,7 @@ func (ro *Role) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.WriteJSON(w, util.Envelope{"role": resp}, http.StatusAccepted)
 	} else {
-		const ParamLimit = "limit"
-		const ParamOffset = "offset"
-		ParamLimitValue := paramValues.Get(ParamLimit)
-		ParamOffsetValue := paramValues.Get(ParamOffset)
-
-		var typedLimit int
-		var typedOffset int
-		var err error
-
-		if ParamLimitValue != "" {
-			typedLimit, err = strconv.Atoi(ParamLimitValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-		if ParamOffsetValue != "" {
-			typedOffset, err = strconv.Atoi(ParamOffsetValue)
-
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-
-		pagination := role.Pagination{
-			Limit:  typedLimit,
-			Offset: typedOffset,
-		}
-
-		resp, err := ro.service.GetAll(r.Context(), &pagination)
+		resp, err := ro.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case role.ErrEmptyGetContent:
@@ -300,35 +272,7 @@ func (ro *Role) GetAllResourcesHandler(w http.ResponseWriter, r *http.Request) {
 		response.List = append(response.List, resp.List...)
 		util.WriteJSON(w, util.Envelope{"resources": response}, http.StatusAccepted)
 	} else {
-		const ParamLimit = "limit"
-		const ParamOffset = "offset"
-		ParamLimitValue := paramValues.Get(ParamLimit)
-		ParamOffsetValue := paramValues.Get(ParamOffset)
-
-		var typedLimit int
-		var typedOffset int
-		var err error
-
-		if ParamLimitValue != "" {
-			typedLimit, err = strconv.Atoi(ParamLimitValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-		if ParamOffsetValue != "" {
-			typedOffset, err = strconv.Atoi(ParamOffsetValue)
-
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-
-		pagination := role.Pagination{
-			Limit:  typedLimit,
-			Offset: typedOffset,
-		}
-
-		resp, err := ro.service.GetAll(r.Context(), &pagination)
+		resp, err := ro.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case role.ErrEmptyGetContent:

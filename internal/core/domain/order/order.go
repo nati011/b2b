@@ -62,16 +62,11 @@ type UpdateRequest struct {
 	Status string
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Provider interface {
 	Place(ctx context.Context, req *PlaceRequest) (int, error)
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
-	GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error)
+	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error)
 }
@@ -247,11 +242,8 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	}, nil
 }
 
-func (o *OrderService) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
-	resp, err := o.DB.GetAll(ctx, &port.Pagination{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	})
+func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp, err := o.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:

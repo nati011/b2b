@@ -70,16 +70,11 @@ type CreateUserRequest struct {
 	Phone          string
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
-	GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error)
+	GetAll(ctx context.Context) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
 	CreateUser(ctx context.Context, req *CreateUserRequest) (int, error)
@@ -255,13 +250,10 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequ
 	}
 	return service_resp, nil
 }
-func (d *DistributorService) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
+func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp := port.GetAllResponse{}
 
-	resp_name, err := d.DB.GetAll(ctx, &port.Pagination{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	})
+	resp_name, err := d.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:

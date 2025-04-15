@@ -144,18 +144,11 @@ func (p *Postgres) GetByUsername(ctx context.Context, username string) (port.Get
 	return response, nil
 }
 
-func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool, pagination *port.Pagination) (port.GetAllResponse, error) {
+func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	limit := 10
-	offset := pagination.Offset
-
-	if pagination.Limit != 0 {
-		limit = pagination.Limit
-	}
-
-	query := "SELECT * FROM public.get_users_by_active_status($1,$2,$3);"
-	rows, err := p.db.QueryContext(ctx, query, status, limit, offset)
+	query := "SELECT * FROM public.get_users_by_active_status($1);"
+	rows, err := p.db.QueryContext(ctx, query, status)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -250,16 +243,11 @@ func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserPro
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
+func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
-	limit := 10
-	offset := pagination.Offset
 
-	if pagination.Limit != 0 {
-		limit = pagination.Limit
-	}
-	query := "SELECT * FROM public.get_all_users($1,$2);"
-	rows, err := p.db.QueryContext(ctx, query, limit, offset)
+	query := "SELECT * FROM public.get_all_users();"
+	rows, err := p.db.QueryContext(ctx, query)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

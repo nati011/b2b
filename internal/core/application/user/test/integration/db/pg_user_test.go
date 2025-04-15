@@ -110,32 +110,14 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		in_2 := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "natnael",
-			Email:     "natnaeljemaneh002@gmail.com",
-			Phone:     "+251949184889",
-			Username:  "test_009",
-			DOB:       parsedTime,
-
-			ExternalId: "123",
-		}
-		_, err = testContainer.UserService.Create(ctx, &in_2)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		pagination := user.Pagination{
-			Limit:  1,
-			Offset: 0,
-		}
 		//get
-		resp, err := testContainer.UserService.GetAll(ctx, &pagination)
+		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to getAll err: %v", err)
 		}
-		wantLen := pagination.Limit
-		if wantLen != len(resp.List) && wantLen < len(resp.List) {
-			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
+		expecetdLen := 1
+		if len(resp.List) == 0 {
+			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(resp.List))
 		}
 	})
 
@@ -161,11 +143,7 @@ func Test_read(t *testing.T) {
 		inParam := &user.GetByParam{
 			Username: "test",
 		}
-		pagination := user.Pagination{
-			Limit:  1,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
