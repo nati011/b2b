@@ -115,20 +115,7 @@ func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWri
 				return
 			}
 		}
-		get_response := GetConfigurableProductResponse{}
-		get_response.Id = resp.Id
-		get_response.Name = resp.Name
-		get_response.Desc = resp.Desc
-		get_response.ExternalId = resp.ExternalId
-		get_response.Attributes = resp.Attributes
-		get_response.Products = resp.Products
-		get_response.IsAvailable = resp.IsAvailable
-		get_response.PriceRange = PriceRangeResponse(resp.PriceRange)
-		get_response.CategoryId = resp.CategoryId
-		get_response.DistributorId = resp.DistributorId
-		get_response.Images = resp.Images
-
-		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": get_response})
+		util.OperationSuccessResponse(w, util.Envelope{"configurable_product": resp})
 	} else if paramNameValue != "" {
 		cp_name_resp, err := cp.service.GetByParam(r.Context(),
 			&configurable_product.GetByParamRequest{
