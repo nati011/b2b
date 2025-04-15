@@ -113,6 +113,7 @@ func (r *Product) Init(applicationServices *application_core.Container, domainSe
 
 func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/product", p.GetHandler)
+	mux.HandleFunc("GET /api/v1/product/catalogue", p.GetCatalogueHandler)
 	mux.HandleFunc("POST /api/v1/product", p.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
 	mux.HandleFunc("PATCH /api/v1/product/{id}/status", p.StatusHandler)
@@ -225,8 +226,67 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
-		// build
+		//configurable products
 		var resp []GetProductResponse
+		products_belonging_to_cps := []int{}
+		cp, err := p.configurableProductservice.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case configurable_product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+
+		for _, j := range cp.List {
+			var configurables []ProductResponse
+			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+			for _, i := range j.Products {
+				//add product to cps belonging to products
+				products_belonging_to_cps = append(products_belonging_to_cps, i)
+				resp, err := p.service.Get(r.Context(), i)
+				if err != nil {
+					switch err {
+					case product.ErrIdNotFound:
+					default:
+						util.ServerErrorResponse(w, err)
+					}
+				}
+				configurables = append(configurables, ProductResponse{
+					Id:            resp.Id,
+					Name:          resp.Name,
+					Desc:          resp.Desc,
+					ExternalID:    resp.ExternalID,
+					Images:        resp.Images,
+					Price:         resp.Price,
+					Attributes:    resp.Attributes,
+					DistributorId: resp.DistributorId,
+					CategoryId:    resp.CategoryId,
+					Stock:         resp.Stock,
+					IsActive:      resp.IsActive,
+				})
+				for _, attribute := range j.Attributes {
+					for key := range attribute {
+						configurableAttribute[key] = append(configurableAttribute[key], ConfigurableAttributesResponse{
+							ProductId:      resp.Id,
+							AttributeValue: resp.Attributes[key],
+						})
+					}
+				}
+			}
+
+			resp = append(resp, GetProductResponse{
+				Name:                   j.Name,
+				Desc:                   j.Desc,
+				IsActive:               j.IsAvailable,
+				Images:                 j.Images,
+				ConfigurableAttributes: configurableAttribute,
+				Configurables:          configurables,
+			})
+		}
+
+		//standalone products
 		pr, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
@@ -272,62 +332,123 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
-		cp, err := p.configurableProductservice.GetAll(r.Context())
-		if err != nil {
-			switch err {
-			case configurable_product.ErrEmptyGetContent:
-			default:
-				util.ServerErrorResponse(w, err)
-				return
-			}
-		}
-
-		for _, j := range cp.List {
-			var configurables []ProductResponse
-			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
-			for _, i := range j.Products {
-				resp, err := p.service.Get(r.Context(), i)
-				if err != nil {
-					switch err {
-					case product.ErrIdNotFound:
-					default:
-						util.ServerErrorResponse(w, err)
-					}
-				}
-				configurables = append(configurables, ProductResponse{
-					Id:            resp.Id,
-					Name:          resp.Name,
-					Desc:          resp.Desc,
-					ExternalID:    resp.ExternalID,
-					Images:        resp.Images,
-					Price:         resp.Price,
-					Attributes:    resp.Attributes,
-					DistributorId: resp.DistributorId,
-					CategoryId:    resp.CategoryId,
-					Stock:         resp.Stock,
-					IsActive:      resp.IsActive,
-				})
-				for _, attribute := range j.Attributes {
-					for key, value := range attribute {
-						configurableAttribute[key] = append(configurableAttribute[key], ConfigurableAttributesResponse{
-							ProductId:      resp.Id,
-							AttributeValue: resp.Attributes[value],
-						})
-					}
-				}
-			}
-
-			resp = append(resp, GetProductResponse{
-				Name:                   j.Name,
-				Desc:                   j.Desc,
-				IsActive:               j.IsAvailable,
-				Images:                 j.Images,
-				ConfigurableAttributes: configurableAttribute,
-				Configurables:          configurables,
-			})
-		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	}
+}
+
+func (p *Product) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) {
+	// configurable products
+	var resp []GetProductResponse
+	products_belonging_to_cps := []int{}
+	cp, err := p.configurableProductservice.GetAll(r.Context())
+	if err != nil {
+		switch err {
+		case configurable_product.ErrEmptyGetContent:
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+
+	for _, j := range cp.List {
+		var configurables []ProductResponse
+		var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+		for _, i := range j.Products {
+			//add product to cps belonging to products
+			products_belonging_to_cps = append(products_belonging_to_cps, i)
+			resp, err := p.service.Get(r.Context(), i)
+			if err != nil {
+				switch err {
+				case product.ErrIdNotFound:
+				default:
+					util.ServerErrorResponse(w, err)
+				}
+			}
+			configurables = append(configurables, ProductResponse{
+				Id:            resp.Id,
+				Name:          resp.Name,
+				Desc:          resp.Desc,
+				ExternalID:    resp.ExternalID,
+				Images:        resp.Images,
+				Price:         resp.Price,
+				Attributes:    resp.Attributes,
+				DistributorId: resp.DistributorId,
+				CategoryId:    resp.CategoryId,
+				Stock:         resp.Stock,
+				IsActive:      resp.IsActive,
+			})
+			for _, attribute := range j.Attributes {
+				for key := range attribute {
+					configurableAttribute[key] = append(configurableAttribute[key], ConfigurableAttributesResponse{
+						ProductId:      resp.Id,
+						AttributeValue: resp.Attributes[key],
+					})
+				}
+			}
+		}
+
+		resp = append(resp, GetProductResponse{
+			Name:                   j.Name,
+			Desc:                   j.Desc,
+			IsActive:               j.IsAvailable,
+			Images:                 j.Images,
+			ConfigurableAttributes: configurableAttribute,
+			Configurables:          configurables,
+		})
+	}
+
+	// standalone products
+	pr, err := p.service.GetAll(r.Context())
+	if err != nil {
+		switch err {
+		case product.ErrEmptyGetContent:
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	var configurables []ProductResponse
+	for _, i := range pr.List {
+		for _, v := range products_belonging_to_cps {
+			if i.Id != v {
+				configurables = append(configurables, ProductResponse{
+					Id:            i.Id,
+					Name:          i.Name,
+					Desc:          i.Desc,
+					ExternalID:    i.ExternalID,
+					Images:        i.Images,
+					Price:         i.Price,
+					Attributes:    i.Attributes,
+					DistributorId: i.DistributorId,
+					CategoryId:    i.CategoryId,
+					Stock:         i.Stock,
+					IsActive:      i.IsActive,
+				})
+
+				var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
+				for attr_key, attr_val := range i.Attributes {
+					configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
+						{
+							ProductId:      i.Id,
+							AttributeValue: attr_val,
+						},
+					}
+				}
+
+				resp = append(resp, GetProductResponse{
+					Name:                   i.Name,
+					Desc:                   i.Desc,
+					IsActive:               i.IsActive,
+					Images:                 i.Images,
+					ConfigurableAttributes: configurableAttribute,
+					Configurables:          configurables,
+				})
+			}
+		}
+
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 }
 
 func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
