@@ -14,7 +14,10 @@ var (
 	ErrFailedToLogin        = errors.New("oopsy, email or password incorrect")
 	ErrUnknown              = errors.New("oopsy, unknown error has occured")
 	ErrEmailNotSupplied     = errors.New("oopsy, email mandatory")
+<<<<<<< HEAD
 	ErrUsernameNotSupplied  = errors.New("oopsy, username mandatory")
+=======
+>>>>>>> 036df0cf (+ remove password confirmation)
 	ErrInvalidEmail         = errors.New("oopsy, Invalid Email")
 	ErrPasswordNotSupplied  = errors.New("oopsy, password mandatory")
 	ErrFirstNameNotSupplied = errors.New("oopsy, First Name mandatory")

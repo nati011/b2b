@@ -38,7 +38,11 @@ func (t *TestContainer) Teardown() {
 	t.RoleService = role_testContainer.RoleService
 	t.AuthService = auth.NewIntegrationAuthContainer()
 	t.UserService = NewUser(
+<<<<<<< HEAD
 		db_provider.NewMock(),
+=======
+		db_user_mock.NewMock(),
+>>>>>>> 036df0cf (+ remove password confirmation)
 		t.RoleService,
 		t.AuthService,
 	)
