@@ -209,6 +209,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	}
 
 	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
+<<<<<<< HEAD
 		Email:           req.Email,
 		Password:        generated_password,
 		ConfirmPassword: generated_password,
@@ -216,10 +217,35 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		LastName:        req.LastName,
 		PhoneNumber:     req.Phone,
 >>>>>>> 1734bfa2 (resolve conflict)
+=======
+		Email:       req.Email,
+		Password:    generated_password,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.Phone,
+		Username:    req.Username,
+>>>>>>> 036df0cf (+ remove password confirmation)
 	})
 
 	if err != nil {
 		switch err {
+<<<<<<< HEAD
+=======
+		case auth.ErrFirstNameNotSupplied:
+			return 0, ErrFirstNameMandatory
+		case auth.ErrLastNameNotSupplied:
+			return 0, ErrPhoneOrEmailMandatory
+		case auth.ErrEmailNotSupplied:
+			return 0, ErrPhoneOrEmailMandatory
+		case auth.ErrInvalidEmail:
+			return 0, ErrEmailNotValid
+		case auth.ErrPasswordNotSupplied:
+			return 0, ErrPasswordMandatory
+		case auth.ErrUsernameTaken:
+			return 0, ErrEmailTaken
+		case auth.ErrEmailTaken:
+			return 0, ErrEmailTaken
+>>>>>>> 036df0cf (+ remove password confirmation)
 		default:
 			u.Remove(ctx, user_id)
 			return 0, ErrUnknown

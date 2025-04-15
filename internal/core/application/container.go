@@ -91,6 +91,10 @@ func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername strin
 	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()
+<<<<<<< HEAD
+=======
+	container.InitUserService()
+>>>>>>> 036df0cf (+ remove password confirmation)
 
 	// container.InitSMSService()
 
