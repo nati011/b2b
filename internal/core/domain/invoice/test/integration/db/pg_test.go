@@ -97,19 +97,14 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create invoice err: %v", err)
 		}
-
-		pagination := invoice.Pagination{
-			Limit:  1,
-			Offset: 0,
-		}
-		resp, err := invoiceService.GetAll(ctx, &pagination)
+		resp, err := invoiceService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get by param err: %v", err)
 		}
 
-		wantLen := pagination.Limit
-		if len(resp.List) != wantLen && len(resp.List) > wantLen {
-			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
 		}
 	})
 

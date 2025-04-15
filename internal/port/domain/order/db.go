@@ -39,16 +39,11 @@ type UpdateOrderStatusRequest struct {
 	Status string
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetByRetailerID(context.Context, int) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)
-	GetAll(context.Context, *Pagination) (GetAllResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
 }
 
 type Writer interface {

@@ -299,30 +299,21 @@ func Test_GetAll_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create invoice err: %v", err)
 	}
-
-	pagination := Pagination{
-		Limit:  1,
-		Offset: 0,
-	}
-	resp, err := invoiceService.GetAll(ctx, &pagination)
+	resp, err := invoiceService.GetAll(ctx)
 	if err != nil {
 		t.Fatalf("Failed to get by param err: %v", err)
 	}
 
-	wantLen := pagination.Limit
-	if len(resp.List) != wantLen && len(resp.List) > wantLen {
-		t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
+	wantLen := 1
+	if len(resp.List) != wantLen {
+		t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
 	}
 }
 
 func Test_GetAll_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
 		ctx := context.Background()
-		pagination := Pagination{
-			Limit:  1,
-			Offset: 0,
-		}
-		_, err := invoiceService.GetAll(ctx, &pagination)
+		_, err := invoiceService.GetAll(ctx)
 		wantErr := ErrSysEmptyGetContent
 		if err != wantErr {
 			t.Fatalf("Expected err:%v Got err:%v", wantErr, err)
