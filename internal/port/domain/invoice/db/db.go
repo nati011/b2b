@@ -52,9 +52,14 @@ type UpdateStatusRequest struct {
 	Status string
 }
 
+type Pagination struct {
+	Limit  int
+	Offset int
+}
+
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
-	GetAll(ctx context.Context) (GetAllResponse, error)
+	GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error)
 	GetByExternalId(ctx context.Context, extId string) (GetAllResponse, error)
 	GetByStatus(ctx context.Context, extId string) (GetAllResponse, error)
 	GetByOrderId(ctx context.Context, orderId int) (GetResponse, error)
