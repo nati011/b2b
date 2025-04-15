@@ -14,7 +14,7 @@ type CreateRequest struct {
 	Name              string
 	Desc              string
 	ExternalId        string
-	AttributeKeys     []map[string]string
+	AttributeKeys     []string
 	Products          []int
 	Images            []string
 	IsAvailableStatus bool
