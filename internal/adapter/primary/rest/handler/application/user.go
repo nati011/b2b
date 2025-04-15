@@ -240,6 +240,8 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	const ParamUsername = "username"
 	const ParamIsActive = "is_active"
 	const ParamExternalId = "external_id"
+	const ParamLimit = "limit"
+	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramIdValue := paramValues.Get(ParamId)
@@ -249,6 +251,31 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	paramUsernameValue := paramValues.Get(ParamUsername)
 	paramIsActiveValue := paramValues.Get(ParamIsActive)
 	ParamExternalIdValue := paramValues.Get(ParamExternalId)
+	paramLimitValue := paramValues.Get(ParamLimit)
+	paramOffsetValue := paramValues.Get(ParamOffset)
+
+	var typedLimit int
+	var typedOffset int
+	var err error
+
+	if paramLimitValue != "" {
+		typedLimit, err = strconv.Atoi(paramLimitValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+		}
+	}
+	if paramOffsetValue != "" {
+		typedOffset, err = strconv.Atoi(paramOffsetValue)
+
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+		}
+	}
+
+	pagination := user.Pagination{
+		Limit:  typedLimit,
+		Offset: typedOffset,
+	}
 
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
@@ -285,7 +312,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			Username:   strings.Trim(paramUsernameValue, `"`),
 			ExternalId: strings.Trim(ParamExternalIdValue, `"`),
 			IsActive:   typedparamIsActiveValue,
-		})
+		}, &pagination)
 
 		if err != nil {
 			switch err {
@@ -299,7 +326,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"users": resp})
 	} else {
-		resp, err := a.service.GetAll(r.Context())
+		resp, err := a.service.GetAll(r.Context(), &pagination)
 		if err != nil {
 			switch err {
 			case user.ErrUnknown:

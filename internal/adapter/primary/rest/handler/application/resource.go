@@ -48,53 +48,84 @@ func (r *Resource) Init(applicationServices *application_core.Container, domainS
 }
 
 func (r *Resource) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/resource", r.GetResourceHandler)
+	mux.HandleFunc("GET /api/v1/resource", r.GetAllResourceHandler)
+	mux.HandleFunc("GET /api/v1/resource/{id}", r.GetResourceHandler)
 	mux.HandleFunc("POST /api/v1/resource", r.CreateResourceHandler)
 	mux.HandleFunc("PATCH /api/v1/resource", r.UpdateResourceHandler)
 	mux.HandleFunc("DELETE /api/v1/resource", r.DeleteResourceHandler)
 }
 
-func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
+func (rs *Resource) GetAllResourceHandler(w http.ResponseWriter, r *http.Request) {
+	// const ParamName = "name"
+	const ParamLimit = "limit"
+	const ParamOffset = "offset"
 
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
+	paramValues := r.URL.Query()
+	// paramNameValue := paramValues.Get(ParamName)
+	ParamLimitValue := paramValues.Get(ParamLimit)
+	ParamOffsetValue := paramValues.Get(ParamOffset)
+	var typedLimit int
+	var typedOffset int
+	var err error
+
+	if ParamLimitValue != "" {
+		typedLimit, err = strconv.Atoi(ParamLimitValue)
 		if err != nil {
+			util.RequestErrorResponse(w, err)
+		}
+	}
+	if ParamOffsetValue != "" {
+		typedOffset, err = strconv.Atoi(ParamOffsetValue)
+
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+		}
+	}
+
+	pagination := resource.Pagination{
+		Limit:  typedLimit,
+		Offset: typedOffset,
+	}
+	resp, err := rs.service.GetAll(r.Context(), &pagination)
+	if err != nil {
+		switch err {
+		case resource.ErrEmptyGetContent:
+			util.RequestErrorResponse(w, err)
+		default:
+			util.ServerErrorResponse(w, err)
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"resources": resp})
+
+}
+
+func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
+		Id: typedParamId,
+	})
+	if err != nil {
+		switch err {
+		case resource.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
-			Id: typedParamId,
-		})
-		if err != nil {
-			switch err {
-			case resource.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
-	} else {
-		resp, err := rs.service.GetAll(r.Context())
-		if err != nil {
-			switch err {
-			case resource.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, err)
-			default:
-				util.ServerErrorResponse(w, err)
-			}
-		}
+
 		var response GetAllResourceResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, (GetResourceResponse)(i))
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"resources": response})
+
 	}
+	util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
 }
 
 func (rs *Resource) CreateResourceHandler(w http.ResponseWriter, r *http.Request) {

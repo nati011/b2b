@@ -105,7 +105,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_resources()
+CREATE OR REPLACE FUNCTION public.get_all_resources(
+r_limit INT,
+r_offset INT
+)
 RETURNS TABLE(
     id INT, action VARCHAR(255), 
     name VARCHAR(255))
@@ -115,7 +118,9 @@ AS $$
         RETURN QUERY
         SELECT r.id, r.action, r.name
         FROM public.resources r
-        WHERE r.is_deleted = FALSE;
+        WHERE r.is_deleted = FALSE
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
     $$;
 
@@ -298,7 +303,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_roles () 
+create or replace function public.get_all_roles (
+r_limit INT,
+r_offset INT
+) 
 RETURNS table (
   id INT,
   name VARCHAR(255),
@@ -309,7 +317,9 @@ AS $$
         RETURN QUERY
         SELECT r.id, r.name, r.description
         FROM public.roles r
-        WHERE r.is_deleted = FALSE;
+        WHERE r.is_deleted = FALSE
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
 $$;
 
@@ -488,7 +498,10 @@ AS $$
 $$;
 
 create or replace function public.get_users_by_active_status (
-    user_active_status BOOLEAN) 
+user_active_status BOOLEAN,
+u_limit INT,
+u_offset INT
+) 
 RETURNS table (
   id INT,
   firstName VARCHAR(255),
@@ -515,7 +528,8 @@ AS $$
         FROM public.users u
         WHERE u.is_active = user_active_status
         AND u.is_deleted = FALSE
-        LIMIT 1;
+        LIMIT u_limit
+        OFFSET u_offset;
     END;
 $$;
 
@@ -574,7 +588,10 @@ AS $$
 $$;
 
 
-CREATE OR REPLACE FUNCTION public.get_all_users()
+CREATE OR REPLACE FUNCTION public.get_all_users(
+u_limit INT,
+u_offset INT
+)
 RETURNS TABLE(
     id INT, 
     firstName VARCHAR(255),
@@ -599,7 +616,9 @@ BEGIN
            u.is_active, 
            u.external_id 
     FROM public.users u
-    WHERE u.is_deleted = FALSE;
+    WHERE u.is_deleted = FALSE
+    LIMIT u_limit
+    OFFSET u_offset;
 END;
 $$;
 
@@ -1041,7 +1060,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_distributors () 
+create or replace function public.get_all_distributors (
+d_limit INT,
+d_offset INT
+) 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -1064,7 +1086,9 @@ AS $$
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
-        WHERE d.is_deleted = FALSE;
+        WHERE d.is_deleted = FALSE
+        LIMIT d_limit
+        OFFSET d_offset;
     END;
 $$;
 
@@ -1265,7 +1289,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_retailers () 
+create or replace function public.get_all_retailers (
+r_limit INT,
+r_offset INT
+) 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -1287,7 +1314,9 @@ AS $$
         JOIN public.retailer_business_info rb 
         ON rb.retailer_id = r.id
         JOIN public.rb_locations rb_loc 
-        ON rb_loc.business_id = rb.id;
+        ON rb_loc.business_id = rb.id
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
 $$;
 
@@ -1390,7 +1419,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_invoices()
+CREATE OR REPLACE FUNCTION public.get_all_invoices(
+i_limit INT,
+i_offset INT
+)
 RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
@@ -1398,7 +1430,9 @@ BEGIN
     RETURN QUERY
     SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
     FROM public.invoices i
-    WHERE i.is_deleted = FALSE;
+    WHERE i.is_deleted = FALSE
+    LIMIT i_limit
+    OFFSET i_offset;
 END;
 $$;
 
@@ -1777,7 +1811,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_products()
+CREATE OR REPLACE FUNCTION public.get_all_products(
+p_limit INT,
+p_offset INT
+)
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
               product_description VARCHAR(255), 
@@ -1795,7 +1832,9 @@ BEGIN
            p.is_active, 
            p.distributor_id
     FROM public.products p
-    WHERE p.is_deleted = FALSE;
+    WHERE p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
@@ -2635,7 +2674,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_orders()
+CREATE OR REPLACE FUNCTION public.get_all_orders(
+o_limit INT,
+o_offset INT
+)
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
@@ -2649,7 +2691,9 @@ BEGIN
            o.status, 
            o.total
     FROM public.orders o
-    WHERE o.is_deleted = FALSE;
+    WHERE o.is_deleted = FALSE
+    LIMIT o_limit
+    OFFSET o_offset;
 END;
 $$;
 
@@ -2676,10 +2720,9 @@ BEGIN
     VALUES (o_order_id, 
             o_product_id, 
             o_quantity,
-            o_price)
-    RETURNING id INTO new_id;
+            o_price);
     
-    RETURN new_id;
+    RETURN o_order_id;
 END;
 $$;
 
@@ -2752,7 +2795,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_user_id(
-    t_user_id INT
+    t_user_id INT,
+    t_limit INT,
+    t_offset INT
 )
 RETURNS TABLE(id INT,
               user_id INT,
@@ -2766,11 +2811,16 @@ BEGIN
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
     WHERE t.user_id = t_user_id
-      AND t.is_deleted = FALSE;
+    AND t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_transactions()
+CREATE OR REPLACE FUNCTION public.get_all_transactions(
+    t_limit INT,
+    t_offset INT
+)
 RETURNS TABLE(id INT,
               user_id INT,
               amount DECIMAL(12,2),
@@ -2782,12 +2832,16 @@ BEGIN
     RETURN QUERY
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
-    WHERE t.is_deleted = FALSE;
+    WHERE t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_partner_id(
-    t_partner_id INT
+    t_partner_id INT,
+    t_limit INT,
+    t_offset INT
 )
 RETURNS TABLE(id INT,
               user_id INT,
@@ -2801,12 +2855,16 @@ BEGIN
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
     WHERE t.partner_id = t_partner_id
-      AND t.is_deleted = FALSE;
+    AND t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_date(
-    t_date TIMESTAMP
+    t_date TIMESTAMP,
+    t_limit INT,
+    t_offset INT
 )
 RETURNS TABLE(id INT,
               user_id INT,
@@ -2820,7 +2878,9 @@ BEGIN
     SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
     FROM public.transactions t
     WHERE t.date = t_date
-      AND t.is_deleted = FALSE;
+    AND t.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 
 $$;
@@ -2848,7 +2908,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_payment_partners()
+CREATE OR REPLACE FUNCTION public.get_all_payment_partners(
+p_limit INT,
+p_offset INT
+)
 RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
@@ -2860,12 +2923,16 @@ BEGIN
     RETURN QUERY
     SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
-    WHERE p.is_deleted = FALSE;
+    WHERE p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_payment_partner_by_name(
-    p_name VARCHAR(255)
+    p_name VARCHAR(255),
+    p_limit INT,
+    p_offset INT
 )
 RETURNS TABLE(id int,
               name VARCHAR(255),
@@ -2879,12 +2946,16 @@ BEGIN
     SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.name = p_name
-      AND p.is_deleted = FALSE;
+      AND p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_payment_partner_by_status(
-    p_status VARCHAR(255)
+    p_status VARCHAR(255),
+    p_limit INT,
+    p_offset INT
 )
 RETURNS TABLE(id int,
               name VARCHAR(255),
@@ -2898,9 +2969,12 @@ BEGIN
     SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.status = p_status
-      AND p.is_deleted = FALSE;
+      AND p.is_deleted = FALSE
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
+
 
     -- writer
 

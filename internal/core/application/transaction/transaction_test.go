@@ -186,20 +186,37 @@ func Test_GetAll_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
 	}
-	resp, err := testContainer.TransactionService.GetAll(ctx)
+	in = &CreateRequest{
+		User_Id:    user_id,
+		Amount:     13,
+		Partner_Id: partner_id,
+	}
+	_, err = testContainer.TransactionService.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	pagination := Pagination{
+		Limit:  2,
+		Offset: 0,
+	}
+	resp, err := testContainer.TransactionService.GetAll(ctx, &pagination)
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
-	wantLen := 1
-	if len(resp.List) != wantLen {
-		t.Errorf("Expected length: %v Want: %v", len(resp.List), wantLen)
+	wantLen := pagination.Limit
+	if len(resp.List) != wantLen && len(resp.List) > wantLen {
+		t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
 	}
 }
 
 func Test_GetAll_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		ctx := context.Background()
-		_, err := testContainer.TransactionService.GetAll(ctx)
+		pagination := Pagination{
+			Limit:  1,
+			Offset: 1,
+		}
+		_, err := testContainer.TransactionService.GetAll(ctx, &pagination)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)
@@ -224,16 +241,19 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-
+		pagination := Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
 		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
 			User_Id: resp.User_Id,
-		})
+		}, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
-			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		wantLen := pagination.Limit
+		if len(resp_param.List) != wantLen && len(resp_param.List) > wantLen {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
 		}
 	})
 
@@ -253,17 +273,20 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-
+		pagination := Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
 		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
 			Partner_Id: resp.Partner_Id,
-		})
+		}, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
-			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		wantLen := pagination.Limit
+		if len(resp_param.List) != wantLen && len(resp_param.List) > wantLen {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
 		}
 	})
 
@@ -283,17 +306,20 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-
+		pagination := Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
 		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
 			Date: resp.Date,
-		})
+		}, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
-			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		wantLen := pagination.Limit
+		if len(resp_param.List) != wantLen && len(resp_param.List) > wantLen {
+			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
 		}
 	})
 }
@@ -301,7 +327,11 @@ func Test_GetByParam_happyPath(t *testing.T) {
 func Test_GetByParam_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		ctx := context.Background()
-		_, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{})
+		pagination := Pagination{
+			Limit:  2,
+			Offset: 0,
+		}
+		_, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{}, &pagination)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)

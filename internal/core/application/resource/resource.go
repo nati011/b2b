@@ -39,13 +39,18 @@ type GetResponse struct {
 	Name   string
 }
 
+type Pagination struct {
+	Limit  int
+	Offset int
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
 
 type Provider interface {
 	Get(context.Context, *GetRequest) (GetResponse, error)
-	GetAll(context.Context) (GetAllResponse, error)
+	GetAll(context.Context, *Pagination) (GetAllResponse, error)
 
 	Create(context.Context, *CreateRequest) (int, error)
 	Update(context.Context, *UpdateRequest) (int, error)
@@ -213,8 +218,12 @@ func (r *ResourceProvider) Get(ctx context.Context, req *GetRequest) (GetRespons
 	return GetResponse{}, nil
 }
 
-func (r *ResourceProvider) GetAll(ctx context.Context) (GetAllResponse, error) {
-	allResources, err := r.db.GetAll(ctx)
+func (r *ResourceProvider) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
+
+	allResources, err := r.db.GetAll(ctx, &port.Pagination{
+		Limit:  pagination.Limit,
+		Offset: pagination.Offset,
+	})
 	if err != nil {
 		switch err {
 		default:
