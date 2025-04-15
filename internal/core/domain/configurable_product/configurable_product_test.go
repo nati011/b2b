@@ -975,8 +975,8 @@ func Test_Update_happyPath(t *testing.T) {
 		want := map[string]string{
 			"test": "test",
 		}
-		for got_key := range resp.Attributes[0] {
-			for want_key := range want {
+		for got_key, _ := range resp.Attributes[0] {
+			for want_key, _ := range want {
 				if got_key != want_key {
 					t.Errorf("Expected key %v Got: %v", want_key, got_key)
 				}

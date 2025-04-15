@@ -99,16 +99,11 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
 	Get(ctx context.Context, id int) (resp GetResponse, err error)
-	GetAll(ctx context.Context, pagination *Pagination) (resp GetAllResponse, err error)
-	GetByParam(ctx context.Context, req *GetByParam, pagination *Pagination) (resp GetAllResponse, err error)
+	GetAll(ctx context.Context) (resp GetAllResponse, err error)
+	GetByParam(ctx context.Context, req *GetByParam) (resp GetAllResponse, err error)
 	Activate(ctx context.Context, id int) (err error)
 	Deactivate(ctx context.Context, id int) (err error)
 	IsActive(ctx context.Context, id int) (resp bool, err error)
@@ -219,11 +214,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	return user_id, nil
 }
 
-func (u *UserService) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
-	res, err := u.db.GetAll(ctx, &port.Pagination{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	})
+func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	res, err := u.db.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
@@ -287,7 +279,7 @@ func (u *UserService) GetUserProvider(ctx context.Context, id int) (GetUserProvi
 	return resp, nil
 }
 
-func (u *UserService) GetByParam(ctx context.Context, req *GetByParam, pagination *Pagination) (GetAllResponse, error) {
+func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {
 	prep_resp := GetAllResponse{}
 
 	if req.Email != "" {
@@ -372,10 +364,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam, paginatio
 		}
 	}
 
-	res_isActive, err := u.db.GetByActiveStatus(ctx, req.IsActive, &port.Pagination{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	})
+	res_isActive, err := u.db.GetByActiveStatus(ctx, req.IsActive)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:

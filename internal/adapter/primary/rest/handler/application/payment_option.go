@@ -67,41 +67,10 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 	const ParamId = "id"
 	const ParamName = "name"
 	const ParamStatus = "status"
-	const ParamLimit = "limit"
-	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
 	paramStatusValue := paramValues.Get(ParamStatus)
-	paramLimitValue := paramValues.Get(ParamLimit)
-	paramOffsetValue := paramValues.Get(ParamOffset)
-
-	var limit int
-	var offset int
-	var err error
-
-	if paramLimitValue != "" {
-		limit, err = strconv.Atoi(paramLimitValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-
-		}
-	}
-
-	if paramOffsetValue != "" {
-		offset, err = strconv.Atoi(paramOffsetValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-
-		}
-	}
-
-	pagination := payment_partner.Pagination{
-		Limit:  limit,
-		Offset: offset,
-	}
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -127,7 +96,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 			Status: paramStatusValue,
 		}
 
-		resp, err := p.service.GetByParam(r.Context(), params, &pagination)
+		resp, err := p.service.GetByParam(r.Context(), params)
 		if err != nil {
 			switch err {
 			case payment_partner.ErrUnknown:
@@ -144,7 +113,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
 	} else {
-		payment_options, err := p.service.GetAll(r.Context(), &pagination)
+		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			default:
@@ -161,41 +130,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 }
 
 func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamLimit = "limit"
-	const ParamOffset = "offset"
-
-	paramValues := r.URL.Query()
-	paramLimitValue := paramValues.Get(ParamLimit)
-	paramOffsetValue := paramValues.Get(ParamOffset)
-
-	var limit int
-	var offset int
-	var err error
-
-	if paramLimitValue != "" {
-		limit, err = strconv.Atoi(paramLimitValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-
-		}
-	}
-
-	if paramOffsetValue != "" {
-		offset, err = strconv.Atoi(paramOffsetValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-
-		}
-	}
-
-	pagination := payment_partner.Pagination{
-		Limit:  limit,
-		Offset: offset,
-	}
-	payment_options, err := p.service.GetActive(r.Context(), &pagination)
-
+	resp, err := p.service.GetActive(r.Context())
 	if err != nil {
 		switch err {
 		default:

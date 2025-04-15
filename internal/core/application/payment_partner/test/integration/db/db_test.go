@@ -75,12 +75,8 @@ func Test_Read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		pagination := &payment_partner.Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
 
-		resp, err := container.PartnerService.GetAll(ctx, pagination)
+		resp, err := container.PartnerService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get all payment options err: %v", err)
 		}
@@ -112,12 +108,7 @@ func Test_Read(t *testing.T) {
 			t.Fatalf("Failed to activate payment option err: %v", err)
 		}
 
-		pagination := &payment_partner.Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
-
-		resp, err := container.PartnerService.GetActive(ctx, pagination)
+		resp, err := container.PartnerService.GetActive(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get all payment options err: %v", err)
 		}
@@ -147,13 +138,9 @@ func Test_Read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		pagination := &payment_partner.Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
 		resp, err := container.PartnerService.GetByParam(ctx, &payment_partner.GetByParamRequest{
 			Name: "test",
-		}, pagination)
+		})
 		if err != nil {
 			t.Fatalf("Failed to get by param err: %v", err)
 		}
