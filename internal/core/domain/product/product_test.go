@@ -286,22 +286,43 @@ func Test_Get_happyPath(t *testing.T) {
 		Price: 100.00,
 		Attributes: map[string]string{
 			"test": "test",
+			"tets": "test",
 		},
 	}
 
-	_, err := container.ProductService.Create(ctx, in)
+	id, err := container.ProductService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
 	//get
-	got, err := container.ProductService.GetAll(ctx)
+	got, err := container.ProductService.Get(ctx, id)
 	if err != nil {
-		t.Errorf("Expected err:%v Got err: %v", nil, err)
+		t.Fatalf("Failed to get err %v", err)
 	}
-	wantNum := 1
-	if len(got.List) != wantNum {
-		t.Errorf("Expected len: %v, Got len: %v", wantNum, len(got.List))
+
+	if got.Name != in.Name {
+		t.Errorf("Expected name:%v Got: %v", got.Name, in.Name)
+	}
+	if got.Desc != in.Desc {
+		t.Errorf("Expected desc:%v Got: %v", got.Desc, in.Desc)
+	}
+	if got.ExternalID != in.ExternalID {
+		t.Errorf("Expected extId:%v Got: %v", got.ExternalID, in.ExternalID)
+	}
+	if got.Price != in.Price {
+		t.Errorf("Expected price:%v Got: %v", got.Price, in.Price)
+	}
+	for i, v := range got.Attributes {
+		if got.Attributes[i] != v {
+			t.Errorf("Expected attr:%v Got: %v", got.Attributes[i], v)
+		}
+	}
+
+	for i, v := range got.Images {
+		if got.Images[i] != v {
+			t.Errorf("Expected attr:%v Got: %v", got.Images[i], v)
+		}
 	}
 }
 
