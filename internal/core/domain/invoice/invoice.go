@@ -65,16 +65,11 @@ type GetByParamRequest struct {
 	OrderId      int
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Update(ctx context.Context, req *UpdateByParamRequest) error
 	Get(ctx context.Context, id int) (GetResponse, error)
-	GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error)
+	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 }
 
@@ -200,12 +195,9 @@ func (i *InvoiceService) Get(ctx context.Context, id int) (GetResponse, error) {
 		TaxAmount:    resp.TaxAmount,
 	}, nil
 }
-func (i *InvoiceService) GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error) {
+func (i *InvoiceService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp := []GetResponse{}
-	db_resp, err := i.DB.GetAll(ctx, &port.Pagination{
-		Limit:  pagination.Limit,
-		Offset: pagination.Offset,
-	})
+	db_resp, err := i.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
