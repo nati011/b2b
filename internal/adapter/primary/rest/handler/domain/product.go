@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -97,8 +96,7 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	service                    product.Provider
-	configurableProductservice configurable_product.Provider
+	service product.Provider
 }
 
 func InitProduct() {
@@ -107,7 +105,6 @@ func InitProduct() {
 
 func (r *Product) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ProductService
-	r.configurableProductservice = domainService.ConfigurableProductService
 	return nil
 }
 
@@ -195,7 +192,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var resp product.GetAllResponse
-
 		if typedCategoryId != 0 {
 			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
 				Name:       paramNameValue,
@@ -225,8 +221,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
-		// build
-		var resp []GetProductResponse
 		pr, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
