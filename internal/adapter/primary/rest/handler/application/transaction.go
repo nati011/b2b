@@ -1,9 +1,6 @@
-package handler
+package application
 
 import (
-	"encoding/json"
-	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -22,6 +19,24 @@ type CreateTransactionRequest struct {
 	Partner_Id int   `json:"partner_id"`
 }
 
+type GetByParamRequest struct {
+	Date       time.Time `json:"date"`
+	Partner_Id int       `json:"partner_id"`
+	User_Id    int       `json:"user_id"`
+}
+
+type GetResponse struct {
+	Id         int       `json:"id"`
+	User_Id    int       `json:"user_id"`
+	Date       time.Time `json:"date"`
+	Amount     int64     `json:"amount"`
+	Partner_Id int       `json:"partner_id"`
+}
+
+type GetAllResponse struct {
+	List []GetResponse `json:"transactions"`
+}
+
 type Transaction struct {
 	service transaction.Provider
 }
@@ -37,18 +52,15 @@ func (r *Transaction) Init(applicationServices *application_core.Container, doma
 
 func (p *Transaction) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/transaction", p.GetTransactionsHandler)
-	mux.HandleFunc("POST /api/v1/transaction", p.CreateTransactionHandler)
-	// mux.HandleFunc("PUT /api/v1/transaction/activate", p.ActivateTransactionHandler)
-	// mux.HandleFunc("PUT /api/v1/transaction/deactivate", p.DectivateTransactionHandler)
 }
 
 func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamPartnerId = "partner_id"
-	const ParamDate = "date"
 	const ParamUserId = "user_id"
 	const ParamLimit = "limit"
 	const ParamOffset = "offset"
+	const ParamDate = "date"
 
 	paramValues := r.URL.Query()
 	paramPartnerIdValue := paramValues.Get(ParamPartnerId)
@@ -88,6 +100,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 			return
 
 		}
+
 		resp, err := p.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
@@ -97,7 +110,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transaction": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"transaction": GetResponse(resp)})
 	} else if paramPartnerIdValue != "" || paramDateValue != "" || paramUserIdValue != "" {
 		var typedPartnerId int
 		var typedUserId int
@@ -120,16 +133,12 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 
 			}
+
 		}
-
-		if paramDateValue != "" {
-			parsedDate, err := time.Parse(paramDateValue, "2024-09-19 14:00:00")
-			log.Print(parsedDate.String())
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-
-			}
+		parsedDate, err := time.Parse(paramDateValue, "2024-09-19 14:00:00")
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
 		}
 
 		params := &transaction.GetByParamRequest{
@@ -149,10 +158,14 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": resp})
+		var response GetAllResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
 
 	} else {
-		transactions, err := p.service.GetAll(r.Context(), &pagination)
+      resp,err:=p.service.GetAll(r.Context(), &pagination)
 		if err != nil {
 			switch err {
 			default:
@@ -160,33 +173,10 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": transactions})
-	}
-}
-
-func (t *Transaction) CreateTransactionHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	defer r.Body.Close()
-
-	var requestBody CreateTransactionRequest
-	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	id, err := t.service.Create(r.Context(), (*transaction.CreateRequest)(&requestBody))
-	if err != nil {
-		switch err {
-		case transaction.ErrUnknown:
-			util.ServerErrorResponse(w, err)
-			return
-		default:
-			util.RequestErrorResponse(w, err)
-			return
+		var response GetAllResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetResponse(i))
 		}
+		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"transaction": id})
 }
