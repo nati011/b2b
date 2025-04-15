@@ -6,6 +6,12 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+<<<<<<< HEAD
+=======
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/core/application/auth"
+
+>>>>>>> 1734bfa2 (resolve conflict)
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/auth"
@@ -33,9 +39,26 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
+=======
+	var req auth.LoginUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	loginResponse, err := h.service.ClientLogin(r.Context(), req)
+
+	if err != nil {
+<<<<<<< HEAD
+		util.UnauthorizedErrorResponse(w, r, err)
+=======
+		util.UnauthorizedResponse(w)
+>>>>>>> 2461a09b (+ fix handler errors)
+>>>>>>> 1734bfa2 (resolve conflict)
 		return
 	}
 
@@ -60,7 +83,18 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
 	body, err := io.ReadAll(r.Body)
+=======
+	var req auth.RefreshTokenRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	refreshResponse, err := h.service.RefreshToken(r.Context(), req)
+>>>>>>> 1734bfa2 (resolve conflict)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return

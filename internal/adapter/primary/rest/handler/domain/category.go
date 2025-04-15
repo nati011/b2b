@@ -107,9 +107,10 @@ func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			category.ErrDuplicateName,
 			category.ErrEmptyGetContent:
 
+		default:
 			util.RequestErrorResponse(w, err)
 			return
-		default:
+		case category.ErrUnknown:
 			util.ServerErrorResponse(w, err)
 			return
 		}
