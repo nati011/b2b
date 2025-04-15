@@ -576,7 +576,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		if err != nil {
 			switch err {
 			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
 			default:
 				return 0, port.ErrSysUnknown
 			}
