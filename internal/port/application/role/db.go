@@ -39,10 +39,15 @@ type GetAllResourcesResponse struct {
 	List []int
 }
 
+type Pagination struct {
+	Limit  int
+	Offset int
+}
+
 type Reader interface {
 	GetByID(ctx context.Context, roleId int) (GetResponse, error)
 	GetByName(ctx context.Context, name string) (GetResponse, error)
-	GetAll(ctx context.Context) (GetAllResponse, error)
+	GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error)
 }
 
 type Writer interface {

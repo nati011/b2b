@@ -116,10 +116,14 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamName = "name"
 	const ParamTin = "tin"
+	const ParamLimit = "limit"
+	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
 	paramTinValue := paramValues.Get(ParamTin)
+	ParamLimitValue := paramValues.Get(ParamLimit)
+	ParamOffsetValue := paramValues.Get(ParamOffset)
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -222,7 +226,30 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	} else {
-		resp, err := re.service.GetAll(r.Context())
+		var typedLimit int
+		var typedOffset int
+		var err error
+
+		if ParamLimitValue != "" {
+			typedLimit, err = strconv.Atoi(ParamLimitValue)
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+			}
+		}
+		if ParamOffsetValue != "" {
+			typedOffset, err = strconv.Atoi(ParamOffsetValue)
+
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+			}
+		}
+
+		pagination := retailer.Pagination{
+			Limit:  typedLimit,
+			Offset: typedOffset,
+		}
+
+		resp, err := re.service.GetAll(r.Context(), &pagination)
 		if err != nil {
 			switch err {
 			case retailer.ErrEmptyGetContent:

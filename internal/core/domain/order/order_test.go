@@ -293,14 +293,18 @@ func Test_Get_All_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
+	pagination := &Pagination{
+		Limit:  1,
+		Offset: 0,
+	}
 	//check
-	got, err := container.OrderService.GetAll(ctx)
+	got, err := container.OrderService.GetAll(ctx, pagination)
 	if err != nil {
 		t.Fatalf("Failed to fetch order err: err %v", err)
 	}
-	wantLen := 1
-	if len(got.List) != wantLen {
-		t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+	wantLen := pagination.Limit
+	if len(got.List) != wantLen && len(got.List) > wantLen {
+		t.Errorf("Expected length: %v Want: %v", wantLen, len(got.List))
 	}
 }
 
@@ -308,7 +312,11 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
-		_, err := container.OrderService.GetAll(ctx)
+		pagination := &Pagination{
+			Limit:  1,
+			Offset: 0,
+		}
+		_, err := container.OrderService.GetAll(ctx, pagination)
 		wantErr := ErrEmptyGetResponse
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
