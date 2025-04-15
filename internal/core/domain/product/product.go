@@ -3,7 +3,6 @@ package product
 import (
 	"context"
 	"errors"
-	"log"
 	"math"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
@@ -85,11 +84,6 @@ type DispatchRequest struct {
 	Amount int
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type GetProductsWithCategoriesRequest struct {
 	List []int
 }
@@ -97,7 +91,7 @@ type GetProductsWithCategoriesRequest struct {
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
 	Get(ctx context.Context, id int) (GetResponse, error)
-	GetAll(ctx context.Context, req *Pagination) (GetAllResponse, error)
+	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	ReceiveGoods(ctx context.Context, req *GoodsReceivingRequest) error
@@ -325,12 +319,8 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 	return resp, nil
 }
 
-func (p *ProductService) GetAll(ctx context.Context, req *Pagination) (GetAllResponse, error) {
-	log.Printf("Limit %v", req.Limit)
-	resp, err := p.DB.GetAll(ctx, &port.Pagination{
-		Limit:  req.Limit,
-		Offset: req.Offset,
-	})
+func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp, err := p.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:

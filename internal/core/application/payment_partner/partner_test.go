@@ -257,40 +257,11 @@ func Test_Get_All_Payment_Options_happyPath(t *testing.T) {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
-	//setup
-	in_two := &CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
-	}
-
-	_, err = service.Create(ctx, in_two)
-	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
-	}
-
-	//setup
-	in_three := &CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
-	}
-
-	_, err = service.Create(ctx, in_three)
-	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
-	}
-
-	pagination := Pagination{
-		Limit:  2,
-		Offset: 0,
-	}
-
-	resp, err := service.GetAll(ctx, &pagination)
+	resp, err := service.GetAll(ctx)
 	if err != nil {
 		t.Fatalf("Failed to get all payment options err: %v", err)
 	}
-	wantLen := 2
+	wantLen := 1
 	if len(resp.List) != wantLen {
 		t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp.List))
 	}
@@ -299,11 +270,7 @@ func Test_Get_All_Payment_Options_happyPath(t *testing.T) {
 func Test_Get_All_Payment_Options_unhappyPath(t *testing.T) {
 	t.Run("empty_get_content", func(t *testing.T) {
 		ctx := context.Background()
-		pagination := Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
-		_, err := service.GetAll(ctx, &pagination)
+		_, err := service.GetAll(ctx)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -326,11 +293,7 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		pagination := Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
-		_, err = service.GetActive(ctx, &pagination)
+		_, err = service.GetActive(ctx)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -341,7 +304,7 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 			t.Fatalf("Failed to activate payment option err: %v", err)
 		}
 
-		resp, err := service.GetActive(ctx, &pagination)
+		resp, err := service.GetActive(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get all payment options err: %v", err)
 		}
@@ -359,11 +322,7 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 func Test_Get_Active_Payment_Options_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		ctx := context.Background()
-		pagination := Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
-		_, err := service.GetActive(ctx, &pagination)
+		_, err := service.GetActive(ctx)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -385,13 +344,9 @@ func Test_Get_Payment_Options_ByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		pagination := Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
 		resp, err := service.GetByParam(ctx, &GetByParamRequest{
 			Name: "test",
-		}, &pagination)
+		})
 		if err != nil {
 			t.Fatalf("Failed to get by param err: %v", err)
 		}
@@ -404,11 +359,7 @@ func Test_Get_Payment_Options_ByParam_happyPath(t *testing.T) {
 func Test_Get_Payment_Options_ByParam_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		ctx := context.Background()
-		pagination := Pagination{
-			Limit:  3,
-			Offset: 0,
-		}
-		_, err := service.GetByParam(ctx, &GetByParamRequest{}, &pagination)
+		_, err := service.GetByParam(ctx, &GetByParamRequest{})
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)

@@ -35,14 +35,9 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	return port.GetResponse{}, port.ErrSysNoRows
 }
 
-func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
+func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
-	count := 0
 	for _, i := range m.resources {
-		count++
-		if count > pagination.Limit {
-			break
-		}
 		response = append(response, port.GetResponse{
 			Id:     i.Id,
 			Name:   i.Name,
@@ -58,14 +53,9 @@ func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.Ge
 	}, nil
 }
 
-func (m *Mock) GetByStatus(ctx context.Context, status string, pagination *port.Pagination) (port.GetAllResponse, error) {
+func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
-	count := 0
 	for _, i := range m.resources {
-		count++
-		if count > pagination.Limit {
-			break
-		}
 		if i.Status == status {
 			response = append(response, port.GetResponse{
 				Id:     i.Id,
@@ -83,14 +73,9 @@ func (m *Mock) GetByStatus(ctx context.Context, status string, pagination *port.
 	}, nil
 }
 
-func (m *Mock) GetByName(ctx context.Context, name string, pagination *port.Pagination) (port.GetAllResponse, error) {
+func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
-	count := 0
 	for _, i := range m.resources {
-		count++
-		if count > pagination.Limit {
-			break
-		}
 		if i.Name == name {
 			response = append(response, port.GetResponse{
 				Id:     i.Id,

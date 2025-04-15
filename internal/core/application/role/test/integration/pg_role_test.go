@@ -73,13 +73,13 @@ func setup() {
 	}
 
 	// ddl
-	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db.sql")
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
 	if err != nil {
 		log.Fatalf("Error running migration: %v", err)
 	}
 
 	// functions
-	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db_functions.sql")
+	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
 	if err != nil {
 		log.Fatalf("Error running migration: %v", err)
 	}
@@ -174,13 +174,9 @@ func Test_create_happyPath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to create role err: %v", err)
 	}
-	pagination := role.Pagination{
-		Limit:  2,
-		Offset: 0,
-	}
 
 	//get resource
-	getResp, _ := service.GetAll(ctx, &pagination)
+	getResp, _ := service.GetAll(ctx)
 	if len(getResp.List) == 0 {
 		t.Errorf("No resources were created for role")
 	}
@@ -496,42 +492,17 @@ func Test_getAllResources_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	//setup
 	ctx := context.Background()
-	_, err := service.Create(ctx, &role.CreateRequest{
+	id, _ := service.Create(ctx, &role.CreateRequest{
 		Desc: "test",
 		Name: "test",
 	})
-	if err != nil {
-		t.Errorf("Failed to Create role err %v", err)
-	}
-	_, err = service.Create(ctx, &role.CreateRequest{
-		Desc: "test",
-		Name: "test1",
-	})
-	if err != nil {
-		t.Errorf("Failed to Create role err %v", err)
-	}
-	_, err = service.Create(ctx, &role.CreateRequest{
-		Desc: "test",
-		Name: "test3",
-	})
-	if err != nil {
-		t.Errorf("Failed to Create role err %v", err)
-	}
-	pagination := role.Pagination{
-		Limit:  2,
-		Offset: 0,
-	}
-
-	if err != nil {
-		t.Errorf("Failed to Create role err %v", err)
-	}
 
 	// Get All
-	got, err := service.GetAll(ctx, &pagination)
+	got, err := service.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Failed to get role by Id err %v", err)
 	}
-	if len(got.List) == 0 && len(got.List) > pagination.Limit {
+	if len(got.List) == 0 || got.List[0].Id != id {
 		t.Errorf("Failed to get role by id")
 	}
 }

@@ -25,20 +25,15 @@ type GetResponse struct {
 	Init_payment_url string
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type GetAllResponse struct {
 	List []GetResponse
 }
 
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
-	GetAll(context.Context, *Pagination) (GetAllResponse, error)
-	GetByStatus(context.Context, string, *Pagination) (GetAllResponse, error)
-	GetByName(context.Context, string, *Pagination) (GetAllResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
+	GetByStatus(context.Context, string) (GetAllResponse, error)
+	GetByName(context.Context, string) (GetAllResponse, error)
 }
 
 type Writer interface {

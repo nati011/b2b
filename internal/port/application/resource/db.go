@@ -35,15 +35,10 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetByName(context.Context, string) (GetResponse, error)
-	GetAll(context.Context, *Pagination) (GetAllResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
 }
 
 type Writer interface {

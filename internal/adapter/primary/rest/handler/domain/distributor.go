@@ -89,7 +89,8 @@ func (d *Distributor) Init(applicationServices *application_core.Container, doma
 }
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
+	distributorHandler := http.HandlerFunc(d.GetDistributorHandler)
+	mux.Handle("GET /api/v1/distributor", d.middleware.Authenticate(distributorHandler))
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
 	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 
@@ -172,14 +173,10 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 	const ParamId = "id"
 	const ParamName = "name"
 	const ParamTin = "tin"
-	const ParamLimit = "limit"
-	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
 	paramTinValue := paramValues.Get(ParamTin)
-	paramLimitValue := paramValues.Get(ParamLimit)
-	paramOffsetValue := paramValues.Get(ParamOffset)
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -265,30 +262,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
 	} else {
-		var typedLimit int
-		var typedOffset int
-		var err error
-
-		if paramLimitValue != "" {
-			typedLimit, err = strconv.Atoi(paramLimitValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-		if paramOffsetValue != "" {
-			typedOffset, err = strconv.Atoi(paramOffsetValue)
-
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-
-		pagination := distributor.Pagination{
-			Limit:  typedLimit,
-			Offset: typedOffset,
-		}
-
-		resp, err := de.service.GetAll(r.Context(), &pagination)
+		resp, err := de.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case distributor.ErrEmptyGetContent:

@@ -343,45 +343,18 @@ func Test_getResource_unhappyPath(t *testing.T) {
 func Test_getAllResources_happyPath(t *testing.T) {
 	//setup
 	ctx := context.Background()
-	_, err := service.Create(ctx, &CreateRequest{
+	id, _ := service.Create(ctx, &CreateRequest{
 		Action: "test",
 		Name:   "test",
 	})
 
-	if err != nil {
-		t.Errorf("Failed to create resource err %v", err)
-	}
-
-	_, err = service.Create(ctx, &CreateRequest{
-		Action: "test1",
-		Name:   "test2",
-	})
-
-	if err != nil {
-		t.Errorf("Failed to create resource err %v", err)
-	}
-
-	_, err = service.Create(ctx, &CreateRequest{
-		Action: "test4",
-		Name:   "test4",
-	})
-
-	if err != nil {
-		t.Errorf("Failed to create resource err %v", err)
-	}
-
-	pagination := &Pagination{
-		Limit:  2,
-		Offset: 0,
-	}
-
 	// Get All
-	got, err := service.GetAll(ctx, pagination)
+	got, err := service.GetAll(ctx)
 	if err != nil {
-		t.Errorf("Failed to get resource err %v", err)
+		t.Errorf("Failed to get resource by Id err %v", err)
 	}
-	if len(got.List) == pagination.Limit && len(got.List) > pagination.Limit {
-		t.Errorf("Want len %v Got len %v", pagination.Limit, len(got.List))
+	if len(got.List) == 0 || got.List[0].Id != id {
+		t.Errorf("Failed to get resource by id")
 	}
 }
 

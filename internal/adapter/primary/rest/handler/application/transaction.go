@@ -58,39 +58,12 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 	const ParamId = "id"
 	const ParamPartnerId = "partner_id"
 	const ParamUserId = "user_id"
-	const ParamLimit = "limit"
-	const ParamOffset = "offset"
 	const ParamDate = "date"
 
 	paramValues := r.URL.Query()
 	paramPartnerIdValue := paramValues.Get(ParamPartnerId)
 	paramDateValue := paramValues.Get(ParamDate)
 	paramUserIdValue := paramValues.Get(ParamUserId)
-	paramLimitValue := paramValues.Get(ParamLimit)
-	paramOffsetValue := paramValues.Get(ParamOffset)
-
-	var typedLimit int
-	var typedOffset int
-	var err error
-
-	if paramLimitValue != "" {
-		typedLimit, err = strconv.Atoi(paramLimitValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-		}
-	}
-	if paramOffsetValue != "" {
-		typedOffset, err = strconv.Atoi(paramOffsetValue)
-
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-		}
-	}
-
-	pagination := transaction.Pagination{
-		Limit:  typedLimit,
-		Offset: typedOffset,
-	}
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -112,28 +85,15 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"transaction": GetResponse(resp)})
 	} else if paramPartnerIdValue != "" || paramDateValue != "" || paramUserIdValue != "" {
-		var typedPartnerId int
-		var typedUserId int
-		var parsedDate time.Time
-		var err error
-
-		if paramPartnerIdValue != "" {
-			typedPartnerId, err = strconv.Atoi(paramPartnerIdValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-
-			}
+		typedPartnerId, err := strconv.Atoi(paramPartnerIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
 		}
-
-		if paramUserIdValue != "" {
-			typedUserId, err = strconv.Atoi(paramUserIdValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-
-			}
-
+		typedUserId, err := strconv.Atoi(paramUserIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
 		}
 		parsedDate, err := time.Parse(paramDateValue, "2024-09-19 14:00:00")
 		if err != nil {
@@ -147,7 +107,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 			User_Id:    typedUserId,
 		}
 
-		resp, err := p.service.GetByParam(r.Context(), params, &pagination)
+		resp, err := p.service.GetByParam(r.Context(), params)
 		if err != nil {
 			switch err {
 			case transaction.ErrUnknown:
@@ -165,7 +125,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
 
 	} else {
-      resp,err:=p.service.GetAll(r.Context(), &pagination)
+		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			default:
