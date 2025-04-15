@@ -16,7 +16,7 @@ type MockConfigurableProduct struct {
 	IsAvailableStatus bool
 	Products          []int
 	Images            []string
-	AttributeKeys     []map[string]string
+	AttributeKeys     []string
 	CategoryId        []int
 	DistributorId     int
 }
@@ -223,13 +223,19 @@ func (m *Mock) Disable(ctx context.Context, id int) error {
 
 func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.configurables {
+		attributes := []map[string]string{}
+		for _, key := range i.AttributeKeys {
+			attributes = append(attributes, map[string]string{
+				key: "tets",
+			})
+		}
 		if i.Id == id {
 			return port.GetResponse{
 				Id:            i.Id,
 				Name:          i.Name,
 				Desc:          i.Desc,
 				ExternalId:    i.ExternalId,
-				Attributes:    i.AttributeKeys,
+				Attributes:    attributes,
 				Products:      i.Products,
 				IsAvailable:   i.IsAvailableStatus,
 				CategoryId:    i.CategoryId,
