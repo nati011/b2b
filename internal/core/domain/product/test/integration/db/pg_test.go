@@ -59,6 +59,7 @@ func Test_read(t *testing.T) {
 			Price: 100.00,
 			Attributes: map[string]string{
 				"test": "test",
+				"tet":  "tets",
 			},
 		}
 
@@ -71,9 +72,29 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get product err %v", err)
 		}
-		wantId := id
-		if got.Id != wantId {
-			t.Errorf("Expected Id: %v, Got: %v", wantId, id)
+
+		if got.Name != in.Name {
+			t.Errorf("Expected name:%v Got: %v", got.Name, in.Name)
+		}
+		if got.Desc != in.Desc {
+			t.Errorf("Expected desc:%v Got: %v", got.Desc, in.Desc)
+		}
+		if got.ExternalID != in.ExternalID {
+			t.Errorf("Expected extId:%v Got: %v", got.ExternalID, in.ExternalID)
+		}
+		if got.Price != in.Price {
+			t.Errorf("Expected price:%v Got: %v", got.Price, in.Price)
+		}
+		for i, v := range in.Attributes {
+			if got.Attributes[i] != v {
+				t.Errorf("Expected attr: %v Got: %v", v, got.Attributes[i])
+			}
+		}
+
+		for i, v := range in.Images {
+			if got.Images[i] != v {
+				t.Errorf("Expected attr:%v Got: %v", v, got.Images[i])
+			}
 		}
 	})
 
@@ -327,6 +348,7 @@ func Test_write(t *testing.T) {
 			Price: 100.00,
 			Attributes: map[string]string{
 				"test": "test",
+				"tet":  "tst",
 			},
 		}
 
@@ -338,10 +360,31 @@ func Test_write(t *testing.T) {
 		//get
 		resp, err := container.ProductService.Get(ctx, id)
 		if err != nil {
-			t.Errorf("Expected err:%v Got err: %v", nil, err)
+			t.Fatalf("Failed to get product err %v", err)
 		}
-		if resp.Id == 0 {
-			t.Errorf("No product created")
+
+		if resp.Name != in.Name {
+			t.Errorf("Expected name:%v Got: %v", resp.Name, in.Name)
+		}
+		if resp.Desc != in.Desc {
+			t.Errorf("Expected desc:%v Got: %v", resp.Desc, in.Desc)
+		}
+		if resp.ExternalID != in.ExternalID {
+			t.Errorf("Expected extId:%v Got: %v", resp.ExternalID, in.ExternalID)
+		}
+		if resp.Price != in.Price {
+			t.Errorf("Expected price:%v Got: %v", resp.Price, in.Price)
+		}
+		for i, v := range in.Attributes {
+			if resp.Attributes[i] != v {
+				t.Errorf("Expected attr: %v Got: %v", v, resp.Attributes[i])
+			}
+		}
+
+		for i, v := range in.Images {
+			if resp.Images[i] != v {
+				t.Errorf("Expected attr:%v Got: %v", v, resp.Images[i])
+			}
 		}
 	})
 
