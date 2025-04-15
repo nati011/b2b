@@ -109,8 +109,7 @@ func (r *Product) Init(applicationServices *application_core.Container, domainSe
 }
 
 func (p *Product) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/product/{id}", p.GetHandler)
-	mux.HandleFunc("GET /api/v1/product", p.GetAllHandler)
+	mux.HandleFunc("GET /api/v1/product", p.GetHandler)
 	mux.HandleFunc("POST /api/v1/product", p.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
 	mux.HandleFunc("PATCH /api/v1/product/{id}/status", p.StatusHandler)
@@ -118,44 +117,12 @@ func (p *Product) Routes(mux *http.ServeMux) {
 }
 
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
-	typedParamId, err := util.GetPathParam(r, 4)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-
-	resp, err := p.service.Get(r.Context(), typedParamId)
-	if err != nil {
-		switch err {
-		case product.ErrIdNotFound:
-		default:
-			util.ServerErrorResponse(w, err)
-			return
-		}
-	}
-	util.OperationSuccessResponse(w, util.Envelope{"product": ProductResponse{
-		Id:            resp.Id,
-		Name:          resp.Name,
-		Desc:          resp.Desc,
-		ExternalID:    resp.ExternalID,
-		Images:        resp.Images,
-		Price:         resp.Price,
-		Attributes:    resp.Attributes,
-		DistributorId: resp.DistributorId,
-		CategoryId:    resp.CategoryId,
-		Stock:         resp.Stock,
-		IsActive:      resp.IsActive,
-	}})
-}
-
-func (p *Product) GetAllHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
 	const ParamName = "name"
 	const ParamExternalId = "external_id"
 	const ParamCategoryId = "category_id"
 	const ParamPriceMin = "price_min"
 	const ParamPriceMax = "price_max"
-	const ParamLimit = "limit"
-	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
@@ -163,9 +130,6 @@ func (p *Product) GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	ParamCategoryIdValue := paramValues.Get(ParamCategoryId)
 	ParamPriceMinValue := paramValues.Get(ParamPriceMin)
 	ParamPriceMaxValue := paramValues.Get(ParamPriceMax)
-	ParamLimitValue := paramValues.Get(ParamLimit)
-	ParamOffsetValue := paramValues.Get(ParamOffset)
-
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -245,32 +209,7 @@ func (p *Product) GetAllHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
-		var resp []GetProductResponse
-		var typedLimit int
-		var typedOffset int
-		var err error
-
-		if ParamLimitValue != "" {
-			typedLimit, err = strconv.Atoi(ParamLimitValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-		if ParamOffsetValue != "" {
-			typedOffset, err = strconv.Atoi(ParamOffsetValue)
-
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-
-		pagination := product.Pagination{
-			Limit:  typedLimit,
-			Offset: typedOffset,
-		}
-
-		resp,err := p.service.GetAll(r.Context(), &pagination)
-
+		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case product.ErrEmptyGetContent:

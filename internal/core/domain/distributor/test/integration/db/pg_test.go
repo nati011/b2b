@@ -41,16 +41,16 @@ func Test_Read(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := distributor.CreateRequest{
-			Tin:         "1111121111",
+			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
 			Longitude:   "38.7525° E",
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-			Username:    "test_user",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -72,51 +72,31 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		// setup
 		in := distributor.CreateRequest{
-			Tin:         "2111111111",
+			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
 			Longitude:   "38.7525° E",
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-			Username:    "test_user2",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
 		}
-		_, err := testContainer.DistributorService.Create(ctx, &in)
+		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-
-		in_two := distributor.CreateRequest{
-			Tin:         "1111111114",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-			Username:    "test_user3",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test_two@gmail.com",
-		}
-		_, err = testContainer.DistributorService.Create(ctx, &in_two)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-
-		pagination := &distributor.Pagination{
-			Limit:  1,
-			Offset: 0,
-		}
-		resp, err := testContainer.DistributorService.GetAll(ctx, pagination)
+		resp, err := testContainer.DistributorService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-
-		wantLen := pagination.Limit
-		if len(resp.List) != wantLen && len(resp.List) > wantLen {
-			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(resp.List))
+		}
+		if resp.List[0].Id != id {
+			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
 		}
 	})
 
@@ -125,16 +105,16 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		// setup
 		in := distributor.CreateRequest{
-			Tin:         "1111111110",
+			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
 			Longitude:   "38.7525° E",
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-			Username:    "test_user8",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -160,16 +140,16 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		// setup
 		in := distributor.CreateRequest{
-			Tin:         "1111111116",
+			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
 			Longitude:   "38.7525° E",
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-			Username:    "test_user6",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -195,16 +175,16 @@ func Test_Read(t *testing.T) {
 		//setup
 		ctx := context.Background()
 		in := distributor.CreateRequest{
-			Tin:         "1111111114",
+			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
 			Longitude:   "38.7525° E",
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-			Username:    "test_user4",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
+
+			FirstName: "test",
+			LastName:  "test",
+			Email:     "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {

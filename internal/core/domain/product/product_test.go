@@ -295,14 +295,8 @@ func Test_Get_happyPath(t *testing.T) {
 		t.Fatalf("Failed to create product")
 	}
 
-	pagination := Pagination{
-		Limit:  5,
-		Offset: 0,
-	}
-
 	//get
-	got, err := container.ProductService.GetAll(ctx, &pagination)
-
+	got, err := container.ProductService.Get(ctx, id)
 	if err != nil {
 		t.Fatalf("Failed to get err %v", err)
 	}
@@ -381,40 +375,14 @@ func Test_Get_All_happyPath(t *testing.T) {
 			"test": "test",
 		},
 	}
-	_, err = container.ProductService.Create(ctx, in_two)
-	if err != nil {
-		t.Fatalf("Failed to create product")
-	}
-	in_three := &CreateRequest{
-		Name:       "test3",
-		Desc:       "test",
-		ExternalID: "123",
-		Images: []string{
-			"test",
-			"test",
-		},
-		Price: 100.00,
-		Attributes: map[string]string{
-			"test": "test",
-		},
-	}
 
-	_, err = container.ProductService.Create(ctx, in_three)
+	_, err = container.ProductService.Create(ctx, in_two)
 	if err != nil {
 		t.Fatalf("Failed to create product")
 	}
 
 	//get-all
-	pagination := Pagination{
-		Limit:  2,
-		Offset: 0,
-	}
-	resp, err := container.ProductService.GetAll(ctx, &pagination)
-
-	if len(resp.List) > pagination.Limit {
-		t.Errorf("Expected len:%v Got len: %v", pagination.Limit, len(resp.List))
-	}
-
+	resp, err := container.ProductService.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Expected err:%v Got err: %v", nil, err)
 	}
@@ -429,11 +397,7 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 	ctx := context.Background()
 	//get-all
 	wantErr := ErrEmptyGetContent
-	pagination := Pagination{
-		Limit:  5,
-		Offset: 0,
-	}
-	_, err := container.ProductService.GetAll(ctx, &pagination)
+	_, err := container.ProductService.GetAll(ctx)
 	if err != wantErr {
 		t.Errorf("Expected err:%v Got err: %v", ErrEmptyGetContent, err)
 	}

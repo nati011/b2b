@@ -19,11 +19,6 @@ type GetResponse struct {
 	Partner_Id int
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type GetAllResponse struct {
 	List []GetResponse
 }
@@ -36,10 +31,10 @@ type CreateRequest struct {
 
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
-	GetAll(context.Context, *Pagination) (GetAllResponse, error)
-	GetByDate(context.Context, time.Time, *Pagination) (GetAllResponse, error)
-	GetByUserId(context.Context, int, *Pagination) (GetAllResponse, error)
-	GetByPartnerId(context.Context, int, *Pagination) (GetAllResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
+	GetByDate(context.Context, time.Time) (GetAllResponse, error)
+	GetByUserId(context.Context, int) (GetAllResponse, error)
+	GetByPartnerId(context.Context, int) (GetAllResponse, error)
 }
 
 type Writer interface {

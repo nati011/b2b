@@ -187,46 +187,14 @@ func Test_getAll_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		in_2 := CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "jemaneh",
-			Email:     "natnaeljemaneh002@gmail.com",
-			Phone:     "+251949184870",
-			Username:  "test",
-			DOB:       parsedTime,
-
-			ExternalId: "123",
-		}
-		_, err = testContainer.UserService.Create(ctx, &in_2)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		in_3 := CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "jemaneh",
-			Email:     "natnaeljemaneh003@gmail.com",
-			Phone:     "+251999184870",
-			Username:  "test",
-			DOB:       parsedTime,
-
-			ExternalId: "123",
-		}
-		_, err = testContainer.UserService.Create(ctx, &in_3)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
 		//get
-		resp, err := testContainer.UserService.GetAll(ctx, &pagination)
+		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to getAll err: %v", err)
 		}
-		wantLen := pagination.Limit
-		if len(resp.List) != wantLen && len(resp.List) > wantLen {
-			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp.List))
+		expecetdLen := 1
+		if len(resp.List) == 0 {
+			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(resp.List))
 		}
 	})
 }
@@ -280,11 +248,7 @@ func Test_getAll_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
 		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		resp, err := testContainer.UserService.GetAll(ctx, &pagination)
+		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != ErrEmptyGetContent {
 			t.Errorf("Expected err: %v Got err: %v", ErrEmptyGetContent, err)
 		}
@@ -318,11 +282,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		inParam := &GetByParam{
 			Email: email,
 		}
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -355,11 +315,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		inParam := &GetByParam{
 			Phone: phone_number,
 		}
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -392,11 +348,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		inParam := &GetByParam{
 			Username: username,
 		}
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -429,11 +381,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		inParam := &GetByParam{
 			IsActive: status,
 		}
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -480,11 +428,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		inParam := &GetByParam{
 			Username: "test",
 		}
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
@@ -502,12 +446,7 @@ func Test_getByParam_unhappyPath(t *testing.T) {
 		inParam := &GetByParam{
 			Email: "test",
 		}
-
-		pagination := Pagination{
-			Limit:  2,
-			Offset: 0,
-		}
-		response, err := testContainer.UserService.GetByParam(ctx, inParam, &pagination)
+		response, err := testContainer.UserService.GetByParam(ctx, inParam)
 		if err != ErrEmptyGetContent {
 			t.Fatalf("Expected err: %v Got err: %v", ErrEmptyGetContent, err)
 		}

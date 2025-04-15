@@ -71,16 +71,11 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamRetailerId = "retailer_id"
 	const ParamStatus = "status"
-	const ParamLimit = "limit"
-	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramIdValue := paramValues.Get(ParamId)
 	paramRetailerIdValue := paramValues.Get(ParamRetailerId)
 	paramStatus := paramValues.Get(ParamStatus)
-	paramLimitValue := paramValues.Get(ParamLimit)
-	paramOffsetValue := paramValues.Get(ParamOffset)
-
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
@@ -126,30 +121,8 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 	} else {
-		var typedLimit int
-		var typedOffset int
-		var err error
-
-		if paramLimitValue != "" {
-			typedLimit, err = strconv.Atoi(paramLimitValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-		if paramOffsetValue != "" {
-			typedOffset, err = strconv.Atoi(paramOffsetValue)
-
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-			}
-		}
-
-		pagination := &order.Pagination{
-			Limit:  typedLimit,
-			Offset: typedOffset,
-		}
 		// get all
-		resp, err := o.service.GetAll(r.Context(), pagination)
+		resp, err := o.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case order.ErrEmptyGetResponse:

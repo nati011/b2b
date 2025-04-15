@@ -99,19 +99,14 @@ type GetUserProviderResponse struct {
 	List []UserProvider
 }
 
-type Pagination struct {
-	Limit  int
-	Offset int
-}
-
 type Reader interface {
 	GetByID(ctx context.Context, id int) (GetResponse, error)
 	GetByEmail(ctx context.Context, email string) (GetAllResponse, error)
 	GetByPhone(ctx context.Context, phone string) (GetAllResponse, error)
 	GetByUsername(ctx context.Context, username string) (GetAllResponse, error)
-	GetByActiveStatus(ctx context.Context, status bool, pagination *Pagination) (GetAllResponse, error)
+	GetByActiveStatus(ctx context.Context, status bool) (GetAllResponse, error)
 	GetByExternalId(ctx context.Context, extId string) (GetAllResponse, error)
-	GetAll(ctx context.Context, pagination *Pagination) (GetAllResponse, error)
+	GetAll(context.Context) (GetAllResponse, error)
 }
 
 type Writer interface {
