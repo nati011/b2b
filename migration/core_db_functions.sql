@@ -1419,7 +1419,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_invoices()
+CREATE OR REPLACE FUNCTION public.get_all_invoices(
+i_limit INT,
+i_offset INT
+)
 RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
@@ -1427,7 +1430,9 @@ BEGIN
     RETURN QUERY
     SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
     FROM public.invoices i
-    WHERE i.is_deleted = FALSE;
+    WHERE i.is_deleted = FALSE
+    LIMIT i_limit
+    OFFSET i_offset;
 END;
 $$;
 
@@ -2669,7 +2674,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_orders()
+CREATE OR REPLACE FUNCTION public.get_all_orders(
+o_limit INT,
+o_offset INT
+)
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
@@ -2683,7 +2691,9 @@ BEGIN
            o.status, 
            o.total
     FROM public.orders o
-    WHERE o.is_deleted = FALSE;
+    WHERE o.is_deleted = FALSE
+    LIMIT o_limit
+    OFFSET o_offset;
 END;
 $$;
 
@@ -2710,10 +2720,9 @@ BEGIN
     VALUES (o_order_id, 
             o_product_id, 
             o_quantity,
-            o_price)
-    RETURNING id INTO new_id;
+            o_price);
     
-    RETURN new_id;
+    RETURN o_order_id;
 END;
 $$;
 
