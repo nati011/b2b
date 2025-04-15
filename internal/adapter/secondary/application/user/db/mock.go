@@ -139,7 +139,7 @@ func (m *Mock) GetByUsername(ctx context.Context, username string) (port.GetAllR
 	}, nil
 }
 
-func (m *Mock) GetByActiveStatus(ctx context.Context, status bool) (port.GetAllResponse, error) {
+func (m *Mock) GetByActiveStatus(ctx context.Context, status bool, pagination *port.Pagination) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.users {
 		if i.IsActive == status {
@@ -189,7 +189,7 @@ func (m *Mock) GetByExternalId(ctx context.Context, extId string) (port.GetAllRe
 	}, nil
 }
 
-func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
+func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.users {
 

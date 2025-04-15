@@ -498,7 +498,10 @@ AS $$
 $$;
 
 create or replace function public.get_users_by_active_status (
-    user_active_status BOOLEAN) 
+user_active_status BOOLEAN,
+u_limit INT,
+u_offset INT
+) 
 RETURNS table (
   id INT,
   firstName VARCHAR(255),
@@ -525,7 +528,8 @@ AS $$
         FROM public.users u
         WHERE u.is_active = user_active_status
         AND u.is_deleted = FALSE
-        LIMIT 1;
+        LIMIT u_limit
+        OFFSET u_offset;
     END;
 $$;
 
@@ -584,7 +588,10 @@ AS $$
 $$;
 
 
-CREATE OR REPLACE FUNCTION public.get_all_users()
+CREATE OR REPLACE FUNCTION public.get_all_users(
+u_limit INT,
+u_offset INT
+)
 RETURNS TABLE(
     id INT, 
     firstName VARCHAR(255),
@@ -609,7 +616,9 @@ BEGIN
            u.is_active, 
            u.external_id 
     FROM public.users u
-    WHERE u.is_deleted = FALSE;
+    WHERE u.is_deleted = FALSE
+    LIMIT u_limit
+    OFFSET u_offset;
 END;
 $$;
 
