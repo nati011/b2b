@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -97,8 +96,7 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	service                    product.Provider
-	configurableProductservice configurable_product.Provider
+	service product.Provider
 }
 
 func InitProduct() {
@@ -107,7 +105,6 @@ func InitProduct() {
 
 func (r *Product) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ProductService
-	r.configurableProductservice = domainService.ConfigurableProductService
 	return nil
 }
 
@@ -195,7 +192,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var resp product.GetAllResponse
-
 		if typedCategoryId != 0 {
 			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
 				Name:       paramNameValue,
@@ -225,67 +221,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
-		//configurable products
-		var resp []GetProductResponse
-		products_belonging_to_cps := []int{}
-		cp, err := p.configurableProductservice.GetAll(r.Context())
-		if err != nil {
-			switch err {
-			case configurable_product.ErrEmptyGetContent:
-			default:
-				util.ServerErrorResponse(w, err)
-				return
-			}
-		}
-
-		for _, j := range cp.List {
-			var configurables []ProductResponse
-			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
-			for _, i := range j.Products {
-				//add product to cps belonging to products
-				products_belonging_to_cps = append(products_belonging_to_cps, i)
-				resp, err := p.service.Get(r.Context(), i)
-				if err != nil {
-					switch err {
-					case product.ErrIdNotFound:
-					default:
-						util.ServerErrorResponse(w, err)
-					}
-				}
-				configurables = append(configurables, ProductResponse{
-					Id:            resp.Id,
-					Name:          resp.Name,
-					Desc:          resp.Desc,
-					ExternalID:    resp.ExternalID,
-					Images:        resp.Images,
-					Price:         resp.Price,
-					Attributes:    resp.Attributes,
-					DistributorId: resp.DistributorId,
-					CategoryId:    resp.CategoryId,
-					Stock:         resp.Stock,
-					IsActive:      resp.IsActive,
-				})
-				for _, attribute := range j.Attributes {
-					for key := range attribute {
-						configurableAttribute[key] = append(configurableAttribute[key], ConfigurableAttributesResponse{
-							ProductId:      resp.Id,
-							AttributeValue: resp.Attributes[key],
-						})
-					}
-				}
-			}
-
-			resp = append(resp, GetProductResponse{
-				Name:                   j.Name,
-				Desc:                   j.Desc,
-				IsActive:               j.IsAvailable,
-				Images:                 j.Images,
-				ConfigurableAttributes: configurableAttribute,
-				Configurables:          configurables,
-			})
-		}
-
-		//standalone products
 		pr, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
@@ -295,43 +230,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		var configurables []ProductResponse
-		for _, i := range pr.List {
-			configurables = append(configurables, ProductResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        i.Images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
-			})
-
-			var configurableAttribute = make(map[string][]ConfigurableAttributesResponse)
-			for attr_key, attr_val := range i.Attributes {
-				configurableAttribute[attr_key] = []ConfigurableAttributesResponse{
-					{
-						ProductId:      i.Id,
-						AttributeValue: attr_val,
-					},
-				}
-			}
-
-			resp = append(resp, GetProductResponse{
-				Name:                   i.Name,
-				Desc:                   i.Desc,
-				IsActive:               i.IsActive,
-				Images:                 i.Images,
-				ConfigurableAttributes: configurableAttribute,
-				Configurables:          configurables,
-			})
-		}
-
-		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"products": pr})
 	}
 }
 
