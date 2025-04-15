@@ -113,11 +113,16 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	limit := 10
+	offset := pagination.Offset
 
-	query := "SELECT * FROM public.get_all_orders();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+	query := "SELECT * FROM public.get_all_orders($1,$2);"
+	rows, err := p.Pool.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

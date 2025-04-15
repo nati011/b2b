@@ -119,11 +119,18 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 	return nil
 }
 
-func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (r *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	// Default limit and offset
+	limit := 10
+	offset := pagination.Offset
 
-	query := "SELECT * FROM public.get_all_retailers();"
-	rows, err := r.Pool.QueryContext(ctx, query)
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+
+	query := "SELECT * FROM public.get_all_retailers($1,$2);"
+	rows, err := r.Pool.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

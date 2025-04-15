@@ -61,7 +61,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	return port.GetResponse{}, port.ErrSysNoRows
 }
 
-func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	res := port.GetAllResponse{}
 	for _, i := range m.invoices {
 		items := []port.Item{}

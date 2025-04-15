@@ -46,10 +46,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user1",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -77,16 +77,20 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user2",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := testContainer.RetailerService.GetAll(ctx)
+		pagination := retailer.Pagination{
+			Limit:  1,
+			Offset: 0,
+		}
+		resp, err := testContainer.RetailerService.GetAll(ctx, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
@@ -110,10 +114,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user3",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -145,10 +149,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user6",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -180,10 +184,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user7",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -209,9 +213,9 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
+			Username:    "test_user0",
+			FirstName:   "test",
+			LastName:    "test",
 
 			Email: "test@gmail.com",
 		}
@@ -241,9 +245,9 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
+			Username:    "testUser",
+			FirstName:   "test",
+			LastName:    "test",
 
 			Email: "test@gmail.com",
 		}
@@ -270,10 +274,10 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_users",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {

@@ -41,11 +41,19 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_payment_partners();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	// Default limit and offset
+	limit := 10
+	offset := pagination.Offset
+
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+
+	query := "SELECT * FROM public.get_all_payment_partners($1, $2);"
+	rows, err := p.Pool.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -80,11 +88,19 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return response, nil
 }
 
-func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+func (p *Postgres) GetByStatus(ctx context.Context, status string, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_payment_partner_by_status($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, status)
+	// Default limit and offset
+	limit := 10
+	offset := pagination.Offset
+
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+
+	query := "SELECT * FROM public.get_payment_partner_by_status($1, $2, $3);"
+	rows, err := p.Pool.QueryContext(ctx, query, status, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -119,11 +135,19 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	return response, nil
 }
 
-func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
+func (p *Postgres) GetByName(ctx context.Context, name string, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_payment_partner_by_name($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, name)
+	// Default limit and offset
+	limit := 10
+	offset := pagination.Offset
+
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+
+	query := "SELECT * FROM public.get_payment_partner_by_name($1, $2, $3);"
+	rows, err := p.Pool.QueryContext(ctx, query, name, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

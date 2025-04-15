@@ -48,11 +48,17 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Postgres) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	// Default limit and offset
+	limit := 10
+	offset := pagination.Offset
 
-	query := "SELECT * FROM public.get_all_transactions();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+	query := "SELECT * FROM public.get_all_transactions($1, $2);"
+	rows, err := p.Pool.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -94,11 +100,16 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return response, nil
 }
 
-func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllResponse, error) {
+func (p *Postgres) GetByDate(ctx context.Context, date time.Time, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	limit := 10
+	offset := pagination.Offset
 
-	query := "SELECT * FROM public.get_transactions_by_date($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, date)
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+	query := "SELECT * FROM public.get_transactions_by_date($1, $2, $3);"
+	rows, err := p.Pool.QueryContext(ctx, query, date, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -140,11 +151,16 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 	return response, nil
 }
 
-func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllResponse, error) {
+func (p *Postgres) GetByUserId(ctx context.Context, user_id int, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	limit := 10
+	offset := pagination.Offset
 
-	query := "SELECT * FROM public.get_transactions_by_user_id($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, user_id)
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+	query := "SELECT * FROM public.get_transactions_by_user_id($1, $2, $3);"
+	rows, err := p.Pool.QueryContext(ctx, query, user_id, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -186,11 +202,16 @@ func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllRes
 	return response, nil
 }
 
-func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.GetAllResponse, error) {
+func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	limit := 10
+	offset := pagination.Offset
 
-	query := "SELECT * FROM public.get_transactions_by_partner_id($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, partner_id)
+	if pagination.Limit != 0 {
+		limit = pagination.Limit
+	}
+	query := "SELECT * FROM public.get_transactions_by_partner_id($1, $2, $3);"
+	rows, err := p.Pool.QueryContext(ctx, query, partner_id, limit, offset)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
