@@ -102,7 +102,7 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 	}, nil
 }
 
-func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
+func (m *Mock) GetAll(ctx context.Context, pagination *port.Pagination) (port.GetAllResponse, error) {
 	var resp []port.GetResponse
 	for _, i := range m.orders {
 		items := []port.Item{}
