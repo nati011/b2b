@@ -38,11 +38,11 @@ type RegisterUserResponse struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type LoginAuthResponse struct {
-	JWT JWT
+	JWT JWT `json:"jwt"`
 }
 
 type LoginUserRequest struct {

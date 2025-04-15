@@ -1,4 +1,4 @@
-package handler
+package domain
 
 import (
 	"encoding/json"
@@ -30,7 +30,35 @@ type CreateConfigurableProductRequest struct {
 	Images        []string `json:"images"`
 }
 
-type UpdateRequest struct {
+type PriceRangeResponse struct {
+	Min int `json:"min"`
+	Max int `json:"max"`
+}
+
+type GetConfigurableProductResponse struct {
+	Id            int                 `json:"id"`
+	Name          string              `json:"name"`
+	Desc          string              `json:"desc"`
+	ExternalId    string              `json:"external_id"`
+	Attributes    []map[string]string `json:"attributes"`
+	Products      []int               `json:"products"`
+	IsAvailable   bool                `json:"is_available"`
+	PriceRange    PriceRangeResponse  `json:"price_range"`
+	CategoryId    []int               `json:"category_id"`
+	DistributorId int                 `json:"distributor_id"`
+	Images        []string            `json:"images"`
+}
+
+type GetAllConfigurableProductsResponse struct {
+	List []GetConfigurableProductResponse `json:"configurable_products"`
+}
+
+type GetConfigurableProductsByParamRequest struct {
+	Name       string `json:"name"`
+	ExternalId string `json:"external_id"`
+}
+
+type UpdateConfigurableProductRequest struct {
 	Id                int      `json:"id"`
 	Name              string   `json:"name"`
 	Desc              string   `json:"desc"`
@@ -166,7 +194,7 @@ func (p *ConfigurableProduct) UpdateHandler(w http.ResponseWriter, r *http.Reque
 	}
 	defer r.Body.Close()
 
-	var requestBody UpdateRequest
+	var requestBody UpdateConfigurableProductRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return

@@ -1,7 +1,8 @@
-package handler
+package application
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
@@ -14,11 +15,32 @@ import (
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
+var (
+	ErrUnknownPaymentOptionCommand = errors.New("unknown user command")
+)
+
 type CreatePaymentPartnerRequest struct {
 	Name             string `json:"name"`
 	Icon             string `json:"icon"`
 	Status           string `json:"status"`
 	Init_payment_url string `json:"init_payment_url"`
+}
+
+type GetPaymentPartnerResponse struct {
+	Id               int    `json:"id"`
+	Name             string `json:"name"`
+	Icon             string `json:"icon"`
+	Status           string `json:"status"`
+	Init_payment_url string `json:"init_payment_url"`
+}
+
+type GetAllPaymentPartnerResponse struct {
+	List []GetPaymentPartnerResponse `json:"payment_options"`
+}
+
+type GetPaymentOptionByParamRequest struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
 }
 
 type PaymentPartner struct {
@@ -98,7 +120,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_option": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"payment_option": GetPaymentPartnerResponse(resp)})
 	} else if paramNameValue != "" || paramStatusValue != "" {
 		params := &payment_partner.GetByParamRequest{
 			Name:   paramNameValue,
@@ -116,8 +138,11 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_options": resp})
-
+		var response GetAllPaymentPartnerResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetPaymentPartnerResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
 	} else {
 		payment_options, err := p.service.GetAll(r.Context(), &pagination)
 		if err != nil {
@@ -127,7 +152,11 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_options": payment_options})
+		var response GetAllPaymentPartnerResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetPaymentPartnerResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
 	}
 }
 
@@ -166,6 +195,7 @@ func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, 
 		Offset: offset,
 	}
 	payment_options, err := p.service.GetActive(r.Context(), &pagination)
+
 	if err != nil {
 		switch err {
 		default:
@@ -173,7 +203,11 @@ func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, 
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"payment_options": payment_options})
+	var response GetAllPaymentPartnerResponse
+	for _, i := range resp.List {
+		response.List = append(response.List, GetPaymentPartnerResponse(i))
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
 }
 
 func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *http.Request) {
@@ -246,7 +280,7 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option deactivated successfully"})
 		default:
-			util.RequestErrorResponse(w, ErrUnknownUserCommand)
+			util.RequestErrorResponse(w, ErrUnknownPaymentOptionCommand)
 		}
 	}
 }

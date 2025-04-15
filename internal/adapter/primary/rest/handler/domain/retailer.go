@@ -1,4 +1,4 @@
-package handler
+package domain
 
 import (
 	"encoding/json"
@@ -161,6 +161,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				util.ServerErrorResponse(w, err)
 			}
 		}
+
 		if len(users_resp.List) != 0 {
 			util.WriteJSON(w, util.Envelope{"retailer": GetRetailerResponse{
 				Id:          resp.Id,

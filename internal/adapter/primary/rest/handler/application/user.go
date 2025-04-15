@@ -1,4 +1,4 @@
-package handler
+package application
 
 import (
 	"encoding/json"
@@ -294,7 +294,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"user": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"user": GetUserResponse(resp)})
 	} else if paramNameValue != "" || paramEmailValue != "" || paramPhoneValue != "" ||
 		paramUsernameValue != "" || paramIsActiveValue != "" || ParamExternalIdValue != "" {
 
@@ -337,7 +337,11 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"users": resp})
+		var response GetAllUserResponse
+		for _, i := range resp.List {
+			response.List = append(response.List, GetUserResponse(i))
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"users": response})
 	}
 }
 
