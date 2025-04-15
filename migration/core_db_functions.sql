@@ -1060,7 +1060,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_distributors () 
+create or replace function public.get_all_distributors (
+d_limit INT,
+d_offset INT
+) 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -1083,7 +1086,9 @@ AS $$
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
-        WHERE d.is_deleted = FALSE;
+        WHERE d.is_deleted = FALSE
+        LIMIT d_limit
+        OFFSET d_offset;
     END;
 $$;
 
@@ -1284,7 +1289,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_retailers () 
+create or replace function public.get_all_retailers (
+r_limit INT,
+r_offset INT
+) 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -1306,7 +1314,9 @@ AS $$
         JOIN public.retailer_business_info rb 
         ON rb.retailer_id = r.id
         JOIN public.rb_locations rb_loc 
-        ON rb_loc.business_id = rb.id;
+        ON rb_loc.business_id = rb.id
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
 $$;
 

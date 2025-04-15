@@ -252,10 +252,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user4",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -280,10 +280,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user3",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -314,10 +314,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user1",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -347,16 +347,20 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "test_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		resp, err := testContainer.RetailerService.GetAll(ctx)
+		pagination := Pagination{
+			Limit:  1,
+			Offset: 0,
+		}
+		resp, err := testContainer.RetailerService.GetAll(ctx, &pagination)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
