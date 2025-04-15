@@ -47,11 +47,38 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 	const ParamPartnerId = "partner_id"
 	const ParamDate = "date"
 	const ParamUserId = "user_id"
+	const ParamLimit = "limit"
+	const ParamOffset = "offset"
 
 	paramValues := r.URL.Query()
 	paramPartnerIdValue := paramValues.Get(ParamPartnerId)
 	paramDateValue := paramValues.Get(ParamDate)
 	paramUserIdValue := paramValues.Get(ParamUserId)
+	paramLimitValue := paramValues.Get(ParamLimit)
+	paramOffsetValue := paramValues.Get(ParamOffset)
+
+	var typedLimit int
+	var typedOffset int
+	var err error
+
+	if paramLimitValue != "" {
+		typedLimit, err = strconv.Atoi(paramLimitValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+		}
+	}
+	if paramOffsetValue != "" {
+		typedOffset, err = strconv.Atoi(paramOffsetValue)
+
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+		}
+	}
+
+	pagination := transaction.Pagination{
+		Limit:  typedLimit,
+		Offset: typedOffset,
+	}
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -75,23 +102,24 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		var typedPartnerId int
 		var typedUserId int
 		var parsedDate time.Time
+		var err error
 
 		if paramPartnerIdValue != "" {
-			typedPartnerId, _ = strconv.Atoi(paramPartnerIdValue)
-			// if err != nil {
-			// 	util.RequestErrorResponse(w, err)
-			// 	return
+			typedPartnerId, err = strconv.Atoi(paramPartnerIdValue)
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+				return
 
-			// }
+			}
 		}
 
 		if paramUserIdValue != "" {
-			typedUserId, _ = strconv.Atoi(paramUserIdValue)
-			// if err != nil {
-			// 	util.RequestErrorResponse(w, err)
-			// 	return
+			typedUserId, err = strconv.Atoi(paramUserIdValue)
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+				return
 
-			// }
+			}
 		}
 
 		if paramDateValue != "" {
@@ -110,7 +138,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 			User_Id:    typedUserId,
 		}
 
-		resp, err := p.service.GetByParam(r.Context(), params)
+		resp, err := p.service.GetByParam(r.Context(), params, &pagination)
 		if err != nil {
 			switch err {
 			case transaction.ErrUnknown:
@@ -124,7 +152,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		util.OperationSuccessResponse(w, util.Envelope{"transactions": resp})
 
 	} else {
-		transactions, err := p.service.GetAll(r.Context())
+		transactions, err := p.service.GetAll(r.Context(), &pagination)
 		if err != nil {
 			switch err {
 			default:
