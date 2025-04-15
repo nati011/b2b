@@ -2,11 +2,23 @@ package order
 
 import (
 	"context"
+
+	"b2b.nati011.github.com/internal/core/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 func (o *OrderService) validate_retailerId(ctx context.Context, id int) error {
 	if id == 0 {
 		return ErrRetailerIdNotSupplied
+	}
+	_, err := o.RetailerService.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case retailer.ErrIdNotFound:
+			return ErrRetailerIdNotFound
+		default:
+			return ErrUnknown
+		}
 	}
 	return nil
 }
@@ -31,14 +43,14 @@ func (o *OrderService) validate_items(ctx context.Context, items []Item) error {
 		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case product.ErrIdNotFound:
 				return ErrItemMemberProductNotFound
 			default:
 				return ErrUnknown
 			}
 		}
 		//validate provided qty exists
-		if prod_resp.Stock > i.Quantity {
+		if prod_resp.Stock < i.Quantity {
 			return ErrItemMemberProductQuantityNotFound
 		}
 	}

@@ -22,6 +22,8 @@ var (
 	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
 	ErrUnknown                      = errors.New("oopsy, unkown error")
 	ErrCategoryNotFound             = errors.New("oopsy, category not found")
+	ErrPriceCannotBeNegative        = errors.New("oopsy, price cannot be negative")
+	ErrStockUnavailable             = errors.New("oopsy, requested quantity greater than stock")
 )
 
 type CreateRequest struct {
@@ -125,7 +127,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-	err = validatePrice(int(req.Price))
+	err = create_validatePrice(int(req.Price))
 	if err != nil {
 		return 0, err
 	}
@@ -377,7 +379,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 	}
 
 	if req.Price != 0 {
-		err = validatePrice(int(req.Price))
+		err = update_validatePrice(int(req.Price))
 		if err != nil {
 			return 0, err
 		}
@@ -481,11 +483,15 @@ func (p *ProductService) ReceiveGoods(ctx context.Context, req *GoodsReceivingRe
 
 func (p *ProductService) Dispatch(ctx context.Context, req *DispatchRequest) error {
 	//validate Id
-	_, err := p.Get(ctx, req.Id)
+	prod, err := p.Get(ctx, req.Id)
 	if err != nil {
 		return ErrIdNotFound
 	}
 
+	//validate stock quantity
+	if prod.Stock < req.Amount {
+		return ErrStockUnavailable
+	}
 	err = p.DB.Dispatch(ctx, &port.DispatchRequest{
 		Id:     req.Id,
 		Amount: req.Amount,

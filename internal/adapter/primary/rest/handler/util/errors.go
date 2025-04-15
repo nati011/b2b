@@ -1,39 +1,41 @@
 package handler
 
 import (
-	"log"
+	"errors"
 	"net/http"
-	"os"
 )
 
-var logger = log.New(os.Stdout, "api: ", log.LstdFlags)
-
-func logError(err error) {
-	logger.Println(err)
-}
+var (
+	ErrInvalidRequestBody = errors.New("oopsy, invalid request data")
+	ErrFailedToAuthorize  = errors.New("oopsy, failed to authorize user")
+	ErrIdRequired         = errors.New("oopsy, Id is required")
+)
 
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 	env := Envelope{"message": message}
 
 	err := WriteJSON(w, env, status)
 	if err != nil {
-		logError(err)
 		w.WriteHeader(500)
 	}
 }
 
-func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func ServerErrorResponse(w http.ResponseWriter, err error) {
 	logError(err)
 	message := "the server encountered a problem and could not process your request"
 	errorResponse(w, http.StatusInternalServerError, message)
 }
 
-func RequestErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func RequestErrorResponse(w http.ResponseWriter, err error) {
 	logError(err)
 	errorResponse(w, http.StatusBadRequest, err.Error())
 }
 
-func NotFoundResponse(w http.ResponseWriter, r *http.Request) {
+func NotFoundResponse(w http.ResponseWriter) {
 	message := "the requested resource could not be found"
 	errorResponse(w, http.StatusNotFound, message)
+}
+
+func UnauthorizedResponse(w http.ResponseWriter) {
+	errorResponse(w, http.StatusUnauthorized, nil)
 }

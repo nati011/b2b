@@ -1,13 +1,26 @@
 package retailer
 
-func validateTin(tin string) error {
-	return nil
-}
+import (
+	"context"
+	"regexp"
+)
 
-func validateLat(lat string) error {
-	return nil
-}
+func (r *RetailerService) validateTin(ctx context.Context, tin string) error {
+	// TIN must be 10 digits
+	if matched, _ := regexp.MatchString(`^\d{10}$`, tin); !matched {
+		return ErrInvalidTin
+	}
 
-func validateLong(long string) error {
+	_, err := r.GetByParam(ctx, &GetByParamRequest{
+		Tin: tin,
+	})
+	if err != ErrEmptyGetContent {
+		switch err {
+		case nil:
+			return ErrDuplicateTin
+		default:
+			return err
+		}
+	}
 	return nil
 }

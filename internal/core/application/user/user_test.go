@@ -6,8 +6,6 @@ import (
 	"os"
 	"testing"
 	"time"
-
-	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
 var testContainer TestContainer
@@ -27,10 +25,12 @@ func setup() {
 func Test_create_happyPath(t *testing.T) {
 
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName:  "natnael jemaneh asefa",
+			FirstName:  "natnael asefa",
+			LastName:   "jemaneh",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -41,19 +41,19 @@ func Test_create_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		_, err = testContainer.UserService.GetByParam(ctx, &port.GetByParam{
-			ID: id,
-		})
+		_, err = testContainer.UserService.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Expected err: %v Got err: %v", nil, err)
 		}
 	})
 
 	t.Run("user_active_by_default", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName:  "natnael jemaneh asefa",
+			FirstName:  "natnael asefa",
+			LastName:   "jemaneh",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -64,13 +64,11 @@ func Test_create_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		user, err := testContainer.UserService.GetByParam(ctx, &port.GetByParam{
-			ID: id,
-		})
+		user, err := testContainer.UserService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		if user.List[0].IsActive != true {
+		if user.IsActive != true {
 			t.Errorf("Expected user active status: %v Got: %v", true, false)
 		}
 	})
@@ -78,9 +76,11 @@ func Test_create_happyPath(t *testing.T) {
 
 func Test_create_unhappyPath(t *testing.T) {
 	t.Run("FirstName_mandatory", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
+			LastName:   "natnael asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -93,50 +93,48 @@ func Test_create_unhappyPath(t *testing.T) {
 		}
 	})
 	t.Run("phone_or_email_mandatory", func(t *testing.T) {
-		//none
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
-		if err != ErrPhoneOrEmailMandatory {
-			t.Errorf("Expected Err: %v Got: %v", ErrPhoneOrEmailMandatory, err)
+		wantErr := ErrPhoneOrEmailMandatory
+		if err != wantErr {
+			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
-		//just phone
-		in_only_phone := CreateRequest{
-			FirstName:  "natnael jemaneh asefa",
-			Username:   "test",
-			DOB:        parsedTime,
-			Phone:      "+251949184879",
-			ExternalId: "123",
-		}
-		_, err = testContainer.UserService.Create(ctx, &in_only_phone)
-		if err != nil {
-			t.Errorf("Expected Err: %v Got: %v", nil, err)
-		}
-		//just email
+	})
+
+	t.Run("email_mandatory", func(t *testing.T) {
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		ctx := context.Background()
 		in_only_email := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			Phone:      "+251949184879",
 			ExternalId: "123",
 		}
-		_, err = testContainer.UserService.Create(ctx, &in_only_email)
-		if err != nil {
-			t.Errorf("Expected Err: %v Got: %v", nil, err)
+		_, err := testContainer.UserService.Create(ctx, &in_only_email)
+		wantErr := ErrEmailNotFound
+		if err != wantErr {
+			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
 	})
 
 	t.Run("phone_validation", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			Phone:      "011",
@@ -150,10 +148,12 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("email_validation", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Username:   "test",
 			DOB:        parsedTime,
 			Email:      "natnaeljemaneh001gmail.com",
@@ -169,11 +169,13 @@ func Test_create_unhappyPath(t *testing.T) {
 
 func Test_getAll_happyPath(t *testing.T) {
 	t.Run("non_empty_content", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     "+251949184879",
 			Username:  "test",
@@ -197,8 +199,54 @@ func Test_getAll_happyPath(t *testing.T) {
 	})
 }
 
+func Test_get_happyPath(t *testing.T) {
+	t.Run("getById", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		ctx := context.Background()
+		email := "natnaeljemaneh001@gmail.com"
+		//setup
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
+		in := CreateRequest{
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
+			Email:      email,
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			ExternalId: "123",
+		}
+		id, err := testContainer.UserService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		response, err := testContainer.UserService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get user by param err: %v", err)
+		}
+		expecetedId := id
+		if expecetedId != response.Id {
+			t.Errorf("Expected id: %v Got: %v", expecetedId, response.Id)
+		}
+	})
+}
+
+func Test_get_unhappyPath(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		ctx := context.Background()
+
+		_, err := testContainer.UserService.Get(ctx, 99)
+		expecetedErr := ErrIdNotFound
+		if expecetedErr != err {
+			t.Errorf("Expected err: %v Got: %v", expecetedErr, err)
+		}
+	})
+}
+
 func Test_getAll_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		resp, err := testContainer.UserService.GetAll(ctx)
 		if err != ErrEmptyGetContent {
@@ -212,14 +260,15 @@ func Test_getAll_unhappyPath(t *testing.T) {
 }
 
 func Test_getByParam_happyPath(t *testing.T) {
-
 	t.Run("email", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		email := "natnaeljemaneh001@gmail.com"
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Email:      email,
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -230,7 +279,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Email: email,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -244,12 +293,14 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("phone", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		phone_number := "+251949184879"
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     phone_number,
 			Username:  "test",
@@ -261,7 +312,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Phone: phone_number,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -275,12 +326,14 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("username", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		username := "test"
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     "+251949184879",
 			Username:  username,
@@ -292,7 +345,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Username: username,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -306,12 +359,14 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("active_status", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		status := true
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName: "natnael jemaneh asefa",
+			LastName:  "jemaneh",
 			Email:     "natnaeljemaneh001@gmail.com",
 			Phone:     "+251949184879",
 			Username:  "test",
@@ -323,7 +378,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			IsActive: status,
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -337,11 +392,13 @@ func Test_getByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("aggregate_fetch", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
 			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -356,9 +413,10 @@ func Test_getByParam_happyPath(t *testing.T) {
 		parsedTime, _ = time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in_new := &CreateRequest{
 			FirstName:  "eyoel jemaneh asefa",
+			LastName:   "jemaneh",
 			Email:      "eyoeljemaneh011@gmail.com",
 			Phone:      "+251933184880",
-			Username:   "test",
+			Username:   "test22",
 			DOB:        parsedTime,
 			ExternalId: "123",
 		}
@@ -367,7 +425,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Username: "test",
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -383,8 +441,9 @@ func Test_getByParam_happyPath(t *testing.T) {
 
 func Test_getByParam_unhappyPath(t *testing.T) {
 	t.Run("empty_content", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
 		ctx := context.Background()
-		inParam := &port.GetByParam{
+		inParam := &GetByParam{
 			Email: "test",
 		}
 		response, err := testContainer.UserService.GetByParam(ctx, inParam)
@@ -399,11 +458,13 @@ func Test_getByParam_unhappyPath(t *testing.T) {
 }
 
 func Test_activate_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -427,11 +488,13 @@ func Test_activate_happyPath(t *testing.T) {
 }
 
 func Test_activate_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName: "natnael jemaneh asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -461,11 +524,13 @@ func Test_activate_unhappyPath(t *testing.T) {
 }
 
 func Test_deactivate_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -484,11 +549,13 @@ func Test_deactivate_happyPath(t *testing.T) {
 }
 
 func Test_deactivate_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName: "natnael jemaneh asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -513,11 +580,13 @@ func Test_deactivate_unhappyPath(t *testing.T) {
 }
 
 func Test_isActive_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName: "natnael jemaneh asefa",
+		LastName:  "jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -551,6 +620,7 @@ func Test_isActive_happyPath(t *testing.T) {
 }
 
 func Test_isActive_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	expectedErr := ErrIdNotFound
 	_, err := testContainer.UserService.IsActive(ctx, rand.Int())
@@ -560,11 +630,13 @@ func Test_isActive_unhappyPath(t *testing.T) {
 }
 
 func Test_update_user_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -609,6 +681,7 @@ func Test_update_user_happyPath(t *testing.T) {
 }
 
 func Test_update_user_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -616,6 +689,7 @@ func Test_update_user_unhappyPath(t *testing.T) {
 	in_update := &UpdateRequest{
 		Id:         rand.Int(),
 		FirstName:  "test",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -630,11 +704,13 @@ func Test_update_user_unhappyPath(t *testing.T) {
 }
 
 func Test_remove_user_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
 		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",
@@ -652,6 +728,7 @@ func Test_remove_user_happyPath(t *testing.T) {
 }
 
 func Test_remove_user_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
 	ctx := context.Background()
 	err := testContainer.UserService.Remove(ctx, rand.Int())
 	expectedErr := ErrIdNotFound

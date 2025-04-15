@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/config"
+
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -37,24 +39,40 @@ func main() {
 	validateFlags(cfg)
 
 	db_pool := InitDB(cfg.CoreDBConnectionString, cfg.FileLocation)
-	InitEmail(cfg.Email, cfg.SMTP)
-	InitAuth(cfg.Port, cfg.Env, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.KeycloakClientSecret)
-	InitSMS(cfg.Email, cfg.SMTP)
 
-	application_constainer := application_core.NewContainer(db_pool, cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.Email, cfg.SMTP, cfg.KeycloakClientSecret)
-	domain_container := domain_core.NewContainer(db_pool)
+	//for testing purposes
+	InitAuth(&cfg)
+
+	// InitEmail(cfg.Email, cfg.SMTP)
+	// InitSMS(cfg.Email, cfg.SMTP)
+
+	application_constainer := application_core.NewContainer(
+		db_pool,
+		cfg.KeycloakInstanceURL,
+		cfg.KeycloakUsername,
+		cfg.KeycloakPassword,
+		cfg.KeycloakRealm,
+		cfg.KeycloakApplicationRealm,
+		cfg.KeycloakClientId,
+		cfg.Email,
+		cfg.SMTP,
+		cfg.KeycloakClientSecret)
+
+	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
 
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)
 
+	loggingingMiddleware := util.NewLoggingMiddleware()
+	handler := loggingingMiddleware.Log(mux)
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
-		Handler:      mux,
+		Handler:      handler,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	log.Printf("starting %s server on %s", cfg.Env, srv.Addr)
+	log.Printf("Ahoy! running %s on %s ...", cfg.Env, srv.Addr)
 
 	err := srv.ListenAndServe()
 	if err != nil {
