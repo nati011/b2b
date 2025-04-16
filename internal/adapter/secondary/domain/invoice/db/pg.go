@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 
+	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
@@ -23,15 +24,18 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 	query := "SELECT * FROM public.get_invoices_by_id($1);"
 
-	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		id,
+	)
+
+	rows.Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
+
 	items, err := p.getInvoiceLineItemsByProductId(ctx, response.Id)
 	if err != nil {
 		return port.GetResponse{}, err
@@ -45,15 +49,14 @@ func (p *Postgres) getInvoiceLineItemsByProductId(ctx context.Context, invoice_I
 	var response []port.Item
 
 	query := "SELECT * FROM public.get_invoice_line_item_by_invoice_id($1);"
-	rows, err := p.db.QueryContext(ctx, query, invoice_Id)
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		invoice_Id,
+	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return []port.Item{}, port.ErrSysNoRows
-		default:
-			return []port.Item{}, port.ErrSysUnknown
-		}
-
+		return []port.Item{}, err
 	}
 	defer rows.Close()
 
@@ -80,15 +83,13 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_all_invoices();"
-	rows, err := p.db.QueryContext(ctx, query)
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetAllResponse{}, err
 	}
 	defer rows.Close()
 
@@ -113,15 +114,14 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_invoices_by_external_id($1);"
-	rows, err := p.db.QueryContext(ctx, query, extId)
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		extId,
+	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetAllResponse{}, err
 	}
 	defer rows.Close()
 
@@ -146,15 +146,14 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_invoices_by_status($1);"
-	rows, err := p.db.QueryContext(ctx, query, status)
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		status,
+	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetAllResponse{}, err
 	}
 	defer rows.Close()
 
@@ -179,16 +178,18 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 	var response port.GetResponse
 
 	query := "SELECT * FROM public.get_invoices_by_order_id($1);"
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		orderId,
+	)
 
-	err := p.db.QueryRowContext(ctx, query, orderId).Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
+
+	rows.Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
 
 	return response, nil
 }
@@ -198,13 +199,18 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var invoiceId int
 	query := "SELECT * FROM public.create_invoice($1, $2, $3, $4, $5);"
 
-	err := p.db.QueryRowContext(ctx, query,
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
 		req.Status,
 		req.ExternalId,
 		req.OrderId,
 		req.Subtotal,
 		req.TaxAmount,
-	).Scan(&invoiceId)
+	)
+
+	rows.Scan(&invoiceId)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -218,20 +224,19 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	for _, i := range req.LineItems {
 		query = "SELECT * FROM public.create_invoice_line_item($1, $2, $3, $4, $5);"
 
-		_, err = p.db.QueryContext(ctx, query,
+		_, err := handler.MustQueryRow(
+			p.db,
+			ctx,
+			query,
 			i.ProductName,
 			i.ProductQuantity,
 			i.ProductPrice,
 			i.ProductId,
 			invoiceId,
 		)
+
 		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
-			default:
-				return 0, port.ErrSysUnknown
-			}
+			return 0, err
 		}
 	}
 
@@ -241,33 +246,31 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExternalIdRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_invoice_externalId($1, $2);"
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		req.Id,
+		req.ExternalId,
+	)
 
-	err := p.db.QueryRowContext(ctx, query, req.Id, req.ExternalId).Scan(&resourceId)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
-	}
-
-	return nil
+	rows.Scan(&resourceId)
+	return err
 }
 
 func (p *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateStatusRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_invoice_status($1, $2);"
 
-	err := p.db.QueryRowContext(ctx, query, req.Id, req.Status).Scan(&resourceId)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
-	}
+	rows, err := handler.MustQueryRow(
+		p.db,
+		ctx,
+		query,
+		req.Id,
+		req.Status,
+	)
 
-	return nil
+	rows.Scan(&resourceId)
+
+	return err
 }

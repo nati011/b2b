@@ -3,6 +3,7 @@ package role
 import (
 	"context"
 	"errors"
+	"log"
 
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	port "b2b.nati011.github.com/internal/port/application/role"
@@ -92,10 +93,13 @@ func NewRole(DB port.DB, resource_service resource.Provider) Provider {
 }
 
 func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, error) {
+	log.Printf("Get Request Id %v", req.Id)
 	//either id or name need tobe provided
 	if req.Id == 0 && req.Name == "" {
 		return GetResponse{}, ErrEmptyGetContent
 	}
+
+	log.Printf("Get Request Name %v", req.Name)
 
 	//Get by Id
 	if req.Id != 0 && req.Name == "" {
@@ -250,6 +254,7 @@ func (r *RoleProvider) Update(ctx context.Context, req *UpdateRequest) (int, err
 }
 
 func (r *RoleProvider) Delete(ctx context.Context, id int) error {
+	log.Printf("Deleting id %v", id)
 	// validate Id
 	err := r.validateId(ctx, id)
 	if err != nil {
