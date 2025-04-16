@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
 )
 
@@ -25,20 +26,24 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	var response port.GetResponse
 	var amountStr string
 	query := "SELECT * FROM public.get_transaction_by_id($1);"
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		id,
+	)
+
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+
+	rows.Scan(
 		&response.Id,
 		&response.User_Id,
 		&amountStr,
 		&response.Partner_Id,
 		&response.Date)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
-	}
+
 	// Convert amountStr to int64
 	amountFloat, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
@@ -52,16 +57,17 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_all_transactions();"
-	rows, err := p.Pool.QueryContext(ctx, query)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
 
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+	)
+
+	if err != nil {
+		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -98,16 +104,18 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_transactions_by_date($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, date)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
 
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		date,
+	)
+
+	if err != nil {
+		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -144,16 +152,18 @@ func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllRes
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_transactions_by_user_id($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, user_id)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
 
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		user_id,
+	)
+
+	if err != nil {
+		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -190,16 +200,18 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_transactions_by_partner_id($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, partner_id)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
 
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		partner_id,
+	)
+
+	if err != nil {
+		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -235,18 +247,17 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var id int
 	query := "SELECT * FROM public.record_transaction($1, $2, $3);"
-	err := p.Pool.QueryRowContext(ctx, query,
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
 		req.User_Id,
 		req.Partner_Id,
-		req.Amount).Scan(
-		&id)
+		req.Amount,
+	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
+	rows.Scan(&id)
 	return id, nil
 }
