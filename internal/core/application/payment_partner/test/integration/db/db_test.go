@@ -92,7 +92,7 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &payment_partner.CreateRequest{
-			Name:             "test",
+			Name:             "test4",
 			Icon:             "test",
 			Status:           "test",
 			Init_payment_url: "test",

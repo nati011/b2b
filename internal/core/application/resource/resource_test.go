@@ -41,7 +41,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "test",
-			Name:   "test",
+			Name:   "test3",
 		}
 		_, err := container.ResourceService.Create(ctx, &in)
 		if err != nil {
@@ -69,7 +69,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "",
-			Name:   "test",
+			Name:   "test2",
 		}
 
 		wantErr := ErrEmptyAction
@@ -91,7 +91,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := CreateRequest{
-			Action: "test",
+			Action: "test8",
 			Name:   "",
 		}
 
@@ -177,10 +177,15 @@ func Test_update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		in := UpdateRequest{
-			Id:     1,
+		id, _ := service.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test",
+		})
+
+		in := UpdateRequest{
+			Id:     id,
+			Action: "test",
+			Name:   "demo test",
 		}
 		wantErr := ErrIdNotFound
 		_, err := container.ResourceService.Update(ctx, &in)
