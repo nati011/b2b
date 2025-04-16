@@ -7,13 +7,11 @@ func (r *ResourceProvider) validateName(ctx context.Context, name string) error 
 	if name == "" {
 		return ErrEmptyName
 	}
-	//duplicate name
-	resp, err := r.Get(ctx, &GetRequest{Name: name})
-	if err != nil {
-		return err
-	}
-	if resp.Id != 0 {
+	// Check for duplicate name
+	if _, err := r.GetByName(ctx, name); err == nil {
 		return ErrDuplicateName
+	} else if err != nil && err != ErrNameNotFound {
+		return err
 	}
 	return nil
 }
@@ -27,17 +25,6 @@ func (r *ResourceProvider) validateAction(ctx context.Context, action string) er
 }
 
 func (r *ResourceProvider) validateId(ctx context.Context, id int) error {
-	//check if id is non_zero
-	if id == 0 {
-		return ErrIdNotFound
-	}
-	//check if id exists
-	resp, err := r.Get(ctx, &GetRequest{Id: id})
-	if err != nil {
-		return err
-	}
-	if resp.Id == 0 {
-		return ErrIdNotFound
-	}
-	return nil
+	_, err := r.Get(ctx, id)
+	return err
 }
