@@ -63,6 +63,7 @@ func InitAuthDevelopment(cfg *config.Config) {
 	if err != nil {
 		panic(err)
 	}
+
 	cfg.KeycloakUsername = keycloakAdminClient.Username
 	cfg.KeycloakPassword = keycloakAdminClient.Password
 	cfg.KeycloakRealm = keycloakAdminClient.Realm

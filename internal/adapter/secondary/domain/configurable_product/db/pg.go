@@ -67,8 +67,8 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.Images = productImages
 
 	// get attribute-values
-	var productAttruteValue = []map[string]string{}
-	query = "SELECT * FROM public.get_all_configurable_product_attributes($1)"
+	var productAttruteValue = []string{}
+	query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
 	rows, err = p.Pool.QueryContext(ctx, query, id)
 	if err != nil {
 		switch err {
@@ -80,36 +80,12 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var attributeId int
-		if err := rows.Scan(&attributeId); err != nil {
+		var attributeName string
+		if err := rows.Scan(&attributeName); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
-
-		// get product attribute value
-		query = "SELECT * FROM public.get_attributes_values_by_attribute_id($1)"
-		rows, err = p.Pool.QueryContext(ctx, query, attributeId)
-		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-			default:
-				return port.GetResponse{}, port.ErrSysUnknown
-			}
-		}
-
-		for rows.Next() {
-			var attributeName string
-			var attributeValue string
-			if err := rows.Scan(&attributeName, &attributeValue); err != nil {
-				log.Printf("unable to scan row: %q", err)
-				return port.GetResponse{}, err
-			}
-
-			productAttruteValue = append(productAttruteValue, map[string]string{
-				attributeName: attributeValue,
-			})
-		}
-
+		productAttruteValue = append(productAttruteValue, attributeName)
 	}
 	response.Attributes = productAttruteValue
 
