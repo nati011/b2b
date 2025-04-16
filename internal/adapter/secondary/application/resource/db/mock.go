@@ -30,7 +30,7 @@ func (p *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, nil
+	return port.GetResponse{}, port.ErrSysNoRows
 }
 
 func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
@@ -43,7 +43,7 @@ func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 			}, nil
 		}
 	}
-	return port.GetResponse{}, nil
+	return port.GetResponse{}, port.ErrSysNoRows
 }
 
 func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -54,6 +54,9 @@ func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Name:   i.Name,
 			Action: i.Action,
 		})
+	}
+	if len(response) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,

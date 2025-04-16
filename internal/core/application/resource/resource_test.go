@@ -4,11 +4,9 @@ import (
 	"context"
 	"os"
 	"testing"
-
-	db_mock "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 )
 
-var service Provider
+var container TestContainer
 
 func TestMain(m *testing.M) {
 	setup()
@@ -17,19 +15,18 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewResource(
-		db_mock.NewMock(),
-	)
+	container = NewTestContainer()
 }
 
 func Test_create_happyPath(t *testing.T) {
+	t.Cleanup(container.Teardown)
 	ctx := context.Background()
 	in := CreateRequest{
 		Action: "test",
 		Name:   "test",
 	}
 
-	got, err := service.Create(ctx, &in)
+	got, err := container.ResourceService.Create(ctx, &in)
 	if err != nil {
 		t.Errorf("Failed to create resource err: %v", err)
 	}
@@ -40,20 +37,20 @@ func Test_create_happyPath(t *testing.T) {
 
 func Test_create_unhappyPath(t *testing.T) {
 	t.Run("duplicateName", func(t *testing.T) {
-		//setup
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "test",
 			Name:   "test",
 		}
-		_, err := service.Create(ctx, &in)
+		_, err := container.ResourceService.Create(ctx, &in)
 		if err != nil {
 			t.Errorf("Failed to create resource err: %v", err)
 		}
 
 		//create duplicate
 		wantErr := ErrDuplicateName
-		got, err := service.Create(ctx, &in)
+		got, err := container.ResourceService.Create(ctx, &in)
 		if err != wantErr {
 			switch err {
 			case nil:
@@ -68,6 +65,7 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyAction", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "",
@@ -75,7 +73,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		}
 
 		wantErr := ErrEmptyAction
-		got, err := service.Create(ctx, &in)
+		got, err := container.ResourceService.Create(ctx, &in)
 		if err != wantErr {
 			switch err {
 			case nil:
@@ -90,6 +88,7 @@ func Test_create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "test",
@@ -97,7 +96,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		}
 
 		wantErr := ErrEmptyName
-		got, err := service.Create(ctx, &in)
+		got, err := container.ResourceService.Create(ctx, &in)
 		if err != wantErr {
 			switch err {
 			case nil:
@@ -113,25 +112,22 @@ func Test_create_unhappyPath(t *testing.T) {
 }
 
 func Test_delete_happyPath(t *testing.T) {
-	//setup
+	t.Cleanup(container.Teardown)
 	ctx := context.Background()
 	in := CreateRequest{
 		Action: "test",
 		Name:   "test",
 	}
-	id, _ := service.Create(ctx, &in)
+	id, _ := container.ResourceService.Create(ctx, &in)
 
 	//delete resource
-	err := service.Delete(ctx, id)
+	err := container.ResourceService.Delete(ctx, id)
 	if err != nil {
 		t.Errorf("Failed to delete resource err: %v", err)
 	}
 
 	//verify deletion
-	resp, _ := service.Get(ctx, &GetRequest{
-		Id:   id,
-		Name: "",
-	})
+	resp, _ := container.ResourceService.Get(ctx, id)
 	if resp.Id == id {
 		t.Error("Failed to delete resource")
 	}
@@ -139,10 +135,11 @@ func Test_delete_happyPath(t *testing.T) {
 
 func Test_delete_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		err := service.Delete(ctx, 1010)
+		err := container.ResourceService.Delete(ctx, 1010)
 		wantErr := ErrIdNotFound
-		if err != nil {
+		if err != wantErr {
 			switch err {
 			case ErrIdNotFound:
 				t.Errorf("Expected err: %q Got err: %q", wantErr, err)
@@ -154,9 +151,9 @@ func Test_delete_unhappyPath(t *testing.T) {
 }
 
 func Test_update_happyPath(t *testing.T) {
-	//setup
+	t.Cleanup(container.Teardown)
 	ctx := context.Background()
-	id, _ := service.Create(ctx, &CreateRequest{
+	id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 		Action: "test",
 		Name:   "test",
 	})
@@ -164,10 +161,10 @@ func Test_update_happyPath(t *testing.T) {
 	//update
 	in := UpdateRequest{
 		Id:     id,
-		Action: "",
-		Name:   "",
+		Action: "anotherTest",
+		Name:   "anotherTest",
 	}
-	resp, err := service.Update(ctx, &in)
+	resp, err := container.ResourceService.Update(ctx, &in)
 	if err != nil {
 		t.Errorf("Failed to update err %v", err)
 	}
@@ -178,6 +175,7 @@ func Test_update_happyPath(t *testing.T) {
 
 func Test_update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := UpdateRequest{
 			Id:     1,
@@ -185,32 +183,24 @@ func Test_update_unhappyPath(t *testing.T) {
 			Name:   "test",
 		}
 		wantErr := ErrIdNotFound
-		resp, err := service.Update(ctx, &in)
-		if err != nil {
-			switch err {
-			case wantErr:
-				t.Errorf("Expected %v Got %v", wantErr, err)
-			default:
-				t.Errorf("Failed to update err %v", err)
-			}
-		}
-		if resp != 0 {
-			t.Errorf("Failed to update resource")
+		_, err := container.ResourceService.Update(ctx, &in)
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
 
 	t.Run("duplicateName", func(t *testing.T) {
-		// setup
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 
 		//create resource with taken name
-		service.Create(ctx, &CreateRequest{
+		container.ResourceService.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "taken",
 		})
 
 		// create resource
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test",
 		})
@@ -221,7 +211,7 @@ func Test_update_unhappyPath(t *testing.T) {
 			Name:   "takenName",
 		}
 		wantErr := ErrDuplicateName
-		resp, err := service.Update(ctx, &in)
+		resp, err := container.ResourceService.Update(ctx, &in)
 		if err != nil {
 			switch err {
 			case wantErr:
@@ -237,9 +227,9 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyName", func(t *testing.T) {
-		// setup
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test",
 		})
@@ -250,7 +240,7 @@ func Test_update_unhappyPath(t *testing.T) {
 			Name:   "",
 		}
 		wantErr := ErrDuplicateName
-		resp, err := service.Update(ctx, &in)
+		resp, err := container.ResourceService.Update(ctx, &in)
 		if err != nil {
 			switch err {
 			case wantErr:
@@ -265,9 +255,9 @@ func Test_update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("emptyAction", func(t *testing.T) {
-		// setup
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test1",
 		})
@@ -278,7 +268,7 @@ func Test_update_unhappyPath(t *testing.T) {
 			Name:   "test2",
 		}
 		wantErr := ErrEmptyAction
-		resp, err := service.Update(ctx, &in)
+		resp, err := container.ResourceService.Update(ctx, &in)
 		if err != nil {
 			switch err {
 			case wantErr:
@@ -295,61 +285,79 @@ func Test_update_unhappyPath(t *testing.T) {
 
 func Test_getResource_happyPath(t *testing.T) {
 	t.Run("getById", func(t *testing.T) {
-		//setup
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test",
 		})
-
-		// Get by Id
-		in := GetRequest{
-			Id: id,
-		}
-		got, err := service.Get(ctx, &in)
+		got, err := container.ResourceService.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}
 		if got.Id != id {
-			t.Errorf("Failed to get resource by id")
+			t.Errorf("Expected id: %v Got: %v", id, got.Id)
 		}
 	})
 
 	t.Run("getByName", func(t *testing.T) {
-		//setup
+		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		in := &CreateRequest{
 			Action: "test",
 			Name:   "test",
-		})
-
-		// Get by Id
-		in := GetRequest{
-			Name: "test",
 		}
-		got, err := service.Get(ctx, &in)
+		_, err := container.ResourceService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		got, err := container.ResourceService.GetByName(ctx, "test")
 		if err != nil {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}
-		if got.Id != id {
-			t.Errorf("Failed to get resource by id")
+		if got.Name != in.Name {
+			t.Errorf("Expected name: %v Got: %v", in.Name, got.Name)
 		}
 	})
 }
 
 func Test_getResource_unhappyPath(t *testing.T) {
+	t.Run("getById", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		// Get by Id
+		_, err := container.ResourceService.Get(ctx, 99)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err %v Got: %v", wantErr, err)
+		}
+
+	})
+
+	t.Run("getByName", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		// Get by Id
+		_, err := container.ResourceService.GetByName(ctx, "name")
+		wantErr := ErrNameNotFound
+		if err != wantErr {
+			t.Errorf("Expected err %v Got: %v", wantErr, err)
+		}
+
+	})
+
 }
 
 func Test_getAllResources_happyPath(t *testing.T) {
-	//setup
+	t.Cleanup(container.Teardown)
 	ctx := context.Background()
-	id, _ := service.Create(ctx, &CreateRequest{
+	id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 		Action: "test",
 		Name:   "test",
 	})
 
-	// Get All
-	got, err := service.GetAll(ctx)
+	// Get container.ResourceService
+	got, err := container.ResourceService.GetAll(ctx)
 	if err != nil {
 		t.Errorf("Failed to get resource by Id err %v", err)
 	}
@@ -359,4 +367,14 @@ func Test_getAllResources_happyPath(t *testing.T) {
 }
 
 func Test_getAllResources_unhappyPath(t *testing.T) {
+	t.Run("getAll", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		_, err := container.ResourceService.GetAll(ctx)
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("Expected err %v Got: %v", wantErr, err)
+		}
+
+	})
 }
