@@ -65,9 +65,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
-			Id: typedParamId,
-		})
+		resp, err := rs.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case resource.ErrUnknown:
