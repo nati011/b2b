@@ -3,6 +3,7 @@ package payment_partner
 import (
 	"context"
 	"errors"
+	"log"
 
 	port "b2b.nati011.github.com/internal/port/application/partner/db"
 )
@@ -95,6 +96,7 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 			return 0, ErrUnknown
 		}
 	}
+	log.Printf("Created id %v", id)
 	return id, nil
 }
 

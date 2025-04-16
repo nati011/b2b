@@ -1,6 +1,9 @@
 package role
 
-import "context"
+import (
+	"context"
+	"log"
+)
 
 func (r *RoleProvider) validateName(ctx context.Context, name string) error {
 	//empty name
@@ -24,6 +27,7 @@ func (r *RoleProvider) validateName(ctx context.Context, name string) error {
 }
 
 func (r *RoleProvider) validateId(ctx context.Context, id int) error {
+	log.Printf("Validating ID %v", id)
 	//check if id is non_zero
 	if id == 0 {
 		return ErrIdNotFound

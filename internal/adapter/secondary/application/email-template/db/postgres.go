@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"log"
+
+	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 )
 
 type PostgresReaderWriter struct {
@@ -17,11 +19,18 @@ func NewPostgres(pool *sql.DB) ReaderWriter {
 func (p *PostgresReaderWriter) Create(ctx context.Context, req *CreateRequest) (CreateResponse, error) {
 	query := "SELECT * FROM templates AS t WHERE t.name = $1;"
 	var name string
-	err := p.Pool.QueryRowContext(ctx, query, req.Name).Scan(&name)
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		req.Name,
+	)
 	if err != nil {
 		log.Fatalf("unable to execute search query: %q", err)
 		return CreateResponse{}, err
 	}
+
+	rows.Scan(&name)
 	log.Println("name=", name)
 	return CreateResponse{Name: name}, nil
 }

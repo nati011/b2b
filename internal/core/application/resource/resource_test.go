@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
 
@@ -44,7 +45,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "test",
-			Name:   "test",
+			Name:   "test3",
 		}
 		_, err := service.Create(ctx, &in)
 		if err != nil {
@@ -71,7 +72,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := CreateRequest{
 			Action: "",
-			Name:   "test",
+			Name:   "test2",
 		}
 
 		wantErr := ErrEmptyAction
@@ -92,7 +93,7 @@ func Test_create_unhappyPath(t *testing.T) {
 	t.Run("emptyName", func(t *testing.T) {
 		ctx := context.Background()
 		in := CreateRequest{
-			Action: "test",
+			Action: "test8",
 			Name:   "",
 		}
 
@@ -164,8 +165,8 @@ func Test_update_happyPath(t *testing.T) {
 	//update
 	in := UpdateRequest{
 		Id:     id,
-		Action: "",
-		Name:   "",
+		Action: "test2",
+		Name:   "update test",
 	}
 	resp, err := service.Update(ctx, &in)
 	if err != nil {
@@ -179,10 +180,15 @@ func Test_update_happyPath(t *testing.T) {
 func Test_update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
 		ctx := context.Background()
-		in := UpdateRequest{
-			Id:     1,
+		id, _ := service.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test",
+		})
+
+		in := UpdateRequest{
+			Id:     id,
+			Action: "test",
+			Name:   "demo test",
 		}
 		wantErr := ErrIdNotFound
 		resp, err := service.Update(ctx, &in)
@@ -194,7 +200,7 @@ func Test_update_unhappyPath(t *testing.T) {
 				t.Errorf("Failed to update err %v", err)
 			}
 		}
-		if resp != 0 {
+		if resp != id {
 			t.Errorf("Failed to update resource")
 		}
 	})
@@ -302,6 +308,8 @@ func Test_getResource_happyPath(t *testing.T) {
 			Name:   "test",
 		})
 
+		log.Printf("Got id %v", id)
+
 		// Get by Id
 		in := GetRequest{
 			Id: id,
@@ -322,6 +330,7 @@ func Test_getResource_happyPath(t *testing.T) {
 			Action: "test",
 			Name:   "test",
 		})
+		log.Printf("Got id %v", id)
 
 		// Get by Id
 		in := GetRequest{
@@ -332,7 +341,7 @@ func Test_getResource_happyPath(t *testing.T) {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}
 		if got.Id != id {
-			t.Errorf("Failed to get resource by id")
+			t.Errorf("Failed to get resource by name. Got id %v, expected id %v", got.Id, id)
 		}
 	})
 }

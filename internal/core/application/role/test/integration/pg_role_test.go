@@ -73,13 +73,13 @@ func setup() {
 	}
 
 	// ddl
-	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
+	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db.sql")
 	if err != nil {
 		log.Fatalf("Error running migration: %v", err)
 	}
 
 	// functions
-	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
+	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db_functions.sql")
 	if err != nil {
 		log.Fatalf("Error running migration: %v", err)
 	}
@@ -246,6 +246,8 @@ func Test_delete_happyPath(t *testing.T) {
 		Name: "test",
 	}
 	id, _ := service.Create(ctx, &in)
+
+	log.Printf("Created id %v", id)
 
 	//delete resource
 	err := service.Delete(ctx, id)
@@ -452,7 +454,7 @@ func Test_getRole_unhappyPath(t *testing.T) {
 
 		// Get by Id
 		in := role.GetRequest{
-			Id: rand.Int(),
+			Id: 2,
 		}
 		wantErr := role.ErrEmptyGetContent
 		got, err := service.Get(ctx, &in)
