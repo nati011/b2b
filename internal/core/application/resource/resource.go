@@ -12,6 +12,7 @@ var (
 	ErrEmptyAction        = errors.New("oopsy, empty action")
 	ErrEmptyName          = errors.New("oopsy, empty name")
 	ErrIdNotFound         = errors.New("oopsy, id not found")
+	ErrNameNotFound       = errors.New("oopsy, name not found")
 	ErrUnknown            = errors.New("oopsy, unknown error has occured")
 	ErrEmptyUpdateContent = errors.New("oopsy, update content empty")
 	ErrEmptyGetContent    = errors.New("oopsy, get content empty")
@@ -28,11 +29,6 @@ type UpdateRequest struct {
 	Name   string
 }
 
-type GetRequest struct {
-	Id   int
-	Name string
-}
-
 type GetResponse struct {
 	Id     int
 	Action string
@@ -44,7 +40,8 @@ type GetAllResponse struct {
 }
 
 type Provider interface {
-	Get(context.Context, *GetRequest) (GetResponse, error)
+	GetByName(context.Context, string) (GetResponse, error)
+	Get(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 
 	Create(context.Context, *CreateRequest) (int, error)
@@ -150,84 +147,46 @@ func (r *ResourceProvider) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (r *ResourceProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, error) {
-	//either id or name need tobe provided
-	if req.Id == 0 && req.Name == "" {
-		return GetResponse{}, ErrEmptyGetContent
-	}
-	//Get by Id
-	if req.Id != 0 && req.Name == "" {
-		resp, err := r.db.GetByID(ctx, req.Id)
-		if err != nil {
-			switch err {
-			default:
-				return GetResponse{}, ErrUnknown
-			}
+func (r *ResourceProvider) GetByName(ctx context.Context, name string) (GetResponse, error) {
+	resp, err := r.db.GetByName(ctx, name)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrNameNotFound
+		default:
+			return GetResponse{}, ErrUnknown
 		}
-		return GetResponse{
-			Id:     resp.Id,
-			Action: resp.Action,
-			Name:   resp.Name,
-		}, nil
 	}
-	//Get by Name
-	if req.Name != "" && req.Id == 0 {
-		resp, err := r.db.GetByName(ctx, req.Name)
-		if err != nil {
-			switch err {
-			default:
-				return GetResponse{}, ErrUnknown
-			}
-		}
-		return GetResponse{
-			Id:     resp.Id,
-			Action: resp.Action,
-			Name:   resp.Name,
-		}, nil
-	}
-	//Get by Name and Id
-	if req.Name != "" && req.Id != 0 {
-		resultByName, err := r.db.GetByName(ctx, req.Name)
-		if err != nil {
-			switch err {
-			default:
-				return GetResponse{}, ErrUnknown
-			}
-		}
+	return GetResponse(resp), nil
+}
 
-		resultById, err := r.db.GetByID(ctx, req.Id)
-		if err != nil {
-			switch err {
-			default:
-				return GetResponse{}, ErrUnknown
-			}
-		}
-		if resultByName.Id == resultById.Id {
-			return GetResponse{
-				Id:     resultById.Id,
-				Action: resultById.Action,
-				Name:   resultById.Name,
-			}, nil
+func (r *ResourceProvider) Get(ctx context.Context, id int) (GetResponse, error) {
+	resp, err := r.db.GetByID(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, ErrUnknown
 		}
 	}
-	return GetResponse{}, nil
+	return GetResponse(resp), nil
+
 }
 
 func (r *ResourceProvider) GetAll(ctx context.Context) (GetAllResponse, error) {
 	allResources, err := r.db.GetAll(ctx)
 	if err != nil {
 		switch err {
+		case port.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
 		default:
-			return GetAllResponse{}, nil
+			return GetAllResponse{}, ErrUnknown
 		}
 	}
 	var response GetAllResponse
 	for _, i := range allResources.List {
-		response.List = append(response.List, GetResponse{
-			Id:     i.Id,
-			Action: i.Action,
-			Name:   i.Name,
-		})
+		response.List = append(response.List, GetResponse(i))
 	}
 	return response, nil
 }

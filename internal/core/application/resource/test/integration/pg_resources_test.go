@@ -74,10 +74,7 @@ func Test_delete(t *testing.T) {
 	}
 
 	//verify deletion
-	resp, _ := service.Get(ctx, &resource.GetRequest{
-		Id:   id,
-		Name: "",
-	})
+	resp, _ := service.Get(ctx, id)
 	if resp.Id == id {
 		t.Error("Failed to delete resource")
 	}
@@ -118,10 +115,7 @@ func Test_get(t *testing.T) {
 		})
 
 		// Get by Id
-		in := resource.GetRequest{
-			Id: id,
-		}
-		got, err := service.Get(ctx, &in)
+		got, err := service.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}
@@ -139,11 +133,7 @@ func Test_get(t *testing.T) {
 			Name:   "test",
 		})
 
-		// Get by Id
-		in := resource.GetRequest{
-			Name: "test",
-		}
-		got, err := service.Get(ctx, &in)
+		got, err := service.GetByName(ctx, "test")
 		if err != nil {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}

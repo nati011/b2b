@@ -294,9 +294,7 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 	}
 
 	//check if resource exists
-	_, err = r.resource_service.Get(ctx, &resource.GetRequest{
-		Id: req.ResourceId,
-	})
+	_, err = r.resource_service.Get(ctx, req.ResourceId)
 	if err != nil {
 		switch err {
 		case resource.ErrIdNotFound:
@@ -358,9 +356,7 @@ func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRe
 	}
 
 	//check if resource exists
-	resResp, err := r.resource_service.Get(ctx, &resource.GetRequest{
-		Id: req.ResourceId,
-	})
+	resResp, err := r.resource_service.Get(ctx, req.ResourceId)
 	if err != nil {
 		switch err {
 		default:
