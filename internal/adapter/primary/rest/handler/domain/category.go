@@ -103,10 +103,13 @@ func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := c.service.Create(r.Context(), (*category.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		default:
+		case category.ErrDescIsNotSupplied,
+			category.ErrDuplicateName,
+			category.ErrEmptyGetContent:
+
 			util.RequestErrorResponse(w, err)
 			return
-		case category.ErrUnknown:
+		default:
 			util.ServerErrorResponse(w, err)
 			return
 		}
