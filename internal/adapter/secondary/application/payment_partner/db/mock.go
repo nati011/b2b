@@ -96,9 +96,10 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	newResourceId := len(m.resources) + 1
 	m.resources = append(m.resources, MockPartner{
-		Id:   newResourceId,
-		Name: req.Name,
-		Icon: req.Icon,
+		Id:     newResourceId,
+		Name:   req.Name,
+		Status: req.Status,
+		Icon:   req.Icon,
 	})
 	return newResourceId, nil
 }
