@@ -103,13 +103,12 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 				Stock:         resp.Stock,
 				IsActive:      resp.IsActive,
 			})
-			for _, attribute := range j.Attributes {
-				for key := range attribute {
-					configurableAttribute[key] = append(configurableAttribute[key], CatalogueConfigurableAttributesResponse{
-						ProductId:      resp.Id,
-						AttributeValue: resp.Attributes[key],
-					})
-				}
+			for _, key := range j.Attributes {
+				configurableAttribute[key] = append(configurableAttribute[key], CatalogueConfigurableAttributesResponse{
+					ProductId:      resp.Id,
+					AttributeValue: resp.Attributes[key],
+				})
+
 			}
 		}
 
@@ -135,44 +134,50 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	var configurables []CatalogueResponse
 	for _, i := range pr.List {
-		for _, v := range products_belonging_to_cps {
-			if i.Id != v {
-				configurables = append(configurables, CatalogueResponse{
-					Id:            i.Id,
-					Name:          i.Name,
-					Desc:          i.Desc,
-					ExternalID:    i.ExternalID,
-					Images:        i.Images,
-					Price:         i.Price,
-					Attributes:    i.Attributes,
-					DistributorId: i.DistributorId,
-					CategoryId:    i.CategoryId,
-					Stock:         i.Stock,
-					IsActive:      i.IsActive,
-				})
+		if !productInSlice(products_belonging_to_cps, i.Id) {
+			configurables = append(configurables, CatalogueResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        i.Images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			})
 
-				var configurableAttribute = make(map[string][]CatalogueConfigurableAttributesResponse)
-				for attr_key, attr_val := range i.Attributes {
-					configurableAttribute[attr_key] = []CatalogueConfigurableAttributesResponse{
-						{
-							ProductId:      i.Id,
-							AttributeValue: attr_val,
-						},
-					}
+			var configurableAttribute = make(map[string][]CatalogueConfigurableAttributesResponse)
+			for attr_key, attr_val := range i.Attributes {
+				configurableAttribute[attr_key] = []CatalogueConfigurableAttributesResponse{
+					{
+						ProductId:      i.Id,
+						AttributeValue: attr_val,
+					},
 				}
-
-				resp = append(resp, GetCatalogueResponse{
-					Name:                   i.Name,
-					Desc:                   i.Desc,
-					IsActive:               i.IsActive,
-					Images:                 i.Images,
-					ConfigurableAttributes: configurableAttribute,
-					Configurables:          configurables,
-				})
 			}
-		}
 
+			resp = append(resp, GetCatalogueResponse{
+				Name:                   i.Name,
+				Desc:                   i.Desc,
+				IsActive:               i.IsActive,
+				Images:                 i.Images,
+				ConfigurableAttributes: configurableAttribute,
+				Configurables:          configurables,
+			})
+		}
 	}
 
 	util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+}
+
+func productInSlice(productsSlice []int, value int) bool {
+	for _, v := range productsSlice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }

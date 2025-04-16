@@ -30,7 +30,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalId    string
-	Attributes    []map[string]string
+	Attributes    []string
 	Products      []int
 	IsAvailable   bool
 	PriceRange    PriceRangeResponse
