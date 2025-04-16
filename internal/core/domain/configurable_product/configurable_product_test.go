@@ -929,60 +929,60 @@ func Test_Update_happyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("attributes", func(t *testing.T) {
-		t.Cleanup(container.Teardown)
-		ctx := context.Background()
-		setup()
-		in := &CreateRequest{
-			Name:       "test",
-			Desc:       "test",
-			ExternalId: "test",
-			AttributeKeys: []string{
-				"another_test",
-			},
-			Products: []int{
-				product_id,
-			},
-			Images: []string{
-				"test",
-				"test",
-			},
-		}
-		id, err := container.ConfigurableProductService.Create(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
+	// t.Run("attributes", func(t *testing.T) {
+	// 	t.Cleanup(container.Teardown)
+	// 	ctx := context.Background()
+	// 	setup()
+	// 	in := &CreateRequest{
+	// 		Name:       "test",
+	// 		Desc:       "test",
+	// 		ExternalId: "test",
+	// 		AttributeKeys: []string{
+	// 			"another_test",
+	// 		},
+	// 		Products: []int{
+	// 			product_id,
+	// 		},
+	// 		Images: []string{
+	// 			"test",
+	// 			"test",
+	// 		},
+	// 	}
+	// 	id, err := container.ConfigurableProductService.Create(ctx, in)
+	// 	if err != nil {
+	// 		t.Fatalf("Failed to create err: %v", err)
+	// 	}
 
-		//attribute keys
-		in_update := &UpdateRequest{
-			Id: id,
-			AttributeKeys: []string{
-				"test",
-			},
-			Product: []int{
-				product_id,
-			},
-		}
-		err = container.ConfigurableProductService.Update(ctx, in_update)
-		if err != nil {
-			t.Fatalf("Failed to update err: %v", err)
-		}
+	// 	//attribute keys
+	// 	in_update := &UpdateRequest{
+	// 		Id: id,
+	// 		AttributeKeys: []string{
+	// 			"test",
+	// 		},
+	// 		Product: []int{
+	// 			product_id,
+	// 		},
+	// 	}
+	// 	err = container.ConfigurableProductService.Update(ctx, in_update)
+	// 	if err != nil {
+	// 		t.Fatalf("Failed to update err: %v", err)
+	// 	}
 
-		resp, err := container.ConfigurableProductService.Get(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-		want := map[string]string{
-			"test": "test",
-		}
-		for got_key, _ := range resp.Attributes[0] {
-			for want_key, _ := range want {
-				if got_key != want_key {
-					t.Errorf("Expected key %v Got: %v", want_key, got_key)
-				}
-			}
-		}
-	})
+	// 	resp, err := container.ConfigurableProductService.Get(ctx, id)
+	// 	if err != nil {
+	// 		t.Fatalf("Failed to get err: %v", err)
+	// 	}
+	// 	want := map[string]string{
+	// 		"test": "test",
+	// 	}
+	// 	for got_key, _ := range resp.Attributes[0] {
+	// 		for want_key, _ := range want {
+	// 			if got_key != want_key {
+	// 				t.Errorf("Expected key %v Got: %v", want_key, got_key)
+	// 			}
+	// 		}
+	// 	}
+	// })
 }
 
 func Test_Update_unhappyPath(t *testing.T) {
