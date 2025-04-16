@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 
+	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
@@ -22,7 +23,10 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 	var retailerId int
 	query := "SELECT * FROM public.create_retailer($1, $2, $3, $4, $5, $6, $7);"
 
-	err := r.Pool.QueryRowContext(ctx, query,
+	rows, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
 		req.Name,
 		req.Tin,
 		req.Latitude,
@@ -30,15 +34,14 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		req.GeneralZone,
 		req.Region,
 		req.Woreda,
-	).Scan(&retailerId)
+	)
+
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
+
+	rows.Scan(&retailerId)
+
 	err = r.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
 		User_id:     req.UserId,
 		Retailer_id: retailerId,
@@ -55,23 +58,27 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 
 func (r *Postgres) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
 	query := "SELECT * FROM public.create_retailer_user($1, $2);"
+	_, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		req.Retailer_id,
+		req.User_id,
+	)
 
-	_, err := r.Pool.QueryContext(ctx, query, req.Retailer_id, req.User_id)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
-	}
-	return nil
+	return err
 }
 
 func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_retailer_by_id($1);"
-	err := r.Pool.QueryRowContext(ctx, query, id).Scan(
+	rows, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		id,
+	)
+	rows.Scan(
 		&response.Id,
 		&response.Name,
 		&response.Tin,
@@ -81,57 +88,47 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.Region,
 		&response.Woreda)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
 	return response, nil
 }
 
 func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
 	query := "SELECT * FROM public.update_retailer_name($1, $2);"
-	_, err := r.Pool.QueryContext(ctx, query, req.Id, req.Name)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
-	}
-	return nil
+	_, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		req.Id,
+		req.Name,
+	)
+	return err
 }
 
 func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error {
 	query := "SELECT * FROM public.update_retailer_tin($1, $2);"
-	_, err := r.Pool.QueryContext(ctx, query, req.Id, req.Tin)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
-	}
-	return nil
+	_, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		req.Id,
+		req.Tin,
+	)
+	return err
 }
 
 func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_all_retailers();"
-	rows, err := r.Pool.QueryContext(ctx, query)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, nil
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
 
+	rows, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+	)
+	if err != nil {
+		return port.GetAllResponse{}, err
 	}
 	defer rows.Close()
 
@@ -165,16 +162,16 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_retailer_by_name($1);"
-	rows, err := r.Pool.QueryContext(ctx, query, name)
+	rows, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		name,
+	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -205,7 +202,16 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_retailer_by_tin($1);"
-	err := r.Pool.QueryRowContext(ctx, query, tin).Scan(
+	rows, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		tin,
+	)
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+	rows.Scan(
 		&response.Id,
 		&response.Name,
 		&response.Tin,
@@ -214,14 +220,6 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		&response.GeneralZone,
 		&response.Region,
 		&response.Woreda)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
-	}
 	return response, nil
 }
 
@@ -229,15 +227,15 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 	var response port.GetAllUserResponse
 
 	query := "SELECT * FROM public.get_all_retailer_users($1);"
-	rows, err := r.Pool.QueryContext(ctx, query, id)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllUserResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllUserResponse{}, port.ErrSysUnknown
-		}
+	rows, err := handler.MustQueryRow(
+		r.Pool,
+		ctx,
+		query,
+		id,
+	)
 
+	if err != nil {
+		return port.GetAllUserResponse{}, err
 	}
 	defer rows.Close()
 
