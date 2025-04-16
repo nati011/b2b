@@ -2041,16 +2041,18 @@ BEGIN
 END;
 $$;
     -- reader
-CREATE OR REPLACE FUNCTION public.get_all_configurable_product_attributes(
+CREATE OR REPLACE FUNCTION public.get_all_configurable_product_attributes_values(
   cp_product_id INT
 )
-RETURNS TABLE(cp_attribute_id INT)
+RETURNS TABLE(cp_attribute_id VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
      RETURN QUERY
-    SELECT c.product_attribute_id
+    SELECT DISTINCT pa.name
     FROM public.cp_attributes c
+    JOIN public.p_attributes pa
+    ON pa.id = c.product_attribute_id
     WHERE c.configurable_product_id = cp_product_id
       AND c.is_deleted = FALSE;
 END;

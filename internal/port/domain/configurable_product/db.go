@@ -14,7 +14,7 @@ type CreateRequest struct {
 	Name              string
 	Desc              string
 	ExternalId        string
-	AttributeKeys     []map[string]string
+	AttributeKeys     []string
 	Products          []int
 	Images            []string
 	IsAvailableStatus bool
@@ -30,7 +30,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalId    string
-	Attributes    []map[string]string
+	Attributes    []string
 	Products      []int
 	IsAvailable   bool
 	PriceRange    PriceRangeResponse
@@ -75,7 +75,7 @@ type UpdateImagesRequest struct {
 
 type UpdateAttributes struct {
 	Id            int
-	AttributeKeys []map[string]string
+	AttributeKeys []string
 }
 
 type Reader interface {

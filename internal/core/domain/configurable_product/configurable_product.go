@@ -43,7 +43,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalId    string
-	Attributes    []map[string]string
+	Attributes    []string
 	Products      []int
 	IsAvailable   bool
 	PriceRange    PriceRangeResponse
@@ -122,16 +122,6 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 	if err != nil {
 		return 0, err
 	}
-	//get vals
-	attributes := make([]map[string]string, 0)
-	for _, i := range req.Products {
-		prod, _ := c.ProductService.Get(ctx, i)
-		for _, i := range req.AttributeKeys {
-			attributes = append(attributes, map[string]string{
-				i: prod.Attributes[i],
-			})
-		}
-	}
 
 	id, err := c.DB.Create(ctx, &port.CreateRequest{
 		Name:              req.Name,
@@ -139,7 +129,7 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 		ExternalId:        req.ExternalId,
 		IsAvailableStatus: false,
 		Products:          req.Products,
-		AttributeKeys:     attributes,
+		AttributeKeys:     req.AttributeKeys,
 		Images:            req.Images,
 	})
 	if err != nil {
@@ -404,28 +394,10 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 		if err != nil {
 			return err
 		}
-		//build attributes
-		attributes := []map[string]string{}
-		// get all attributes from products
-		for _, j := range req.Product {
-			resp, err := c.ProductService.Get(ctx, j)
-			if err != nil {
-				continue
-			}
-			for key, val := range resp.Attributes {
-				for _, i := range req.AttributeKeys {
-					if key == i {
-						attributes = append(attributes, map[string]string{
-							key: val,
-						})
-					}
-				}
-			}
-		}
 
 		err := c.DB.UpdateAttributes(ctx, &port.UpdateAttributes{
 			Id:            req.Id,
-			AttributeKeys: attributes,
+			AttributeKeys: req.AttributeKeys,
 		})
 		if err != nil {
 			switch err {
