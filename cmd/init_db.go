@@ -28,17 +28,17 @@ func InitDB(connectionString string, file_location string) *sql.DB {
 	}
 
 	// ddl
-	err = runMigration(db, file_location+`/core_db.sql`)
+	// err = runMigration(db, file_location+`/core_db.sql`)
 
-	if err != nil {
-		log.Fatalf("Error running migration: %v", err)
-	}
+	// if err != nil {
+	// 	log.Fatalf("Error running migration: %v", err)
+	// }
 
-	// functions
-	err = runMigration(db, file_location+"/core_db_functions.sql")
-	if err != nil {
-		log.Fatalf("Error running migration: %v", err)
-	}
+	// // functions
+	// err = runMigration(db, file_location+"/core_db_functions.sql")
+	// if err != nil {
+	// 	log.Fatalf("Error running migration: %v", err)
+	// }
 	return db
 }
 
