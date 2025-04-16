@@ -13,160 +13,11 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useCart } from "@/contexts/CartContext";
-
-// const categories = [
-//   "All",
-//   "Electronics",
-//   "Clothing",
-//   "Accessories",
-//   "Footwear",
-// ];
-
-const mockProducts = [
-  {
-    id: 1,
-    name: "Wireless Headphones",
-    price: 199.99,
-    description:
-      "Premium wireless headphones with active noise cancellation and up to 30 hours of battery life.",
-    images: [
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80",
-    ],
-    type: "electronics",
-    colors: ["Black", "White", "Blue"],
-  },
-  {
-    id: 2,
-    name: "Smart Watch",
-    price: 299.99,
-    description:
-      "Advanced smartwatch with health tracking features and AMOLED display.",
-    images: [
-      "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&q=80",
-    ],
-    type: "electronics",
-    colors: ["Black", "Silver", "Gold"],
-  },
-  {
-    id: 3,
-    name: "Cotton T-Shirt",
-    price: 29.99,
-    description: "Comfortable 100% cotton t-shirt for everyday wear.",
-    images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80",
-    ],
-    category: "Clothing",
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["White", "Black", "Gray", "Navy"],
-  },
-  {
-    id: 4,
-    name: "Leather Wallet",
-    price: 49.99,
-    description:
-      "Genuine leather wallet with multiple card slots and coin pocket.",
-    images: [
-      "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500&q=80",
-    ],
-    category: "Accessories",
-    colors: ["Brown", "Black"],
-  },
-  {
-    id: 5,
-    name: "Running Shoes",
-    price: 89.99,
-    description: "Lightweight running shoes with responsive cushioning.",
-    images: [
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80",
-    ],
-    category: "Footwear",
-    sizes: ["7", "8", "9", "10", "11", "12"],
-    colors: ["Black/Red", "Blue/White", "Gray/Yellow"],
-  },
-  {
-    id: 6,
-    name: "Wireless Earbuds",
-    price: 159.99,
-    description: "True wireless earbuds with premium sound quality.",
-    images: [
-      "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=500&q=80",
-    ],
-    category: "Electronics",
-    colors: ["White", "Black"],
-  },
-  {
-    id: 7,
-    name: "Denim Jeans",
-    price: 79.99,
-    description: "Classic fit denim jeans with stretch comfort.",
-    images: [
-      "https://images.unsplash.com/photo-1542272604-787c3835535d?w=500&q=80",
-    ],
-    category: "Clothing",
-    sizes: ["30x30", "32x32", "34x32", "36x32"],
-    colors: ["Blue", "Black", "Gray"],
-  },
-  {
-    id: 8,
-    name: "Backpack",
-    price: 69.99,
-    description:
-      "Durable backpack with laptop compartment and multiple pockets.",
-    images: [
-      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80",
-    ],
-    category: "Accessories",
-    colors: ["Black", "Navy", "Gray"],
-  },
-  {
-    id: 9,
-    name: "Smart Speaker",
-    price: 129.99,
-    description: "Voice-controlled smart speaker with premium sound.",
-    images: [
-      "https://images.unsplash.com/photo-1543512214-318c7553f230?w=500&q=80",
-    ],
-    category: "Electronics",
-    colors: ["Black", "White"],
-  },
-  {
-    id: 10,
-    name: "Summer Dress",
-    price: 59.99,
-    description: "Lightweight summer dress with floral pattern.",
-    images: [
-      "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=500&q=80",
-    ],
-    category: "Clothing",
-    sizes: ["XS", "S", "M", "L"],
-    colors: ["Blue Floral", "Pink Floral", "White"],
-  },
-  {
-    id: 11,
-    name: "Sunglasses",
-    price: 149.99,
-    description: "Polarized sunglasses with UV protection.",
-    images: [
-      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&q=80",
-    ],
-    category: "Accessories",
-    colors: ["Black/Gold", "Tortoise/Brown"],
-  },
-  {
-    id: 12,
-    name: "Fitness Tracker",
-    price: 89.99,
-    description: "Water-resistant fitness tracker with heart rate monitoring.",
-    images: [
-      "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=500&q=80",
-    ],
-    category: "Electronics",
-    colors: ["Black", "Blue", "Pink"],
-  },
-];
+import { fetchProducts } from "@/api/ProductApi";
 
 const Products = () => {
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -178,7 +29,7 @@ const Products = () => {
     const loadCategories = async () => {
       try {
         const fetchedCategories = await fetchCategories();
-        setCategories(fetchedCategories.map((category) => category.Name));
+        setCategories(fetchedCategories.map((category) => category.name));
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -187,14 +38,36 @@ const Products = () => {
     loadCategories();
   }, []);
 
-  const filteredProducts = mockProducts.filter(
-    (product) =>
-      (selectedCategory === "All" || product.category === selectedCategory) &&
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const productList = await fetchProducts();
+        // console.log(productList);
+        setProducts(productList);
+      } catch (error) {
+        console.error("Failed to load products:", error);
+      }
+    };
+
+    loadProducts();
+  }, []);
+  const startIndex = (currentPage - 1) * productsPerPage;
+
+  // Filter products based on selected category and search query
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (product.categories && product.categories.includes(selectedCategory));
+
+    const matchesSearchQuery = product.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    console.log(product.configurables[0].categories[0]);
+    console.log(selectedCategory);
+    return matchesCategory && matchesSearchQuery;
+  });
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
   const displayedProducts = filteredProducts.slice(
     startIndex,
     startIndex + productsPerPage
@@ -312,25 +185,28 @@ const Products = () => {
         </div>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8'>
-          {displayedProducts.map((product) => (
-            <Link
-              key={product.id}
-              to={`/product/${product.id}`}
-              className='group animate-fade-in'
-            >
-              <div className='aspect-square overflow-hidden rounded-lg bg-secondary mb-4'>
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className='w-full h-full object-cover transform transition-transform group-hover:scale-105'
-                />
-              </div>
-              <h3 className='text-lg font-medium text-primary mb-2'>
-                {product.name}
-              </h3>
-              <p className='text-sm text-primary'>${product.price}</p>
-            </Link>
-          ))}
+          {displayedProducts.map((product) => {
+            return (
+              <Link
+                key={product.id}
+                to={`/product/${product.id}`}
+                state={{ product }}
+                className='group animate-fade-in'
+              >
+                <div className='aspect-square overflow-hidden rounded-lg bg-secondary mb-4'>
+                  <img
+                    src={product.images[0]}
+                    alt={product.name}
+                    className='w-full h-full object-cover transform transition-transform group-hover:scale-105'
+                  />
+                </div>
+                <h3 className='text-lg font-medium text-primary mb-2'>
+                  {product.name}
+                </h3>
+                <p className='text-sm text-primary'>${product.price}</p>
+              </Link>
+            );
+          })}
         </div>
 
         <Pagination className='my-8'>
