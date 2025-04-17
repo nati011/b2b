@@ -12,7 +12,7 @@ var service Renderer
 
 func Test_Render_happyPath(t *testing.T) {
 	in := Request{
-		Name: "test",
+		TemplateId: 1,
 		Args: map[string]string{
 			"a": "test",
 			"b": "test",
@@ -35,7 +35,7 @@ func Test_Render_happyPath(t *testing.T) {
 func Test_Render_unhappyPath(t *testing.T) {
 	t.Run("templateNotFound", func(t *testing.T) {
 		in := Request{
-			Name: "non_existing_template",
+			TemplateId: 99,
 			Args: map[string]string{
 				"a": "test",
 				"b": "test",

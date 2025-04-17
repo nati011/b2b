@@ -3,46 +3,34 @@ package email
 import (
 	"context"
 	"database/sql"
-	"log"
 
-	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	port "b2b.nati011.github.com/internal/port/application/email-template"
 )
 
-type PostgresReaderWriter struct {
+type Postgres struct {
 	Pool *sql.DB
 }
 
-func NewPostgres(pool *sql.DB) ReaderWriter {
-	return &PostgresReaderWriter{Pool: pool}
+func NewPostgres(db *sql.DB) port.DB {
+	return &Postgres{Pool: db}
 }
 
-func (p *PostgresReaderWriter) Create(ctx context.Context, req *CreateRequest) (CreateResponse, error) {
-	query := "SELECT * FROM templates AS t WHERE t.name = $1;"
-	var name string
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		req.Name,
-	)
-	if err != nil {
-		log.Fatalf("unable to execute search query: %q", err)
-		return CreateResponse{}, err
-	}
-
-	rows.Scan(&name)
-	log.Println("name=", name)
-	return CreateResponse{Name: name}, nil
+func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
+	return 0, nil
 }
 
-func (p *PostgresReaderWriter) Update(ctx context.Context, req *UpdateRequest) (UpdateResponse, error) {
-	return UpdateResponse{}, nil
+func (p *Postgres) Update(ctx context.Context, req *port.UpdateRequest) error {
+	return nil
 }
 
-func (p *PostgresReaderWriter) Get(ctx context.Context, r string) (GetResponse, error) {
-	return GetResponse{}, nil
+func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
+	return port.GetResponse{}, nil
 }
 
-func (p *PostgresReaderWriter) GetAll(ctx context.Context) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
+	return port.GetResponse{}, nil
+}
+
+func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+	return port.GetAllResponse{}, nil
 }
