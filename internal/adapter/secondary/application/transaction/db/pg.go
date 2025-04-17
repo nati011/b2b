@@ -8,17 +8,20 @@ import (
 	"strconv"
 	"time"
 
+	"b2b.nati011.github.com/config"
 	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool       *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(DB *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool: DB,
+		Pool:       DB,
+		Pagination: pagination,
 	}
 }
 
@@ -56,13 +59,12 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_transactions();"
+	query := "SELECT * FROM public.get_all_transactions($1,$2);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-	)
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -103,14 +105,12 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_transactions_by_date($1);"
+	query := "SELECT * FROM public.get_transactions_by_date($1,$2,$3);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		date,
-	)
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, date, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -151,14 +151,12 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_transactions_by_user_id($1);"
+	query := "SELECT * FROM public.get_transactions_by_user_id($1,$2,$3);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		user_id,
-	)
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, user_id, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -199,14 +197,11 @@ func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllRes
 func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_transactions_by_partner_id($1);"
+	query := "SELECT * FROM public.get_transactions_by_partner_id($1,$2,$3);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		partner_id,
-	)
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, partner_id, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err

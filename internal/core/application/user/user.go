@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/auth"
@@ -198,6 +199,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		}
 	}
 
+	log.Printf("Registered User %v", user_id)
 	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,
