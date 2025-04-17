@@ -177,7 +177,7 @@ func Test_update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-		id, _ := service.Create(ctx, &CreateRequest{
+		id, _ := container.ResourceService.Create(ctx, &CreateRequest{
 			Action: "test",
 			Name:   "test",
 		})
