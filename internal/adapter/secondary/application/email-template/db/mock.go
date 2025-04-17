@@ -1,59 +1,80 @@
 package email
 
-import "context"
+import (
+	"context"
 
-type MockReaderWriter struct {
+	port "b2b.nati011.github.com/internal/port/application/email-template"
+)
+
+type template struct {
+	Id           int
+	Name         string
+	HtmlTemplate string
+}
+
+type Mock struct {
 	templates []template
 }
 
-func NewMock() ReaderWriter {
-	return &MockReaderWriter{
+func NewMock() port.DB {
+	return &Mock{
 		templates: []template{},
 	}
 }
 
-func (m *MockReaderWriter) Create(ctx context.Context, r *CreateRequest) (CreateResponse, error) {
-	for _, i := range m.templates {
-		if i.name == r.Name {
-			return CreateResponse{
-				Name: i.name,
-			}, ErrSysDuplicateName_L1
-		}
-	}
+func (m *Mock) Create(ctx context.Context, r *port.CreateRequest) (int, error) {
+	newId := len(m.templates) + 1
 	m.templates = append(m.templates, template{
-		name: r.Name,
-		html: r.HtmlTemplate,
+		Id:           newId,
+		Name:         r.Name,
+		HtmlTemplate: r.HtmlTemplate,
 	})
 
-	return CreateResponse{
-		Name: r.Name,
-	}, nil
+	return newId, nil
 }
 
-func (m *MockReaderWriter) Update(ctx context.Context, r *UpdateRequest) (UpdateResponse, error) {
-	for _, i := range m.templates {
-		if i.name == r.Name {
-			i.html = r.HtmlTemplate
-			return UpdateResponse{
-				Name: i.name,
-			}, nil
+func (m *Mock) Update(ctx context.Context, r *port.UpdateRequest) error {
+	updatedTemplates := []template{}
+	for _, t := range m.templates {
+		if t.Id == r.Id {
+			updatedTemplates = append(updatedTemplates, template{
+				Id:           r.Id,
+				Name:         r.Name,
+				HtmlTemplate: r.HtmlTemplate,
+			})
+		} else {
+			updatedTemplates = append(updatedTemplates, template(t))
 		}
 	}
-	return UpdateResponse{}, nil
+	m.templates = updatedTemplates
+	return nil
 }
 
-func (m MockReaderWriter) Get(ctx context.Context, r string) (GetResponse, error) {
-	for _, i := range m.templates {
-		if i.name == r {
-			return GetResponse{
-				Name:         i.name,
-				HtmlTemplate: i.html,
-			}, nil
+func (m Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
+	for _, t := range m.templates {
+		if t.Id == id {
+			return port.GetResponse(t), nil
 		}
 	}
-	return GetResponse{}, nil
+	return port.GetResponse{}, port.ErrSysNoRows
 }
 
-func (m *MockReaderWriter) GetAll(ctx context.Context) (GetAllResponse, error) {
-	return GetAllResponse{}, nil
+func (m *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
+	for _, t := range m.templates {
+		if t.Name == name {
+			return port.GetResponse(t), nil
+		}
+	}
+	return port.GetResponse{}, port.ErrSysNoRows
+}
+
+func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+	response := port.GetAllResponse{}
+	for _, i := range m.templates {
+		response.List = append(response.List, port.GetResponse(i))
+	}
+	if len(response.List) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return response, nil
 }

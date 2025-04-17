@@ -15,8 +15,8 @@ var (
 )
 
 type Request struct {
-	Name string
-	Args map[string]string
+	TemplateId int
+	Args       map[string]string
 }
 
 type Response struct {
@@ -40,7 +40,7 @@ func NewRenderService(tp template.Provider) Renderer {
 
 func (s RenderService) Create(r *Request) (Response, error) {
 	ctx := context.Background()
-	queryResp, err := s.TemplateService.Get(ctx, r.Name)
+	queryResp, err := s.TemplateService.Get(ctx, r.TemplateId)
 	if err != nil {
 		// switch err {
 		// case template.ErrSysUnknown:

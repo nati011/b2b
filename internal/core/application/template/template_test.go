@@ -4,191 +4,9 @@ import (
 	"context"
 	"os"
 	"testing"
-
-	db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 )
 
-var templateService Provider
-
-func Test_Create_happyPath(t *testing.T) {
-	ctx := context.Background()
-	in := CreateRequest{
-		Name:         "simple",
-		HtmlTemplate: "test",
-	}
-	want := CreateResponse{
-		Name:    "simple",
-		Message: SUCCESS_MESSAGE,
-	}
-
-	got, err := templateService.Create(ctx, in)
-	if err != nil {
-		t.Errorf("Failed to create template err: %q", err)
-	}
-	if got != want {
-		t.Errorf("Expected: %q Got: %q", want, got)
-	}
-}
-
-func Test_Create_unhappyPath(t *testing.T) {
-	t.Run("emptyHtmlTemplate", func(t *testing.T) {
-		ctx := context.Background()
-		in := CreateRequest{
-			Name:         "simple",
-			HtmlTemplate: "",
-		}
-		want := CreateResponse{
-			Name:    "",
-			Message: ErrSysInvalidTemplate.Error(),
-		}
-
-		got, err := templateService.Create(ctx, in)
-		if err != ErrSysInvalidTemplate {
-			t.Errorf("Failed to create template err: %q", err)
-		}
-		if got != want {
-			t.Errorf("Expected: %q Got: %q", want, got)
-		}
-	})
-
-	t.Run("emptyName", func(t *testing.T) {
-		ctx := context.Background()
-		in := CreateRequest{
-			Name:         "",
-			HtmlTemplate: "test",
-		}
-		want := CreateResponse{
-			Name:    "",
-			Message: ErrSysInvalidName.Error(),
-		}
-
-		got, err := templateService.Create(ctx, in)
-		if err != ErrSysInvalidName {
-			t.Errorf("Failed to create template err: %v", err)
-		}
-		if got != want {
-			t.Errorf("Expected: %q Got: %q", want, got)
-		}
-	})
-
-	t.Run("duplicateName", func(t *testing.T) {
-		//init
-		ctx := context.Background()
-		_, err := templateService.Create(ctx, CreateRequest{
-			Name:         "simple",
-			HtmlTemplate: "test",
-		})
-		if err != nil {
-			t.Errorf("Failed to create template err: %v", err)
-		}
-
-		in := CreateRequest{
-			Name:         "simple",
-			HtmlTemplate: "test",
-		}
-		want := CreateResponse{
-			Name:    "simple",
-			Message: ErrSysDuplicateName.Error(),
-		}
-
-		got, err := templateService.Create(ctx, in)
-		if err != ErrSysDuplicateName {
-			t.Errorf("Failed to create template err: %v", err)
-		}
-		if got != want {
-			t.Errorf("Expected: %q Got: %q", want, got)
-		}
-	})
-}
-
-func Test_Update_happyPath(t *testing.T) {
-}
-
-func Test_Update_unhappyPath(t *testing.T) {
-}
-
-func Test_Get_happyPath(t *testing.T) {
-	//init
-	ctx := context.Background()
-	_, err := templateService.Create(ctx, CreateRequest{
-		Name:         "simple",
-		HtmlTemplate: "test",
-	})
-	if err != nil {
-		t.Errorf("Failed to create template err: %v", err)
-	}
-	in := "simple"
-	want := GetResponse{
-		Name:         "simple",
-		HtmlTemplate: "test",
-	}
-	got, err := templateService.Get(ctx, in)
-	if err != nil {
-		t.Errorf("Failed to fetch email err: %v", err)
-	}
-	if got != want {
-		t.Errorf("Expected: %v Want: %v", want, got)
-	}
-}
-
-func Test_Get_unhappyPath(t *testing.T) {
-	t.Run("notFound", func(t *testing.T) {
-		ctx := context.Background()
-		in := "simple"
-		want := GetResponse{}
-		got, err := templateService.Get(ctx, in)
-		if err != nil {
-			t.Errorf("Failed to fetch email err: %v", err)
-		}
-		if got != want {
-			t.Errorf("Expected: %v Want: %v", want, got)
-		}
-	})
-}
-
-func Test_Get_All_happyPath(t *testing.T) {
-	// init
-	ctx := context.Background()
-	_, err := templateService.Create(ctx, CreateRequest{
-		Name:         "simple",
-		HtmlTemplate: "test",
-	})
-	if err != nil {
-		t.Errorf("Failed to create template err: %v", err)
-	}
-
-	want := GetAllResponse{
-		List: []GetResponse{
-			{
-				Name:         "simple",
-				HtmlTemplate: "test",
-			},
-		},
-	}
-	got, err := templateService.GetAll(ctx)
-	if err != nil {
-		t.Errorf("Failed to fetch email err: %v", err)
-	}
-	for _, i := range got.List {
-		if i.Name != want.List[0].Name || i.HtmlTemplate != want.List[0].HtmlTemplate {
-			t.Errorf("Expected: %v Want: %v", want, got)
-		}
-	}
-}
-
-func Test_Get_All_unhappyPath(t *testing.T) {
-	t.Run("notFound", func(t *testing.T) {
-		ctx := context.Background()
-		want := GetAllResponse{}
-		got, err := templateService.GetAll(ctx)
-		if err != nil {
-			t.Errorf("Failed to fetch email err: %v", err)
-		}
-		if len(got.List) != 0 {
-			t.Errorf("Expected: %v Want: %v", want, got)
-		}
-	})
-}
+var container TestContainer
 
 func TestMain(m *testing.M) {
 	setup()
@@ -197,5 +15,142 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	templateService = NewTemplateService(db.NewMock())
+	container = NewTestContainer()
+}
+
+func Test_Create_happyPath(t *testing.T) {
+	t.Cleanup(container.Teardown)
+	ctx := context.Background()
+	id, err := container.TemplateService.Create(ctx, &CreateRequest{
+		Name:         "test",
+		HtmlTemplate: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to create template %v", err)
+	}
+
+	//check
+	got, err := container.TemplateService.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("failed to get err: %v", err)
+	}
+
+	if got.Id != id {
+		t.Errorf("expected err: %v Got: %v", id, got.Id)
+	}
+}
+
+func Test_Create_unhappyPath(t *testing.T) {
+	t.Run("emptyHtmlTemplate", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		_, err := container.TemplateService.Create(ctx, &CreateRequest{
+			Name:         "test",
+			HtmlTemplate: "",
+		})
+		wantErr := ErrInvalidTemplate
+		if err != wantErr {
+			t.Errorf("expected err: %v got err: %v", wantErr, err)
+		}
+	})
+
+	t.Run("emptyName", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		_, err := container.TemplateService.Create(ctx, &CreateRequest{
+			Name:         "",
+			HtmlTemplate: "test",
+		})
+		wantErr := ErrInvalidName
+		if err != wantErr {
+			t.Errorf("expected err: %v got err: %v", wantErr, err)
+		}
+	})
+
+	t.Run("duplicateName", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		_, err := container.TemplateService.Create(ctx, &CreateRequest{
+			Name:         "test",
+			HtmlTemplate: "test",
+		})
+		if err != nil {
+			t.Fatalf("failed to create template %v", err)
+		}
+
+		_, err = container.TemplateService.Create(ctx, &CreateRequest{
+			Name:         "test",
+			HtmlTemplate: "test12",
+		})
+		wantErr := ErrDuplicateName
+		if err != wantErr {
+			t.Errorf("expected err: %v got err: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Get_happyPath(t *testing.T) {
+	t.Cleanup(container.Teardown)
+	ctx := context.Background()
+	id, err := container.TemplateService.Create(ctx, &CreateRequest{
+		Name:         "test",
+		HtmlTemplate: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to create template %v", err)
+	}
+
+	got, err := container.TemplateService.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("failed to get err: %v", err)
+	}
+
+	if got.Id != id {
+		t.Errorf("expected err: %v Got: %v", id, got.Id)
+	}
+}
+
+func Test_Get_unhappyPath(t *testing.T) {
+	t.Run("notFound", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		_, err := container.TemplateService.Get(ctx, 99)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("expected err: %v got err: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Get_All_happyPath(t *testing.T) {
+	t.Cleanup(container.Teardown)
+	ctx := context.Background()
+	_, err := container.TemplateService.Create(ctx, &CreateRequest{
+		Name:         "test",
+		HtmlTemplate: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to create template %v", err)
+	}
+
+	got, err := container.TemplateService.GetAll(ctx)
+	if err != nil {
+		t.Fatalf("failed to get err: %v", err)
+	}
+	wantLen := 1
+	if len(got.List) != wantLen {
+		t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+	}
+}
+
+func Test_Get_All_unhappyPath(t *testing.T) {
+	t.Run("notFound", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		_, err := container.TemplateService.GetAll(ctx)
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
 }
