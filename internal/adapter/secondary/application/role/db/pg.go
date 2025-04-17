@@ -5,17 +5,20 @@ import (
 	"database/sql"
 	"log"
 
+	"b2b.nati011.github.com/config"
 	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/role"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool       *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(DB *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool: DB,
+		Pool:       DB,
+		Pagination: pagination,
 	}
 }
 
@@ -66,12 +69,17 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_roles();"
+	query := "SELECT * FROM public.get_all_roles($1,$2);"
+
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
 
 	rows, err := handler.MustQueryRow(
 		p.Pool,
 		ctx,
 		query,
+		limit,
+		offset,
 	)
 
 	if err != nil {

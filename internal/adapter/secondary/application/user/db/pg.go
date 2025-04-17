@@ -5,17 +5,20 @@ import (
 	"database/sql"
 	"log"
 
+	"b2b.nati011.github.com/config"
 	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/user"
 )
 
 type Postgres struct {
-	db *sql.DB
+	db         *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(db *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		db: db,
+		db:         DB,
+		Pagination: pagination,
 	}
 }
 
@@ -24,12 +27,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_users_by_id($1);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		id,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, id)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -51,15 +49,12 @@ func (p *Postgres) GetByEmail(ctx context.Context, email string) (port.GetAllRes
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_users_by_email($1);"
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		email,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, email)
+
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -146,13 +141,12 @@ func (p *Postgres) GetByUsername(ctx context.Context, username string) (port.Get
 func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_users_by_active_status($1);"
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		status,
-	)
+	query := "SELECT * FROM public.get_users_by_active_status($1,$2,$3, $4, $5);"
+
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+
+	rows, err := handler.MustQueryRow(p.db, ctx, query, status, limit, offset)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -179,15 +173,12 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	var response port.GetAllResponse
 
 	query := "SELECT * FROM public.get_users_by_external_id($1);"
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		extId,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, extId)
+
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -211,15 +202,9 @@ func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserPro
 	var response port.GetUserProviderResponse
 
 	query := "SELECT * FROM public.get_user_provider($1);"
-	rows, err := p.db.QueryContext(ctx, query, id)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, id)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetUserProviderResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetUserProviderResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetUserProviderResponse{}, err
 	}
 	defer rows.Close()
 
@@ -243,12 +228,12 @@ func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserPro
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_users();"
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-	)
+	query := "SELECT * FROM public.get_all_users($1,$2);"
+
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+
+	rows, err := handler.MustQueryRow(p.db, ctx, query, limit, offset)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -277,28 +262,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var resourceId int
 	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6, $7);"
 
-	err := p.db.QueryRowContext(ctx, query,
-		req.FirstName,
-		req.Email,
-		req.Phone,
-		req.Username,
-		req.DOB,
-		req.IsActive,
-		req.ExternalId,
-	).Scan(&resourceId)
-
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.FirstName,
-		req.Email,
-		req.Phone,
-		req.Username,
-		req.DOB,
-		req.IsActive,
-		req.ExternalId,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.FirstName, req.Email, req.Phone, req.Username, req.DOB, req.IsActive, req.ExternalId)
 	if err != nil {
 		return 0, err
 	}
@@ -311,18 +275,7 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 	var resourceId int
 	query := "SELECT * FROM public.create_and_activate_user($1, $2, $3, $4, $5, $6, $7);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.FirstName,
-		req.LastName,
-		req.Email,
-		req.Phone,
-		req.Username,
-		req.DOB,
-		req.ExternalId,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.FirstName, req.LastName, req.Email, req.Phone, req.Username, req.DOB, req.ExternalId)
 
 	if err != nil {
 		return 0, err
@@ -336,13 +289,7 @@ func (p *Postgres) CreateUserProvider(ctx context.Context, req *port.CreateUserP
 	var resourceId any
 	query := "SELECT * FROM public.create_user_provider($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.UserId,
-		req.ProviderId,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.UserId, req.ProviderId)
 
 	if err != nil {
 		return err
@@ -358,12 +305,7 @@ func (p *Postgres) CreateUserProvider(ctx context.Context, req *port.CreateUserP
 func (p *Postgres) Delete(ctx context.Context, id int) error {
 	query := "SELECT * FROM public.delete_user($1);"
 
-	_, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		id,
-	)
+	_, err := handler.MustQueryRow(p.db, ctx, query, id)
 
 	if err != nil {
 		return err
@@ -376,13 +318,7 @@ func (p *Postgres) UpdateFirstName(ctx context.Context, req *port.UpdateFirstNam
 	var resourceId int
 	query := "SELECT * FROM public.update_user_FirstName($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.Id,
-		req.FirstName,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.Id, req.FirstName)
 
 	if err != nil {
 		return 0, err
@@ -396,13 +332,7 @@ func (p *Postgres) UpdateEmail(ctx context.Context, req *port.UpdateEmailRequest
 	var resourceId int
 	query := "SELECT * FROM public.update_user_email($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.Id,
-		req.Email,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.Id, req.Email)
 
 	if err != nil {
 		return 0, err
@@ -416,13 +346,7 @@ func (p *Postgres) UpdateDOB(ctx context.Context, req *port.UpdateDOBRequest) (i
 	var resourceId int
 	query := "SELECT * FROM public.update_user_dob($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.Id,
-		req.DOB,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.Id, req.DOB)
 
 	if err != nil {
 		return 0, err
@@ -436,13 +360,7 @@ func (p *Postgres) UpdateIsActiveStatus(ctx context.Context, req *port.UpdateIsA
 	var resourceId int
 	query := "SELECT * FROM public.update_user_is_active_status($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.Id,
-		req.IsActive,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.Id, req.IsActive)
 
 	if err != nil {
 		return 0, err
@@ -456,13 +374,7 @@ func (p *Postgres) UpdatePhone(ctx context.Context, req *port.UpdatePhoneRequest
 	var resourceId int
 	query := "SELECT * FROM public.update_user_phone($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.Id,
-		req.Phone,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.Id, req.Phone)
 
 	if err != nil {
 		return 0, err
@@ -476,13 +388,7 @@ func (p *Postgres) UpdateUsername(ctx context.Context, req *port.UpdateUsernameR
 	var resourceId int
 	query := "SELECT * FROM public.update_user_name($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		req.Id,
-		req.Username,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, req.Id, req.Username)
 
 	if err != nil {
 		return 0, err
@@ -495,13 +401,7 @@ func (p *Postgres) UpdateUsername(ctx context.Context, req *port.UpdateUsernameR
 func (p *Postgres) AssignRole(ctx context.Context, id int, role_id int) error {
 	query := "SELECT * FROM public.add_role_to_user($1, $2);"
 
-	_, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		id,
-		role_id,
-	)
+	_, err := handler.MustQueryRow(p.db, ctx, query, id, role_id)
 
 	if err != nil {
 		return err
@@ -513,13 +413,7 @@ func (p *Postgres) AssignRole(ctx context.Context, id int, role_id int) error {
 func (p *Postgres) RemoveAssignedRole(ctx context.Context, id int, role_id int) error {
 	query := "SELECT * FROM public.remove_role_from_user($1, $2);"
 
-	_, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		id,
-		role_id,
-	)
+	_, err := handler.MustQueryRow(p.db, ctx, query, id, role_id)
 
 	if err != nil {
 		return err
@@ -533,12 +427,7 @@ func (p *Postgres) GetAllAssignedRole(ctx context.Context, id int) (port.GetAllA
 
 	query := "SELECT * FROM public.get_all_role_by_user($1);"
 
-	rows, err := handler.MustQueryRow(
-		p.db,
-		ctx,
-		query,
-		id,
-	)
+	rows, err := handler.MustQueryRow(p.db, ctx, query, id)
 	if err != nil {
 		return port.GetAllAssignedRoleResponse{}, err
 	}
