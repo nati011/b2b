@@ -16,9 +16,9 @@ import { useCart } from "@/contexts/CartContext";
 import { fetchProducts } from "@/api/ProductApi";
 
 const Products = () => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([{ id: 0, name: "All" }]);
   const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showSearch, setShowSearch] = useState(false);
@@ -29,7 +29,7 @@ const Products = () => {
     const loadCategories = async () => {
       try {
         const fetchedCategories = await fetchCategories();
-        setCategories(fetchedCategories.map((category) => category.name));
+        setCategories([{ id: 0, name: "All" }, ...fetchedCategories]);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -51,19 +51,37 @@ const Products = () => {
 
     loadProducts();
   }, []);
+
+  const getPriceRange = (product) => {
+    if (!product.configurables || product.configurables.length === 0) {
+      return `$${product.price}`;
+    }
+
+    const prices = product.configurables.map((config) => config.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    if (minPrice === maxPrice) {
+      return `$${minPrice}`;
+    } else {
+      return `$${minPrice} - $${maxPrice}`;
+    }
+  };
+
   const startIndex = (currentPage - 1) * productsPerPage;
 
   // Filter products based on selected category and search query
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
-      selectedCategory === "All" ||
-      (product.categories && product.categories.includes(selectedCategory));
+      selectedCategory === 0 || // "All" category
+      product.configurables.some((configurable) =>
+        configurable.categories.includes(selectedCategory)
+      );
 
     const matchesSearchQuery = product.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    console.log(product.configurables[0].categories[0]);
-    console.log(selectedCategory);
+
     return matchesCategory && matchesSearchQuery;
   });
 
@@ -168,17 +186,17 @@ const Products = () => {
         <div className='flex items-center gap-4 mb-8 w-full'>
           <Filter className='w-5 h-5 shrink-0' />
           <div className='flex gap-4 overflow-x-auto no-scrollbar w-full'>
-            {categories.map((category, index) => (
+            {categories.map((category) => (
               <button
-                key={index}
-                onClick={() => setSelectedCategory(category)}
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
                 className={`shrink-0 px-4 py-2 rounded-full text-sm transition-colors whitespace-nowrap ${
-                  selectedCategory === category
+                  selectedCategory === category.id
                     ? "bg-primary text-white"
                     : "bg-secondary text-primary hover:bg-opacity-80"
                 }`}
               >
-                {category}
+                {category.name}
               </button>
             ))}
           </div>
@@ -203,7 +221,7 @@ const Products = () => {
                 <h3 className='text-lg font-medium text-primary mb-2'>
                   {product.name}
                 </h3>
-                <p className='text-sm text-primary'>${product.price}</p>
+                <p className='text-sm text-primary'>{getPriceRange(product)}</p>
               </Link>
             );
           })}
