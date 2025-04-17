@@ -1,9 +1,27 @@
 package template
 
-func ValidateName(r string) bool {
-	return r != ""
+import "context"
+
+func (t *Template) ValidateName(ctx context.Context, n string) error {
+	if n == "" {
+		return ErrInvalidName
+	}
+	if _, err := t.GetByName(ctx, n); err != nil {
+		switch err {
+		case ErrNameNotFound:
+			return nil
+		case nil:
+			return ErrDuplicateName
+		default:
+			return err
+		}
+	}
+	return ErrDuplicateName
 }
 
-func ValidateHTML(h string) bool {
-	return h != ""
+func ValidateHTML(h string) error {
+	if h == "" {
+		return ErrInvalidTemplate
+	}
+	return nil
 }
