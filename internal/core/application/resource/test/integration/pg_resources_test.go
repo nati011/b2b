@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/config"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
@@ -28,6 +29,10 @@ func setup() {
 	service = resource.NewResource(
 		db_adapter.NewPostgres(
 			db,
+			&config.Pagination{
+				Limit:  10,
+				Offset: 0,
+			},
 		),
 	)
 }

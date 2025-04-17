@@ -8,7 +8,8 @@ import (
 )
 
 func MustQueryRow(db *sql.DB, ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	rows, err := db.QueryContext(ctx, query, args...)
+	var rows *sql.Rows
+	err := db.QueryRowContext(ctx, query, args...)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

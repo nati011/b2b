@@ -5,17 +5,20 @@ import (
 	"database/sql"
 	"log"
 
+	"b2b.nati011.github.com/config"
 	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool       *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(db *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool: db,
+		Pool:       DB,
+		Pagination: pagination,
 	}
 }
 
@@ -132,11 +135,16 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_all_distributors();"
+	limit := r.Pagination.Limit
+	offset := r.Pagination.Offset
+
+	query := "SELECT * FROM public.get_all_distributors($1,$2);"
 	rows, err := handler.MustQueryRow(
 		r.Pool,
 		ctx,
 		query,
+		limit,
+		offset,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -173,12 +181,17 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 
-	query := "SELECT * FROM public.get_distributor_by_name($1);"
+	limit := r.Pagination.Limit
+	offset := r.Pagination.Offset
+
+	query := "SELECT * FROM public.get_distributor_by_name($1,$2,$3);"
 	rows, err := handler.MustQueryRow(
 		r.Pool,
 		ctx,
 		query,
 		name,
+		limit,
+		offset,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
