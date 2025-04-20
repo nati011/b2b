@@ -31,6 +31,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
@@ -38,7 +39,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.Name,
 		&response.Icon,
@@ -59,6 +60,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 		limit,
 		offset,
 	)
@@ -66,11 +68,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		return port.GetAllResponse{}, err
 
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var partner port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&partner.Id,
 			&partner.Name,
 			&partner.Icon,
@@ -83,7 +85,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		response.List = append(response.List, partner)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -99,16 +101,17 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		p.Pool,
 		ctx,
 		query,
+		true,
 		status,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var partner port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&partner.Id,
 			&partner.Name,
 			&partner.Icon,
@@ -121,7 +124,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		response.List = append(response.List, partner)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -137,17 +140,18 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		p.Pool,
 		ctx,
 		query,
+		true,
 		name,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var partner port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&partner.Id,
 			&partner.Name,
 			&partner.Icon,
@@ -160,7 +164,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		response.List = append(response.List, partner)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -176,6 +180,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Name,
 		req.Icon,
 		req.Status,
@@ -186,7 +191,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	}
 
 	log.Printf("Rows: %v", rows)
-	rows.Scan(&partner_id)
+	rows.Row.Scan(&partner_id)
 	return partner_id, nil
 }
 
@@ -198,13 +203,14 @@ func (p *Postgres) UpdateStatus(ctx context.Context, id int, status string) (int
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 		status,
 	)
 	if err != nil {
 		return 0, err
 	}
-	rows.Scan(&partner_id)
+	rows.Row.Scan(&partner_id)
 	return partner_id, nil
 }
 
@@ -216,13 +222,14 @@ func (p *Postgres) UpdateName(ctx context.Context, id int, name string) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 		name,
 	)
 	if err != nil {
 		return 0, err
 	}
-	rows.Scan(&partner_id)
+	rows.Row.Scan(&partner_id)
 
 	return partner_id, nil
 }

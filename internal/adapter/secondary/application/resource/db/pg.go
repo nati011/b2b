@@ -31,13 +31,14 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.Action,
 		&response.Name,
@@ -52,14 +53,14 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	rows, err := handler.MustQueryRow(
 		p.Pool,
 		ctx,
-		query,
+		query, false,
 		name,
 	)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.Action,
 		&response.Name,
@@ -80,24 +81,25 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 		limit,
 		offset,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var resource port.GetResponse
-		if err := rows.Scan(&resource.Id, &resource.Action, &resource.Name); err != nil {
+		if err := rows.Rows.Scan(&resource.Id, &resource.Action, &resource.Name); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		response.List = append(response.List, resource)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -113,6 +115,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Name,
 		req.Action,
 	)
@@ -120,7 +123,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		return 0, err
 	}
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	return resourceId, nil
 }
 
@@ -132,6 +135,7 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Action,
 	)
@@ -140,7 +144,7 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 		return 0, err
 	}
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 
 	return resourceId, nil
 }
@@ -153,6 +157,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Name,
 	)
@@ -161,7 +166,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		return 0, err
 	}
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	return resourceId, nil
 }
 
@@ -172,6 +177,7 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 

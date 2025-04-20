@@ -38,7 +38,8 @@ func Test_Validate_UserId_Upon_Transaction_Create_happyPath(t *testing.T) {
 	//create user
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FirstName:  "natnael jemaneh asefa",
+		FirstName:  "Natnael",
+		LastName:   "Jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
 		Username:   "test",

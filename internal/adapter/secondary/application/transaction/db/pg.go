@@ -33,6 +33,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
@@ -40,7 +41,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.User_Id,
 		&amountStr,
@@ -64,18 +65,18 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	limit := p.Pagination.Limit
 	offset := p.Pagination.Offset
 
-	rows, err := handler.MustQueryRow(p.Pool, ctx, query, limit, offset)
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var transaction port.GetResponse
 		var amountStr string
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&transaction.Id,
 			&transaction.User_Id,
 			&amountStr,
@@ -94,7 +95,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		response.List = append(response.List, transaction)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -110,18 +111,18 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 	limit := p.Pagination.Limit
 	offset := p.Pagination.Offset
 
-	rows, err := handler.MustQueryRow(p.Pool, ctx, query, date, limit, offset)
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, date, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var transaction port.GetResponse
 		var amountStr string
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&transaction.Id,
 			&transaction.User_Id,
 			&amountStr,
@@ -140,7 +141,7 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 		response.List = append(response.List, transaction)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -156,18 +157,18 @@ func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllRes
 	limit := p.Pagination.Limit
 	offset := p.Pagination.Offset
 
-	rows, err := handler.MustQueryRow(p.Pool, ctx, query, user_id, limit, offset)
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, user_id, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var transaction port.GetResponse
 		var amountStr string
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&transaction.Id,
 			&transaction.User_Id,
 			&amountStr,
@@ -186,7 +187,7 @@ func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllRes
 		response.List = append(response.List, transaction)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -201,18 +202,18 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 
 	limit := p.Pagination.Limit
 	offset := p.Pagination.Offset
-	rows, err := handler.MustQueryRow(p.Pool, ctx, query, partner_id, limit, offset)
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, partner_id, limit, offset)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var transaction port.GetResponse
 		var amountStr string
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&transaction.Id,
 			&transaction.User_Id,
 			&amountStr,
@@ -231,7 +232,7 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 		response.List = append(response.List, transaction)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -246,6 +247,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.User_Id,
 		req.Partner_Id,
 		req.Amount,
@@ -253,6 +255,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		return 0, err
 	}
-	rows.Scan(&id)
+	rows.Row.Scan(&id)
 	return id, nil
 }

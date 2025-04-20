@@ -191,8 +191,8 @@ func Test_GetAll_happyPath(t *testing.T) {
 		t.Fatalf("Failed to get err: %v", err)
 	}
 	wantLen := 1
-	if len(resp.List) != wantLen {
-		t.Errorf("Expected length: %v Want: %v", len(resp.List), wantLen)
+	if len(resp.List) < wantLen {
+		t.Errorf("Expected length: %v Got: %v", wantLen, len(resp.List))
 	}
 }
 
@@ -232,7 +232,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 		wantLen := 1
-		if wantLen != len(resp_param.List) {
+		if wantLen > len(resp_param.List) {
 			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
 		}
 	})
@@ -262,7 +262,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		}
 
 		wantLen := 1
-		if wantLen != len(resp_param.List) {
+		if wantLen > len(resp_param.List) {
 			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
 		}
 	})

@@ -33,9 +33,9 @@ func Test_Create_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "retailer_user",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	}
@@ -65,10 +65,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err := testContainer.RetailerService.Create(ctx, &in)
 		wantErr := ErrInvalidTin
@@ -87,10 +87,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -103,10 +103,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err = testContainer.RetailerService.Create(ctx, &in)
 		wantErr := ErrDuplicateTin
@@ -127,10 +127,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -165,10 +165,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -220,10 +220,10 @@ func Test_Update_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -252,10 +252,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -280,10 +280,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -314,10 +314,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -347,10 +347,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "retailer_user",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
