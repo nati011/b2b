@@ -28,9 +28,9 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "product_retailer",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	})
@@ -40,7 +40,7 @@ func Test_validate_Item_exists_upon_order_creation(t *testing.T) {
 	t.Run("unhappy_Path", func(t *testing.T) {
 		ctx := context.Background()
 		in := &order.PlaceRequest{
-			RetailerId: 1,
+			RetailerId: retailer_id,
 			Items: []order.Item{
 				{
 					ProductId: 1,

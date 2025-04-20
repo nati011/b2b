@@ -147,6 +147,8 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		Phone:     req.Phone,
 		Username:  req.Username,
 	})
+
+	print(user_id)
 	if err != nil {
 		switch err {
 		case user.ErrUnknown:

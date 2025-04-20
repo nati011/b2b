@@ -37,9 +37,9 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "ordeR_retailer",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	})

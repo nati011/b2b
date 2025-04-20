@@ -26,6 +26,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
@@ -33,7 +34,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.RetailerId,
 		&response.Status,
@@ -50,17 +51,18 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		p.Pool,
 		ctx,
 		query,
+		true,
 		retailerId,
 	)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var order port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&order.Id,
 			&order.RetailerId,
 			&order.Status,
@@ -72,7 +74,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		response.List = append(response.List, order)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -88,17 +90,18 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		p.Pool,
 		ctx,
 		query,
+		true,
 		status,
 	)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var order port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&order.Id,
 			&order.RetailerId,
 			&order.Status,
@@ -110,7 +113,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		response.List = append(response.List, order)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -126,16 +129,17 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var order port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&order.Id,
 			&order.RetailerId,
 			&order.Status,
@@ -147,7 +151,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		response.List = append(response.List, order)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -163,12 +167,13 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.RetailerId,
 		req.Status,
 		req.Total,
 	)
 
-	rows.Scan(&orderId)
+	rows.Row.Scan(&orderId)
 	if err != nil {
 		return 0, err
 	}
@@ -180,6 +185,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			p.Pool,
 			ctx,
 			query,
+			false,
 			orderId,
 			i.ProductId,
 			i.Quantity,
@@ -201,6 +207,7 @@ func (p *Postgres) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderS
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Status,
 	)

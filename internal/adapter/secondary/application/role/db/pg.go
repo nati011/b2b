@@ -31,6 +31,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
@@ -40,7 +41,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	log.Printf("Rows %v", rows)
 
-	rows.Scan(&response.Id, &response.Name, &response.Desc)
+	rows.Row.Scan(&response.Id, &response.Name, &response.Desc)
 	log.Printf(
 		"Resouce id %v", response.Id,
 	)
@@ -54,6 +55,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 		p.Pool,
 		ctx,
 		query,
+		false,
 		name,
 	)
 
@@ -61,7 +63,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(&response.Id, &response.Name, &response.Desc)
+	rows.Row.Scan(&response.Id, &response.Name, &response.Desc)
 
 	return response, nil
 }
@@ -78,6 +80,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 		limit,
 		offset,
 	)
@@ -86,18 +89,18 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var resource port.GetResponse
-		if err := rows.Scan(&resource.Id, &resource.Desc, &resource.Name); err != nil {
+		if err := rows.Rows.Scan(&resource.Id, &resource.Desc, &resource.Name); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		response.List = append(response.List, resource)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -109,15 +112,16 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var resourceId int
 	query := "SELECT * FROM public.create_role($1, $2);"
 
-	err := p.Pool.QueryRowContext(ctx, query, req.Name, req.Desc).Scan(&resourceId)
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx, query,
+		false,
+		req.Name, req.Desc)
+
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, nil
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
+	rows.Row.Scan(&resourceId)
 
 	return resourceId, nil
 }
@@ -129,6 +133,7 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Desc,
 	)
@@ -137,7 +142,7 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 		return 0, err
 	}
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	return resourceId, nil
 }
 
@@ -149,6 +154,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Name,
 	)
@@ -157,7 +163,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		return 0, err
 	}
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	return resourceId, nil
 }
 
@@ -167,6 +173,7 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
@@ -183,6 +190,7 @@ func (p *Postgres) AddResource(ctx context.Context, role_id int, resource_id int
 		p.Pool,
 		ctx,
 		query,
+		false,
 		role_id,
 		resource_id,
 	)
@@ -201,6 +209,7 @@ func (p *Postgres) RemoveResource(ctx context.Context, role_id int, resource_id 
 		p.Pool,
 		ctx,
 		query,
+		false,
 		role_id,
 		resource_id,
 	)
@@ -219,6 +228,7 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 		p.Pool,
 		ctx,
 		query,
+		false,
 		role_id,
 	)
 
@@ -226,18 +236,18 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 		return port.GetAllResourcesResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var resourceID int
-		if err := rows.Scan(&resourceID); err != nil {
+		if err := rows.Rows.Scan(&resourceID); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResourcesResponse{}, err
 		}
 		response.List = append(response.List, resourceID)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResourcesResponse{}, port.ErrSysUnknown
 	}
