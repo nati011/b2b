@@ -29,9 +29,9 @@ func Test_Create_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	}
@@ -61,10 +61,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err := testContainer.DistributorService.Create(ctx, &in)
 		wantErr := ErrInvalidTin
@@ -83,10 +83,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -99,10 +99,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err = testContainer.DistributorService.Create(ctx, &in)
 		wantErr := ErrDuplicateTin
@@ -123,10 +123,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -161,10 +161,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -216,10 +216,10 @@ func Test_Update_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -248,10 +248,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -276,10 +276,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -310,10 +310,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -343,10 +343,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -399,10 +399,10 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -430,10 +430,10 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
 	}
 	id, err := testContainer.DistributorService.Create(ctx, &in)
 	if err != nil {
@@ -444,9 +444,10 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		FirstName:      "test_user",
 		LastName:       "test_user",
 		Email:          "test@gmail.com",
+		Username:       "test_user_dist",
 	})
 	if err != nil {
-		t.Fatalf("Failed to create user %v", user_id)
+		t.Fatalf("Failed to create user %v", err)
 	}
 	_, err = testContainer.UserService.Get(ctx, user_id)
 	if err != nil {

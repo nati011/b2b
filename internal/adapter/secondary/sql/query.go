@@ -7,16 +7,35 @@ import (
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
-func MustQueryRow(db *sql.DB, ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	var rows *sql.Rows
-	err := db.QueryRowContext(ctx, query, args...)
-	if err != nil {
-		switch err {
+type QueryResult struct {
+	Row  *sql.Row
+	Rows *sql.Rows
+}
+
+func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, args ...any) (*QueryResult, error) {
+	if multiple {
+		rows, err := db.QueryContext(ctx, query, args...)
+		if err != nil {
+			switch err {
+			case sql.ErrNoRows:
+				return nil, port_commons.ErrNoRows
+			default:
+				return nil, port_commons.ErrSysUnknown
+			}
+		}
+		return &QueryResult{Rows: rows}, nil
+	}
+
+	row := db.QueryRowContext(ctx, query, args...)
+	if row.Err() != nil {
+		switch row.Err() {
 		case sql.ErrNoRows:
 			return nil, port_commons.ErrNoRows
 		default:
 			return nil, port_commons.ErrSysUnknown
 		}
 	}
-	return rows, nil
+
+	return &QueryResult{Row: row}, nil
+
 }

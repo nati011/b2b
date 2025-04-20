@@ -23,6 +23,7 @@ func (p *PostgresReaderWriter) Create(ctx context.Context, req *CreateRequest) (
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Name,
 	)
 	if err != nil {
@@ -30,7 +31,7 @@ func (p *PostgresReaderWriter) Create(ctx context.Context, req *CreateRequest) (
 		return CreateResponse{}, err
 	}
 
-	rows.Scan(&name)
+	rows.Row.Scan(&name)
 	log.Println("name=", name)
 	return CreateResponse{Name: name}, nil
 }
