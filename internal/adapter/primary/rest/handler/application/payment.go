@@ -38,11 +38,13 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
-
 	typedParamTxRef, err := util.GetStringPathParam(r, 6)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return
 	}
 	p.service.Callback(r.Context(), typedParamGatewayId, typedParamTxRef)
+	//middleware to get tx_ref based on gatewayId
+	tx_ref := "0"
+	p.service.Callback(r.Context(), typedParamGatewayId, tx_ref)
 }

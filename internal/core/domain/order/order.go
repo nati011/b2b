@@ -408,7 +408,6 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 }
 
 func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
-func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
