@@ -12,10 +12,11 @@ type TestContainer struct {
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
-	testContainer := transaction.NewPackageIntegrationTestContainer()
 	container := TestContainer{}
-	container.PartnerService = testContainer.PartnerService
-	container.TransactionService = testContainer.TransactionService
-	container.PaymentService = NewPaymentService()
+	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
+	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
+	container.PaymentService = NewPaymentService(
+		container.PartnerService,
+		container.TransactionService)
 	return container
 }
