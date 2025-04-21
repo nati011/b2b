@@ -4,18 +4,17 @@ import (
 	"context"
 	"errors"
 
-	db "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
+	port "b2b.nati011.github.com/internal/port/application/email-template"
 )
 
 var (
-	ErrSysInvalidTemplate = errors.New("invalid template")
-	ErrSysInvalidName     = errors.New("invalid name")
-	ErrSysUnknown         = errors.New("unknown")
-	ErrSysDuplicateName   = errors.New("duplicate name")
-)
-
-const (
-	SUCCESS_MESSAGE = "Ahoy, template created!"
+	ErrInvalidTemplate = errors.New("oopsy, invalid template")
+	ErrInvalidName     = errors.New("oopsy, invalid name")
+	ErrUnknown         = errors.New("oopsy, unknown error")
+	ErrDuplicateName   = errors.New("oopsy, duplicate name")
+	ErrIdNotFound      = errors.New("oopsy, id not found")
+	ErrNameNotFound    = errors.New("oopsy, name not found")
+	ErrEmptyGetContent = errors.New("oopsy, empty get content")
 )
 
 type CreateRequest struct {
@@ -29,6 +28,7 @@ type CreateResponse struct {
 }
 
 type GetResponse struct {
+	Id           int
 	Name         string
 	HtmlTemplate string
 }
@@ -38,84 +38,81 @@ type GetAllResponse struct {
 }
 
 type Provider interface {
-	Create(context.Context, CreateRequest) (CreateResponse, error)
+	Create(context.Context, *CreateRequest) (int, error)
 	GetAll(context.Context) (GetAllResponse, error)
-	Get(context.Context, string) (GetResponse, error)
+	Get(context.Context, int) (GetResponse, error)
 }
 
-type TemplateService struct {
-	db db.ReaderWriter
+type Template struct {
+	db port.DB
 }
 
-func NewTemplateService(db_provider db.ReaderWriter) Provider {
-	return &TemplateService{
+func NewTemplateService(db_provider port.DB) Provider {
+	return &Template{
 		db: db_provider,
 	}
 }
 
-func (t *TemplateService) Create(ctx context.Context, req CreateRequest) (CreateResponse, error) {
-	isValid_Name := ValidateName(req.Name)
-	if !isValid_Name {
-		return CreateResponse{
-			Message: ErrSysInvalidName.Error(),
-		}, ErrSysInvalidName
+func (t *Template) Create(ctx context.Context, req *CreateRequest) (int, error) {
+	if err := t.ValidateName(ctx, req.Name); err != nil {
+		return 0, err
 	}
-	isValid_HTML := ValidateHTML(req.HtmlTemplate)
-	if !isValid_HTML {
-		return CreateResponse{
-			Message: ErrSysInvalidTemplate.Error(),
-		}, ErrSysInvalidTemplate
+	if err := ValidateHTML(req.HtmlTemplate); err != nil {
+		return 0, err
 	}
-	resp, err := t.db.Create(ctx, &db.CreateRequest{
+	id, err := t.db.Create(ctx, &port.CreateRequest{
 		Name:         req.Name,
 		HtmlTemplate: req.HtmlTemplate,
 	})
 	if err != nil {
 		switch err {
-		case db.ErrSysDuplicateName_L1:
-			return CreateResponse{
-				Name:    req.Name,
-				Message: ErrSysDuplicateName.Error(),
-			}, ErrSysDuplicateName
+		default:
+			return 0, ErrUnknown
 		}
 	}
-	return CreateResponse{
-		Name:    resp.Name,
-		Message: SUCCESS_MESSAGE,
-	}, nil
+	return id, nil
 }
 
-func (t TemplateService) Get(ctx context.Context, r string) (GetResponse, error) {
-	rslt, err := t.db.Get(ctx, r)
+func (t *Template) Get(ctx context.Context, id int) (GetResponse, error) {
+	resp, err := t.db.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case db.ErrSysUnknown_L1:
-			return GetResponse{}, ErrSysUnknown
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, ErrUnknown
 		}
 	}
-	return GetResponse{
-		Name:         rslt.Name,
-		HtmlTemplate: rslt.HtmlTemplate,
-	}, nil
+	return GetResponse(resp), nil
 }
 
-func (t TemplateService) GetAll(ctx context.Context) (GetAllResponse, error) {
+func (t *Template) GetByName(ctx context.Context, name string) (GetResponse, error) {
+	resp, err := t.db.GetByName(ctx, name)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetResponse{}, ErrNameNotFound
+		default:
+			return GetResponse{}, ErrUnknown
+		}
+	}
+	return GetResponse(resp), nil
+}
+
+func (t *Template) GetAll(ctx context.Context) (GetAllResponse, error) {
 	rslt, err := t.db.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case db.ErrSysUnknown_L1:
-			return GetAllResponse{}, db.ErrSysUnknown_L1
+		case port.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
 		}
 	}
-	result := []GetResponse{}
+	response := GetAllResponse{}
 	for _, i := range rslt.List {
-		result = append(result, GetResponse{
-			Name:         i.Name,
-			HtmlTemplate: i.HtmlTemplate,
-		})
+		response.List = append(response.List, GetResponse(i))
 	}
 
-	return GetAllResponse{
-		List: result,
-	}, nil
+	return response, nil
 }

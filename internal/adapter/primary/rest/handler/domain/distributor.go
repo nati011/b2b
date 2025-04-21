@@ -311,6 +311,7 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 	defer r.Body.Close()
 
 	var requestBody CreateDistributorRequest
+
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return
@@ -354,4 +355,5 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"distributor": id})
+
 }
