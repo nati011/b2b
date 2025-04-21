@@ -30,8 +30,8 @@ type CheckoutResponse struct {
 
 type Provider interface {
 	Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error)
-	Verify(ctx context.Context, tx_ref string) (bool, error)
-	Callback(ctx context.Context, tx_ref string)
+	Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error)
+	Callback(ctx context.Context, gateway_id int, tx_ref string)
 }
 
 type PaymentService struct {
@@ -58,20 +58,20 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	return CheckoutResponse{}, nil
 }
 
-func (p *PaymentService) Verify(ctx context.Context, tx_ref string) (bool, error) {
+func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
 	return false, nil
 }
 
-func (p *PaymentService) Callback(ctx context.Context, tx_ref string) {
-	is_verified, err := p.Verify(ctx, tx_ref)
+func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {
+	is_verified, err := p.Verify(ctx, gateway_id, tx_ref)
 	if err != nil {
 		switch err {
 		default:
-			log.Printf("failed to process incoming callback tx_ref: %v", tx_ref)
+			log.Printf("failed to process incoming callback tx_ref: %v, gateway_id: %v", tx_ref, gateway_id)
 		}
 	}
 
 	if is_verified {
-		p.PaymentProcessor.Process(tx_ref)
+		p.PaymentProcessor.Process(ctx, tx_ref)
 	}
 }
