@@ -7,10 +7,12 @@ import (
 )
 
 type MockPartner struct {
-	Id     int
-	Name   string
-	Icon   string
-	Status string
+	Id               int
+	Name             string
+	Icon             string
+	Init_payment_url string
+	Status           string
+	Secret           string
 }
 
 type Mock struct {
@@ -51,6 +53,19 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return port.GetAllResponse{
 		List: response,
 	}, nil
+}
+
+func (m *Mock) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSecret, error) {
+	for _, i := range m.resources {
+		if i.Id == id {
+			return port.GetPartnerSecret{
+				Name:             i.Name,
+				Init_payment_url: i.Init_payment_url,
+				Secret:           i.Secret,
+			}, nil
+		}
+	}
+	return port.GetPartnerSecret{}, port.ErrSysNoRows
 }
 
 func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
@@ -96,10 +111,11 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	newResourceId := len(m.resources) + 1
 	m.resources = append(m.resources, MockPartner{
-		Id:     newResourceId,
-		Name:   req.Name,
-		Status: req.Status,
-		Icon:   req.Icon,
+		Id:               newResourceId,
+		Name:             req.Name,
+		Icon:             req.Icon,
+		Init_payment_url: req.Init_payment_url,
+		Status:           req.Status,
 	})
 	return newResourceId, nil
 }

@@ -35,6 +35,9 @@ func main() {
 	//db
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
+
+	// Payment Partner
+	flag.StringVar(&cfg.ChapaSecretKey, "db", "", "Environment (development|staging|production)")
 	flag.Parse()
 	validateFlags(cfg)
 
