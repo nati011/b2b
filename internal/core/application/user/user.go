@@ -159,26 +159,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		Username:    req.Username,
 	})
 	if err != nil {
-		switch err {
-		case auth.ErrFirstNameNotSupplied:
-			return 0, ErrFirstNameMandatory
-		case auth.ErrLastNameNotSupplied:
-			return 0, ErrLastNameMandatory
-		case auth.ErrEmailNotSupplied:
-			return 0, ErrEmailNotFound
-		case auth.ErrUsernameNotSupplied:
-			return 0, ErrUsernameMandatory
-		case auth.ErrInvalidEmail:
-			return 0, ErrEmailNotValid
-		case auth.ErrPasswordNotSupplied:
-			return 0, ErrPasswordMandatory
-		case auth.ErrUsernameTaken:
-			return 0, ErrUserNameTaken
-		case auth.ErrEmailTaken:
-			return 0, ErrEmailTaken
-		default:
-			return 0, ErrUnknown
-		}
+		return 0, err
+
 	}
 
 	//create user
