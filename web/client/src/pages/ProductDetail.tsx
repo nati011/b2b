@@ -48,6 +48,10 @@ const ProductDetail = () => {
   const { product } = location.state as { product: Product };
   const [currentPrice, setCurrentPrice] = useState(product.price);
 
+  const handleQuantityChange = (increment) => {
+    setQuantity((prev) => Math.max(1, increment ? prev + 1 : prev - 1));
+  };
+
   if (!product) {
     return (
       <div className='min-h-screen bg-white flex items-center justify-center'>
@@ -63,9 +67,68 @@ const ProductDetail = () => {
     );
   }
 
-  const handleQuantityChange = (increment) => {
-    setQuantity((prev) => Math.max(1, increment ? prev + 1 : prev - 1));
+  const attributeTypes = product.configurable_attributes
+    ? Object.keys(product.configurable_attributes)
+    : [];
+
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string>
+  >({});
+
+  const handleAttributeSelect = (attributeName: string, value: string) => {
+    setSelectedAttributes((prev) => ({
+      ...prev,
+      [attributeName]: value,
+    }));
   };
+  const isAllOutOfStock = () => {
+    return product.configurables.every(
+      (configurable) => configurable.stock === 0
+    );
+  };
+
+  // Function to get all unique options for a given attribute
+  const getAllOptions = (attributeName: string) => {
+    return Array.from(
+      new Set(
+        product.configurables.map(
+          (configurable) => configurable.attributes[attributeName]
+        )
+      )
+    );
+  };
+
+  // Function to determine if an option is selectable based on stock
+  const isOptionSelectable = (attributeName: string, value: string) => {
+    const filteredConfigs = product.configurables.filter((configurable) => {
+      return Object.entries(selectedAttributes).every(
+        ([key, selectedValue]) =>
+          key === attributeName ||
+          configurable.attributes[key] === selectedValue
+      );
+    });
+
+    return filteredConfigs.some(
+      (configurable) =>
+        configurable.attributes[attributeName] === value &&
+        configurable.stock > 0
+    );
+  };
+
+  useEffect(() => {
+    const selectedProduct = product.configurables.find((configurable) => {
+      return attributeTypes.every(
+        (attr) => configurable.attributes[attr] === selectedAttributes[attr]
+      );
+    });
+
+    if (selectedProduct) {
+      setCurrentPrice(selectedProduct.price);
+    } else {
+      setCurrentPrice(product.price);
+    }
+  }, [selectedAttributes, product, attributeTypes]);
+
   const handleAddToCart = () => {
     // Check if all required attributes are selected
     const missingAttributes = attributeTypes.filter(
@@ -80,15 +143,14 @@ const ProductDetail = () => {
       return;
     }
 
-    // Find the selected product configuration
     const selectedProduct = product.configurables.find((configurable) => {
       return attributeTypes.every(
         (attr) => configurable.attributes[attr] === selectedAttributes[attr]
       );
     });
 
-    if (!selectedProduct) {
-      toast.error("Invalid combination of attributes selected.");
+    if (!selectedProduct || selectedProduct.stock === 0) {
+      toast.error("Selected product is out of stock.");
       return;
     }
 
@@ -103,53 +165,6 @@ const ProductDetail = () => {
     );
     toast.success("Added to cart!");
   };
-  const attributeTypes = product.configurable_attributes
-    ? Object.keys(product.configurable_attributes)
-    : [];
-
-  // Function to get unique values for an attribute
-  const getUniqueAttributeValues = (attributeName: string) => {
-    if (!product.configurable_attributes[attributeName]) return [];
-    return Array.from(
-      new Set(
-        product.configurable_attributes[attributeName].map(
-          (attr) => attr.attribute_value
-        )
-      )
-    );
-  };
-
-  // State for selected attributes
-  const [selectedAttributes, setSelectedAttributes] = useState<
-    Record<string, string>
-  >({});
-
-  const handleAttributeSelect = (attributeName: string, value: string) => {
-    setSelectedAttributes((prev) => ({
-      ...prev,
-      [attributeName]: value,
-    }));
-  };
-  useEffect(() => {
-    // Only update price if all required attributes are selected
-    if (
-      attributeTypes.length > 0 &&
-      attributeTypes.every((attr) => selectedAttributes[attr])
-    ) {
-      const selectedProduct = product.configurables.find((configurable) => {
-        return attributeTypes.every(
-          (attr) => configurable.attributes[attr] === selectedAttributes[attr]
-        );
-      });
-
-      if (selectedProduct) {
-        setCurrentPrice(selectedProduct.price);
-      }
-    } else {
-      // Show base price if not all attributes are selected
-      setCurrentPrice(product.price);
-    }
-  }, [selectedAttributes, product, attributeTypes]);
 
   return (
     <div className='min-h-screen bg-white'>
@@ -203,6 +218,7 @@ const ProductDetail = () => {
               {product.name}
             </h1>
             <p className='text-xl text-primary mb-8'>${currentPrice}</p>
+
             {attributeTypes.map((attributeName) => (
               <div key={attributeName} className='mb-8'>
                 <h3 className='text-sm font-medium text-primary mb-4'>
@@ -210,21 +226,32 @@ const ProductDetail = () => {
                     attributeName.slice(1)}
                 </h3>
                 <div className='flex flex-wrap gap-4'>
-                  {getUniqueAttributeValues(attributeName).map((value) => (
-                    <button
-                      key={value}
-                      onClick={() =>
-                        handleAttributeSelect(attributeName, value)
-                      }
-                      className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                        selectedAttributes[attributeName] === value
-                          ? "bg-primary text-white"
-                          : "bg-secondary text-primary hover:bg-opacity-80"
-                      }`}
-                    >
-                      {value}
-                    </button>
-                  ))}
+                  {getAllOptions(attributeName).map((value) => {
+                    const isOutOfStock = !isOptionSelectable(
+                      attributeName,
+                      value
+                    );
+
+                    return (
+                      <button
+                        key={value}
+                        onClick={() =>
+                          !isOutOfStock &&
+                          handleAttributeSelect(attributeName, value)
+                        }
+                        className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                          selectedAttributes[attributeName] === value
+                            ? "bg-primary text-white"
+                            : isOutOfStock
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-secondary text-primary hover:bg-opacity-80"
+                        }`}
+                        disabled={isOutOfStock} // Disable button if out of stock
+                      >
+                        {value}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -268,8 +295,13 @@ const ProductDetail = () => {
 
             <Button
               onClick={handleAddToCart}
-              className='w-full bg-primary text-white hover:bg-primary/90'
+              className={`w-full ${
+                isAllOutOfStock()
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-primary text-white hover:bg-primary/90"
+              }`}
               size='lg'
+              disabled={isAllOutOfStock()} // Disable button if all products are out of stock
             >
               Add to Cart
             </Button>
