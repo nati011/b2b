@@ -22,10 +22,10 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	db = db_test_container.Setup()
 	testContainer = test_container.NewDBIntegrationTestContainer(
 		db,
 	)
-	db = db_test_container.Setup()
 }
 
 func teardown() {

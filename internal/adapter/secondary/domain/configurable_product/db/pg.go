@@ -189,7 +189,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		p.Pool,
 		ctx,
 		query,
-		false,
+		true,
 		name,
 	)
 	if err != nil {
@@ -299,7 +299,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.Desc,
 		req.ExternalId,
 	)
-	rows.Rows.Scan(&configurable_product_id)
+	rows.Row.Scan(&configurable_product_id)
 	if err != nil {
 		return 0, err
 	}

@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -79,9 +80,11 @@ func Test_write(t *testing.T) {
 
 		//remove
 		err = testContainer.UserService.Remove(ctx, id)
+		log.Printf("Deleting Id %v", id)
 		if err != nil {
 			t.Fatalf("Failed to remove user err: %v", err)
 		}
+		log.Printf("Getting Id %v", id)
 		_, err = testContainer.UserService.Get(ctx, id)
 		wantErr := user.ErrIdNotFound
 		if err != wantErr {
