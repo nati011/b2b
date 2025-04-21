@@ -54,11 +54,13 @@ type PlaceRequest struct {
 }
 
 type GetResponse struct {
-	Id         int
-	RetailerId int
-	Items      []Item
-	Total      float32
-	Status     string
+	Id             int
+	RetailerId     int
+	Items          []Item
+	Total          float32
+	Status         string
+	DeliveryStatus string
+	PaymentStatus  string
 }
 
 type GetAllResponse struct {
@@ -254,10 +256,12 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		})
 	}
 	return GetResponse{
-		Id:         resp.Id,
-		RetailerId: resp.RetailerId,
-		Items:      items,
-		Status:     resp.Status,
+		Id:             resp.Id,
+		RetailerId:     resp.RetailerId,
+		Items:          items,
+		Status:         resp.Status,
+		DeliveryStatus: resp.DeliveryStatus,
+		PaymentStatus:  resp.PaymentStatus,
 	}, nil
 }
 
@@ -282,10 +286,12 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
-			Id:         i.Id,
-			RetailerId: i.RetailerId,
-			Items:      items,
-			Status:     i.Status,
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
 		})
 	}
 	return return_response, nil
@@ -319,10 +325,12 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -355,10 +363,12 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -394,7 +404,7 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 		}
 	}
 
-	// deplete stock if order status is COMPELETED
+	//TODO: reserve stock
 
 	return resp.Id, nil
 }
@@ -414,7 +424,7 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 	//update
 	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
 		Id:            req.Id,
-		PaymentStatus: req.Status,
+		PaymentStatus: req.PaymentStatus,
 	})
 	if err != nil {
 		switch err {
@@ -442,8 +452,8 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 
 	//update
 	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
-		Id:     req.Id,
-		Status: req.Status,
+		Id:             req.Id,
+		DeliveryStatus: req.DeliveryStatus,
 	})
 	if err != nil {
 		switch err {

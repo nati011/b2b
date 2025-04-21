@@ -169,7 +169,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var orderId int
-	query := "SELECT * FROM public.create_order($1, $2, $3);"
+	query := "SELECT * FROM public.create_order($1, $2, $3, $4, $5);"
 
 	rows, err := handler.MustQueryRow(
 		p.Pool,
