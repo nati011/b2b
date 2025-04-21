@@ -8,6 +8,7 @@ import (
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/application/user"
+	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 )
 
 var (
@@ -37,6 +38,7 @@ type PaymentService struct {
 	UserService        user.Provider
 	PartnerService     partner.Provider
 	TransactionService transaction.Provider
+	PaymentProcessor   payment_processor.Provider
 }
 
 func NewPaymentService(
@@ -53,11 +55,6 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
-	err = p.validatePaymentPartner(ctx, req.PaymentPartnerId)
-	if err != nil {
-		return CheckoutResponse{}, err
-	}
-	//gateway
 	return CheckoutResponse{}, nil
 }
 
@@ -75,6 +72,6 @@ func (p *PaymentService) Callback(ctx context.Context, tx_ref string) {
 	}
 
 	if is_verified {
-		//notify order
+		p.PaymentProcessor.Process(tx_ref)
 	}
 }
