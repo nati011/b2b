@@ -45,6 +45,7 @@ func main() {
 
 	// InitEmail(cfg.Email, cfg.SMTP)
 	// InitSMS(cfg.Email, cfg.SMTP)
+	paginationBuilder := config.NewPaginationBuilder()
 
 	application_constainer := application_core.NewContainer(
 		db_pool,
