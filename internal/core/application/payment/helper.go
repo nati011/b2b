@@ -1,8 +1,19 @@
 package payment
 
-func (p *PaymentService) validateUserId(userId int) error {
-	if userId == 0 {
-		return ErrUserNotSupplied
+import (
+	"context"
+
+	"b2b.nati011.github.com/internal/core/application/user"
+)
+
+func (p *PaymentService) validateUserId(ctx context.Context, userId int) error {
+	_, err := p.UserService.Get(ctx, userId)
+	if err != nil {
+		switch err {
+		case user.ErrIdNotFound:
+			return ErrUserNotFound
+		default:
+		}
 	}
 	return nil
 }
@@ -17,16 +28,9 @@ func (p *PaymentService) validateAmount(amount int64) error {
 	return nil
 }
 
-func (p *PaymentService) validatePaymentPartner(paymentPartnerId int) error {
+func (p *PaymentService) validatePaymentPartner(ctx context.Context, paymentPartnerId int) error {
 	if paymentPartnerId == 0 {
 		return ErrPaymentPartnerNotSupplied
-	}
-	return nil
-}
-
-func verifyTransactionRef(tx_ref string) error {
-	if tx_ref == "" {
-		return ErrTransactionReferenceNotSupplied
 	}
 	return nil
 }
