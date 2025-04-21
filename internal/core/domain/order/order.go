@@ -24,10 +24,24 @@ var (
 )
 
 // order status
+// order status
 const (
 	CANCELD_STATUS   = "CANCELED"
 	PENDING_STATUS   = "PENDING"
 	COMPLETED_STATUS = "COMPLETED"
+)
+
+// payment
+const (
+	PAYMENT_PENDING_STATUS  = "PENDING"
+	PAYMENT_ACCEPTED_STATUS = "ACCEPTED"
+)
+
+// delivery
+const (
+	DELIVERY_PENDING_STATUS    = "PENDING"
+	DELIVERY_DISPATCHED_STATUS = "DISPATCHED"
+	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
 )
 
 // payment
@@ -77,6 +91,10 @@ type UpdateRequest struct {
 	Status         string
 	PaymentStatus  string
 	DeliveryStatus string
+	Id             int
+	Status         string
+	PaymentStatus  string
+	DeliveryStatus string
 }
 
 type Provider interface {
@@ -85,6 +103,9 @@ type Provider interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
+	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
@@ -148,6 +169,12 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	}
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
+		RetailerId:     req.RetailerId,
+		Items:          items,
+		Status:         PENDING_STATUS,
+		PaymentStatus:  PAYMENT_PENDING_STATUS,
+		DeliveryStatus: DELIVERY_PENDING_STATUS,
+		Total:          itemsTotal,
 		RetailerId:     req.RetailerId,
 		Items:          items,
 		Status:         PENDING_STATUS,
@@ -381,13 +408,16 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 }
 
 func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
 			return 0, ErrIdNotFound
+			return 0, ErrIdNotFound
 		default:
+			return 0, ErrUnknown
 			return 0, ErrUnknown
 		}
 	}
@@ -459,10 +489,71 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 		switch err {
 		default:
 			return 0, ErrUnknown
+			return 0, ErrUnknown
 		}
 	}
 
 	// deplete stock if order status is COMPELETED
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
+		Id:            req.Id,
+		PaymentStatus: req.Status,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	// deplete stock if order status is COMPELETED
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
+		Id:     req.Id,
+		Status: req.Status,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	// deplete stock if order status is COMPELETED
+
+	return resp.Id, nil
 
 	return resp.Id, nil
 }
