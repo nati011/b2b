@@ -48,6 +48,30 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	return response, nil
 }
+func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSecret, error) {
+	var response port.GetPartnerSecret
+
+	query := "SELECT * FROM public.get_payment_partner_secret($1);"
+
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		false,
+		id,
+	)
+
+	if err != nil {
+		return port.GetPartnerSecret{}, err
+	}
+
+	rows.Row.Scan(
+		&response.Name,
+		&response.Secret,
+	)
+
+	return response, nil
+}
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
@@ -174,7 +198,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var partner_id int
-	query := "SELECT * FROM public.create_payment_partner($1, $2, $3, $4);"
+	query := "SELECT * FROM public.create_payment_partner($1, $2, $3, $4, $5);"
 
 	rows, err := handler.MustQueryRow(
 		p.Pool,
@@ -185,6 +209,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.Icon,
 		req.Status,
 		req.Init_payment_url,
+		req.Secret,
 	)
 	if err != nil {
 		return 0, err

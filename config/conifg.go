@@ -19,4 +19,7 @@ type Config struct {
 	//db
 	FileLocation           string
 	CoreDBConnectionString string
+
+	// payment partner
+	ChapaSecretKey string
 }
