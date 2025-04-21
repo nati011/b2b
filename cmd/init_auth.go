@@ -26,7 +26,6 @@ func RunContainer(ctx context.Context) (*keycloak.KeycloakContainer, error) {
 }
 
 func InitAuth(cfg *config.Config) {
-<<<<<<< HEAD
 	/*
 		DEVELOPMENT:
 			Use TestContainers
@@ -47,8 +46,6 @@ func InitAuth(cfg *config.Config) {
 }
 
 func InitAuthDevelopment(cfg *config.Config) {
-=======
->>>>>>> 036df0cf (+ remove password confirmation)
 	var err error
 	var keycloakContainer *keycloak.KeycloakContainer
 	ctx := context.Background()
@@ -66,27 +63,17 @@ func InitAuthDevelopment(cfg *config.Config) {
 	if err != nil {
 		panic(err)
 	}
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> 036df0cf (+ remove password confirmation)
->>>>>>> d266e438 (+ resolve conflict)
 	cfg.KeycloakUsername = keycloakAdminClient.Username
 	cfg.KeycloakPassword = keycloakAdminClient.Password
 	cfg.KeycloakRealm = keycloakAdminClient.Realm
 	cfg.KeycloakApplicationRealm = keycloakAdminClient.Realm
 	cfg.KeycloakClientId = keycloakAdminClient.ClientID
 	cfg.KeycloakInstanceURL = keycloakInstanceUrl
-<<<<<<< HEAD
 }
 
 func InitAuthStaging(cfg *config.Config) {
 }
 
 func InitAuthProduction(cfg *config.Config) {
-=======
->>>>>>> 036df0cf (+ remove password confirmation)
 }

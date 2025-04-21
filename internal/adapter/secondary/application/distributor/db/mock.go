@@ -22,139 +22,8 @@ type MockUserAgent struct {
 }
 
 type Mock struct {
-<<<<<<< HEAD
-	retailers  []MockDistributor
-	userAgents []MockUserAgent
-=======
-	Distributors []MockDistributor
-	Businesses   []MockBusiness
-}
-
-func (m *Mock) GetById(ctx context.Context, id int) (port.GetResponse, error) {
-	resp := port.GetResponse{}
-	for _, i := range m.Distributors {
-		resp = port.GetResponse{
-			Id: i.Id,
-		}
-	}
-	if (resp == port.GetResponse{}) {
-		return port.GetResponse{}, port.ErrSysNoRows
-	}
-
-	return resp, nil
-}
-
-func (m *Mock) Create(ctx context.Context, req *port.RegisterDistributorRequest) (int, error) {
-	distributorId := rand.Int()
-	m.Distributors = append(m.Distributors, MockDistributor{
-		Id: distributorId,
-	})
-	return distributorId, nil
-
-}
-
-func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
-	resp := []port.GetResponse{}
-	for _, i := range m.Distributors {
-
-		resp = append(resp, port.GetResponse{
-			Id: i.Id,
-		})
-	}
-	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
-	}
-
-	return port.GetAllResponse{
-		List: resp,
-	}, nil
-}
-
-func (m *Mock) GetBusinessById(ctx context.Context, id int) (resp port.GetBusinessResponse, err error) {
-	for _, i := range m.Businesses {
-		log.Print(i)
-		resp = port.GetBusinessResponse{
-			Id: i.Id,
-		}
-	}
-
-	if (resp == port.GetBusinessResponse{}) {
-		return port.GetBusinessResponse{}, port.ErrSysNoRows
-	}
-
-	return resp, nil
-}
-
-func (m *Mock) GetByDistributorId(ctx context.Context, distributorId int) (port.GetBusinessResponse, error) {
-	resp := port.GetBusinessResponse{}
-	for _, i := range m.Businesses {
-		resp = port.GetBusinessResponse{
-			Id: i.DistributorId,
-		}
-	}
-	if (resp == port.GetBusinessResponse{}) {
-		return port.GetBusinessResponse{}, port.ErrSysNoRows
-	}
-
-	return resp, nil
-}
-
-func (m *Mock) GetBusinessAll(ctx context.Context) (port.GetAllResponse, error) {
-	resp := []port.GetResponse{}
-	for _, i := range m.Businesses {
-
-		resp = append(resp, port.GetResponse{
-			Id: i.Id,
-		})
-	}
-	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
-	}
-
-	return port.GetAllResponse{
-		List: resp,
-	}, nil
-}
-
-func (m *Mock) CreateBusiness(ctx context.Context, req *port.CreateBusinessInformation) (port.CreateBusinessResponse, error) {
-	businessId := rand.Int()
-	m.Businesses = append(m.Businesses, MockBusiness{
-		Id:            businessId,
-		Name:          req.Name,
-		Tin:           req.Tin,
-		DistributorId: req.DistributorId,
-	})
-
-	response := port.CreateBusinessResponse{
-		BusinessId: businessId,
-	}
-	return response, nil
-}
-
-func (m *Mock) UpdateBusiness(ctx context.Context, req *port.UpdateBusinessRequest) (int, error) {
-	updatedDistributor := []MockBusiness{}
-	var updatedResourceId int
-	for _, i := range m.Businesses {
-		if req.Id == i.Id {
-			updatedResourceId = i.Id
-			updatedDistributor = append(updatedDistributor, MockBusiness{
-				Id:   req.Id,
-				Name: req.Name,
-				Tin:  req.Tin,
-			})
-		} else {
-			updatedDistributor = append(updatedDistributor, MockBusiness{
-				Id:   i.Id,
-				Name: i.Name,
-				Tin:  i.Tin,
-			})
-		}
-
-	}
-	m.Businesses = updatedDistributor
-	return updatedResourceId, nil
-
->>>>>>> 8f0b9404 (init distributor refactor)
+	distributors []MockDistributor
+	userAgents   []MockUserAgent
 }
 
 func NewMock() port.DB {
@@ -162,8 +31,8 @@ func NewMock() port.DB {
 }
 
 func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) {
-	newId := len(m.retailers) + 1
-	m.retailers = append(m.retailers, MockDistributor{
+	newId := len(m.distributors) + 1
+	m.distributors = append(m.distributors, MockDistributor{
 		Id:          newId,
 		Name:        req.Name,
 		Tin:         req.Tin,
@@ -192,10 +61,10 @@ func (m Mock) CreateDistributorUser(ctx context.Context, req *port.CreateUserAge
 }
 
 func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
-	retailers := []MockDistributor{}
-	for _, i := range m.retailers {
+	distributors := []MockDistributor{}
+	for _, i := range m.distributors {
 		if i.Id == req.Id {
-			retailers = append(retailers, MockDistributor{
+			distributors = append(distributors, MockDistributor{
 				Id:          i.Id,
 				Name:        req.Name,
 				Tin:         i.Tin,
@@ -206,7 +75,7 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 				Woreda:      i.Woreda,
 			})
 		} else {
-			retailers = append(retailers, MockDistributor{
+			distributors = append(distributors, MockDistributor{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -218,15 +87,15 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 			})
 		}
 	}
-	m.retailers = retailers
+	m.distributors = distributors
 	return nil
 }
 
 func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error {
-	retailers := []MockDistributor{}
-	for _, i := range m.retailers {
+	distributors := []MockDistributor{}
+	for _, i := range m.distributors {
 		if i.Id == req.Id {
-			retailers = append(retailers, MockDistributor{
+			distributors = append(distributors, MockDistributor{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         req.Tin,
@@ -237,7 +106,7 @@ func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error 
 				Woreda:      i.Woreda,
 			})
 		} else {
-			retailers = append(retailers, MockDistributor{
+			distributors = append(distributors, MockDistributor{
 				Id:          i.Id,
 				Name:        i.Name,
 				Tin:         i.Tin,
@@ -249,12 +118,12 @@ func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error 
 			})
 		}
 	}
-	m.retailers = retailers
+	m.distributors = distributors
 	return nil
 }
 
 func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
-	for _, i := range m.retailers {
+	for _, i := range m.distributors {
 		if i.Id == id {
 			return port.GetResponse{
 				Id:          i.Id,
@@ -273,7 +142,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
-	for _, i := range m.retailers {
+	for _, i := range m.distributors {
 		resp = append(resp, port.GetResponse{
 			Id:          i.Id,
 			Name:        i.Name,
@@ -295,7 +164,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
-	for _, i := range m.retailers {
+	for _, i := range m.distributors {
 		if i.Name == name {
 			resp = append(resp, port.GetResponse{
 				Id:          i.Id,
@@ -319,7 +188,7 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 }
 
 func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
-	for _, i := range m.retailers {
+	for _, i := range m.distributors {
 		if i.Tin == tin {
 			return port.GetResponse{
 				Id:          i.Id,

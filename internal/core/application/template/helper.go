@@ -10,8 +10,6 @@ func (t *Template) ValidateName(ctx context.Context, n string) error {
 		switch err {
 		case ErrNameNotFound:
 			return nil
-		case nil:
-			return ErrDuplicateName
 		default:
 			return err
 		}

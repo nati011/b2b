@@ -28,10 +28,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		p.db,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
-	rows.Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
+	rows.Row.Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -53,25 +54,26 @@ func (p *Postgres) getInvoiceLineItemsByProductId(ctx context.Context, invoice_I
 		p.db,
 		ctx,
 		query,
+		true,
 		invoice_Id,
 	)
 	if err != nil {
 		return []port.Item{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var id int
 		var invoiceId int
 		var item port.Item
-		if err := rows.Scan(&id, &item.ProductName, &item.ProductQuantity, &item.ProductPrice, &item.ProductId, &invoiceId); err != nil {
+		if err := rows.Rows.Scan(&id, &item.ProductName, &item.ProductQuantity, &item.ProductPrice, &item.ProductId, &invoiceId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return []port.Item{}, err
 		}
 		response = append(response, item)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return []port.Item{}, port.ErrSysUnknown
 	}
@@ -87,22 +89,23 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.db,
 		ctx,
 		query,
+		true,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
+		if err := rows.Rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		response.List = append(response.List, invoice)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -118,23 +121,24 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		p.db,
 		ctx,
 		query,
+		true,
 		extId,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
+		if err := rows.Rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		response.List = append(response.List, invoice)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -150,23 +154,24 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		p.db,
 		ctx,
 		query,
+		true,
 		status,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
+		if err := rows.Rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		response.List = append(response.List, invoice)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -182,6 +187,7 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 		p.db,
 		ctx,
 		query,
+		false,
 		orderId,
 	)
 
@@ -189,7 +195,7 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
+	rows.Row.Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
 
 	return response, nil
 }
@@ -203,22 +209,18 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.db,
 		ctx,
 		query,
+		false,
 		req.Status,
 		req.ExternalId,
 		req.OrderId,
 		req.Subtotal,
 		req.TaxAmount,
 	)
-
-	rows.Scan(&invoiceId)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
+
 	}
+	rows.Row.Scan(&invoiceId)
 
 	// invoice line items
 	for _, i := range req.LineItems {
@@ -228,6 +230,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			p.db,
 			ctx,
 			query,
+			false,
 			i.ProductName,
 			i.ProductQuantity,
 			i.ProductPrice,
@@ -250,11 +253,12 @@ func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExterna
 		p.db,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.ExternalId,
 	)
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	return err
 }
 
@@ -266,11 +270,12 @@ func (p *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateStatusReque
 		p.db,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Status,
 	)
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 
 	return err
 }

@@ -31,9 +31,9 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "order_retilertest",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	})
@@ -59,7 +59,7 @@ func setup() {
 func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
 	ctx := context.Background()
 	in := &order.PlaceRequest{
-		RetailerId: 1,
+		RetailerId: retailer_id,
 		Items: []order.Item{
 			{
 				ProductId: product_id,

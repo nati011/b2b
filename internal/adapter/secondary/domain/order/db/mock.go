@@ -140,6 +140,7 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 		Id:         newResourceId,
 		RetailerId: req.RetailerId,
 		Items:      items,
+		Status:     req.Status,
 	})
 	return newResourceId, nil
 }

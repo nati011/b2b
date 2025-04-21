@@ -10,7 +10,7 @@ func (r *ResourceProvider) validateName(ctx context.Context, name string) error 
 	// Check for duplicate name
 	if _, err := r.GetByName(ctx, name); err == nil {
 		return ErrDuplicateName
-	} else if err != nil && err != ErrNameNotFound {
+	} else if err != ErrNameNotFound {
 		return err
 	}
 	return nil

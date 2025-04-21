@@ -30,7 +30,6 @@ func validateEmail(email string) error {
 	return nil
 }
 
-<<<<<<< HEAD
 func validateUsername(username string) error {
 	if username == "" {
 		return ErrUsernameNotSupplied
@@ -38,8 +37,6 @@ func validateUsername(username string) error {
 	return nil
 }
 
-=======
->>>>>>> 036df0cf (+ remove password confirmation)
 func validatePasswords(password string) error {
 	if password == "" {
 		return ErrPasswordNotSupplied
