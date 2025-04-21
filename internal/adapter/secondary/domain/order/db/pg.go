@@ -38,7 +38,9 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.Id,
 		&response.RetailerId,
 		&response.Status,
-		&response.Total)
+		&response.Total,
+		&response.PaymentStatus,
+		&response.DeliveryStatus)
 
 	return response, nil
 }
@@ -66,7 +68,9 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 			&order.Id,
 			&order.RetailerId,
 			&order.Status,
-			&order.Total); err != nil {
+			&order.Total,
+			&order.PaymentStatus,
+			&order.DeliveryStatus); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -105,7 +109,9 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			&order.Id,
 			&order.RetailerId,
 			&order.Status,
-			&order.Total); err != nil {
+			&order.Total,
+			&order.PaymentStatus,
+			&order.DeliveryStatus); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -143,7 +149,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			&order.Id,
 			&order.RetailerId,
 			&order.Status,
-			&order.Total); err != nil {
+			&order.Total,
+			&order.PaymentStatus,
+			&order.DeliveryStatus); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -171,6 +179,8 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.RetailerId,
 		req.Status,
 		req.Total,
+		req.PaymentStatus,
+		req.DeliveryStatus,
 	)
 
 	rows.Row.Scan(&orderId)
@@ -210,6 +220,34 @@ func (p *Postgres) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderS
 		false,
 		req.Id,
 		req.Status,
+	)
+
+	return err
+}
+
+func (p *Postgres) UpdatePaymentStatus(ctx context.Context, req *port.UpdateOrderPaymentStatusRequest) error {
+	query := "SELECT * FROM public.update_order_payment_status($1, $2);"
+	_, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		false,
+		req.Id,
+		req.PaymentStatus,
+	)
+
+	return err
+}
+
+func (p *Postgres) UpdateDeliveryStatus(ctx context.Context, req *port.UpdateOrderDeliveryStatusRequest) error {
+	query := "SELECT * FROM public.update_order_delivery_status($1, $2);"
+	_, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		false,
+		req.Id,
+		req.DeliveryStatus,
 	)
 
 	return err
