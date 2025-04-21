@@ -80,15 +80,8 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-<<<<<<< HEAD
-<<<<<<< HEAD
-			LastName:   "natnael asefa",
-=======
 			FirstName:  "natnael asefa",
->>>>>>> 1734bfa2 (resolve conflict)
-=======
 			LastName:   "natnael asefa",
->>>>>>> 036df0cf (+ remove password confirmation)
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
@@ -130,7 +123,7 @@ func Test_create_unhappyPath(t *testing.T) {
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in_only_email)
-		wantErr := ErrEmailNotFound
+		wantErr := ErrPhoneOrEmailMandatory
 		if err != wantErr {
 			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}

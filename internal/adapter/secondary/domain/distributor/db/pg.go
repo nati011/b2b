@@ -27,6 +27,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		r.Pool,
 		ctx,
 		query,
+		false,
 		req.Name,
 		req.Tin,
 		req.Latitude,
@@ -36,7 +37,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		req.Woreda,
 	)
 
-	rows.Scan(&distributorId)
+	rows.Row.Scan(&distributorId)
 
 	if err != nil {
 		return 0, err
@@ -62,10 +63,15 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		r.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
-	rows.Scan(
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+
+	rows.Row.Scan(
 		&response.Id,
 		&response.Name,
 		&response.Tin,
@@ -75,14 +81,6 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.Region,
 		&response.Woreda)
 
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
-	}
 	return response, nil
 }
 
@@ -92,6 +90,7 @@ func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		r.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Name,
 	)
@@ -108,6 +107,7 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 		r.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Tin,
 	)
@@ -127,17 +127,18 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		r.Pool,
 		ctx,
 		query,
+		true,
 	)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var retailer port.GetResponse
-		if err := rows.Scan(
+		if err := rows.Rows.Scan(
 			&retailer.Id,
 			&retailer.Name,
 			&retailer.Tin,
@@ -153,7 +154,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		response.List = append(response.List, retailer)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -210,13 +211,14 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		r.Pool,
 		ctx,
 		query,
+		false,
 		tin,
 	)
 
 	if err != nil {
 		return port.GetResponse{}, err
 	}
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.Name,
 		&response.Tin,
@@ -237,6 +239,7 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 		r.Pool,
 		ctx,
 		query,
+		true,
 		id,
 	)
 
@@ -244,18 +247,18 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 		return port.GetAllUserResponse{}, err
 	}
 
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var retailer_user port.GetUserResponse
-		if err := rows.Scan(&retailer_user.Id); err != nil {
+		if err := rows.Rows.Scan(&retailer_user.Id); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllUserResponse{}, err
 		}
 		response.List = append(response.List, retailer_user)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllUserResponse{}, port.ErrSysUnknown
 	}
@@ -270,11 +273,12 @@ func (r *Postgres) CreateDistributorUser(ctx context.Context, req *port.CreateUs
 		r.Pool,
 		ctx,
 		query,
+		false,
 		req.Distributor_Id,
 		req.User_id,
 	)
 
-	rows.Scan(&retailer_id)
+	rows.Row.Scan(&retailer_id)
 
 	if err != nil {
 		return 0, err

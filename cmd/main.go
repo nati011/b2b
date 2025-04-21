@@ -39,21 +39,13 @@ func main() {
 	validateFlags(cfg)
 
 	db_pool := InitDB(cfg.CoreDBConnectionString, cfg.FileLocation)
-<<<<<<< HEAD
-=======
 
 	//for testing purposes
 	InitAuth(&cfg)
 
 	// InitEmail(cfg.Email, cfg.SMTP)
 	// InitSMS(cfg.Email, cfg.SMTP)
->>>>>>> 036df0cf (+ remove password confirmation)
-
-	//for testing purposes
-	InitAuth(&cfg)
-
-	// InitEmail(cfg.Email, cfg.SMTP)
-	// InitSMS(cfg.Email, cfg.SMTP)
+	paginationBuilder := config.NewPaginationBuilder()
 
 	application_constainer := application_core.NewContainer(
 		db_pool,
@@ -65,7 +57,9 @@ func main() {
 		cfg.KeycloakClientId,
 		cfg.Email,
 		cfg.SMTP,
-		cfg.KeycloakClientSecret)
+		cfg.KeycloakClientSecret,
+		paginationBuilder.Build(),
+	)
 
 	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
 
@@ -73,7 +67,8 @@ func main() {
 	InitREST(mux, db_pool, application_constainer, domain_container)
 
 	loggingingMiddleware := util.NewLoggingMiddleware()
-	handler := loggingingMiddleware.Log(mux)
+	paginationMiddleware := util.NewPaginationMiddleware(*paginationBuilder)
+	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Handler:      handler,

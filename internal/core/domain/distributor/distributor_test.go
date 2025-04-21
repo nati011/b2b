@@ -21,7 +21,6 @@ func setup() {
 }
 
 func Test_Create_happyPath(t *testing.T) {
-<<<<<<< HEAD
 	t.Cleanup(testContainer.Cleanup)
 	in := CreateRequest{
 		Tin:         "1111111111",
@@ -30,9 +29,9 @@ func Test_Create_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	}
@@ -62,10 +61,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err := testContainer.DistributorService.Create(ctx, &in)
 		wantErr := ErrInvalidTin
@@ -84,23 +83,13 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
-=======
-	t.Run("create", func(t *testing.T) {
-		ctx := context.Background()
-		in := &RegisterDistributorRequest{
-			FirstName:       "Test User",
-			Email:           "test789@email.com",
-			Password:        "test@123",
-			ConfirmPassword: "test@123",
-			Username:        "username",
->>>>>>> 8f0b9404 (init distributor refactor)
 		}
 
 		in := CreateRequest{
@@ -110,10 +99,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err = testContainer.DistributorService.Create(ctx, &in)
 		wantErr := ErrDuplicateTin
@@ -134,11 +123,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-<<<<<<< HEAD
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -152,15 +140,6 @@ func Test_Update_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
-=======
-	in := &RegisterDistributorRequest{
-		FirstName:       "Test User",
-		Email:           "t6546@email.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
->>>>>>> 8f0b9404 (init distributor refactor)
 
 		//check
 		resp, err := testContainer.DistributorService.Get(ctx, id)
@@ -182,10 +161,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -237,10 +216,10 @@ func Test_Update_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -259,7 +238,6 @@ func Test_Update_unhappyPath(t *testing.T) {
 }
 
 func Test_Get_happyPath(t *testing.T) {
-<<<<<<< HEAD
 	t.Run("getById", func(t *testing.T) {
 		t.Cleanup(testContainer.Cleanup)
 		//setup
@@ -270,20 +248,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-=======
-	ctx := context.Background()
-	in := &RegisterDistributorRequest{
-		FirstName:       "Test User",
-		Email:           "tesfhjt2_11@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
->>>>>>> 8f0b9404 (init distributor refactor)
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -308,10 +276,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -342,10 +310,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -375,10 +343,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -398,7 +366,6 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 }
 
-<<<<<<< HEAD
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		t.Cleanup(testContainer.Cleanup)
@@ -432,10 +399,10 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -463,20 +430,10 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
-=======
-func Test_Get_All_Businesses_happyPath(t *testing.T) {
-	ctx := context.Background()
-	in := &RegisterDistributorRequest{
-		FirstName:       "Test User",
-		Email:           "tesfh231@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
->>>>>>> 8f0b9404 (init distributor refactor)
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
 	}
 	id, err := testContainer.DistributorService.Create(ctx, &in)
 	if err != nil {
@@ -487,9 +444,10 @@ func Test_Get_All_Businesses_happyPath(t *testing.T) {
 		FirstName:      "test_user",
 		LastName:       "test_user",
 		Email:          "test@gmail.com",
+		Username:       "test_user_dist",
 	})
 	if err != nil {
-		t.Fatalf("Failed to create user %v", user_id)
+		t.Fatalf("Failed to create user %v", err)
 	}
 	_, err = testContainer.UserService.Get(ctx, user_id)
 	if err != nil {
@@ -512,90 +470,4 @@ func Test_Create_Distributor_user_unhappyPath(t *testing.T) {
 		}
 	})
 
-<<<<<<< HEAD
-=======
-	in := &port.CreateBusinessInformation{
-		Name: "Test",
-		Tin:  124576,
-
-		GeneralZone:   "Test Zone",
-		Region:        "Test Region",
-		Woreda:        "Test Woreda",
-		DistributorId: rand.Int(),
-	}
-	resp, err := service.AddBusinessInformattion(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to create business %v", err)
-	}
-
-	_, err = service.GetById(ctx, resp.BusinessId)
-
-	if err != nil {
-		t.Fatalf("Failed to fetch business %v", err)
-	}
-}
-
-func Test_Update_Business_happyPath(t *testing.T) {
-	ctx := context.Background()
-	distIn := &RegisterDistributorRequest{
-		FirstName:       "Test User",
-		Email:           "test475@gmail.com",
-		Password:        "test@123",
-		ConfirmPassword: "test@123",
-		Username:        "username11",
-	}
-	dist, err := service.Create(ctx, distIn)
-	if err != nil {
-		t.Fatalf("Failed to create distributor %v", err)
-	}
-	businessIn := &CreateBusinessInformation{
-		Name: "Test",
-		Tin:  124576,
-
-		GeneralZone:   "Test Zone",
-		Region:        "Test Region",
-		Woreda:        "Test Woreda",
-		DistributorId: dist.Id,
-	}
-
-	businessResp, err := service.AddBusinessInformattion(ctx, businessIn)
-
-	if err != nil {
-		t.Fatalf("Failed to create business %v", err)
-	}
-	in := &port.UpdateBusinessRequest{
-		Id:   businessResp.BusinessId,
-		Name: "Test",
-		Tin:  124576,
-	}
-	resp, err := service.UpdateBusiness(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to update business %v", err)
-	}
-
-	want := port.RegisterDistributorResponse{
-		Id:      businessResp.BusinessId,
-		Message: SUCCESS_MESSAGE,
-	}
-
-	if resp != want {
-		t.Errorf("Expected: %v, Got: %v", want, resp)
-	}
-}
-
-func Test_Update_Business_unhappyPath(t *testing.T) {
-	ctx := context.Background()
-	id := rand.Int()
-	in := &port.UpdateBusinessRequest{
-		Id:            id,
-		Name:          "Test",
-		Tin:           124576,
-		DistributorId: rand.Int(),
-	}
-	_, err := service.UpdateBusiness(ctx, in)
-	wantErr := ErrEmptyGetDistributorContent
-	if err != wantErr {
-		t.Errorf("Expected: %v, Got: %v", wantErr, err)
-	}
->>>>>>> 8f0b9404 (init distributor refactor)
 }

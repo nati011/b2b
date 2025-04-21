@@ -3,6 +3,7 @@ package transaction
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	partner_db "b2b.nati011.github.com/internal/adapter/secondary/application/payment_partner/db"
 	transaction_db "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
@@ -24,7 +25,10 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.UserService = user.NewIntegrationTestContainer(db).UserService
 
 	container.TransactionService = transaction.NewTransactionService(
-		transaction_db.NewPostgres(db),
+		transaction_db.NewPostgres(db, &config.Pagination{
+			Limit:  10,
+			Offset: 0,
+		}),
 		container.PartnerService,
 		container.UserService,
 	)

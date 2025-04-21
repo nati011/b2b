@@ -18,11 +18,8 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 
 	application_handler.InitResource()
 	application_handler.InitUser()
-<<<<<<< HEAD
 	application_handler.InitTransaction()
 	application_handler.InitRole()
-=======
->>>>>>> 036df0cf (+ remove password confirmation)
 
 	domain_handler.InitDistributor()
 	domain_handler.InitRetailer()
