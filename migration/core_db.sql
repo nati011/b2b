@@ -373,7 +373,8 @@ CREATE TABLE IF NOT EXISTS public."payment_partners"
   name VARCHAR(255),
   icon VARCHAR(255),
   status VARCHAR(255),
-  init_payment_url VARCHAR(255)
+  init_payment_url VARCHAR(255),
+  secret TEXT
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores payment processing partners';
