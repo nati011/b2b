@@ -90,6 +90,11 @@ const Products = () => {
     startIndex,
     startIndex + productsPerPage
   );
+  const isAllOutOfStock = (product) => {
+    return product.configurables.every(
+      (configurable) => configurable.stock === 0
+    );
+  };
 
   return (
     <div className='min-h-screen bg-white flex flex-col'>
@@ -221,7 +226,12 @@ const Products = () => {
                 <h3 className='text-lg font-medium text-primary mb-2'>
                   {product.name}
                 </h3>
-                <p className='text-sm text-primary'>{getPriceRange(product)}</p>
+                <p className='text-sm text-primary'>
+                  {getPriceRange(product)}
+                  {isAllOutOfStock(product) && (
+                    <span className='text-red-500 ml-2'>(Out of Stock)</span>
+                  )}
+                </p>
               </Link>
             );
           })}
