@@ -58,7 +58,6 @@ func main() {
 		cfg.Email,
 		cfg.SMTP,
 		cfg.KeycloakClientSecret,
-		paginationBuilder.Build(),
 	)
 
 	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
