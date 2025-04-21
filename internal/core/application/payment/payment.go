@@ -96,6 +96,10 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	}
 
 	if is_verified {
+<<<<<<< HEAD
 		p.PaymentProcessor.Process(ctx, tx_ref)
+=======
+		p.PaymentProcessor.Process(tx_ref)
+>>>>>>> 396203b2 (+ add payment processor)
 	}
 }
