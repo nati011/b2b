@@ -222,7 +222,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			ExternalId: "test",
+			ExternalId: "test003",
 			Status:     "test",
 			OrderId:    1,
 		}

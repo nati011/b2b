@@ -53,14 +53,15 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	rows, err := handler.MustQueryRow(
 		p.Pool,
 		ctx,
-		query, false,
+		query,
+		true,
 		name,
 	)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
 
-	rows.Row.Scan(
+	rows.Rows.Scan(
 		&response.Id,
 		&response.Action,
 		&response.Name,

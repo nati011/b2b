@@ -47,10 +47,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -78,10 +78,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -111,10 +111,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -146,10 +146,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -181,10 +181,10 @@ func Test_Read(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -210,9 +210,9 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
 
 			Email: "test@gmail.com",
 		}
@@ -242,9 +242,9 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
 
 			Email: "test@gmail.com",
 		}
@@ -271,10 +271,10 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -310,10 +310,10 @@ func Test_Write(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {

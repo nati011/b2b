@@ -812,6 +812,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 	}
 
 	//remove
+	log.Printf("Deleting Id %v", id)
 	err = u.db.Delete(ctx, id)
 	if err != nil {
 		switch err {
@@ -826,12 +827,8 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 	// validate id
 	user, err := u.Get(ctx, id)
 	if err != nil {
-		switch err {
-		case ErrEmptyGetContent:
-			return false, ErrIdNotFound
-		default:
-			return false, ErrUnknown
-		}
+		return false, err
+
 	}
 	return user.IsActive, nil
 }

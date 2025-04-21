@@ -15,6 +15,7 @@ import (
 var container test_container.TestContainer
 var db *sql.DB
 var resource_id int
+var err error
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -25,10 +26,13 @@ func setup() {
 	db = db_test_container.Setup()
 	container = test_container.NewIntegrationTestContainer(db)
 	ctx := context.Background()
-	resource_id, _ = container.ResourceService.Create(ctx, &resource.CreateRequest{
-		Action: "test",
-		Name:   "test",
+	resource_id, err = container.ResourceService.Create(ctx, &resource.CreateRequest{
+		Action: "resourceTest00145",
+		Name:   "resourceTest00145",
 	})
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func teardown() {
@@ -46,8 +50,8 @@ func Test_Read(t *testing.T) {
 		//setup
 		ctx := context.Background()
 		role_id, _ := container.RoleService.Create(ctx, &role.CreateRequest{
-			Desc: "test",
-			Name: "test",
+			Desc: "testResource0012",
+			Name: "testResource0012",
 		})
 		err := container.RoleService.AddResource(ctx, &role.AddResourceRequest{
 			ResourceId: resource_id,
@@ -74,7 +78,7 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		id, _ := container.RoleService.Create(ctx, &role.CreateRequest{
 			Desc: "test",
-			Name: "test",
+			Name: "test2",
 		})
 		resId, err := container.ResourceService.Create(ctx, &resource.CreateRequest{
 			Action: "test",

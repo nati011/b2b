@@ -73,10 +73,11 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 		}
 
 		in_b := auth.RegisterUserRequest{
-			Username: VALID_USERNAME_A,
-			Password: VALID_PASSWORD,
-			LastName: VALID_LAST_NAME,
-			Email:    VALID_EMAIL_B,
+			FirstName: VALID_FIRST_NAME,
+			Username:  VALID_USERNAME_A,
+			Password:  VALID_PASSWORD,
+			LastName:  VALID_LAST_NAME,
+			Email:     VALID_EMAIL_B,
 		}
 
 		_, err = authService.CreateNewClient(ctx, in_b)
@@ -96,6 +97,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Username:  VALID_USERNAME_A,
 			Password:  VALID_PASSWORD,
 			FirstName: VALID_FIRST_NAME,
+			LastName:  VALID_LAST_NAME,
 			Email:     VALID_EMAIL_A,
 		}
 
