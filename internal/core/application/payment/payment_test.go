@@ -87,7 +87,7 @@ func Test_Verify_Payment_unhappyPath(t *testing.T) {
 	t.Run("TransactionRefNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
 		in_tx_ref := ""
-		_, err := testContainer.PaymentService.Verify(ctx, in_tx_ref)
+		_, err := testContainer.PaymentService.Verify(ctx, 0, in_tx_ref)
 		wantErr := ErrTransactionReferenceNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
