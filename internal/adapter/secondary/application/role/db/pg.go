@@ -228,7 +228,7 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 		p.Pool,
 		ctx,
 		query,
-		false,
+		true,
 		role_id,
 	)
 

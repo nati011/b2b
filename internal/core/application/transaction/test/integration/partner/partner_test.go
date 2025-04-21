@@ -72,7 +72,7 @@ func Test_Validate_PartnerId_Upon_Transaction_Create_unhappyPath(t *testing.T) {
 		LastName:   "Jemaneh",
 		Email:      "natnaeljemaneh001@gmail.com",
 		Phone:      "+251949184879",
-		Username:   "test",
+		Username:   "test33",
 		DOB:        parsedTime,
 		ExternalId: "123",
 	}
