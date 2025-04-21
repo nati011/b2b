@@ -26,10 +26,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
-	rows.Scan(
+	rows.Row.Scan(
 		&response.Id,
 		&response.Name,
 		&response.Desc,
@@ -46,24 +47,25 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 		id,
 	)
 
 	if err != nil {
 		return port.GetResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var productImage string
-		if err := rows.Scan(&productImage); err != nil {
+		if err := rows.Rows.Scan(&productImage); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
 		productImages = append(productImages, productImage)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetResponse{}, port.ErrSysUnknown
 	}
@@ -76,6 +78,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 		id,
 	)
 
@@ -83,11 +86,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		return port.GetResponse{}, err
 
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var attributeName string
-		if err := rows.Scan(&attributeName); err != nil {
+		if err := rows.Rows.Scan(&attributeName); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
@@ -102,23 +105,24 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 		id,
 	)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var productId int
-		if err := rows.Scan(&productId); err != nil {
+		if err := rows.Rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
 		member_productIds = append(member_productIds, productId)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetResponse{}, port.ErrSysUnknown
 	}
@@ -134,22 +138,23 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		false,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var productId int
-		if err := rows.Scan(&productId); err != nil {
+		if err := rows.Rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		cp_Ids = append(cp_Ids, productId)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -184,23 +189,24 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		p.Pool,
 		ctx,
 		query,
+		true,
 		name,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var productId int
-		if err := rows.Scan(&productId); err != nil {
+		if err := rows.Rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		cp_Ids = append(cp_Ids, productId)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -236,23 +242,24 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		p.Pool,
 		ctx,
 		query,
+		false,
 		extId,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var productId int
-		if err := rows.Scan(&productId); err != nil {
+		if err := rows.Rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		cp_Ids = append(cp_Ids, productId)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -287,11 +294,12 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Name,
 		req.Desc,
 		req.ExternalId,
 	)
-	rows.Scan(&configurable_product_id)
+	rows.Row.Scan(&configurable_product_id)
 	if err != nil {
 		return 0, err
 	}
@@ -303,6 +311,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			p.Pool,
 			ctx,
 			query,
+			false,
 			i,
 			"",
 			configurable_product_id,
@@ -322,17 +331,18 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			p.Pool,
 			ctx,
 			query,
+			true,
 			v,
 		)
 
 		if err != nil {
 			return 0, err
 		}
-		defer rows.Close()
+		defer rows.Rows.Close()
 
-		for rows.Next() {
+		for rows.Rows.Next() {
 			var attribute_id int
-			if err := rows.Scan(&attribute_id); err != nil {
+			if err := rows.Rows.Scan(&attribute_id); err != nil {
 				log.Printf("unable to scan row: %q", err)
 				return 0, err
 			}
@@ -345,6 +355,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 				p.Pool,
 				ctx,
 				query,
+				false,
 				i,
 				configurable_product_id,
 			)
@@ -364,6 +375,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			p.Pool,
 			ctx,
 			query,
+			false,
 			configurable_product_id,
 			i,
 		)
@@ -381,6 +393,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Name,
 	)
@@ -399,11 +412,12 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Desc,
 	)
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	if err != nil {
 		return err
 	}
@@ -417,11 +431,12 @@ func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExterna
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.ExternalId,
 	)
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	if err != nil {
 		return err
 	}
@@ -435,11 +450,12 @@ func (p *Postgres) UpdateIsAvailableStatus(ctx context.Context, req *port.Update
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 		req.Status,
 	)
 
-	rows.Scan(&resourceId)
+	rows.Row.Scan(&resourceId)
 	if err != nil {
 		return err
 	}
@@ -456,6 +472,7 @@ func (p *Postgres) UpdateProducts(ctx context.Context, req *port.UpdateProductRe
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 	)
 
@@ -471,6 +488,7 @@ func (p *Postgres) UpdateProducts(ctx context.Context, req *port.UpdateProductRe
 			p.Pool,
 			ctx,
 			query,
+			false,
 			req.Id,
 			i,
 		)
@@ -490,6 +508,7 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 	)
 
@@ -505,6 +524,7 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 			p.Pool,
 			ctx,
 			query,
+			false,
 			i,
 			"",
 			req.Id,
@@ -526,6 +546,7 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Id,
 	)
 
@@ -542,6 +563,7 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 				p.Pool,
 				ctx,
 				query,
+				false,
 				key,
 				req.Id,
 			)

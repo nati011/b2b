@@ -6,12 +6,6 @@ import (
 	port "b2b.nati011.github.com/internal/port/application/email-template"
 )
 
-type template struct {
-	Id           int
-	Name         string
-	HtmlTemplate string
-}
-
 type Mock struct {
 	templates []template
 }

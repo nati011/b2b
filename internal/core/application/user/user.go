@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/auth"
@@ -158,26 +159,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		Username:    req.Username,
 	})
 	if err != nil {
-		switch err {
-		case auth.ErrFirstNameNotSupplied:
-			return 0, ErrFirstNameMandatory
-		case auth.ErrLastNameNotSupplied:
-			return 0, ErrLastNameMandatory
-		case auth.ErrEmailNotSupplied:
-			return 0, ErrEmailNotFound
-		case auth.ErrUsernameNotSupplied:
-			return 0, ErrUsernameMandatory
-		case auth.ErrInvalidEmail:
-			return 0, ErrEmailNotValid
-		case auth.ErrPasswordNotSupplied:
-			return 0, ErrPasswordMandatory
-		case auth.ErrUsernameTaken:
-			return 0, ErrUserNameTaken
-		case auth.ErrEmailTaken:
-			return 0, ErrEmailTaken
-		default:
-			return 0, ErrUnknown
-		}
+		return 0, err
+
 	}
 
 	//create user
@@ -198,54 +181,14 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		}
 	}
 
-<<<<<<< HEAD
+	log.Printf("Registered User %v", user_id)
 	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,
-=======
-	generated_password, err := generateRandomPassword(10)
-	if err != nil {
-		return 0, ErrUnknown
-	}
-
-	_, err = u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
-<<<<<<< HEAD
-		Email:           req.Email,
-		Password:        generated_password,
-		ConfirmPassword: generated_password,
-		FirstName:       req.FirstName,
-		LastName:        req.LastName,
-		PhoneNumber:     req.Phone,
->>>>>>> 1734bfa2 (resolve conflict)
-=======
-		Email:       req.Email,
-		Password:    generated_password,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		PhoneNumber: req.Phone,
-		Username:    req.Username,
->>>>>>> 036df0cf (+ remove password confirmation)
 	})
 
 	if err != nil {
 		switch err {
-<<<<<<< HEAD
-=======
-		case auth.ErrFirstNameNotSupplied:
-			return 0, ErrFirstNameMandatory
-		case auth.ErrLastNameNotSupplied:
-			return 0, ErrPhoneOrEmailMandatory
-		case auth.ErrEmailNotSupplied:
-			return 0, ErrPhoneOrEmailMandatory
-		case auth.ErrInvalidEmail:
-			return 0, ErrEmailNotValid
-		case auth.ErrPasswordNotSupplied:
-			return 0, ErrPasswordMandatory
-		case auth.ErrUsernameTaken:
-			return 0, ErrEmailTaken
-		case auth.ErrEmailTaken:
-			return 0, ErrEmailTaken
->>>>>>> 036df0cf (+ remove password confirmation)
 		default:
 			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
@@ -851,6 +794,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 	}
 
 	//remove
+	log.Printf("Deleting Id %v", id)
 	err = u.db.Delete(ctx, id)
 	if err != nil {
 		switch err {
@@ -865,12 +809,8 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 	// validate id
 	user, err := u.Get(ctx, id)
 	if err != nil {
-		switch err {
-		case ErrEmptyGetContent:
-			return false, ErrIdNotFound
-		default:
-			return false, ErrUnknown
-		}
+		return false, err
+
 	}
 	return user.IsActive, nil
 }

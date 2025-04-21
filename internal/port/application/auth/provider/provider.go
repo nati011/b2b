@@ -16,10 +16,6 @@ var (
 )
 
 type RegisterUserRequest struct {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 036df0cf (+ remove password confirmation)
 	Email       string
 	Password    string
 	BirthDate   time.Time
@@ -28,27 +24,10 @@ type RegisterUserRequest struct {
 	FirstName   string
 	LastName    string
 	Username    string
-<<<<<<< HEAD
 }
 
 type RegisterUserResponse struct {
 	Id       string
-=======
-	Email           string
-	Password        string
-	ConfirmPassword string
-	BirthDate       time.Time
-	PhoneNumber     string
-	ExternalId      string
-	FirstName       string
-	LastName        string
-	Username        string
-=======
->>>>>>> 036df0cf (+ remove password confirmation)
-}
-
-type RegisterUserResponse struct {
->>>>>>> 1734bfa2 (resolve conflict)
 	Username string
 }
 

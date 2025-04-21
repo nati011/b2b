@@ -27,23 +27,24 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		true,
 	)
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
+	defer rows.Rows.Close()
 
-	for rows.Next() {
+	for rows.Rows.Next() {
 		var resource port.GetResponse
-		if err := rows.Scan(&resource.Id, &resource.Name); err != nil {
+		if err := rows.Rows.Scan(&resource.Id, &resource.Name); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		response.List = append(response.List, resource)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -59,6 +60,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
@@ -66,7 +68,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		return port.GetResponse{}, err
 	}
 
-	rows.Scan(&response.Id, &response.Name)
+	rows.Row.Scan(&response.Id, &response.Name)
 
 	return response, nil
 }
@@ -78,18 +80,13 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		p.Pool,
 		ctx,
 		query,
+		false,
 		req.Name,
 	)
-
-	rows.Scan(&resourceId)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
+	rows.Row.Scan(&resourceId)
 
 	return resourceId, nil
 }
@@ -100,6 +97,7 @@ func (p *Postgres) Remove(ctx context.Context, id int) error {
 		p.Pool,
 		ctx,
 		query,
+		false,
 		id,
 	)
 
