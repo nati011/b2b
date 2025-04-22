@@ -2625,7 +2625,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_id(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2649,7 +2651,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2672,7 +2676,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_status(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2693,7 +2699,9 @@ CREATE OR REPLACE FUNCTION public.get_all_orders()
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              ttotal DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
