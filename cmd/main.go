@@ -51,7 +51,6 @@ func main() {
 
 	// InitEmail(cfg.Email, cfg.SMTP)
 	// InitSMS(cfg.Email, cfg.SMTP)
-	paginationBuilder := config.NewPaginationBuilder()
 
 	application_constainer := application_core.NewContainer(
 		db_pool,
@@ -73,7 +72,7 @@ func main() {
 	InitREST(mux, db_pool, application_constainer, domain_container)
 
 	loggingingMiddleware := util.NewLoggingMiddleware()
-	paginationMiddleware := util.NewPaginationMiddleware(*paginationBuilder)
+	paginationMiddleware := util.NewPaginationMiddleware(*config.NewPaginationBuilder())
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

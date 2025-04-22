@@ -2542,7 +2542,9 @@ $$;
 CREATE OR REPLACE FUNCTION public.create_order(
   o_retailer_id INT,
   o_status VARCHAR(255),
-  o_total DECIMAL(12,2)
+  o_total DECIMAL(12,2),
+  o_payment_status VARCHAR(255),
+  o_delivery_status VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -2552,10 +2554,14 @@ DECLARE
 BEGIN
     INSERT INTO public.orders (retailer_id, 
                                status, 
-                               total)
+                               total,
+                               payment_status,
+                               delivery_status)
     VALUES (o_retailer_id, 
             o_status, 
-            o_total)
+            o_total, 
+            o_payment_status,
+            o_delivery_status)
     RETURNING id INTO new_id;
     RETURN new_id;
 END;
@@ -2577,6 +2583,41 @@ BEGIN
     RETURN order_id;
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION public.update_order_payment_status(
+    order_id INT,
+    new_payment_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.orders
+    SET payment_status = new_payment_status
+    WHERE id = order_id
+      AND is_deleted = FALSE;
+
+    RETURN order_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_order_delivery_status(
+    order_id INT,
+    new_delivery_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.orders
+    SET delivery_status = new_delivery_status
+    WHERE id = order_id
+      AND is_deleted = FALSE;
+
+    RETURN order_id;
+END;
+$$;
     -- reader
 CREATE OR REPLACE FUNCTION public.get_orders_by_id(
     o_order_id INT
@@ -2584,7 +2625,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_id(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2592,7 +2635,9 @@ BEGIN
     SELECT o.id, 
            o.retailer_id, 
            o.status, 
-           o.total
+           o.total,
+           o.payment_status,
+           o.delivery_status
     FROM public.orders o
     WHERE o.id = o_order_id
       AND o.is_deleted = FALSE
@@ -2606,7 +2651,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2614,7 +2661,9 @@ BEGIN
     SELECT o.id, 
            o.retailer_id, 
            o.status, 
-           o.total
+           o.total,
+           o.payment_status,
+           o.delivery_status
     FROM public.orders o
     WHERE o.retailer_id = o_retailer_id
       AND o.is_deleted = FALSE;
@@ -2627,7 +2676,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_status(
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              total DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2635,7 +2686,9 @@ BEGIN
     SELECT o.id, 
            o.retailer_id, 
            o.status, 
-           o.total
+           o.total,
+           o.payment_status,
+           o.delivery_status
     FROM public.orders o
     WHERE o.status = o_status
       AND o.is_deleted = FALSE;
@@ -2646,7 +2699,9 @@ CREATE OR REPLACE FUNCTION public.get_all_orders()
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
-              ttotal DECIMAL(2,12))
+              total DECIMAL(2,12),
+              delivery_status VARCHAR(255),
+              payment_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2654,7 +2709,9 @@ BEGIN
     SELECT o.id, 
            o.retailer_id, 
            o.status, 
-           o.total
+           o.total,
+           o.payment_status,
+           o.delivery_status
     FROM public.orders o
     WHERE o.is_deleted = FALSE;
 END;
