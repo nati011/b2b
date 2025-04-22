@@ -23,10 +23,10 @@ func Test_Create_Payment_Option_happyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "https://google.com",
-			Secret:           "randomSecret",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "https://google.com",
+			Secret:  "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -48,10 +48,10 @@ func Test_Create_Payment_Option_happyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "https://google.com",
-			Secret:           "randomSecret",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "https://google.com",
+			Secret:  "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -75,9 +75,9 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Icon:             "test",
-			Init_payment_url: "https://google.com",
-			Secret:           "randomSecret",
+			Icon:    "test",
+			BaseUrl: "https://google.com",
+			Secret:  "randomSecret",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)
@@ -91,9 +91,9 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:             "test",
-			Init_payment_url: "https://google.com",
-			Secret:           "randomSecret",
+			Name:    "test",
+			BaseUrl: "https://google.com",
+			Secret:  "randomSecret",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)
@@ -103,7 +103,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("init_payment_url_mandatory", func(t *testing.T) {
+	t.Run("BaseUrl_mandatory", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
@@ -122,9 +122,9 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "https://google.com",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "https://google.com",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)
@@ -139,10 +139,10 @@ func Test_Activate_Payment_Option_happyPath(t *testing.T) {
 	t.Cleanup(container.Teardown)
 	ctx := context.Background()
 	in := &CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
-		Secret:           "randomSecret",
+		Name:    "test",
+		Icon:    "test",
+		BaseUrl: "test",
+		Secret:  "randomSecret",
 	}
 
 	id, err := container.PartnerService.Create(ctx, in)
@@ -181,10 +181,10 @@ func Test_Activate_Payment_Option_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "test",
-			Secret:           "randomSecret",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "test",
+			Secret:  "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -210,10 +210,10 @@ func Test_Deactivate_Payment_Option_happyPath(t *testing.T) {
 	t.Cleanup(container.Teardown)
 	ctx := context.Background()
 	in := &CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
-		Secret:           "randomSecret",
+		Name:    "test",
+		Icon:    "test",
+		BaseUrl: "test",
+		Secret:  "randomSecret",
 	}
 
 	id, err := container.PartnerService.Create(ctx, in)
@@ -245,10 +245,10 @@ func Test_Deactivate_Payment_Option_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "test",
-			Secret:           "randomSecret",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "test",
+			Secret:  "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -279,10 +279,10 @@ func Test_Get_All_Payment_Options_happyPath(t *testing.T) {
 	ctx := context.Background()
 	//setup
 	in := &CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
-		Secret:           "randomSecret",
+		Name:    "test",
+		Icon:    "test",
+		BaseUrl: "test",
+		Secret:  "randomSecret",
 	}
 
 	_, err := container.PartnerService.Create(ctx, in)
@@ -318,10 +318,10 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "test",
-			Secret:           "randomSecret",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "test",
+			Secret:  "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -373,10 +373,10 @@ func Test_Get_Payment_Options_ByParam_happyPath(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			Name:             "test",
-			Icon:             "test",
-			Init_payment_url: "test",
-			Secret:           "randomSecret",
+			Name:    "test",
+			Icon:    "test",
+			BaseUrl: "test",
+			Secret:  "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
