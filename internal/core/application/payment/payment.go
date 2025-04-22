@@ -28,7 +28,7 @@ type CheckoutRequest struct {
 }
 
 type CheckoutResponse struct {
-	Checkout_url string
+	CheckoutUrl string
 }
 
 type Provider interface {
@@ -70,7 +70,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
 		TransactionRef: req.OrderId,
-		PartnerUrl:     paymentPartner.Init_payment_url,
+		PartnerUrl:     paymentPartner.BaseUrl,
 		PartnerSecret:  paymentPartner.Secret,
 	}
 
@@ -80,7 +80,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}
 
 	return CheckoutResponse{
-		Checkout_url: checkoutUrl,
+		CheckoutUrl: checkoutUrl.CheckoutUrl,
 	}, nil
 }
 
