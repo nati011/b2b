@@ -29,15 +29,8 @@ func (p *Payment) Init(applicationServices *application_core.Container, domainSe
 }
 
 func (p *Payment) Routes(mux *http.ServeMux) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-	mux.HandleFunc("GET /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackHandler)
-=======
-	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}", p.CallbackHandler)
->>>>>>> 01b67684 (+ add payment webhook)
-=======
 	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackHandler)
->>>>>>> 4c8033a6 (+ payment callback handler)
+
 }
 
 func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,23 +39,10 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> 4c8033a6 (+ payment callback handler)
 	typedParamTxRef, err := util.GetStringPathParam(r, 6)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return
 	}
 	p.service.Callback(r.Context(), typedParamGatewayId, typedParamTxRef)
-<<<<<<< HEAD
-=======
-	//middleware to get tx_ref based on gatewayId
-	tx_ref := "0"
-	p.service.Callback(r.Context(), typedParamGatewayId, tx_ref)
->>>>>>> 01b67684 (+ add payment webhook)
-=======
->>>>>>> 4c8033a6 (+ payment callback handler)
 }

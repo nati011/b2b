@@ -85,6 +85,8 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
+	// part_resp, err := p.PartnerService.Get(ctx, gateway_id)
+
 	return false, nil
 }
 
