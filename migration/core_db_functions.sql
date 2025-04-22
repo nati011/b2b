@@ -2915,12 +2915,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              init_payment_url VARCHAR(255))
+              baseurl VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    SELECT p.id, p.name, p.icon, p.status, p.baseurl
     FROM public.payment_partners p
     WHERE p.id = p_id
       AND p.is_deleted = FALSE
@@ -2936,12 +2936,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              init_payment_url VARCHAR(255))
+              baseurl VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    SELECT p.id, p.name, p.icon, p.status, p.baseurl
     FROM public.payment_partners p
     WHERE p.is_deleted = FALSE
     LIMIT p_limit
@@ -2953,13 +2953,13 @@ CREATE OR REPLACE FUNCTION public.get_payment_partner_secret(
 p_id INT
 )RETURNS TABLE(
               name VARCHAR(255),
-              init_payment_url VARCHAR(255),
+              baseurl VARCHAR(255),
               secret TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.name,p.init_payment_url,p.secret
+    SELECT p.name,p.baseurl,p.secret
     FROM public.payment_partners p
     WHERE p.id = p_id
       AND p.is_deleted = FALSE;
@@ -2975,12 +2975,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              init_payment_url VARCHAR(255))
+              baseurl VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    SELECT p.id, p.name, p.icon, p.status, p.baseurl
     FROM public.payment_partners p
     WHERE p.name = p_name
       AND p.is_deleted = FALSE;
@@ -2994,12 +2994,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              init_payment_url VARCHAR(255))
+              baseurl VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
+    SELECT p.id, p.name, p.icon, p.status, p.baseurl
     FROM public.payment_partners p
     WHERE p.status = p_status
       AND p.is_deleted = FALSE;
@@ -3012,7 +3012,7 @@ CREATE OR REPLACE FUNCTION public.create_payment_partner(
     p_name VARCHAR(255),
     p_icon VARCHAR(255),
     p_status VARCHAR(255),
-    p_init_payment_url VARCHAR(255),
+    p_baseurl VARCHAR(255),
     p_secret VARCHAR(255)
 )
 RETURNS INT
@@ -3022,11 +3022,11 @@ DECLARE
     new_id INT;
 BEGIN
     INSERT INTO 
-    public.payment_partners (name, icon, status, init_payment_url,secret)
+    public.payment_partners (name, icon, status, baseurl,secret)
     VALUES (p_name, 
             p_icon, 
             p_status,
-            p_init_payment_url,
+            p_baseurl,
             p_secret
             )
     RETURNING id INTO new_id;
