@@ -3,20 +3,13 @@ package payment
 import (
 	"context"
 	"errors"
-<<<<<<< HEAD
 	"log"
-
-	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/transaction"
-	"b2b.nati011.github.com/internal/core/application/user"
-	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
-=======
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
->>>>>>> c481e966 (init handle multiple payment gateway)
 )
 
 var (
@@ -29,15 +22,9 @@ var (
 )
 
 type CheckoutRequest struct {
-<<<<<<< HEAD
-	Amount           int64
+	Amount           float64
 	PaymentPartnerId int
-=======
-	User_Id           int
-	Order_id          int
-	Amount            float64
-	PaymentPartner_Id int
->>>>>>> c481e966 (init handle multiple payment gateway)
+	OrderId          int
 }
 
 type CheckoutResponse struct {
@@ -51,59 +38,36 @@ type Provider interface {
 }
 
 type PaymentService struct {
-<<<<<<< HEAD
-	UserService        user.Provider
 	PartnerService     partner.Provider
 	TransactionService transaction.Provider
 	PaymentProcessor   payment_processor.Provider
 }
 
 func NewPaymentService(
-	ps partner.Provider,
-	ts transaction.Provider) Provider {
+	partner partner.Provider,
+	transaction transaction.Provider,
+	paymentProcessor payment_processor.Provider) Provider {
 	return &PaymentService{
-		PartnerService:     ps,
-		TransactionService: ts,
-=======
-	paymentPartner partner.Provider
-	transaction    transaction.Provider
-}
-
-func NewPaymentService(partner partner.Provider, transaction transaction.Provider) Provider {
-	return &PaymentService{
-		paymentPartner: partner,
-		transaction:    transaction,
->>>>>>> c481e966 (init handle multiple payment gateway)
+		PartnerService:     partner,
+		TransactionService: transaction,
+		PaymentProcessor:   paymentProcessor,
 	}
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-<<<<<<< HEAD
-=======
-
->>>>>>> c481e966 (init handle multiple payment gateway)
-	err := p.validateAmount(req.Amount)
+	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
-		return CheckoutResponse{}, err
-	}
-<<<<<<< HEAD
-	return CheckoutResponse{}, nil
-=======
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartner_Id)
-
-	if err != nil {
-		return CheckoutResponse{}, err
+		return CheckoutResponse{}, ErrUnknown
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
-
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
 
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
-		TransactionRef: req.Order_id,
+		TransactionRef: req.OrderId,
 		PartnerUrl:     paymentPartner.Init_payment_url,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -116,7 +80,6 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	return CheckoutResponse{
 		Checkout_url: checkoutUrl,
 	}, nil
->>>>>>> c481e966 (init handle multiple payment gateway)
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
