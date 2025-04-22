@@ -20,3 +20,10 @@ func validateInitPaymentURL(url string) error {
 	}
 	return nil
 }
+
+func validateSecret(secret string) error {
+	if secret == "" {
+		return ErrSecretIsNotSupplied
+	}
+	return nil
+}
