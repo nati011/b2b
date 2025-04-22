@@ -1,5 +1,6 @@
 package payment
 
+<<<<<<< HEAD
 import (
 	"context"
 
@@ -19,6 +20,9 @@ func (p *PaymentService) validateUserId(ctx context.Context, userId int) error {
 }
 
 func (p *PaymentService) validateAmount(amount int64) error {
+=======
+func (p *PaymentService) validateAmount(amount float64) error {
+>>>>>>> c481e966 (init handle multiple payment gateway)
 	if amount == 0 {
 		return ErrAmountNotSupplied
 	}
@@ -28,9 +32,15 @@ func (p *PaymentService) validateAmount(amount int64) error {
 	return nil
 }
 
+<<<<<<< HEAD
 func (p *PaymentService) validatePaymentPartner(ctx context.Context, paymentPartnerId int) error {
 	if paymentPartnerId == 0 {
 		return ErrPaymentPartnerNotSupplied
+=======
+func verifyTransactionRef(tx_ref string) error {
+	if tx_ref == "" {
+		return ErrTransactionReferenceNotSupplied
+>>>>>>> c481e966 (init handle multiple payment gateway)
 	}
 	return nil
 }
