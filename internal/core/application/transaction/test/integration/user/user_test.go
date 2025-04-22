@@ -27,9 +27,9 @@ func Test_Validate_UserId_Upon_Transaction_Create_happyPath(t *testing.T) {
 	ctx := context.Background()
 	//create partner
 	partner_id, err := testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
+		Name:    "test",
+		Icon:    "test",
+		BaseUrl: "test",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create err:%v", err)
@@ -65,9 +65,9 @@ func Test_Validate_UserId_Upon_Transaction_Create_unhappyPath(t *testing.T) {
 	ctx := context.Background()
 	//create partner
 	partner_id, err := testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
+		Name:    "test",
+		Icon:    "test",
+		BaseUrl: "test",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create err:%v", err)

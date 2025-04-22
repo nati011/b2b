@@ -28,6 +28,9 @@ func main() {
 	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientSecret, "keycloak_client_secret", "", "Environment (development|staging|production)")
 
+	// base url
+	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
+
 	//email
 	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
@@ -51,6 +54,7 @@ func main() {
 
 	application_constainer := application_core.NewContainer(
 		db_pool,
+		cfg.BaseUrl,
 		cfg.KeycloakInstanceURL,
 		cfg.KeycloakUsername,
 		cfg.KeycloakPassword,

@@ -31,9 +31,9 @@ func setup() {
 	ctx := context.Background()
 
 	partner_id, _ = container.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
+		Name:    "test",
+		Icon:    "test",
+		BaseUrl: "test",
 	})
 	//create user
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
