@@ -15,6 +15,7 @@ type CreateRequest struct {
 	Icon             string
 	Status           string
 	Init_payment_url string
+	Secret           string
 }
 
 type GetResponse struct {
@@ -25,11 +26,18 @@ type GetResponse struct {
 	Init_payment_url string
 }
 
+type GetPartnerSecret struct {
+	Name             string
+	Init_payment_url string
+	Secret           string
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
 
 type Reader interface {
+	GetPartnerSecret(context.Context, int) (GetPartnerSecret, error)
 	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)
