@@ -44,6 +44,4 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.service.Callback(r.Context(), typedParamGatewayId, typedParamTxRef)
-	tx_ref := "0"
-	p.service.Callback(r.Context(), typedParamGatewayId, tx_ref)
 }
