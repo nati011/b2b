@@ -436,7 +436,7 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 		}
 	}
 
-	// deplete stock if order status is COMPELETED
+	//TODO: reserve stock
 
 	return resp.Id, nil
 }
@@ -458,7 +458,7 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 	//update
 	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
 		Id:            req.Id,
-		PaymentStatus: req.Status,
+		PaymentStatus: req.PaymentStatus,
 	})
 	if err != nil {
 		switch err {
@@ -488,12 +488,17 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 	//update
 	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
 <<<<<<< HEAD
+<<<<<<< HEAD
 		Id:             req.Id,
 		DeliveryStatus: req.DeliveryStatus,
 =======
 		Id:     req.Id,
 		Status: req.Status,
 >>>>>>> b8531fb5 (+ add update order delivery and payment statuses with ops:)
+=======
+		Id:             req.Id,
+		DeliveryStatus: req.DeliveryStatus,
+>>>>>>> f7d0812b (+ passing integration tests order)
 	})
 	if err != nil {
 		switch err {
