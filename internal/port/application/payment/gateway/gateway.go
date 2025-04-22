@@ -8,12 +8,11 @@ var (
 )
 
 type InitiateRequest struct {
-	Amount         float64 `json:"amount"`
-	CallbackUrl    string  `json:"callback_url"`
-	PartnerUrl     string  `json:"partner_url"`
-	PartnerSecret  string  `json:"partner_secret"`
-	ReturnUrl      string  `json:"return_url"`
-	TransactionRef int     `json:"tx_ref"`
+	Amount         float64
+	PartnerUrl     string
+	PartnerSecret  string
+	ReturnUrl      string
+	TransactionRef int
 }
 
 type InitatePaymentResponse struct {
@@ -22,7 +21,7 @@ type InitatePaymentResponse struct {
 
 type VerifyRequest struct {
 	PartnerUrl     string
-	TransactionRef string
+	TransactionRef int
 	PartnerSecret  string
 }
 

@@ -7,12 +7,12 @@ import (
 )
 
 type MockPartner struct {
-	Id               int
-	Name             string
-	Icon             string
-	Init_payment_url string
-	Status           string
-	Secret           string
+	Id      int
+	Name    string
+	Icon    string
+	baseurl string
+	Status  string
+	Secret  string
 }
 
 type Mock struct {
@@ -59,9 +59,9 @@ func (m *Mock) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSec
 	for _, i := range m.resources {
 		if i.Id == id {
 			return port.GetPartnerSecret{
-				Name:             i.Name,
-				Init_payment_url: i.Init_payment_url,
-				Secret:           i.Secret,
+				Name:    i.Name,
+				BaseUrl: i.baseurl,
+				Secret:  i.Secret,
 			}, nil
 		}
 	}
@@ -111,11 +111,11 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	newResourceId := len(m.resources) + 1
 	m.resources = append(m.resources, MockPartner{
-		Id:               newResourceId,
-		Name:             req.Name,
-		Icon:             req.Icon,
-		Init_payment_url: req.Init_payment_url,
-		Status:           req.Status,
+		Id:      newResourceId,
+		Name:    req.Name,
+		Icon:    req.Icon,
+		baseurl: req.BaseUrl,
+		Status:  req.Status,
 	})
 	return newResourceId, nil
 }

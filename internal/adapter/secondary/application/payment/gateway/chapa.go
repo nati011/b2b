@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	port "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -22,6 +24,13 @@ type InitatePaymentChapaResponse struct {
 	Message string                          `json:"message"`
 	Status  string                          `json:"status"`
 	Data    InitatePaymentChapaResponseData `json:"data"`
+}
+
+type InitatePaymentChapaRequest struct {
+	Amount         float64 `json:"amount"`
+	CallbackUrl    string  `json:"callback_url"`
+	ReturnUrl      string  `json:"return_url"`
+	TransactionRef int     `json:"tx_ref"`
 }
 
 type VerifyPaymentChapaResponseData struct {
@@ -44,17 +53,25 @@ func NewChapa() port.Provider {
 }
 
 func (t Chapa) Initiate(request port.InitiateRequest) (port.InitatePaymentResponse, error) {
-	url := request.PartnerUrl
 	var response InitatePaymentChapaResponse
 
-	payload, err := json.Marshal(request)
+	callback_url := fmt.Sprintf("%v/chapa/%v", request.PartnerUrl, strconv.Itoa(request.TransactionRef))
+
+	requestBody := InitatePaymentChapaRequest{
+		Amount:         request.Amount,
+		TransactionRef: request.TransactionRef,
+		CallbackUrl:    callback_url,
+		ReturnUrl:      request.ReturnUrl,
+	}
+
+	payload, err := json.Marshal(requestBody)
 	if err != nil {
 		return port.InitatePaymentResponse{}, port.ErrUnknown
 	}
 
 	client := &http.Client{}
 	body := bytes.NewReader(payload)
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest("POST", request.PartnerUrl, body)
 
 	if err != nil {
 		return port.InitatePaymentResponse{}, port.ErrUnknown
@@ -89,11 +106,12 @@ func (t Chapa) Initiate(request port.InitiateRequest) (port.InitatePaymentRespon
 }
 
 func (t Chapa) Verify(request port.VerifyRequest) (port.VerifyResponse, error) {
-	url := request.PartnerUrl
 	var response VerifyPaymentChapaResponse
 
+	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, strconv.Itoa(request.TransactionRef))
+
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", verification_url, nil)
 
 	if err != nil {
 		return port.VerifyResponse{}, port.ErrUnknown
