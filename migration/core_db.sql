@@ -310,8 +310,11 @@ CREATE TABLE IF NOT EXISTS public."orders"
   id SERIAL PRIMARY KEY,
   retailer_id INT,
   status VARCHAR(255),
+  payment_status VARCHAR(255),
+  delivery_status VARCHAR(255),
   total DECIMAL(12,2),
 	FOREIGN KEY (retailer_id) REFERENCES public."users"(id) ON DELETE CASCADE
+
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."orders" IS 'stores orders';
