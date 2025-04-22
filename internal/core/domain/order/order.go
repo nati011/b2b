@@ -401,7 +401,6 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 		switch err {
 		default:
 			return 0, ErrUnknown
-<<<<<<< HEAD
 		}
 	}
 
@@ -431,8 +430,6 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 		switch err {
 		default:
 			return 0, ErrUnknown
-=======
->>>>>>> b8531fb5 (+ add update order delivery and payment statuses with ops:)
 		}
 	}
 
