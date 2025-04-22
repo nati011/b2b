@@ -434,6 +434,7 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 	}
 
 	//TODO: reserve stock
+	// deplete stock if order status is COMPELETED
 
 	return resp.Id, nil
 }
