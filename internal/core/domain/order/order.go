@@ -21,13 +21,26 @@ var (
 	ErrAlreadyCanceled                    = errors.New("oopsy, order already canceled")
 	ErrItemMemberProductNotFound          = errors.New("oopsy, product not found")
 	ErrItemMemberProductQuantityNotFound  = errors.New("oopsy, product quantity not found")
-	ErrTargetStatusIdentical              = errors.New("oopsy, new status same as old status")
 )
 
+// order status
 const (
 	CANCELD_STATUS   = "CANCELED"
 	PENDING_STATUS   = "PENDING"
 	COMPLETED_STATUS = "COMPLETED"
+)
+
+// payment
+const (
+	PAYMENT_PENDING_STATUS  = "PENDING"
+	PAYMENT_ACCEPTED_STATUS = "ACCEPTED"
+)
+
+// delivery
+const (
+	DELIVERY_PENDING_STATUS    = "PENDING"
+	DELIVERY_DISPATCHED_STATUS = "DISPATCHED"
+	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
 )
 
 type Item struct {
@@ -41,11 +54,13 @@ type PlaceRequest struct {
 }
 
 type GetResponse struct {
-	Id         int
-	RetailerId int
-	Items      []Item
-	Total      float32
-	Status     string
+	Id             int
+	RetailerId     int
+	Items          []Item
+	Total          float32
+	Status         string
+	DeliveryStatus string
+	PaymentStatus  string
 }
 
 type GetAllResponse struct {
@@ -58,8 +73,10 @@ type GetByParamRequest struct {
 }
 
 type UpdateRequest struct {
-	Id     int
-	Status string
+	Id             int
+	Status         string
+	PaymentStatus  string
+	DeliveryStatus string
 }
 
 type Provider interface {
@@ -68,7 +85,9 @@ type Provider interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
-	UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error)
+	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
 }
 
 type OrderService struct {
@@ -129,10 +148,12 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	}
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
-		RetailerId: req.RetailerId,
-		Items:      items,
-		Status:     PENDING_STATUS,
-		Total:      itemsTotal,
+		RetailerId:     req.RetailerId,
+		Items:          items,
+		Status:         PENDING_STATUS,
+		PaymentStatus:  PAYMENT_PENDING_STATUS,
+		DeliveryStatus: DELIVERY_PENDING_STATUS,
+		Total:          itemsTotal,
 	})
 	if err != nil {
 		return 0, ErrUnknown
@@ -235,10 +256,12 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		})
 	}
 	return GetResponse{
-		Id:         resp.Id,
-		RetailerId: resp.RetailerId,
-		Items:      items,
-		Status:     resp.Status,
+		Id:             resp.Id,
+		RetailerId:     resp.RetailerId,
+		Items:          items,
+		Status:         resp.Status,
+		DeliveryStatus: resp.DeliveryStatus,
+		PaymentStatus:  resp.PaymentStatus,
 	}, nil
 }
 
@@ -263,10 +286,12 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
-			Id:         i.Id,
-			RetailerId: i.RetailerId,
-			Items:      items,
-			Status:     i.Status,
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
 		})
 	}
 	return return_response, nil
@@ -300,10 +325,12 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -336,10 +363,12 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -351,20 +380,16 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 	return return_response, nil
 }
 
-func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error) {
-	return_response := GetAllResponse{}
+func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:
-			return return_response, ErrIdNotFound
+			return 0, ErrIdNotFound
 		default:
-			return return_response, ErrUnknown
+			return 0, ErrUnknown
 		}
-	}
-	if req.Status == resp.Status {
-		return return_response, ErrTargetStatusIdentical
 	}
 
 	//update
@@ -375,10 +400,69 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (Ge
 	if err != nil {
 		switch err {
 		default:
-			return return_response, ErrUnknown
+			return 0, ErrUnknown
+		}
+	}
+
+	//TODO: reserve stock
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
+		Id:            req.Id,
+		PaymentStatus: req.PaymentStatus,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
 		}
 	}
 
 	// deplete stock if order status is COMPELETED
-	return return_response, nil
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
+		Id:             req.Id,
+		DeliveryStatus: req.DeliveryStatus,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	// deplete stock if order status is COMPELETED
+
+	return resp.Id, nil
 }
