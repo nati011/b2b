@@ -91,11 +91,11 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	if err != nil {
 		switch err {
 		default:
-			log.Printf("failed to process incoming callback tx_ref: %v", tx_ref)
+			log.Printf("failed to process incoming callback tx_ref: %v, gateway_id: %v", tx_ref, gateway_id)
 		}
 	}
 
 	if is_verified {
-		p.PaymentProcessor.Process(tx_ref)
+		p.PaymentProcessor.Process(ctx, tx_ref)
 	}
 }
