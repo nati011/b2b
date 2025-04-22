@@ -23,7 +23,6 @@ type CheckoutRequest struct {
 	OrderId          int
 	Amount           float64
 	PaymentPartnerId int
-	CallbackUrl      string
 }
 
 type CheckoutResponse struct {
