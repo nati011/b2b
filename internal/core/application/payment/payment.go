@@ -55,6 +55,7 @@ func NewPaymentService(
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
+
 	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
 		return CheckoutResponse{}, ErrUnknown
@@ -96,14 +97,6 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	}
 
 	if is_verified {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		p.PaymentProcessor.Process(ctx, tx_ref)
-=======
-		p.PaymentProcessor.Process(tx_ref)
->>>>>>> 396203b2 (+ add payment processor)
-=======
-		p.PaymentProcessor.Process(ctx, tx_ref)
->>>>>>> f5f812ad (+ resolve conflict)
 	}
 }
