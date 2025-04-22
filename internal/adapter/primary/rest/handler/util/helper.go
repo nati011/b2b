@@ -30,8 +30,8 @@ func GetPathParam(r *http.Request, param_position int) (int, error) {
 
 	pathSegments := strings.Split(r.URL.Path, "/")
 	var typedParamId int
-	if len(pathSegments) >= 4 {
-		paramIdValue := pathSegments[4]
+	if len(pathSegments) >= param_position {
+		paramIdValue := pathSegments[param_position]
 		var err error
 		typedParamId, err = strconv.Atoi(paramIdValue)
 
@@ -42,4 +42,16 @@ func GetPathParam(r *http.Request, param_position int) (int, error) {
 		return 0, ErrPathVariableNotFound
 	}
 	return typedParamId, nil
+}
+
+func GetStringPathParam(r *http.Request, param_position int) (string, error) {
+
+	pathSegments := strings.Split(r.URL.Path, "/")
+	var paramIdValue string
+	if len(pathSegments) >= param_position {
+		paramIdValue = pathSegments[param_position]
+	} else {
+		return "", ErrPathVariableNotFound
+	}
+	return paramIdValue, nil
 }
