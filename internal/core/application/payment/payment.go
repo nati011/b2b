@@ -55,7 +55,6 @@ func NewPaymentService(
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-
 	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
 		return CheckoutResponse{}, ErrUnknown
