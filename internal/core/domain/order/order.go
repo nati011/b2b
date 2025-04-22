@@ -438,38 +438,6 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 	return resp.Id, nil
 }
 
-<<<<<<< HEAD
-=======
-func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error) {
-	//validate
-	resp, err := o.Get(ctx, req.Id)
-	if err != nil {
-		switch err {
-		case port.ErrSysNoRows:
-			return 0, ErrIdNotFound
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
-	//update
-	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
-		Id:            req.Id,
-		PaymentStatus: req.PaymentStatus,
-	})
-	if err != nil {
-		switch err {
-		default:
-			return 0, ErrUnknown
-		}
-	}
-
-	// deplete stock if order status is COMPELETED
-
-	return resp.Id, nil
-}
-
->>>>>>> b8531fb5 (+ add update order delivery and payment statuses with ops:)
 func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate
 	resp, err := o.Get(ctx, req.Id)
@@ -484,19 +452,8 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 
 	//update
 	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
-<<<<<<< HEAD
-<<<<<<< HEAD
 		Id:             req.Id,
-		DeliveryStatus: req.DeliveryStatus,
-=======
-		Id:     req.Id,
-		Status: req.Status,
->>>>>>> b8531fb5 (+ add update order delivery and payment statuses with ops:)
-=======
-		Id:             req.Id,
-		DeliveryStatus: req.DeliveryStatus,
->>>>>>> f7d0812b (+ passing integration tests order)
-	})
+		DeliveryStatus: req.DeliveryStatus})
 	if err != nil {
 		switch err {
 		default:
