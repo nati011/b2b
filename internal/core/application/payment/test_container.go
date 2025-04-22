@@ -15,7 +15,6 @@ type TestContainer struct {
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
-	container.UserService = user.NewTestContainer().UserService
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	container.PaymentService = NewPaymentService(

@@ -9,10 +9,3 @@ func (p *PaymentService) validateAmount(amount float64) error {
 	}
 	return nil
 }
-
-func verifyTransactionRef(tx_ref string) error {
-	if tx_ref == "" {
-		return ErrTransactionReferenceNotSupplied
-	}
-	return nil
-}

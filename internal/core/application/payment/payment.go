@@ -3,6 +3,7 @@ package payment
 import (
 	"context"
 	"errors"
+	"log"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	ErrUserNotSupplied                 = errors.New("oopsy, user is mandatory")
+	ErrUserNotFound                    = errors.New("oopsy, user is found")
 	ErrAmountNotSupplied               = errors.New("oopsy, amount is mandatory")
 	ErrAmountLessThanZero              = errors.New("oopsy, amount must be greater than zero")
 	ErrPaymentPartnerNotSupplied       = errors.New("oopsy, payment partner id is mandatory")
@@ -20,23 +21,19 @@ var (
 )
 
 type CheckoutRequest struct {
-	User_Id           int
-	Order_id          int
-	Amount            float64
-	PaymentPartner_Id int
+	OrderId          int
+	Amount           float64
+	PaymentPartnerId int
 }
 
 type CheckoutResponse struct {
 	Checkout_url string
 }
 
-type VerifyResponse struct {
-	Is_verified bool
-}
-
 type Provider interface {
 	Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error)
-	Verify(ctx context.Context, tx_ref string) (VerifyResponse, error)
+	Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error)
+	Callback(ctx context.Context, gateway_id int, tx_ref string)
 }
 
 type PaymentService struct {
@@ -52,12 +49,11 @@ func NewPaymentService(partner partner.Provider, transaction transaction.Provide
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-
 	err := p.validateAmount(req.Amount)
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartner_Id)
+	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 
 	if err != nil {
 		return CheckoutResponse{}, err
@@ -71,7 +67,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
-		TransactionRef: req.Order_id,
+		TransactionRef: req.OrderId,
 		PartnerUrl:     paymentPartner.Init_payment_url,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -86,10 +82,20 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}, nil
 }
 
-func (p *PaymentService) Verify(ctx context.Context, tx_ref string) (VerifyResponse, error) {
-	err := verifyTransactionRef(tx_ref)
+func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
+	return false, nil
+}
+
+func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {
+	is_verified, err := p.Verify(ctx, gateway_id, tx_ref)
 	if err != nil {
-		return VerifyResponse{}, err
+		switch err {
+		default:
+			log.Printf("failed to process incoming callback tx_ref: %v", tx_ref)
+		}
 	}
-	return VerifyResponse{}, nil
+
+	if is_verified {
+		//notify order
+	}
 }
