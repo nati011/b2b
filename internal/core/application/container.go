@@ -77,6 +77,7 @@ type Container struct {
 }
 
 func NewContainer(db *sql.DB,
+	baseUrl string,
 	keycloakInstanceURL string,
 	keycloakUsername string,
 	keycloakPassword string,

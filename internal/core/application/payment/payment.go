@@ -20,10 +20,10 @@ var (
 )
 
 type CheckoutRequest struct {
-	User_Id           int
-	Order_id          int
-	Amount            float64
-	PaymentPartner_Id int
+	OrderId          int
+	Amount           float64
+	PaymentPartnerId int
+	CallbackUrl      string
 }
 
 type CheckoutResponse struct {
@@ -57,7 +57,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartner_Id)
+	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 
 	if err != nil {
 		return CheckoutResponse{}, err
@@ -71,8 +71,9 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
-		TransactionRef: req.Order_id,
+		TransactionRef: req.OrderId,
 		PartnerUrl:     paymentPartner.Init_payment_url,
+		CallbackUrl:    req.CallbackUrl,
 		PartnerSecret:  paymentPartner.Secret,
 	}
 
