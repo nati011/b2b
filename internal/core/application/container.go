@@ -125,7 +125,10 @@ func (m *Container) InitEmailService(email_address, smtp_port string) {
 }
 
 func (m *Container) InitPaymentService() {
-	m.PaymentService = payment.NewPaymentService()
+	m.PaymentService = payment.NewPaymentService(
+		m.PaymentPartnerService,
+		m.TransactionService,
+	)
 }
 
 func (m *Container) InitPaymentPartnerService() {

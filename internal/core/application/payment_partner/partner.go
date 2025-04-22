@@ -18,6 +18,7 @@ const (
 var (
 	ErrNameIsNotSupplied            = errors.New("oopsy, name is not supplied")
 	ErrIconIsNotSupplied            = errors.New("oopsy, icon is not supplied")
+	ErrSecretIsNotSupplied          = errors.New("oppsy, secret is not supplied")
 	ErrUrlIsNotSupplied             = errors.New("oopsy, init payment url is not supplied")
 	ErrIdNotFound                   = errors.New("oopsy, id not found")
 	ErrPaymentOptionaAlreadyActive  = errors.New("oopsy, payment option is already active")
@@ -31,6 +32,7 @@ type CreateRequest struct {
 	Icon             string
 	Status           string
 	Init_payment_url string
+	Secret           string
 }
 
 type GetResponse struct {
@@ -39,6 +41,12 @@ type GetResponse struct {
 	Icon             string
 	Status           string
 	Init_payment_url string
+}
+
+type GetSecretResponse struct {
+	Name             string
+	Init_payment_url string
+	Secret           string
 }
 
 type GetAllResponse struct {
@@ -53,6 +61,7 @@ type GetByParamRequest struct {
 type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	Get(context.Context, int) (GetResponse, error)
+	GetPartnerSecret(context.Context, int) (GetSecretResponse, error)
 	Activate(context.Context, int) error
 	Deactivate(context.Context, int) error
 	GetAll(context.Context) (GetAllResponse, error)
@@ -84,11 +93,17 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 		return 0, err
 	}
 
+	err = validateSecret(req.Secret)
+	if err != nil {
+		return 0, err
+	}
+
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
 		Name:             req.Name,
 		Icon:             req.Icon,
 		Status:           INACTIVE_STATUS,
 		Init_payment_url: req.Init_payment_url,
+		Secret:           req.Secret,
 	})
 	if err != nil {
 		switch err {
@@ -111,6 +126,19 @@ func (p *PartnerService) Get(ctx context.Context, id int) (GetResponse, error) {
 		}
 	}
 	return GetResponse(resp), nil
+}
+
+func (p *PartnerService) GetPartnerSecret(ctx context.Context, id int) (GetSecretResponse, error) {
+	resp, err := p.DB.GetPartnerSecret(ctx, id)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+			return GetSecretResponse{}, ErrIdNotFound
+		default:
+			return GetSecretResponse{}, ErrUnknown
+		}
+	}
+	return GetSecretResponse(resp), nil
 }
 
 func (p *PartnerService) Activate(ctx context.Context, id int) error {

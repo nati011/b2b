@@ -24,6 +24,7 @@ type CreatePaymentPartnerRequest struct {
 	Icon             string `json:"icon"`
 	Status           string `json:"status"`
 	Init_payment_url string `json:"init_payment_url"`
+	Secret           string `json:"secret"`
 }
 
 type GetPaymentPartnerResponse struct {
