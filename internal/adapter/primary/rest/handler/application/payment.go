@@ -29,7 +29,7 @@ func (p *Payment) Init(applicationServices *application_core.Container, domainSe
 }
 
 func (p *Payment) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}", p.CallbackHandler)
+	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackHandler)
 }
 
 func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,11 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
-	//middleware to get tx_ref based on gatewayId
-	tx_ref := "0"
-	p.service.Callback(r.Context(), typedParamGatewayId, tx_ref)
+
+	typedParamTxRef, err := util.GetStringPathParam(r, 6)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	p.service.Callback(r.Context(), typedParamGatewayId, typedParamTxRef)
 }
