@@ -1,6 +1,11 @@
 -- v 0.1
 -- Resources ----------------------------------------
     -- writers
+
+BEGIN;
+DISCARD ALL;
+COMMIT;
+
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
    r_action VARCHAR(255)
