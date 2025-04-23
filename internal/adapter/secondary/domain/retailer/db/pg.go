@@ -81,6 +81,11 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		false,
 		id,
 	)
+
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+
 	rows.Row.Scan(
 		&response.Id,
 		&response.Name,
@@ -90,9 +95,7 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.GeneralZone,
 		&response.Region,
 		&response.Woreda)
-	if err != nil {
-		return port.GetResponse{}, err
-	}
+
 	return response, nil
 }
 

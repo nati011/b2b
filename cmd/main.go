@@ -40,7 +40,7 @@ func main() {
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 
 	// Payment Partner
-	flag.StringVar(&cfg.ChapaSecretKey, "db", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.ChapaSecretKey, "chapa_secret_key", "", "Environment (development|staging|production)")
 	flag.Parse()
 	validateFlags(cfg)
 
