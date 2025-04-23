@@ -108,7 +108,7 @@ func (t Chapa) Initiate(request port.InitiateRequest) (port.InitatePaymentRespon
 func (t Chapa) Verify(request port.VerifyRequest) (port.VerifyResponse, error) {
 	var response VerifyPaymentChapaResponse
 
-	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, strconv.Itoa(request.TransactionRef))
+	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", verification_url, nil)

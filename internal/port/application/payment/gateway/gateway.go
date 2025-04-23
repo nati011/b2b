@@ -21,7 +21,7 @@ type InitatePaymentResponse struct {
 
 type VerifyRequest struct {
 	PartnerUrl     string
-	TransactionRef int
+	TransactionRef string
 	PartnerSecret  string
 }
 
