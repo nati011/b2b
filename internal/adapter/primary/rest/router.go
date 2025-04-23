@@ -21,14 +21,13 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	application_handler.InitTransaction()
 	application_handler.InitRole()
 
-	domain_handler.InitDistributor()
-	domain_handler.InitRetailer()
-	domain_handler.InitDistributor()
-	domain_handler.InitProduct()
 	domain_handler.InitCatalogue()
 	domain_handler.InitCategory()
-	domain_handler.InitOrder()
 	domain_handler.InitConfigurableProduct()
+	domain_handler.InitDistributor()
+	domain_handler.InitRetailer()
+	domain_handler.InitProduct()
+	domain_handler.InitOrder()
 
 	for _, h := range handler.GetHandlers() {
 		if err := h.Init(applicationServices, domainServices); err != nil {
