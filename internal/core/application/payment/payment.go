@@ -85,9 +85,29 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
-	// part_resp, err := p.PartnerService.Get(ctx, gateway_id)
+	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
 
-	return false, nil
+	if err != nil {
+		return false, err
+	}
+
+	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
+
+	if err != nil {
+		return false, err
+	}
+
+	status, err := paymentGateway.Verify(payment.VerifyRequest{
+		TransactionRef: tx_ref,
+		PartnerUrl:     paymentPartner.BaseUrl,
+		PartnerSecret:  paymentPartner.Secret,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return status.Status == "success", nil
 }
 
 func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {
