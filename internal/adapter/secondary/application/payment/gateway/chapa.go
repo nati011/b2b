@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -22,6 +24,33 @@ type InitatePaymentChapaResponse struct {
 	Message string                          `json:"message"`
 	Status  string                          `json:"status"`
 	Data    InitatePaymentChapaResponseData `json:"data"`
+}
+
+type VerifyResponse struct {
+	Message string `json:"message"`
+	Status  string `json:"status"`
+	Data    struct {
+		FirstName     string  `json:"first_name"`
+		LastName      string  `json:"last_name"`
+		Email         string  `json:"email"`
+		Currency      string  `json:"currency"`
+		Amount        float64 `json:"amount"`
+		Charge        float64 `json:"charge"`
+		Mode          string  `json:"mode"`
+		Method        string  `json:"method"`
+		Type          string  `json:"type"`
+		Status        string  `json:"status"`
+		Reference     string  `json:"reference"`
+		TxRef         string  `json:"tx_ref"`
+		Customization struct {
+			Title       string  `json:"title"`
+			Description string  `json:"description"`
+			Logo        *string `json:"logo"`
+		} `json:"customization"`
+		Meta      interface{} `json:"meta"`
+		CreatedAt time.Time   `json:"created_at"`
+		UpdatedAt time.Time   `json:"updated_at"`
+	} `json:"data"`
 }
 
 type Chapa struct {
@@ -72,7 +101,44 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 	default:
 		return "", port.ErrUnknown
 	}
-
 }
 
-func (t Chapa) Verify() {}
+func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
+	var response VerifyResponse
+
+	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", verification_url, nil)
+
+	if err != nil {
+		return false, port.ErrUnknown
+	}
+
+	req.Header.Add("Authorization", request.PartnerSecret)
+	res, err := client.Do(req)
+
+	if err != nil {
+		return false, port.ErrUnknown
+	}
+
+	defer res.Body.Close()
+
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return false, port.ErrUnknown
+	}
+
+	if err := json.Unmarshal(resBody, &response); err != nil {
+		return false, port.ErrUnknown
+	}
+
+	switch response.Status {
+	case "success":
+		return false, nil
+	case "failed":
+		return false, port.ErrInvalidTransaction
+	default:
+		return false, port.ErrUnknown
+	}
+}
