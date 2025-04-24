@@ -96,6 +96,7 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 	paymentVerificationRequest := payment.VerificationRequest{
 		PartnerUrl:     paymentPartner.Init_payment_url,
 		TransactionRef: tx_ref,
+		PartnerSecret:  paymentPartner.Secret,
 	}
 
 	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
