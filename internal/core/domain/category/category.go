@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/category"
 )
 
@@ -91,7 +92,7 @@ func (c *CategoryService) Get(ctx context.Context, id int) (GetResponse, error) 
 	resp, err := c.db.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
