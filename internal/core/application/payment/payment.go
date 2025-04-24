@@ -9,6 +9,7 @@ import (
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/application/user"
 	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -26,6 +27,7 @@ type CheckoutRequest struct {
 	Amount           float64
 	PaymentPartnerId int
 	OrderId          int
+	User_Id          int
 }
 
 type CheckoutResponse struct {
@@ -39,6 +41,7 @@ type Provider interface {
 }
 
 type PaymentService struct {
+	UserService        user.Provider
 	PartnerService     partner.Provider
 	TransactionService transaction.Provider
 	PaymentProcessor   payment_processor.Provider
@@ -65,6 +68,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
+
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
 		TransactionRef: strconv.Itoa(req.OrderId),
