@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
@@ -64,10 +65,9 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
-
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
-		TransactionRef: req.OrderId,
+		TransactionRef: strconv.Itoa(req.OrderId),
 		PartnerUrl:     paymentPartner.Init_payment_url,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -83,9 +83,26 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
-	// part_resp, err := p.PartnerService.Get(ctx, gateway_id)
+	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, gateway_id)
+	if err != nil {
+		return false, ErrUnknown
+	}
 
-	return false, nil
+	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
+	if err != nil {
+		return false, err
+	}
+
+	paymentVerificationRequest := payment.VerificationRequest{
+		PartnerUrl:     paymentPartner.Init_payment_url,
+		TransactionRef: tx_ref,
+	}
+
+	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
+	if err != nil {
+		return false, err
+	}
+	return is_verified, nil
 }
 
 func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {
