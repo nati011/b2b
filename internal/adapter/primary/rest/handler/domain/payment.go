@@ -21,6 +21,11 @@ type Payment struct {
 	service payment.Provider
 }
 
+type CheckoutRequest struct {
+	TransactionRef   string `json:"transaction_ref"`
+	PaymentPartnerId int    `json:"payment_partner_id"`
+}
+
 func InitPayment() {
 	handler.Register(new(Payment))
 }
@@ -50,7 +55,7 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Payment) CheckoutHandler(w http.ResponseWriter, r *http.Request) {
-	var requestBody payment.CheckoutRequest
+	var requestBody CheckoutRequest
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -63,7 +68,7 @@ func (p *Payment) CheckoutHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
-	response, err := p.service.Checkout(r.Context(), &requestBody)
+	response, err := p.service.Checkout(r.Context(), (*payment.CheckoutRequest)(&requestBody))
 	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return

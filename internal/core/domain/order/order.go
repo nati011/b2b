@@ -268,6 +268,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		Status:         resp.Status,
 		DeliveryStatus: resp.DeliveryStatus,
 		PaymentStatus:  resp.PaymentStatus,
+		Total:          float32(resp.Total),
 	}, nil
 }
 

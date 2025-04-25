@@ -14,13 +14,6 @@ func validateIcon(icon string) error {
 	return nil
 }
 
-func validateInitPaymentURL(url string) error {
-	if url == "" {
-		return ErrUrlIsNotSupplied
-	}
-	return nil
-}
-
 func validateSecret(secret string) error {
 	if secret == "" {
 		return ErrSecretIsNotSupplied

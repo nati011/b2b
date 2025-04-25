@@ -17,7 +17,6 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/email"
-	"b2b.nati011.github.com/internal/core/application/payment"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/resource"
@@ -59,7 +58,6 @@ import (
 
 type Container struct {
 	db                    *sql.DB
-	BaseUrl               string
 	AuthService           auth.Provider
 	AuthMiddleware        *util.AuthMiddleware
 	DistributorService    distributor.Provider
@@ -122,19 +120,8 @@ func (m *Container) InitEmailService(email_address, smtp_port string) {
 	m.EmailService = email.NewEmailService(email_provider_adapter.NewInbucket(email_address, smtp_port), m.RenderService)
 }
 
-func (m *Container) InitPaymentService() {
-	m.PaymentService = payment.NewPaymentService(
-		m.PaymentPartnerService,
-		m.TransactionService,
-
-		m.BaseUrl,
-	)
-}
-
 func (m *Container) InitPaymentPartnerService() {
-	m.PaymentPartnerService = payment_partner.NewPartner(
-		payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination),
-	)
+	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitRenderService() {
