@@ -1,6 +1,7 @@
-package payment
+package test
 
 import (
+	"b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -8,7 +9,7 @@ import (
 )
 
 type TestContainer struct {
-	PaymentService     Provider
+	PaymentService     payment.Provider
 	TransactionService transaction.Provider
 	PartnerService     partner.Provider
 	UserService        user.Provider
@@ -19,7 +20,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	container.PaymentService = NewPaymentService(
+	container.PaymentService = payment.NewPaymentService(
 		container.PartnerService,
 		container.TransactionService,
 		container.PaymentProcessor)
@@ -30,7 +31,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 func (t *TestContainer) TearDown() {
 	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	t.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	t.PaymentService = NewPaymentService(
+	t.PaymentService = payment.NewPaymentService(
 		t.PartnerService,
 		t.TransactionService,
 		t.PaymentProcessor)
