@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"b2b.nati011.github.com/config"
 	keycloak "github.com/stillya/testcontainers-keycloak"
@@ -55,6 +56,7 @@ func InitAuthDevelopment(cfg *config.Config) {
 	}
 
 	keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
+	log.Printf("Keycloak URL, %v", keycloakInstanceUrl)
 	if err != nil {
 		panic(err)
 	}

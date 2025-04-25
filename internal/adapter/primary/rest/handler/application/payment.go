@@ -32,7 +32,7 @@ func (p *Payment) Init(applicationServices *application_core.Container, domainSe
 
 func (p *Payment) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackHandler)
-	mux.HandleFunc("POST /api/v1/payment/checkout", p.CallbackHandler)
+	mux.HandleFunc("POST /api/v1/payment/checkout", p.CheckoutHandler)
 }
 
 func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {

@@ -59,6 +59,7 @@ import (
 
 type Container struct {
 	db                    *sql.DB
+	BaseUrl               string
 	AuthService           auth.Provider
 	AuthMiddleware        *util.AuthMiddleware
 	DistributorService    distributor.Provider
@@ -129,11 +130,15 @@ func (m *Container) InitPaymentService() {
 	m.PaymentService = payment.NewPaymentService(
 		m.PaymentPartnerService,
 		m.TransactionService,
+
+		m.BaseUrl,
 	)
 }
 
 func (m *Container) InitPaymentPartnerService() {
-	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.PaymentPartnerService = payment_partner.NewPartner(
+		payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination),
+	)
 }
 
 func (m *Container) InitRenderService() {

@@ -9,10 +9,11 @@ var (
 
 type InitiateRequest struct {
 	Amount         float64
+	BaseUrl        string
 	PartnerUrl     string
 	PartnerSecret  string
 	ReturnUrl      string
-	TransactionRef int
+	TransactionRef string
 }
 
 type InitatePaymentResponse struct {
