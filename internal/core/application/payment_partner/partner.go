@@ -28,25 +28,25 @@ var (
 )
 
 type CreateRequest struct {
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
-	Secret           string
+	Name    string
+	Icon    string
+	Status  string
+	BaseUrl string
+	Secret  string
 }
 
 type GetResponse struct {
-	Id               int
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
+	Id      int
+	Name    string
+	Icon    string
+	Status  string
+	BaseUrl string
 }
 
 type GetSecretResponse struct {
-	Name             string
-	Init_payment_url string
-	Secret           string
+	Name    string
+	BaseUrl string
+	Secret  string
 }
 
 type GetAllResponse struct {
@@ -88,10 +88,6 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-	err = validateInitPaymentURL(req.Init_payment_url)
-	if err != nil {
-		return 0, err
-	}
 
 	err = validateSecret(req.Secret)
 	if err != nil {
@@ -99,11 +95,11 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	}
 
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
-		Name:             req.Name,
-		Icon:             req.Icon,
-		Status:           INACTIVE_STATUS,
-		Init_payment_url: req.Init_payment_url,
-		Secret:           req.Secret,
+		Name:    req.Name,
+		Icon:    req.Icon,
+		Status:  INACTIVE_STATUS,
+		BaseUrl: req.BaseUrl,
+		Secret:  req.Secret,
 	})
 	if err != nil {
 		switch err {
@@ -130,6 +126,7 @@ func (p *PartnerService) Get(ctx context.Context, id int) (GetResponse, error) {
 
 func (p *PartnerService) GetPartnerSecret(ctx context.Context, id int) (GetSecretResponse, error) {
 	resp, err := p.DB.GetPartnerSecret(ctx, id)
+
 	if err != nil {
 		switch err {
 		case port.ErrSysNoRows:

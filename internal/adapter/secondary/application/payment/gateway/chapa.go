@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -24,19 +25,6 @@ type InitatePaymentChapaResponse struct {
 	Message string                          `json:"message"`
 	Status  string                          `json:"status"`
 	Data    InitatePaymentChapaResponseData `json:"data"`
-}
-
-type InitatePaymentChapaRequest struct {
-	Amount         float64 `json:"amount"`
-	CallbackUrl    string  `json:"callback_url"`
-	ReturnUrl      string  `json:"return_url"`
-	TransactionRef string  `json:"tx_ref"`
-}
-
-type VerifyPaymentChapaResponseData struct {
-	Amount         float64 `json:"amount"`
-	Status         string  `json:"status"`
-	TransactionRef string  `json:"tx_ref"`
 }
 
 type VerifyResponse struct {
@@ -74,32 +62,27 @@ func NewChapa() port.Provider {
 }
 
 func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
-	url := request.PartnerUrl
+	initalization_url := fmt.Sprintf("%v/transaction/initialize", request.PartnerUrl)
 	var response InitatePaymentChapaResponse
 
-	callback_url := fmt.Sprintf("%v/payment/webhook/chapa/%v", request.BaseUrl, request.TransactionRef)
-
-	requestBody := InitatePaymentChapaRequest{
-		Amount:         request.Amount,
-		TransactionRef: request.TransactionRef,
-		CallbackUrl:    callback_url,
-		ReturnUrl:      request.ReturnUrl,
-	}
-
-	payload, err := json.Marshal(requestBody)
+	payload, err := json.Marshal(request)
 	if err != nil {
 		return "", port.ErrUnknown
 	}
+
+	log.Printf("Amount HERE %v", request.Amount)
 
 	client := &http.Client{}
 	body := bytes.NewReader(payload)
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest("POST", initalization_url, body)
 
 	if err != nil {
 		return "", port.ErrUnknown
 	}
 
-	req.Header.Add("Authorization", request.PartnerSecret)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", request.PartnerSecret))
+	req.Header.Add("Content-Type", "application/json")
+
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -128,7 +111,7 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 	var response VerifyResponse
 
-	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
+	verification_url := fmt.Sprintf("%v/v1/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", verification_url, nil)
@@ -137,7 +120,8 @@ func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 		return false, port.ErrUnknown
 	}
 
-	req.Header.Add("Authorization", request.PartnerSecret)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", request.PartnerSecret))
+	req.Header.Add("Content-Type", "application/json")
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -157,10 +141,8 @@ func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 
 	switch response.Status {
 	case "success":
-		return false, nil
-	case "failed":
-		return false, port.ErrInvalidTransaction
+		return true, nil
 	default:
-		return false, port.ErrUnknown
+		return false, nil
 	}
 }
