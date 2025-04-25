@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
+	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -26,23 +26,31 @@ type InitatePaymentChapaResponse struct {
 	Data    InitatePaymentChapaResponseData `json:"data"`
 }
 
-type InitatePaymentChapaRequest struct {
-	Amount         float64 `json:"amount"`
-	CallbackUrl    string  `json:"callback_url"`
-	ReturnUrl      string  `json:"return_url"`
-	TransactionRef int     `json:"tx_ref"`
-}
-
-type VerifyPaymentChapaResponseData struct {
-	Amount         float64 `json:"amount"`
-	Status         string  `json:"status"`
-	TransactionRef string  `json:"tx_ref"`
-}
-
-type VerifyPaymentChapaResponse struct {
-	Message string                          `json:"message"`
-	Status  string                          `json:"status"`
-	Data    InitatePaymentChapaResponseData `json:"data"`
+type VerifyResponse struct {
+	Message string `json:"message"`
+	Status  string `json:"status"`
+	Data    struct {
+		FirstName     string  `json:"first_name"`
+		LastName      string  `json:"last_name"`
+		Email         string  `json:"email"`
+		Currency      string  `json:"currency"`
+		Amount        float64 `json:"amount"`
+		Charge        float64 `json:"charge"`
+		Mode          string  `json:"mode"`
+		Method        string  `json:"method"`
+		Type          string  `json:"type"`
+		Status        string  `json:"status"`
+		Reference     string  `json:"reference"`
+		TxRef         string  `json:"tx_ref"`
+		Customization struct {
+			Title       string  `json:"title"`
+			Description string  `json:"description"`
+			Logo        *string `json:"logo"`
+		} `json:"customization"`
+		Meta      interface{} `json:"meta"`
+		CreatedAt time.Time   `json:"created_at"`
+		UpdatedAt time.Time   `json:"updated_at"`
+	} `json:"data"`
 }
 
 type Chapa struct {
@@ -52,61 +60,51 @@ func NewChapa() port.Provider {
 	return &Chapa{}
 }
 
-func (t Chapa) Initiate(request port.InitiateRequest) (port.InitatePaymentResponse, error) {
+func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
+	url := request.PartnerUrl
 	var response InitatePaymentChapaResponse
 
-	callback_url := fmt.Sprintf("%v/chapa/%v", request.PartnerUrl, strconv.Itoa(request.TransactionRef))
-
-	requestBody := InitatePaymentChapaRequest{
-		Amount:         request.Amount,
-		TransactionRef: request.TransactionRef,
-		CallbackUrl:    callback_url,
-		ReturnUrl:      request.ReturnUrl,
-	}
-
-	payload, err := json.Marshal(requestBody)
+	payload, err := json.Marshal(request)
 	if err != nil {
-		return port.InitatePaymentResponse{}, port.ErrUnknown
+		return "", port.ErrUnknown
 	}
 
 	client := &http.Client{}
 	body := bytes.NewReader(payload)
-	req, err := http.NewRequest("POST", request.PartnerUrl, body)
+	req, err := http.NewRequest("POST", url, body)
 
 	if err != nil {
-		return port.InitatePaymentResponse{}, port.ErrUnknown
+		return "", port.ErrUnknown
 	}
 
 	req.Header.Add("Authorization", request.PartnerSecret)
 	res, err := client.Do(req)
 
 	if err != nil {
-		return port.InitatePaymentResponse{}, port.ErrUnknown
+		return "", port.ErrUnknown
 	}
 
 	defer res.Body.Close()
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
-		return port.InitatePaymentResponse{}, port.ErrUnknown
+		return "", port.ErrUnknown
 	}
 
 	if err := json.Unmarshal(resBody, &response); err != nil {
-		return port.InitatePaymentResponse{}, port.ErrUnknown
+		return "", port.ErrUnknown
 	}
 
 	switch response.Status {
 	case "success":
-		return port.InitatePaymentResponse{
-			CheckoutUrl: response.Data.CheckoutUrl}, nil
+		return response.Data.CheckoutUrl, nil
 	default:
-		return port.InitatePaymentResponse{}, port.ErrUnknown
+		return "", port.ErrUnknown
 	}
-
 }
 
-func (t Chapa) Verify(request port.VerifyRequest) (port.VerifyResponse, error) {
-	var response VerifyPaymentChapaResponse
+func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
+	var response VerifyResponse
 
 	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
 
@@ -114,35 +112,33 @@ func (t Chapa) Verify(request port.VerifyRequest) (port.VerifyResponse, error) {
 	req, err := http.NewRequest("GET", verification_url, nil)
 
 	if err != nil {
-		return port.VerifyResponse{}, port.ErrUnknown
+		return false, port.ErrUnknown
 	}
 
 	req.Header.Add("Authorization", request.PartnerSecret)
 	res, err := client.Do(req)
 
 	if err != nil {
-		return port.VerifyResponse{}, port.ErrUnknown
+		return false, port.ErrUnknown
 	}
 
 	defer res.Body.Close()
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
-		return port.VerifyResponse{}, port.ErrUnknown
+		return false, port.ErrUnknown
 	}
 
 	if err := json.Unmarshal(resBody, &response); err != nil {
-		return port.VerifyResponse{}, port.ErrUnknown
+		return false, port.ErrUnknown
 	}
 
 	switch response.Status {
 	case "success":
-		return port.VerifyResponse{
-			Status: response.Status,
-		}, nil
+		return false, nil
 	case "failed":
-		return port.VerifyResponse{}, port.ErrInvalidTransaction
+		return false, port.ErrInvalidTransaction
 	default:
-		return port.VerifyResponse{}, port.ErrUnknown
+		return false, port.ErrUnknown
 	}
 }

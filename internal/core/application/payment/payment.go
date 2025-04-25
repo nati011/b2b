@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/application/user"
 	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -22,13 +24,14 @@ var (
 )
 
 type CheckoutRequest struct {
-	OrderId          int
 	Amount           float64
 	PaymentPartnerId int
+	OrderId          int
+	User_Id          int
 }
 
 type CheckoutResponse struct {
-	CheckoutUrl string
+	Checkout_url string
 }
 
 type Provider interface {
@@ -38,39 +41,38 @@ type Provider interface {
 }
 
 type PaymentService struct {
-	paymentPartner   partner.Provider
-	transaction      transaction.Provider
-	PaymentProcessor payment_processor.Provider
+	UserService        user.Provider
+	PartnerService     partner.Provider
+	TransactionService transaction.Provider
+	PaymentProcessor   payment_processor.Provider
 }
 
-func NewPaymentService(partner partner.Provider, transaction transaction.Provider) Provider {
+func NewPaymentService(
+	partner partner.Provider,
+	transaction transaction.Provider,
+	paymentProcessor payment_processor.Provider) Provider {
 	return &PaymentService{
-		paymentPartner: partner,
-		transaction:    transaction,
+		PartnerService:     partner,
+		TransactionService: transaction,
+		PaymentProcessor:   paymentProcessor,
 	}
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-	err := p.validateAmount(req.Amount)
+	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
-		return CheckoutResponse{}, err
-	}
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
-
-	if err != nil {
-		return CheckoutResponse{}, err
+		return CheckoutResponse{}, ErrUnknown
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
-
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
 
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
-		TransactionRef: req.OrderId,
-		PartnerUrl:     paymentPartner.BaseUrl,
+		TransactionRef: strconv.Itoa(req.OrderId),
+		PartnerUrl:     paymentPartner.Init_payment_url,
 		PartnerSecret:  paymentPartner.Secret,
 	}
 
@@ -80,34 +82,32 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}
 
 	return CheckoutResponse{
-		CheckoutUrl: checkoutUrl.CheckoutUrl,
+		Checkout_url: checkoutUrl,
 	}, nil
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
-
+	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, gateway_id)
 	if err != nil {
-		return false, err
+		return false, ErrUnknown
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
-
 	if err != nil {
 		return false, err
 	}
 
-	status, err := paymentGateway.Verify(payment.VerifyRequest{
+	paymentVerificationRequest := payment.VerificationRequest{
+		PartnerUrl:     paymentPartner.Init_payment_url,
 		TransactionRef: tx_ref,
-		PartnerUrl:     paymentPartner.BaseUrl,
 		PartnerSecret:  paymentPartner.Secret,
-	})
+	}
 
+	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
 	if err != nil {
 		return false, err
 	}
-
-	return status.Status == "success", nil
+	return is_verified, nil
 }
 
 func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {

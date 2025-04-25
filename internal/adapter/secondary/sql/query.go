@@ -15,20 +15,21 @@ type QueryResult struct {
 func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, args ...any) (*QueryResult, error) {
 	if multiple {
 		rows, err := db.QueryContext(ctx, query, args...)
-		if err != nil {
-			switch err {
+		if rows.Scan() != nil {
+			switch rows.Scan() {
 			case sql.ErrNoRows:
 				return nil, port_commons.ErrNoRows
-			default:
-				return nil, port_commons.ErrSysUnknown
 			}
+		}
+		if err != nil {
+			return nil, port_commons.ErrSysUnknown
 		}
 		return &QueryResult{Rows: rows}, nil
 	}
 
 	row := db.QueryRowContext(ctx, query, args...)
-	if row.Err() != nil {
-		switch row.Err() {
+	if row.Scan() != nil {
+		switch row.Scan() {
 		case sql.ErrNoRows:
 			return nil, port_commons.ErrNoRows
 		default:
@@ -37,5 +38,4 @@ func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, 
 	}
 
 	return &QueryResult{Row: row}, nil
-
 }

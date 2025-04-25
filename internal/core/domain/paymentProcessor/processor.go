@@ -12,6 +12,12 @@ type Provider struct {
 	orderService order.Provider
 }
 
+func NewProcessor(os order.Provider) Provider {
+	return Provider{
+		orderService: os,
+	}
+}
+
 func (p *Provider) Process(ctx context.Context, tx_ref string) {
 	order_id, err := strconv.Atoi(tx_ref)
 	if err != nil {
