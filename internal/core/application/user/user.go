@@ -133,7 +133,6 @@ func NewUser(db port.DB, roleService role.Provider, authService auth.Provider) P
 func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate input
 	err := create_validateUserInfo(
-		ctx,
 		req.FirstName,
 		req.LastName,
 		req.Email,
@@ -158,6 +157,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		PhoneNumber: req.Phone,
 		Username:    req.Username,
 	})
+	log.Printf("Client %v", providerResponse)
+
 	if err != nil {
 		return 0, err
 
@@ -181,7 +182,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		}
 	}
 
-	log.Printf("Registered User %v", user_id)
+	log.Printf("Registered User Cleint%v", providerResponse.Id)
 	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -68,6 +69,8 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 	if err != nil {
 		return "", port.ErrUnknown
 	}
+
+	log.Printf("Amount HERE %v", request.Amount)
 
 	client := &http.Client{}
 	body := bytes.NewReader(payload)

@@ -22,9 +22,8 @@ var (
 )
 
 type CheckoutRequest struct {
-	Amount           float64
-	PaymentPartnerId int
 	TransactionRef   string
+	PaymentPartnerId int
 }
 
 type CheckoutResponse struct {
@@ -38,27 +37,29 @@ type Provider interface {
 }
 
 type PaymentService struct {
-	PartnerService     partner.Provider
-	TransactionService transaction.Provider
-	PaymentProcessor   payment_processor.Provider
+	paymentPartner   partner.Provider
+	transaction      transaction.Provider
+	paymentProcessor payment_processor.Provider
+	frontendUrl      string
+	baseUrl          string
 }
 
-func NewPaymentService(
-	partner partner.Provider,
-	transaction transaction.Provider,
-	paymentProcessor payment_processor.Provider) Provider {
+func NewPaymentService(partner partner.Provider, transaction transaction.Provider, processor payment_processor.Provider, frontendUrl string, baseUrl string) Provider {
 	return &PaymentService{
-		PartnerService:     partner,
-		TransactionService: transaction,
-		PaymentProcessor:   paymentProcessor,
+		baseUrl:          baseUrl,
+		paymentPartner:   partner,
+		transaction:      transaction,
+		paymentProcessor: processor,
+		frontendUrl:      frontendUrl,
 	}
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-	if req.TransactionRef == "" {
-		return CheckoutResponse{}, ErrTransactionReferenceNotSupplied
+	order, err := p.paymentProcessor.FetchOrder(ctx, req.TransactionRef)
+	if err != nil {
+		return CheckoutResponse{}, err
 	}
-	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, req.PaymentPartnerId)
+	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
 		switch err {
 		case partner.ErrIdNotFound:
@@ -73,12 +74,16 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 		return CheckoutResponse{}, err
 	}
 
-	checkoutUrl, err := paymentGateway.Initiate(payment.InitiateRequest{
-		Amount:         req.Amount,
+	paymentInitiateRequest := payment.InitiateRequest{
+		Amount:         float64(order.Total),
 		TransactionRef: req.TransactionRef,
-		PartnerUrl:     paymentPartner.Init_payment_url,
+		PartnerUrl:     paymentPartner.BaseUrl,
 		PartnerSecret:  paymentPartner.Secret,
-	})
+		BaseUrl:        p.baseUrl,
+		ReturnUrl:      p.frontendUrl,
+	}
+
+	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
@@ -89,11 +94,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
-	if tx_ref == "" {
-		return false, ErrTransactionReferenceNotSupplied
-	}
-
-	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, gateway_id)
+	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
 	if err != nil {
 		switch err {
 		case partner.ErrIdNotFound:
@@ -109,7 +110,7 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 	}
 
 	paymentVerificationRequest := payment.VerificationRequest{
-		PartnerUrl:     paymentPartner.Init_payment_url,
+		PartnerUrl:     paymentPartner.BaseUrl,
 		TransactionRef: tx_ref,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -131,6 +132,6 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	}
 
 	if is_verified {
-		p.PaymentProcessor.Process(ctx, tx_ref)
+		p.paymentProcessor.Process(ctx, tx_ref)
 	}
 }
