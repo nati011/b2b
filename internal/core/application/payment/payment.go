@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/application/user"
 	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -25,6 +27,7 @@ type CheckoutRequest struct {
 	Amount           float64
 	PaymentPartnerId int
 	OrderId          int
+	User_Id          int
 }
 
 type CheckoutResponse struct {
@@ -38,6 +41,7 @@ type Provider interface {
 }
 
 type PaymentService struct {
+	UserService        user.Provider
 	PartnerService     partner.Provider
 	TransactionService transaction.Provider
 	PaymentProcessor   payment_processor.Provider
@@ -67,7 +71,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 
 	paymentInitiateRequest := payment.InitiateRequest{
 		Amount:         req.Amount,
-		TransactionRef: req.OrderId,
+		TransactionRef: strconv.Itoa(req.OrderId),
 		PartnerUrl:     paymentPartner.Init_payment_url,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -83,9 +87,27 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
-	// part_resp, err := p.PartnerService.Get(ctx, gateway_id)
+	paymentPartner, err := p.PartnerService.GetPartnerSecret(ctx, gateway_id)
+	if err != nil {
+		return false, ErrUnknown
+	}
 
-	return false, nil
+	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
+	if err != nil {
+		return false, err
+	}
+
+	paymentVerificationRequest := payment.VerificationRequest{
+		PartnerUrl:     paymentPartner.Init_payment_url,
+		TransactionRef: tx_ref,
+		PartnerSecret:  paymentPartner.Secret,
+	}
+
+	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
+	if err != nil {
+		return false, err
+	}
+	return is_verified, nil
 }
 
 func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {
@@ -98,14 +120,6 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	}
 
 	if is_verified {
-<<<<<<< HEAD
-<<<<<<< HEAD
 		p.PaymentProcessor.Process(ctx, tx_ref)
-=======
-		p.PaymentProcessor.Process(tx_ref)
->>>>>>> 396203b2 (+ add payment processor)
-=======
-		p.PaymentProcessor.Process(ctx, tx_ref)
->>>>>>> f5f812ad (+ resolve conflict)
 	}
 }
