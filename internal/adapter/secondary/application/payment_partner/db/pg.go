@@ -68,6 +68,7 @@ func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartne
 	rows.Row.Scan(
 		&response.Name,
 		&response.Secret,
+		&response.Init_payment_url,
 	)
 
 	return response, nil
