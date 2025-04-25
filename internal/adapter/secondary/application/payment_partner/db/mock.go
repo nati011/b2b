@@ -116,6 +116,7 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 		Icon:             req.Icon,
 		Init_payment_url: req.Init_payment_url,
 		Status:           req.Status,
+		Secret:           req.Secret,
 	})
 	return newResourceId, nil
 }

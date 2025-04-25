@@ -61,7 +61,7 @@ func NewChapa() port.Provider {
 }
 
 func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
-	url := request.PartnerUrl
+	initalization_url := fmt.Sprintf("%v/v1/transaction/initialize", request.PartnerUrl)
 	var response InitatePaymentChapaResponse
 
 	payload, err := json.Marshal(request)
@@ -71,13 +71,15 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 
 	client := &http.Client{}
 	body := bytes.NewReader(payload)
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest("POST", initalization_url, body)
 
 	if err != nil {
 		return "", port.ErrUnknown
 	}
 
-	req.Header.Add("Authorization", request.PartnerSecret)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", request.PartnerSecret))
+	req.Header.Add("Content-Type", "application/json")
+
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -106,7 +108,7 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 	var response VerifyResponse
 
-	verification_url := fmt.Sprintf("%v/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
+	verification_url := fmt.Sprintf("%v/v1/transaction/verify/%v", request.PartnerUrl, request.TransactionRef)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", verification_url, nil)
@@ -115,7 +117,8 @@ func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 		return false, port.ErrUnknown
 	}
 
-	req.Header.Add("Authorization", request.PartnerSecret)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", request.PartnerSecret))
+	req.Header.Add("Content-Type", "application/json")
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -135,10 +138,8 @@ func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 
 	switch response.Status {
 	case "success":
-		return false, nil
-	case "failed":
-		return false, port.ErrInvalidTransaction
+		return true, nil
 	default:
-		return false, port.ErrUnknown
+		return false, nil
 	}
 }
