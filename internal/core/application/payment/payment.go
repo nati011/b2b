@@ -24,8 +24,6 @@ var (
 type CheckoutRequest struct {
 	TransactionRef   string
 	PaymentPartnerId int
-	OrderId          int
-	User_Id          int
 }
 
 type CheckoutResponse struct {
@@ -71,6 +69,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 		TransactionRef: req.TransactionRef,
 		PartnerUrl:     paymentPartner.BaseUrl,
 		PartnerSecret:  paymentPartner.Secret,
+		BaseUrl:        p.baseUrl,
 	}
 
 	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)

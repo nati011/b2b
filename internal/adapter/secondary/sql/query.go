@@ -29,6 +29,7 @@ func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, 
 	}
 
 	row := db.QueryRowContext(ctx, query, args...)
+	log.Printf("Args, %v", args...)
 	if row.Err() != nil {
 		log.Printf("Query Error %v", row.Err().Error())
 		switch row.Err() {
