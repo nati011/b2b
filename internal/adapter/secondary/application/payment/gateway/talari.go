@@ -13,4 +13,6 @@ func (t Talari) Initiate(req port.InitiateRequest) (string, error) {
 	return "", nil
 }
 
-func (t Talari) Verify() {}
+func (t Talari) Verify(req port.VerificationRequest) (bool, error) {
+	return false, nil
+}
