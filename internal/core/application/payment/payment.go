@@ -40,20 +40,25 @@ type PaymentService struct {
 	paymentPartner   partner.Provider
 	transaction      transaction.Provider
 	paymentProcessor payment_processor.Provider
+	frontendUrl      string
 	baseUrl          string
 }
 
-func NewPaymentService(partner partner.Provider, transaction transaction.Provider, processor payment_processor.Provider, baseUrl string) Provider {
+func NewPaymentService(partner partner.Provider, transaction transaction.Provider, processor payment_processor.Provider, frontendUrl string, baseUrl string) Provider {
 	return &PaymentService{
 		baseUrl:          baseUrl,
 		paymentPartner:   partner,
 		transaction:      transaction,
 		paymentProcessor: processor,
+		frontendUrl:      frontendUrl,
 	}
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
 	order, err := p.paymentProcessor.FetchOrder(ctx, req.TransactionRef)
+	if err != nil {
+		return CheckoutResponse{}, err
+	}
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
 		switch err {
@@ -75,6 +80,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 		PartnerUrl:     paymentPartner.BaseUrl,
 		PartnerSecret:  paymentPartner.Secret,
 		BaseUrl:        p.baseUrl,
+		ReturnUrl:      p.frontendUrl,
 	}
 
 	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)
