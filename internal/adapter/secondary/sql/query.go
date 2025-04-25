@@ -28,13 +28,12 @@ func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, 
 	}
 
 	row := db.QueryRowContext(ctx, query, args...)
-	if row.Scan() != nil {
-		switch row.Scan() {
-		case sql.ErrNoRows:
-			return nil, port_commons.ErrNoRows
-		default:
-			return nil, port_commons.ErrSysUnknown
-		}
+	if row.Err() != nil {
+		return nil, port_commons.ErrSysUnknown
+	}
+
+	if err := row.Scan(); err != nil {
+		return nil, port_commons.ErrNoRows
 	}
 
 	return &QueryResult{Row: row}, nil
