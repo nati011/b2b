@@ -16,7 +16,7 @@ var (
 	ErrUserNotFound                    = errors.New("oopsy, user is found")
 	ErrAmountNotSupplied               = errors.New("oopsy, amount is mandatory")
 	ErrAmountLessThanZero              = errors.New("oopsy, amount must be greater than zero")
-	ErrPaymentPartnerNotSupplied       = errors.New("oopsy, payment partner id is mandatory")
+	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is mandatory")
 	ErrTransactionReferenceNotSupplied = errors.New("oopsy, transaction refrence is mandatory")
 	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
 )
@@ -32,8 +32,8 @@ type CheckoutResponse struct {
 
 type Provider interface {
 	Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error)
-	Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error)
-	Callback(ctx context.Context, gateway_id int, tx_ref string)
+	Verify(ctx context.Context, PaymentPartnerId int, tx_ref string) (bool, error)
+	Callback(ctx context.Context, PaymentPartnerId int, tx_ref string)
 }
 
 type PaymentService struct {
@@ -56,7 +56,12 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	order, err := p.paymentProcessor.FetchOrder(ctx, req.TransactionRef)
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
-		return CheckoutResponse{}, ErrUnknown
+		switch err {
+		case partner.ErrIdNotFound:
+			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+		default:
+			return CheckoutResponse{}, ErrUnknown
+		}
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
@@ -85,7 +90,12 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
 	if err != nil {
-		return false, ErrUnknown
+		switch err {
+		case partner.ErrIdNotFound:
+			return false, ErrPaymentPartnerNotSupported
+		default:
+			return false, ErrUnknown
+		}
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
@@ -101,7 +111,7 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 
 	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
 	if err != nil {
-		return false, err
+		return false, ErrUnknown
 	}
 	return is_verified, nil
 }
