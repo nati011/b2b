@@ -14,7 +14,7 @@ func validateIcon(icon string) error {
 	return nil
 }
 
-func validateBaseURL(url string) error {
+func validateInitPaymentURL(url string) error {
 	if url == "" {
 		return ErrUrlIsNotSupplied
 	}

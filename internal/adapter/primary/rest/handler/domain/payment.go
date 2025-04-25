@@ -1,4 +1,4 @@
-package application
+package domain
 
 import (
 	"encoding/json"
@@ -26,7 +26,7 @@ func InitPayment() {
 }
 
 func (p *Payment) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	p.service = applicationServices.PaymentService
+	p.service = domainService.PaymentService
 	return nil
 }
 
