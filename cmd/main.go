@@ -27,6 +27,8 @@ func main() {
 	flag.StringVar(&cfg.KeycloakApplicationRealm, "keycloak_application_realm", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientSecret, "keycloak_client_secret", "", "Environment (development|staging|production)")
+	// base url
+	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
 
 	//email
 	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
