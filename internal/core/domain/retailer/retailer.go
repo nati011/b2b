@@ -3,8 +3,10 @@ package retailer
 import (
 	"context"
 	"errors"
+	"log"
 
 	"b2b.nati011.github.com/internal/core/application/user"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
@@ -25,11 +27,12 @@ type CreateRequest struct {
 	Region      string
 	Woreda      string
 
-	FirstName string
-	LastName  string
-	Email     string
-	Phone     string
-	Username  string
+	FirstName  string
+	LastName   string
+	Email      string
+	Phone      string
+	Username   string
+	ExternalId string
 }
 
 type GetResponse struct {
@@ -92,11 +95,12 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 
 	// create user
 	user_id, err := r.UserService.Create(ctx, &user.CreateRequest{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Email:     req.Email,
-		Username:  req.Username,
-		Phone:     req.Phone,
+		FirstName:  req.FirstName,
+		LastName:   req.LastName,
+		Email:      req.Email,
+		Username:   req.Username,
+		Phone:      req.Phone,
+		ExternalId: req.ExternalId,
 	})
 	if err != nil {
 		switch err {
@@ -136,8 +140,9 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := r.DB.Get(ctx, id)
 	if err != nil {
+		log.Printf("Retailer Get Err, %v", err.Error())
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -177,7 +182,7 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 		resp_tin, err := r.DB.GetByTin(ctx, req.Tin)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}

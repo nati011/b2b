@@ -22,8 +22,7 @@ var (
 )
 
 type CheckoutRequest struct {
-	OrderId          int
-	Amount           float64
+	TransactionRef   string
 	PaymentPartnerId int
 }
 
@@ -40,18 +39,21 @@ type Provider interface {
 type PaymentService struct {
 	paymentPartner   partner.Provider
 	transaction      transaction.Provider
-	PaymentProcessor payment_processor.Provider
+	paymentProcessor payment_processor.Provider
+	baseUrl          string
 }
 
-func NewPaymentService(partner partner.Provider, transaction transaction.Provider) Provider {
+func NewPaymentService(partner partner.Provider, transaction transaction.Provider, processor payment_processor.Provider, baseUrl string) Provider {
 	return &PaymentService{
-		paymentPartner: partner,
-		transaction:    transaction,
+		baseUrl:          baseUrl,
+		paymentPartner:   partner,
+		transaction:      transaction,
+		paymentProcessor: processor,
 	}
 }
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-	err := p.validateAmount(req.Amount)
+	order, err := p.paymentProcessor.FetchOrder(ctx, req.TransactionRef)
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
@@ -68,8 +70,8 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}
 
 	paymentInitiateRequest := payment.InitiateRequest{
-		Amount:         req.Amount,
-		TransactionRef: req.OrderId,
+		Amount:         float64(order.Total),
+		TransactionRef: req.TransactionRef,
 		PartnerUrl:     paymentPartner.BaseUrl,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -120,6 +122,6 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	}
 
 	if is_verified {
-		p.PaymentProcessor.Process(ctx, tx_ref)
+		p.paymentProcessor.Process(ctx, tx_ref)
 	}
 }

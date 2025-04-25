@@ -27,3 +27,16 @@ func (p *Provider) Process(ctx context.Context, tx_ref string) {
 		return
 	}
 }
+
+func (o *Provider) FetchOrder(ctx context.Context, transactionRef string) (order.GetResponse, error) {
+	id, err := strconv.Atoi(transactionRef)
+	if err != nil {
+		return order.GetResponse{}, err
+	}
+	fetchedOrder, err := o.orderService.Get(ctx, id)
+	if err != nil {
+		return order.GetResponse{}, err
+	}
+
+	return fetchedOrder, nil
+}
