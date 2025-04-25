@@ -19,6 +19,7 @@ func main() {
 
 	// Base url
 	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
 
 	//keycloak
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
@@ -63,7 +64,7 @@ func main() {
 		cfg.KeycloakClientSecret,
 	)
 
-	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, db_pool)
+	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)
