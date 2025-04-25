@@ -212,8 +212,9 @@ func Test_Write(t *testing.T) {
 			Username:    "retailer_user",
 			FirstName:   "test",
 			LastName:    "test",
-
-			Email: "test@gmail.com",
+			Phone:       "+251978545123",
+			Email:       "test@gmail.com",
+			ExternalId:  "test",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {

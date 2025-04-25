@@ -133,7 +133,6 @@ func NewUser(db port.DB, roleService role.Provider, authService auth.Provider) P
 func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate input
 	err := create_validateUserInfo(
-		ctx,
 		req.FirstName,
 		req.LastName,
 		req.Email,

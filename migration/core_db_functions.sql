@@ -2,10 +2,6 @@
 -- Resources ----------------------------------------
     -- writers
 
-BEGIN;
-DISCARD ALL;
-COMMIT;
-
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
    r_action VARCHAR(255)
@@ -689,7 +685,7 @@ AS $$
     END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.create_and_activate_user (
+CREATE OR REPLACE FUNCTION public.create_and_activate_user(
     u_firstname VARCHAR(255),
     u_lastname VARCHAR(255),
     u_email VARCHAR(255),

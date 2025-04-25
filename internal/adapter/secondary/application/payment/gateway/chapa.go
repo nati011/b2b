@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	port "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -30,7 +29,7 @@ type InitatePaymentChapaRequest struct {
 	Amount         float64 `json:"amount"`
 	CallbackUrl    string  `json:"callback_url"`
 	ReturnUrl      string  `json:"return_url"`
-	TransactionRef int     `json:"tx_ref"`
+	TransactionRef string  `json:"tx_ref"`
 }
 
 type VerifyPaymentChapaResponseData struct {
@@ -55,7 +54,7 @@ func NewChapa() port.Provider {
 func (t Chapa) Initiate(request port.InitiateRequest) (port.InitatePaymentResponse, error) {
 	var response InitatePaymentChapaResponse
 
-	callback_url := fmt.Sprintf("%v/chapa/%v", request.PartnerUrl, strconv.Itoa(request.TransactionRef))
+	callback_url := fmt.Sprintf("%v/payment/webhook/chapa/%v", request.BaseUrl, request.TransactionRef)
 
 	requestBody := InitatePaymentChapaRequest{
 		Amount:         request.Amount,

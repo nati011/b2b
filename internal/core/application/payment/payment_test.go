@@ -25,7 +25,7 @@ func Test_Checkout_happyPath(t *testing.T) {
 	t.Run("init_checkout", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			Amount:           1,
+			TransactionRef:   "1",
 			PaymentPartnerId: 1,
 		}
 
@@ -51,24 +51,10 @@ func Test_Checkout_unhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("amountGreaterThanZero", func(t *testing.T) {
-		ctx := context.Background()
-		in := &CheckoutRequest{
-			PaymentPartnerId: PaymentPartnerId,
-			Amount:           -1,
-		}
-
-		_, err := testContainer.PaymentService.Checkout(ctx, in)
-		wantErr := ErrAmountLessThanZero
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
-		}
-	})
-
 	t.Run("PaymentPartnerNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			Amount: 1,
+			TransactionRef: "1",
 		}
 
 		_, err := testContainer.PaymentService.Checkout(ctx, in)
