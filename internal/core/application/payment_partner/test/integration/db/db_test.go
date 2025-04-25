@@ -38,11 +38,11 @@ func Test_Read(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &payment_partner.CreateRequest{
-			Name:    "test",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "https://google.com",
-			Secret:  "randomSecret",
+			Name:             "test",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "https://google.com",
+			Secret:           "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -66,11 +66,11 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &payment_partner.CreateRequest{
-			Name:    "test",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "test",
-			Secret:  "randomSecret",
+			Name:             "test",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "test",
+			Secret:           "randomSecret",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)
@@ -94,11 +94,11 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &payment_partner.CreateRequest{
-			Name:    "test4",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "test",
-			Secret:  "randomSecret",
+			Name:             "test4",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "test",
+			Secret:           "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -131,11 +131,11 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &payment_partner.CreateRequest{
-			Name:    "test1",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "test",
-			Secret:  "randomSecret",
+			Name:             "test1",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "test",
+			Secret:           "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -155,11 +155,11 @@ func Test_Read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &payment_partner.CreateRequest{
-			Name:    "test",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "test",
-			Secret:  "randomSecret",
+			Name:             "test",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "test",
+			Secret:           "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -184,11 +184,11 @@ func Test_Write(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &payment_partner.CreateRequest{
-			Name:    "test",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "https://google.com",
-			Secret:  "randomSecret",
+			Name:             "test",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "https://google.com",
+			Secret:           "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
@@ -211,11 +211,11 @@ func Test_Write(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &payment_partner.CreateRequest{
-			Name:    "test",
-			Icon:    "test",
-			Status:  "test",
-			BaseUrl: "test",
-			Secret:  "randomSecret",
+			Name:             "test",
+			Icon:             "test",
+			Status:           "test",
+			Init_payment_url: "test",
+			Secret:           "randomSecret",
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)

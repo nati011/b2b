@@ -20,19 +20,19 @@ var (
 )
 
 type CreatePaymentPartnerRequest struct {
-	Name    string `json:"name"`
-	Icon    string `json:"icon"`
-	Status  string `json:"status"`
-	BaseUrl string `json:"baseurl"`
-	Secret  string `json:"secret"`
+	Name             string `json:"name"`
+	Icon             string `json:"icon"`
+	Status           string `json:"status"`
+	Init_payment_url string `json:"init_payment_url"`
+	Secret           string `json:"secret"`
 }
 
 type GetPaymentPartnerResponse struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	Icon    string `json:"icon"`
-	Status  string `json:"status"`
-	BaseUrl string `json:"baseurl"`
+	Id               int    `json:"id"`
+	Name             string `json:"name"`
+	Icon             string `json:"icon"`
+	Status           string `json:"status"`
+	Init_payment_url string `json:"init_payment_url"`
 }
 
 type GetAllPaymentPartnerResponse struct {

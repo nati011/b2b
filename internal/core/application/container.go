@@ -17,7 +17,6 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/email"
-	"b2b.nati011.github.com/internal/core/application/payment"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/resource"
@@ -64,7 +63,6 @@ type Container struct {
 	DistributorService    distributor.Provider
 	RetailerService       retailer.Provider
 	EmailService          email.Provider
-	PaymentService        payment.Provider
 	PaymentPartnerService payment_partner.Provider
 	RenderService         render.Renderer
 	ResourceService       resource.Provider
@@ -77,7 +75,6 @@ type Container struct {
 }
 
 func NewContainer(db *sql.DB,
-	baseUrl string,
 	keycloakInstanceURL string,
 	keycloakUsername string,
 	keycloakPassword string,
@@ -96,15 +93,12 @@ func NewContainer(db *sql.DB,
 
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
-	container.InitResourceService()
 	container.InitUserService()
-	container.InitRoleService()
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(email_address, smtp_port)
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
-	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitUserService()
@@ -123,13 +117,6 @@ func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername
 
 func (m *Container) InitEmailService(email_address, smtp_port string) {
 	m.EmailService = email.NewEmailService(email_provider_adapter.NewInbucket(email_address, smtp_port), m.RenderService)
-}
-
-func (m *Container) InitPaymentService() {
-	m.PaymentService = payment.NewPaymentService(
-		m.PaymentPartnerService,
-		m.TransactionService,
-	)
 }
 
 func (m *Container) InitPaymentPartnerService() {

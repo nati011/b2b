@@ -24,7 +24,7 @@ func InitPayment() {
 }
 
 func (p *Payment) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	p.service = domainService.ApplicationServices.PaymentService
+	p.service = domainService.PaymentService
 	return nil
 }
 

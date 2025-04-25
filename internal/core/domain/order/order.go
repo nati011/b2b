@@ -434,6 +434,7 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 	}
 
 	//TODO: reserve stock
+	// deplete stock if order status is COMPELETED
 
 	return resp.Id, nil
 }
@@ -453,11 +454,11 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 	//update
 	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
 		Id:             req.Id,
-		DeliveryStatus: req.DeliveryStatus})
+		DeliveryStatus: req.DeliveryStatus,
+	})
 	if err != nil {
 		switch err {
 		default:
-			return 0, ErrUnknown
 			return 0, ErrUnknown
 		}
 	}
