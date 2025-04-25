@@ -61,13 +61,13 @@ func setup() {
 	}
 
 	// ddl
-	err = runMigration(db, "/home/delilah/Documents/work/non-kifya/b2b/migration/core_db.sql")
+	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db.sql")
 	if err != nil {
 		log.Fatalf("Error running ddl migration: %v", err)
 	}
 
 	// functions
-	err = runMigration(db, "/home/delilah/Documents/work/non-kifya/b2b/migration/core_db_functions.sql")
+	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db_functions.sql")
 	if err != nil {
 		log.Fatalf("Error running stored func migration: %v", err)
 	}

@@ -24,10 +24,12 @@ var (
 type CheckoutRequest struct {
 	TransactionRef   string
 	PaymentPartnerId int
+	OrderId          int
+	User_Id          int
 }
 
 type CheckoutResponse struct {
-	CheckoutUrl string
+	Checkout_url string
 }
 
 type Provider interface {
@@ -54,17 +56,12 @@ func NewPaymentService(partner partner.Provider, transaction transaction.Provide
 
 func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
 	order, err := p.paymentProcessor.FetchOrder(ctx, req.TransactionRef)
-	if err != nil {
-		return CheckoutResponse{}, err
-	}
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
-
 	if err != nil {
-		return CheckoutResponse{}, err
+		return CheckoutResponse{}, ErrUnknown
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
-
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
@@ -82,34 +79,32 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}
 
 	return CheckoutResponse{
-		CheckoutUrl: checkoutUrl.CheckoutUrl,
+		Checkout_url: checkoutUrl,
 	}, nil
 }
 
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
-
 	if err != nil {
-		return false, err
+		return false, ErrUnknown
 	}
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
-
 	if err != nil {
 		return false, err
 	}
 
-	status, err := paymentGateway.Verify(payment.VerifyRequest{
-		TransactionRef: tx_ref,
+	paymentVerificationRequest := payment.VerificationRequest{
 		PartnerUrl:     paymentPartner.BaseUrl,
+		TransactionRef: tx_ref,
 		PartnerSecret:  paymentPartner.Secret,
-	})
+	}
 
+	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
 	if err != nil {
 		return false, err
 	}
-
-	return status.Status == "success", nil
+	return is_verified, nil
 }
 
 func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {

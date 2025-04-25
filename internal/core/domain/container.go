@@ -11,11 +11,13 @@ import (
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	retailer_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
+	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
@@ -46,6 +48,8 @@ type Container struct {
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	ApplicationServices        application_core.Container
+	PaymentProcessorService    payment_processor.Provider
+	PaymentService             payment.Provider
 }
 
 func NewContainer(application_core application_core.Container, db *sql.DB) *Container {
@@ -64,6 +68,8 @@ func NewContainer(application_core application_core.Container, db *sql.DB) *Cont
 	container.InitRetailerService()
 	container.InitOrderService()
 	container.InitDistributorService()
+	container.InitPaymentProcessorService()
+	container.InitPaymentService()
 
 	return &container
 }
@@ -96,4 +102,16 @@ func (m *Container) InitDistributorService() {
 
 func (m *Container) InitRetailerService() {
 	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db))
+}
+
+func (m *Container) InitPaymentProcessorService() {
+	m.PaymentProcessorService = payment_processor.NewProcessor(m.OrderService)
+}
+
+func (m *Container) InitPaymentService() {
+	m.PaymentService = payment.NewPaymentService(
+		m.ApplicationServices.PaymentPartnerService,
+		m.ApplicationServices.TransactionService,
+		m.PaymentProcessorService,
+	)
 }
