@@ -60,7 +60,6 @@ func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartne
 		false,
 		id,
 	)
-
 	if err != nil {
 		return port.GetPartnerSecret{}, err
 	}
