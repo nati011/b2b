@@ -65,7 +65,6 @@ func Test_write(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			User_Id:    user_id,
 			Amount:     1,
 			Partner_Id: partner_id,
 		}
@@ -96,7 +95,6 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			User_Id:    user_id,
 			Amount:     1,
 			Partner_Id: partner_id,
 		}
@@ -121,7 +119,6 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			User_Id:    user_id,
 			Amount:     1,
 			Partner_Id: partner_id,
 		}
@@ -147,44 +144,12 @@ func Test_read(t *testing.T) {
 		}
 	})
 
-	t.Run("get_by_user_id", func(t *testing.T) {
-		setup()
-		t.Cleanup(teardown)
-		ctx := context.Background()
-		//setup
-		in := &transaction.CreateRequest{
-			User_Id:    user_id,
-			Amount:     1,
-			Partner_Id: partner_id,
-		}
-		id, err := container.TransactionService.Create(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		resp, err := container.TransactionService.Get(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-
-		resp_param, err := container.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
-			User_Id: resp.User_Id,
-		})
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-		wantLen := 1
-		if wantLen != len(resp_param.List) {
-			t.Errorf("Expected length: %v Want: %v", wantLen, len(resp_param.List))
-		}
-	})
-
 	t.Run("get_by_partner_id", func(t *testing.T) {
 		setup()
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			User_Id:    user_id,
 			Amount:     1,
 			Partner_Id: partner_id,
 		}

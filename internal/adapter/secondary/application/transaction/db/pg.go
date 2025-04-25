@@ -43,7 +43,6 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	rows.Row.Scan(
 		&response.Id,
-		&response.User_Id,
 		&amountStr,
 		&response.Partner_Id,
 		&response.Date)
@@ -78,7 +77,6 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
 			&transaction.Partner_Id,
 			&transaction.Date); err != nil {
@@ -124,7 +122,6 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
 			&transaction.Partner_Id,
 			&transaction.Date); err != nil {
@@ -170,7 +167,6 @@ func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllRes
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
 			&transaction.Partner_Id,
 			&transaction.Date); err != nil {
@@ -215,7 +211,6 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
 			&transaction.Partner_Id,
 			&transaction.Date); err != nil {
@@ -248,7 +243,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		ctx,
 		query,
 		false,
-		req.User_Id,
 		req.Partner_Id,
 		req.Amount,
 	)

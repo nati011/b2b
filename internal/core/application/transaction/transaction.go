@@ -24,7 +24,6 @@ var (
 
 type GetResponse struct {
 	Id         int
-	User_Id    int
 	Date       time.Time
 	Amount     int64
 	Partner_Id int
@@ -35,7 +34,6 @@ type GetAllResponse struct {
 }
 
 type CreateRequest struct {
-	User_Id    int
 	Amount     int64
 	Partner_Id int
 }
@@ -43,7 +41,6 @@ type CreateRequest struct {
 type GetByParamRequest struct {
 	Date       time.Time
 	Partner_Id int
-	User_Id    int
 }
 
 type Provider interface {
@@ -71,11 +68,7 @@ func NewTransactionService(db port.DB,
 }
 
 func (t *TransactionService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	err := t.validateUserId(ctx, req.User_Id)
-	if err != nil {
-		return 0, err
-	}
-	err = validateAmount(req.Amount)
+	err := validateAmount(req.Amount)
 	if err != nil {
 		return 0, err
 	}
@@ -85,7 +78,6 @@ func (t *TransactionService) Create(ctx context.Context, req *CreateRequest) (in
 	}
 
 	id, err := t.DB.Create(ctx, &port.CreateRequest{
-		User_Id:    req.User_Id,
 		Partner_Id: req.Partner_Id,
 		Amount:     req.Amount,
 	})
@@ -132,29 +124,6 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 	ret_resp := GetAllResponse{}
 	if req.Partner_Id != 0 {
 		resp, err := t.DB.GetByPartnerId(ctx, req.Partner_Id)
-		if err != nil {
-			switch err {
-			case port.ErrSysNoRows:
-			default:
-				return GetAllResponse{}, ErrUnknown
-			}
-		}
-
-		for _, i := range resp.List {
-			found := false
-			for _, j := range ret_resp.List {
-				if j.Id == i.Id {
-					found = true
-				}
-			}
-			if !found {
-				ret_resp.List = append(ret_resp.List, GetResponse(i))
-			}
-		}
-	}
-
-	if req.User_Id != 0 {
-		resp, err := t.DB.GetByUserId(ctx, req.User_Id)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
