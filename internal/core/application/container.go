@@ -74,7 +74,8 @@ type Container struct {
 	Pagination            config.Pagination
 }
 
-func NewContainer(db *sql.DB,
+func NewContainer(
+	db *sql.DB,
 	keycloakInstanceURL string,
 	keycloakUsername string,
 	keycloakPassword string,
