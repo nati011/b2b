@@ -11,25 +11,25 @@ var (
 )
 
 type CreateRequest struct {
-	Name    string
-	Icon    string
-	Status  string
-	BaseUrl string
-	Secret  string
+	Name             string
+	Icon             string
+	Status           string
+	Init_payment_url string
+	Secret           string
 }
 
 type GetResponse struct {
-	Id      int
-	Name    string
-	Icon    string
-	Status  string
-	BaseUrl string
+	Id               int
+	Name             string
+	Icon             string
+	Status           string
+	Init_payment_url string
 }
 
 type GetPartnerSecret struct {
-	Name    string
-	BaseUrl string
-	Secret  string
+	Name             string
+	Init_payment_url string
+	Secret           string
 }
 
 type GetAllResponse struct {
