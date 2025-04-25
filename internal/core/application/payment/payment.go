@@ -118,6 +118,9 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 	if err != nil {
 		return false, ErrUnknown
 	}
+
+	// if verified create transaction
+
 	return is_verified, nil
 }
 

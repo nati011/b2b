@@ -13,7 +13,6 @@ var (
 
 type GetResponse struct {
 	Id         int
-	User_Id    int
 	Date       time.Time
 	Amount     int64
 	Partner_Id int
@@ -24,7 +23,6 @@ type GetAllResponse struct {
 }
 
 type CreateRequest struct {
-	User_Id    int
 	Amount     int64
 	Partner_Id int
 }
@@ -33,7 +31,6 @@ type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByDate(context.Context, time.Time) (GetAllResponse, error)
-	GetByUserId(context.Context, int) (GetAllResponse, error)
 	GetByPartnerId(context.Context, int) (GetAllResponse, error)
 }
 

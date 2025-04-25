@@ -52,7 +52,6 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 		if i.Id == id {
 			return port.GetResponse{
 				Id:         i.Id,
-				User_Id:    i.User_Id,
 				Date:       i.Date,
 				Amount:     i.Amount,
 				Partner_Id: i.Partner_Id,
@@ -67,7 +66,6 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	for _, i := range m.resources {
 		response = append(response, port.GetResponse{
 			Id:         i.Id,
-			User_Id:    i.User_Id,
 			Date:       i.Date,
 			Amount:     i.Amount,
 			Partner_Id: i.Partner_Id,
@@ -87,7 +85,6 @@ func (m *Mock) GetByDate(ctx context.Context, date time.Time) (port.GetAllRespon
 		if i.Date == date {
 			response = append(response, port.GetResponse{
 				Id:         i.Id,
-				User_Id:    i.User_Id,
 				Date:       i.Date,
 				Amount:     i.Amount,
 				Partner_Id: i.Partner_Id,
@@ -108,7 +105,6 @@ func (m *Mock) GetByUserId(ctx context.Context, userId int) (port.GetAllResponse
 		if i.User_Id == userId {
 			response = append(response, port.GetResponse{
 				Id:         i.Id,
-				User_Id:    i.User_Id,
 				Date:       i.Date,
 				Amount:     i.Amount,
 				Partner_Id: i.Partner_Id,
@@ -129,7 +125,6 @@ func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int) (port.GetAllRe
 		if i.Partner_Id == partnerId {
 			response = append(response, port.GetResponse{
 				Id:         i.Id,
-				User_Id:    i.User_Id,
 				Date:       i.Date,
 				Amount:     i.Amount,
 				Partner_Id: i.Partner_Id,
@@ -148,7 +143,6 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 	newResourceId := len(m.resources) + 1
 	m.resources = append(m.resources, MockTransaction{
 		Id:         newResourceId,
-		User_Id:    req.User_Id,
 		Amount:     req.Amount,
 		Partner_Id: req.Partner_Id,
 		Date:       time.Now(),
