@@ -9,10 +9,10 @@ func NewTalari() port.Provider {
 	return &Talari{}
 }
 
-func (t Talari) Initiate(req port.InitiateRequest) (port.InitatePaymentResponse, error) {
-	return port.InitatePaymentResponse{}, nil
+func (t Talari) Initiate(req port.InitiateRequest) (string, error) {
+	return "", nil
 }
 
-func (t Talari) Verify(request port.VerifyRequest) (port.VerifyResponse, error) {
-	return port.VerifyResponse{}, nil
+func (t Talari) Verify(req port.VerificationRequest) (bool, error) {
+	return false, nil
 }

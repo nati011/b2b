@@ -25,9 +25,9 @@ func setup() {
 	ctx := context.Background()
 	//create partner
 	partner_id, _ = testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:    "test",
-		Icon:    "test",
-		BaseUrl: "test",
+		Name:             "test",
+		Icon:             "test",
+		Init_payment_url: "test",
 	})
 
 	//create user

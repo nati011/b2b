@@ -65,7 +65,6 @@ type Container struct {
 	DistributorService    distributor.Provider
 	RetailerService       retailer.Provider
 	EmailService          email.Provider
-	PaymentService        payment.Provider
 	PaymentPartnerService payment_partner.Provider
 	RenderService         render.Renderer
 	ResourceService       resource.Provider
@@ -77,8 +76,8 @@ type Container struct {
 	Pagination            config.Pagination
 }
 
-func NewContainer(db *sql.DB,
-	baseUrl string,
+func NewContainer(
+	db *sql.DB,
 	keycloakInstanceURL string,
 	keycloakUsername string,
 	keycloakPassword string,
@@ -97,15 +96,12 @@ func NewContainer(db *sql.DB,
 
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
-	container.InitResourceService()
 	container.InitUserService()
-	container.InitRoleService()
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(email_address, smtp_port)
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
-	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitUserService()
