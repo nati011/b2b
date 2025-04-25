@@ -44,7 +44,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.Name,
 		&response.Icon,
 		&response.Status,
-		&response.Init_payment_url)
+		&response.BaseUrl)
 
 	return response, nil
 }
@@ -67,9 +67,11 @@ func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartne
 
 	rows.Row.Scan(
 		&response.Name,
+		&response.BaseUrl,
 		&response.Secret,
-		&response.Init_payment_url,
 	)
+
+	log.Printf("Base url %v", response.BaseUrl)
 
 	return response, nil
 }
@@ -102,7 +104,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			&partner.Name,
 			&partner.Icon,
 			&partner.Status,
-			&partner.Init_payment_url); err != nil {
+			&partner.BaseUrl); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -141,7 +143,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			&partner.Name,
 			&partner.Icon,
 			&partner.Status,
-			&partner.Init_payment_url); err != nil {
+			&partner.BaseUrl); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -181,7 +183,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 			&partner.Name,
 			&partner.Icon,
 			&partner.Status,
-			&partner.Init_payment_url); err != nil {
+			&partner.BaseUrl); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -209,7 +211,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.Name,
 		req.Icon,
 		req.Status,
-		req.Init_payment_url,
+		req.BaseUrl,
 		req.Secret,
 	)
 	if err != nil {

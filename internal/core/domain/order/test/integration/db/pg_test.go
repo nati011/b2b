@@ -37,11 +37,10 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-		Username:    "ordeR_retailer",
+		Username:    "order_retailer001",
 		FirstName:   "test",
 		LastName:    "test",
-
-		Email: "test@gmail.com",
+		Email:       "test568@gmail.com",
 	})
 
 	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
