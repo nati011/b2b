@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
@@ -28,8 +29,10 @@ func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, 
 	}
 
 	row := db.QueryRowContext(ctx, query, args...)
-	if row.Scan() != nil {
-		switch row.Scan() {
+	log.Printf("Args, %v", args...)
+	if row.Err() != nil {
+		log.Printf("Query Error %v", row.Err().Error())
+		switch row.Err() {
 		case sql.ErrNoRows:
 			return nil, port_commons.ErrNoRows
 		default:

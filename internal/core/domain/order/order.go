@@ -79,6 +79,11 @@ type UpdateRequest struct {
 	DeliveryStatus string
 }
 
+type CheckoutRequest struct {
+	OrderId          int
+	PaymentPartnerId string
+}
+
 type Provider interface {
 	Place(ctx context.Context, req *PlaceRequest) (int, error)
 	Cancel(ctx context.Context, id int) error
@@ -101,7 +106,8 @@ func NewOrderService(
 	db port.DB,
 	is invoice.Provider,
 	ps product.Provider,
-	rs retailer.Provider) Provider {
+	rs retailer.Provider,
+) Provider {
 
 	return &OrderService{
 		DB:              db,
@@ -262,6 +268,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		Status:         resp.Status,
 		DeliveryStatus: resp.DeliveryStatus,
 		PaymentStatus:  resp.PaymentStatus,
+		Total:          float32(resp.Total),
 	}, nil
 }
 

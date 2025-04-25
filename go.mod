@@ -45,6 +45,7 @@ require (
 	github.com/inbucket/inbucket v2.0.0+incompatible
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/lib/pq v1.10.9
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
