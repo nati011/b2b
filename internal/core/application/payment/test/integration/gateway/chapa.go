@@ -26,10 +26,10 @@ func setup() {
 	var err error
 	PaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:             "chapa",
-			Icon:             "etst",
-			Init_payment_url: "https://api.chapa.co",
-			Secret:           "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:    "chapa",
+			Icon:    "etst",
+			BaseUrl: "https://api.chapa.co",
+			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
 	if err != nil {
 		panic("failed to create payment partner")
@@ -44,7 +44,6 @@ func Test_Checkout(t *testing.T) {
 		currentTimestamp := time.Now()
 		generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 		in := &payment.CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 			TransactionRef:   generatedTxRef,
 		}
@@ -65,7 +64,6 @@ func Test_Verify_Payment(t *testing.T) {
 		currentTimestamp := time.Now()
 		generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 		in := &payment.CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 			TransactionRef:   generatedTxRef,
 		}
@@ -91,7 +89,6 @@ func Test_Verify_Payment(t *testing.T) {
 		currentTimestamp := time.Now()
 		generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 		in := &payment.CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 			TransactionRef:   generatedTxRef,
 		}
