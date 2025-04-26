@@ -45,8 +45,10 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.Id,
 		&amountStr,
 		&response.PartnerId,
+		&response.TxRef,
+		&response.Status,
 		&response.Date,
-		&response.TxRef)
+	)
 
 	// Convert amountStr to int64
 	amount, err := strconv.ParseFloat(amountStr, 64)
@@ -80,8 +82,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			&transaction.Id,
 			&amountStr,
 			&transaction.PartnerId,
-			&transaction.Date,
-			&transaction.TxRef); err != nil {
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -126,54 +129,9 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 			&transaction.Id,
 			&amountStr,
 			&transaction.PartnerId,
-			&transaction.Date,
-			&transaction.TxRef); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		// Convert amountStr to int64
-		amount, err := strconv.ParseFloat(amountStr, 64)
-		if err != nil {
-			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
-		}
-		transaction.Amount = amount
-		response.List = append(response.List, transaction)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
-	return response, nil
-}
-
-func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllResponse, error) {
-	var response port.GetAllResponse
-
-	query := "SELECT * FROM public.get_transactions_by_user_id($1,$2,$3);"
-
-	limit := p.Pagination.Limit
-	offset := p.Pagination.Offset
-
-	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, user_id, limit, offset)
-
-	if err != nil {
-		return port.GetAllResponse{}, err
-	}
-
-	defer rows.Rows.Close()
-
-	for rows.Rows.Next() {
-		var transaction port.GetResponse
-		var amountStr string
-		if err := rows.Rows.Scan(
-			&transaction.Id,
-			&amountStr,
-			&transaction.PartnerId,
-			&transaction.Date,
-			&transaction.TxRef); err != nil {
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -217,8 +175,9 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 			&transaction.Id,
 			&amountStr,
 			&transaction.PartnerId,
-			&transaction.Date,
-			&transaction.TxRef); err != nil {
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -262,8 +221,9 @@ func (p *Postgres) GetByTxRef(ctx context.Context, tx_ref string) (port.GetAllRe
 			&transaction.Id,
 			&amountStr,
 			&transaction.PartnerId,
-			&transaction.Date,
-			&transaction.TxRef); err != nil {
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -307,8 +267,9 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			&transaction.Id,
 			&amountStr,
 			&transaction.PartnerId,
-			&transaction.Date,
-			&transaction.TxRef); err != nil {
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
@@ -332,14 +293,15 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var id int
-	query := "SELECT * FROM public.record_transaction($1, $2, $3);"
+	query := "SELECT * FROM public.record_transaction($1, $2, $3, $4);"
 	rows, err := handler.MustQueryRow(
 		p.Pool,
 		ctx,
 		query,
 		false,
-		req.PartnerId,
 		req.Amount,
+		req.PartnerId,
+		req.Status,
 		req.TxRef,
 	)
 	if err != nil {

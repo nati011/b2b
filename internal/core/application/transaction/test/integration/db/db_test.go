@@ -18,7 +18,7 @@ import (
 var container test_container.TestContainer
 var db *sql.DB
 var user_id int
-var partner_id int
+var PartnerId int
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -29,12 +29,16 @@ func setup() {
 	db = db_test_container.Setup()
 	container = test_container.NewDBIntegrationTestContainer(db)
 	ctx := context.Background()
-
-	partner_id, _ = container.PartnerService.Create(ctx, &partner.CreateRequest{
+	var err error
+	PartnerId, err = container.PartnerService.Create(ctx, &partner.CreateRequest{
 		Name:    "test",
 		Icon:    "test",
 		BaseURL: "test",
+		Secret:  "test",
 	})
+	if err != nil {
+		panic("failed to create err partner")
+	}
 	//create user
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
@@ -66,7 +70,9 @@ func Test_write(t *testing.T) {
 		//setup
 		in := &transaction.CreateRequest{
 			Amount:    1,
-			PartnerId: partner_id,
+			PartnerId: PartnerId,
+			TxRef:     "1",
+			Status:    "test",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -86,7 +92,28 @@ func Test_write(t *testing.T) {
 
 func Test_read(t *testing.T) {
 	t.Run("get_by_id", func(t *testing.T) {
-		//unimplemented in service
+		setup()
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		in := &transaction.CreateRequest{
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "test",
+			Status:    "tesdt",
+		}
+		id, err := container.TransactionService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := container.TransactionService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		if id != resp.Id {
+			t.Errorf("Expected id: %v Got: %v", id, resp.Id)
+		}
 
 	})
 
@@ -97,7 +124,9 @@ func Test_read(t *testing.T) {
 		//setup
 		in := &transaction.CreateRequest{
 			Amount:    1,
-			PartnerId: partner_id,
+			PartnerId: PartnerId,
+			TxRef:     "test",
+			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		print(id)
@@ -121,7 +150,9 @@ func Test_read(t *testing.T) {
 		//setup
 		in := &transaction.CreateRequest{
 			Amount:    1,
-			PartnerId: partner_id,
+			PartnerId: PartnerId,
+			TxRef:     "test",
+			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -152,7 +183,9 @@ func Test_read(t *testing.T) {
 		//setup
 		in := &transaction.CreateRequest{
 			Amount:    1,
-			PartnerId: partner_id,
+			PartnerId: PartnerId,
+			TxRef:     "test",
+			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {

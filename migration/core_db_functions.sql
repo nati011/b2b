@@ -2786,8 +2786,7 @@ BEGIN
     INSERT INTO public.transactions ( amount,
                                       partner_id,
                                       status,
-                                      tx_ref 
-                                      )
+                                      tx_ref)
     VALUES (t_amount,
             t_partner_id,
             t_status,
@@ -2812,7 +2811,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.date, t.status
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.id = t_id
       AND t.is_deleted = FALSE;
