@@ -14,7 +14,7 @@ type CreateRequest struct {
 	Name    string
 	Icon    string
 	Status  string
-	BaseUrl string
+	BaseURL string
 	Secret  string
 }
 
@@ -23,12 +23,12 @@ type GetResponse struct {
 	Name    string
 	Icon    string
 	Status  string
-	BaseUrl string
+	BaseURL string
 }
 
 type GetPartnerSecret struct {
 	Name    string
-	BaseUrl string
+	BaseURL string
 	Secret  string
 }
 

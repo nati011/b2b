@@ -17,10 +17,6 @@ import (
 func main() {
 	var cfg config.Config
 
-	// Base url
-	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
-
 	//keycloak
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
@@ -40,6 +36,8 @@ func main() {
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 
+	// Payment Partner
+	flag.StringVar(&cfg.ChapaSecretKey, "db", "", "Environment (development|staging|production)")
 	flag.Parse()
 	validateFlags(cfg)
 
@@ -64,7 +62,7 @@ func main() {
 		cfg.KeycloakClientSecret,
 	)
 
-	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
+	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
 
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)

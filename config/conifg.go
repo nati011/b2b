@@ -13,8 +13,7 @@ type Config struct {
 	KeycloakClientSecret     string
 
 	// Base URL
-	BaseUrl     string
-	FrontendUrl string
+	BaseUrl string
 
 	//email
 	Email string

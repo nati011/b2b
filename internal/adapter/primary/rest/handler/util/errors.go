@@ -9,7 +9,6 @@ var (
 	ErrInvalidRequestBody = errors.New("oopsy, invalid request data")
 	ErrFailedToAuthorize  = errors.New("oopsy, failed to authorize user")
 	ErrIdRequired         = errors.New("oopsy, Id is required")
-	ErrInvalidRequest     = errors.New("oppsy, invalid request")
 )
 
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {

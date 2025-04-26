@@ -313,7 +313,7 @@ CREATE TABLE IF NOT EXISTS public."orders"
   payment_status VARCHAR(255),
   delivery_status VARCHAR(255),
   total DECIMAL(12,2),
-	FOREIGN KEY (retailer_id) REFERENCES public."retailers"(id) ON DELETE CASCADE
+	FOREIGN KEY (retailer_id) REFERENCES public."users"(id) ON DELETE CASCADE
 
 ) INHERITS(public."base");
 
@@ -361,11 +361,11 @@ COMMENT ON TABLE public."invoices" IS 'stores invoice line items';
 CREATE TABLE IF NOT EXISTS public."transactions"
 (
   id SERIAL PRIMARY KEY,
-  user_id INT,
   amount DECIMAL(12,2),
   partner_id INT,
-  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_Id) REFERENCES public."users" (id) ON DELETE CASCADE
+  tx_ref VARCHAR(255),
+  status VARCHAR(255),
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores transactions';
@@ -376,8 +376,8 @@ CREATE TABLE IF NOT EXISTS public."payment_partners"
   name VARCHAR(255),
   icon VARCHAR(255),
   status VARCHAR(255),
-  base_url VARCHAR(255),
-  secret TEXT
+  init_payment_url VARCHAR(255),
+  secret VARCHAR(255)
 ) INHERITS (public."base");
 
-COMMENT ON TABLE public."payment_partners" IS 'stores payment processing partners';
+COMMENT ON TABLE public."invoices" IS 'stores payment processing partners';

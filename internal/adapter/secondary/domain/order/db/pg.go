@@ -183,10 +183,11 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.DeliveryStatus,
 	)
 
+	rows.Row.Scan(&orderId)
 	if err != nil {
 		return 0, err
 	}
-	rows.Row.Scan(&orderId)
+
 	//orderItem
 	for _, i := range req.Items {
 		query = "SELECT * FROM public.create_order_item($1, $2, $3, $4);"
