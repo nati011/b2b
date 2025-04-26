@@ -152,6 +152,27 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 	}, nil
 }
 
+func (m *Mock) UpdateStatus(ctx context.Context, req *port.UpdateRequest) error {
+	response := []MockTransaction{}
+	for _, i := range m.resources {
+		if i.Id == req.Id {
+			response = append(response, MockTransaction{
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    req.Status,
+			})
+		}
+	}
+	if len(response) == 0 {
+		return port.ErrSysNoRows
+	}
+	m.resources = response
+	return nil
+}
+
 func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
