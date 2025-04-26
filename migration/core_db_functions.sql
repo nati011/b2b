@@ -1,7 +1,6 @@
 -- v 0.1
 -- Resources ----------------------------------------
     -- writers
-
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
    r_action VARCHAR(255)
@@ -685,7 +684,7 @@ AS $$
     END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.create_and_activate_user(
+CREATE OR REPLACE FUNCTION public.create_and_activate_user (
     u_firstname VARCHAR(255),
     u_lastname VARCHAR(255),
     u_email VARCHAR(255),
@@ -2773,9 +2772,10 @@ $$;
 
     -- writer
 CREATE OR REPLACE FUNCTION public.record_transaction(
-    t_user_id INT,
+    t_amount DECIMAL(12,2),
     t_partner_id INT,
-    t_amount DECIMAL(12,2)
+    t_status VARCHAR(255),
+    t_tx_ref VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -2783,58 +2783,58 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.transactions (user_id, 
-                                      partner_id, 
-                                      amount)
-    VALUES (t_user_id, 
-            t_partner_id, 
-            t_amount)
+    INSERT INTO public.transactions ( amount,
+                                      partner_id,
+                                      status,
+                                      tx_ref)
+    VALUES (t_amount,
+            t_partner_id,
+            t_status,
+            t_tx_ref)
     RETURNING id INTO new_id;
 
     RETURN new_id;
 END;
-$$;  
+$$; 
+
+
+CREATE OR REPLACE FUNCTION public.update_transaction_status(
+    t_id INT,
+    t_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    UPDATE public.transactions
+    SET status = t_status
+    WHERE id = t_id
+      AND is_deleted = FALSE;
+
+    RETURN t_id;
+END;
+$$; 
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_transaction_by_id(
     t_id INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
-              amount DECIMAL(2,12),
+              amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.id = t_id
       AND t.is_deleted = FALSE;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_transactions_by_user_id(
-    t_user_id INT,
-     t_limit INT,
-    t_offset INT
-)
-RETURNS TABLE(id INT,
-              user_id INT,
-              amount DECIMAL(2,12),
-              partner_id INT,
-              date TIMESTAMP)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
-    FROM public.transactions t
-    WHERE t.user_id = t_user_id
-      AND t.is_deleted = FALSE
-       LIMIT t_limit
-    OFFSET t_offset;
 END;
 $$;
 
@@ -2843,15 +2843,16 @@ CREATE OR REPLACE FUNCTION public.get_all_transactions(
     t_offset INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
               amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.is_deleted = FALSE
     LIMIT t_limit
@@ -2861,19 +2862,20 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_partner_id(
     t_partner_id INT,
-     t_limit INT,
+    t_limit INT,
     t_offset INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
               amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.partner_id = t_partner_id
       AND t.is_deleted = FALSE
@@ -2884,26 +2886,74 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_date(
     t_date TIMESTAMP,
-     t_limit INT,
+    t_limit INT,
     t_offset INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
               amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.date = t_date
       AND t.is_deleted = FALSE
        LIMIT t_limit
     OFFSET t_offset;
 END;
+$$;
 
+CREATE OR REPLACE FUNCTION public.get_transactions_by_tx_ref(
+    t_tx_ref TIMESTAMP,
+    t_limit INT,
+    t_offset INT
+)
+RETURNS TABLE(id INT,
+              amount DECIMAL(12,2),
+              partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
+    FROM public.transactions t
+    WHERE t.tx_ref = t_tx_ref
+      AND t.is_deleted = FALSE
+       LIMIT t_limit
+    OFFSET t_offset;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_transactions_by_status(
+    t_status TIMESTAMP,
+    t_limit INT,
+    t_offset INT
+)
+RETURNS TABLE(id INT,
+              amount DECIMAL(12,2),
+              partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
+    FROM public.transactions t
+    WHERE t.status = t_status
+      AND t.is_deleted = FALSE
+       LIMIT t_limit
+    OFFSET t_offset;
+END;
 $$;
 
 --- payment_partner --------------------------------------
@@ -2916,12 +2966,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              init_payment_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.id = p_id
       AND p.is_deleted = FALSE
@@ -2937,12 +2987,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              init_payment_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.is_deleted = FALSE
     LIMIT p_limit
@@ -2954,13 +3004,13 @@ CREATE OR REPLACE FUNCTION public.get_payment_partner_secret(
 p_id INT
 )RETURNS TABLE(
               name VARCHAR(255),
-              base_url VARCHAR(255),
+              init_payment_url VARCHAR(255),
               secret TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.name,p.base_url,p.secret
+    SELECT p.name,p.init_payment_url,p.secret
     FROM public.payment_partners p
     WHERE p.id = p_id
       AND p.is_deleted = FALSE;
@@ -2976,12 +3026,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              init_payment_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.name = p_name
       AND p.is_deleted = FALSE;
@@ -2995,12 +3045,12 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              init_payment_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.init_payment_url
     FROM public.payment_partners p
     WHERE p.status = p_status
       AND p.is_deleted = FALSE;
@@ -3013,7 +3063,7 @@ CREATE OR REPLACE FUNCTION public.create_payment_partner(
     p_name VARCHAR(255),
     p_icon VARCHAR(255),
     p_status VARCHAR(255),
-    p_base_url VARCHAR(255),
+    p_init_payment_url VARCHAR(255),
     p_secret VARCHAR(255)
 )
 RETURNS INT
@@ -3023,11 +3073,11 @@ DECLARE
     new_id INT;
 BEGIN
     INSERT INTO 
-    public.payment_partners (name, icon, status, base_url,secret)
+    public.payment_partners (name, icon, status, init_payment_url,secret)
     VALUES (p_name, 
             p_icon, 
             p_status,
-            p_base_url,
+            p_init_payment_url,
             p_secret
             )
     RETURNING id INTO new_id;

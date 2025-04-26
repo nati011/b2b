@@ -25,7 +25,7 @@ func setup() {
 		&payment_partner.CreateRequest{
 			Name:    "chapa",
 			Icon:    "etst",
-			BaseUrl: "https://api.chapa.co",
+			BaseURL: "https://api.chapa.co",
 			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
 	if err != nil {
@@ -38,6 +38,7 @@ func Test_Checkout(t *testing.T) {
 		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CheckoutRequest{
+			Amount:         1,
 			TransactionRef: "1",
 		}
 		_, err := testContainer.PaymentService.Checkout(ctx, in)
@@ -50,54 +51,30 @@ func Test_Checkout(t *testing.T) {
 	t.Run("transactionRefNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			TransactionRef:   "1",
-			PaymentPartnerId: 1,
-		}
-
-		_, err := testContainer.PaymentService.Checkout(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to checkout err: %v", err)
-		}
-	})
-}
-
-func Test_Checkout_unhappyPath(t *testing.T) {
-
-	t.Run("amountNotSupplied", func(t *testing.T) {
-		ctx := context.Background()
-		in := &CheckoutRequest{
+			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 		}
 		_, err := testContainer.PaymentService.Checkout(ctx, in)
-		wantErr := ErrAmountNotSupplied
+		wantErr := ErrTransactionReferenceNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
+}
 
-	t.Run("PaymentPartnerNotSupplied", func(t *testing.T) {
+func Test_Verify(t *testing.T) {
+	t.Run("paymentPartnerIdMissing", func(t *testing.T) {
 		ctx := context.Background()
-		in := &CheckoutRequest{
-			TransactionRef: "1",
-		}
-
-		_, err := testContainer.PaymentService.Checkout(ctx, in)
+		_, err := testContainer.PaymentService.Verify(ctx, 999, "90909090990909")
 		wantErr := ErrPaymentPartnerNotSupported
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
-}
 
-func Test_Verify_Payment_happyPath(t *testing.T) {
-
-}
-
-func Test_Verify_Payment_unhappyPath(t *testing.T) {
-	t.Run("TransactionRefNotSupplied", func(t *testing.T) {
+	t.Run("transactionRefNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
-		in_tx_ref := ""
-		_, err := testContainer.PaymentService.Verify(ctx, 0, in_tx_ref)
+		_, err := testContainer.PaymentService.Verify(ctx, PaymentPartnerId, "")
 		wantErr := ErrTransactionReferenceNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)

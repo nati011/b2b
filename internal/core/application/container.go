@@ -145,7 +145,7 @@ func (m *Container) InitTemplateService() {
 }
 
 func (m *Container) InitTransactionService() {
-	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, &m.Pagination), m.PaymentPartnerService, m.UserService)
+	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitUserService() {

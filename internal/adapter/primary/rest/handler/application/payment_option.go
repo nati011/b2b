@@ -23,7 +23,7 @@ type CreatePaymentPartnerRequest struct {
 	Name    string `json:"name"`
 	Icon    string `json:"icon"`
 	Status  string `json:"status"`
-	BaseUrl string `json:"base_url"`
+	BaseURL string `json:"base_url"`
 	Secret  string `json:"secret"`
 }
 
@@ -32,7 +32,7 @@ type GetPaymentPartnerResponse struct {
 	Name    string `json:"name"`
 	Icon    string `json:"icon"`
 	Status  string `json:"status"`
-	BaseUrl string `json:"base_url"`
+	BaseURL string `json:"base_url"`
 }
 
 type GetAllPaymentPartnerResponse struct {
@@ -156,7 +156,7 @@ func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *h
 
 	var requestBody CreatePaymentPartnerRequest
 	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, util.ErrInvalidRequest)
+		util.RequestErrorResponse(w, err)
 		return
 	}
 	id, err := p.service.Create(r.Context(), (*payment_partner.CreateRequest)(&requestBody))

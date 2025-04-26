@@ -25,7 +25,7 @@ func Test_Create_Payment_Option_happyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 			Secret:  "randomSecret",
 		}
 
@@ -50,7 +50,7 @@ func Test_Create_Payment_Option_happyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 			Secret:  "randomSecret",
 		}
 
@@ -76,7 +76,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
 			Icon:    "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 			Secret:  "randomSecret",
 		}
 
@@ -92,7 +92,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name:    "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 			Secret:  "randomSecret",
 		}
 
@@ -103,7 +103,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("BaseUrl_mandatory", func(t *testing.T) {
+	t.Run("init_payment_url_mandatory", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
@@ -124,7 +124,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)
@@ -141,7 +141,7 @@ func Test_Activate_Payment_Option_happyPath(t *testing.T) {
 	in := &CreateRequest{
 		Name:    "test",
 		Icon:    "test",
-		BaseUrl: "test",
+		BaseURL: "test",
 		Secret:  "randomSecret",
 	}
 
@@ -183,7 +183,7 @@ func Test_Activate_Payment_Option_unhappyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -212,7 +212,7 @@ func Test_Deactivate_Payment_Option_happyPath(t *testing.T) {
 	in := &CreateRequest{
 		Name:    "test",
 		Icon:    "test",
-		BaseUrl: "test",
+		BaseURL: "test",
 		Secret:  "randomSecret",
 	}
 
@@ -247,7 +247,7 @@ func Test_Deactivate_Payment_Option_unhappyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -281,7 +281,7 @@ func Test_Get_All_Payment_Options_happyPath(t *testing.T) {
 	in := &CreateRequest{
 		Name:    "test",
 		Icon:    "test",
-		BaseUrl: "test",
+		BaseURL: "test",
 		Secret:  "randomSecret",
 	}
 
@@ -320,7 +320,7 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -375,7 +375,7 @@ func Test_Get_Payment_Options_ByParam_happyPath(t *testing.T) {
 		in := &CreateRequest{
 			Name:    "test",
 			Icon:    "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 

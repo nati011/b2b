@@ -20,9 +20,6 @@ services:
       - DB_URL
       - SMTP
       - EMAIL
-      - ENV
-      - BASE_URL
-      - FRONTEND_URL
     networks:
       - backend
 
