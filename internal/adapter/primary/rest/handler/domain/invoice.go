@@ -3,6 +3,7 @@ package domain
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -39,8 +40,13 @@ func (i *Invoice) GetHandler(w http.ResponseWriter, r *http.Request) {
 	paramStatusValue := paramValues.Get(ParamStatus)
 	ParamExternalIdValue := paramValues.Get(ParamExternalId)
 	ParamOrderIdValue := paramValues.Get(ParamOrderId)
-
+	ParamDateValue := paramValues.Get(ParamCreated_Date)
 	paramIdValue := paramValues.Get(ParamId)
+
+	var typedOrderId int
+	var parsedDate time.Time
+	var err error
+
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
 		if err != nil {
@@ -57,9 +63,43 @@ func (i *Invoice) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"product": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"invoice": resp})
 
-	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
+	} else if paramStatusValue != "" || ParamExternalIdValue != "" || ParamOrderIdValue != "" {
+		if ParamOrderIdValue != "" {
+			typedOrderId, err = strconv.Atoi(ParamOrderIdValue)
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		if ParamDateValue != "" {
+			parsedDate, err = time.Parse(ParamDateValue, "2024-09-19 14:00:00")
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+
+		params := &invoice.GetByParamRequest{
+			OrderId:      typedOrderId,
+			Created_Date: parsedDate,
+			ExternalId:   ParamExternalIdValue,
+			Status:       paramStatusValue,
+		}
+
+		resp, err := i.service.GetByParam(r.Context(), params)
+		if err != nil {
+			switch err {
+			case invoice.ErrSysEmptyGetContent:
+				util.RequestErrorResponse(w, err)
+				return
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"invoices": resp})
 
 	} else {
 		resp, err := i.service.GetAll(r.Context())
