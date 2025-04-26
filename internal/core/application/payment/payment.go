@@ -86,6 +86,12 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}
 
 	// create payment process
+	p.TransactionService.Create(ctx, &transaction.CreateRequest{
+		Amount:    req.Amount,
+		PartnerId: req.PaymentPartnerId,
+		TxRef:     req.TransactionRef,
+		Status:    transaction.PENDING_STATUS,
+	})
 
 	return CheckoutResponse{
 		Checkout_url: checkoutUrl,
@@ -123,11 +129,24 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 		return false, ErrUnknown
 	}
 
-	// // if verified create transaction
-	// p.TransactionService.Create(ctx, &transaction.CreateRequest{
-	// 	Amount: ,
-	// 	Partner_Id:
-	// })
+	// if verified set transaction status to COMPLETED
+	//get by transaction ref
+	transactions, err := p.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
+		TxRef: tx_ref,
+	})
+	if err != nil {
+		log.Printf("failed to get transaction for txRef %v", tx_ref)
+		return false, ErrUnknown
+	}
+	tx := transactions.List[0]
+	err = p.TransactionService.UpdateStatus(ctx, &transaction.UpdateRequest{
+		Id:     tx.Id,
+		Status: transaction.COMPLETED_STATUS,
+	})
+	if err != nil {
+		log.Printf("failed to assign transaction status COMPLETED for txRef %v", tx_ref)
+		return false, ErrUnknown
+	}
 	return is_verified, nil
 }
 

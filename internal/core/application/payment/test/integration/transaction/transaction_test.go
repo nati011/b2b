@@ -9,6 +9,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/payment"
 	"b2b.nati011.github.com/internal/core/application/payment/test"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/application/transaction"
 )
 
 var testContainer test.TestContainer
@@ -35,10 +36,11 @@ func setup() {
 		panic("failed to create payment partner")
 	}
 }
+
 func Test_CreateTransactionUponPaymentInitAndSetStatusToPending(t *testing.T) {
 	ctx := context.Background()
-	//init transaction
 
+	//init transaction
 	currentTimestamp := time.Now()
 	generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 	in := &payment.CheckoutRequest{
@@ -53,7 +55,16 @@ func Test_CreateTransactionUponPaymentInitAndSetStatusToPending(t *testing.T) {
 	}
 
 	//check if transaction has been created
-
+	resp, err := testContainer.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
+		TxRef: in.TransactionRef,
+	})
+	if err != nil {
+		t.Fatalf("failed to get param err: %v", err)
+	}
+	wantStatus := transaction.PENDING_STATUS
+	if resp.List[0].Status != wantStatus {
+		t.Errorf("expected status: %v, got: %v", resp.List[0].Status, wantStatus)
+	}
 }
 
 func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
@@ -75,13 +86,22 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 
 	resp, err := testContainer.PaymentService.Verify(ctx, PaymentPartnerId, generatedTxRef)
 	if err != nil {
-		t.Errorf("Failed to verify err: %v", err)
+		t.Fatalf("Failed to verify err: %v", err)
 	}
 	wantIsValidStatus := true
 	if resp != wantIsValidStatus {
-		t.Errorf("Expected status: %v Got: %v", wantIsValidStatus, resp)
+		t.Fatalf("Expected status: %v Got: %v", wantIsValidStatus, resp)
 	}
 
 	//check if transaction has been created and status has been set to uploaded
-
+	resp_get, err := testContainer.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
+		TxRef: in.TransactionRef,
+	})
+	if err != nil {
+		t.Fatalf("failed to get param err: %v", err)
+	}
+	wantStatus := transaction.COMPLETED_STATUS
+	if resp_get.List[0].Status != wantStatus {
+		t.Errorf("expected status: %v, got: %v", resp_get.List[0].Status, wantStatus)
+	}
 }
