@@ -3001,16 +3001,16 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_payment_partner_secret(
-p_id INT
+    p_id INT
 )RETURNS TABLE(
               name VARCHAR(255),
               init_payment_url VARCHAR(255),
-              secret TEXT)
+              secret VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.name,p.init_payment_url,p.secret
+    SELECT p.name, p.init_payment_url,p.secret
     FROM public.payment_partners p
     WHERE p.id = p_id
       AND p.is_deleted = FALSE;
