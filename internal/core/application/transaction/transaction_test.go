@@ -7,12 +7,10 @@ import (
 	"time"
 
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/user"
 )
 
 var testContainer TestContainer
-var user_id = 0
-var partner_id = 0
+var PartnerId = 0
 
 func TestMain(m *testing.M) {
 	setup()
@@ -24,34 +22,28 @@ func setup() {
 	testContainer = NewPackageIntegrationTestContainer()
 	ctx := context.Background()
 	//create partner
-	partner_id, _ = testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
+	var err error
+	PartnerId, err = testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
 		Name:    "test",
 		Icon:    "test",
-		BaseUrl: "test",
+		BaseURL: "test",
+		Status:  "test",
+		Secret:  "test",
 	})
-
-	//create user
-	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
-	in := user.CreateRequest{
-		FirstName:  "natnael jemaneh asefa",
-		LastName:   "test",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		ExternalId: "123",
+	if err != nil {
+		panic("failed to create transaction")
 	}
-	user_id, _ = testContainer.UserService.Create(ctx, &in)
 }
 
 func Test_Save_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			User_Id:    user_id,
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "232",
 		}
 		id, err := testContainer.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -69,11 +61,12 @@ func Test_Save_happyPath(t *testing.T) {
 	})
 
 	t.Run("timestamp_date", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			User_Id:    user_id,
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "232",
 		}
 		id, err := testContainer.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -92,23 +85,12 @@ func Test_Save_happyPath(t *testing.T) {
 }
 
 func Test_Save_unhappyPath(t *testing.T) {
-	t.Run("userId_mandatory", func(t *testing.T) {
-		ctx := context.Background()
-		in := &CreateRequest{
-			Amount:     1,
-			Partner_Id: partner_id,
-		}
-		_, err := testContainer.TransactionService.Create(ctx, in)
-		if err != ErrUserIdNotSupplied {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-	})
-
 	t.Run("amount_mandatory", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			User_Id:    1,
-			Partner_Id: partner_id,
+			PartnerId: PartnerId,
+			TxRef:     "232",
 		}
 		_, err := testContainer.TransactionService.Create(ctx, in)
 		if err != ErrAmountIsNotSupplied {
@@ -117,11 +99,12 @@ func Test_Save_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("amount_greater_than_zero", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			User_Id:    user_id,
-			Amount:     -1,
-			Partner_Id: partner_id,
+			Amount:    -1,
+			PartnerId: PartnerId,
+			TxRef:     "232",
 		}
 		_, err := testContainer.TransactionService.Create(ctx, in)
 		if err != ErrAmountMustBeGreaterThanZero {
@@ -130,25 +113,42 @@ func Test_Save_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("partnerId_mandatory", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			User_Id: user_id,
-			Amount:  1,
+			Amount: 1,
+			TxRef:  "w",
+			Status: "te",
 		}
 		_, err := testContainer.TransactionService.Create(ctx, in)
 		if err != ErrPartnerIdNotSupplied {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 	})
+	t.Run("tx_ref_mandatory", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Amount:    1,
+			Status:    "2",
+			PartnerId: 1,
+		}
+		_, err := testContainer.TransactionService.Create(ctx, in)
+		if err != ErrTransactionRefNotSupplied {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+	})
 }
 
 func Test_Get_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.TearDown)
 	ctx := context.Background()
 	//setup
 	in := &CreateRequest{
-		User_Id:    user_id,
-		Amount:     1,
-		Partner_Id: partner_id,
+		Amount:    1,
+		PartnerId: PartnerId,
+		TxRef:     "232",
+		Status:    "tets",
 	}
 	id, err := testContainer.TransactionService.Create(ctx, in)
 	if err != nil {
@@ -165,6 +165,7 @@ func Test_Get_happyPath(t *testing.T) {
 }
 
 func Test_Get_unhappyPath(t *testing.T) {
+	t.Cleanup(testContainer.TearDown)
 	ctx := context.Background()
 	_, err := testContainer.TransactionService.Get(ctx, 99)
 	wantErr := ErrIdNotFound
@@ -175,12 +176,14 @@ func Test_Get_unhappyPath(t *testing.T) {
 }
 
 func Test_GetAll_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.TearDown)
 	ctx := context.Background()
 	//setup
 	in := &CreateRequest{
-		User_Id:    user_id,
-		Amount:     1,
-		Partner_Id: partner_id,
+		Amount:    1,
+		PartnerId: PartnerId,
+		TxRef:     "232",
+		Status:    "tets",
 	}
 	_, err := testContainer.TransactionService.Create(ctx, in)
 	if err != nil {
@@ -198,6 +201,7 @@ func Test_GetAll_happyPath(t *testing.T) {
 
 func Test_GetAll_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		_, err := testContainer.TransactionService.GetAll(ctx)
 		wantErr := ErrEmptyGetContent
@@ -208,42 +212,16 @@ func Test_GetAll_unhappyPath(t *testing.T) {
 }
 
 func Test_GetByParam_happyPath(t *testing.T) {
-	t.Run("userId", func(t *testing.T) {
-		ctx := context.Background()
-		//setup
-		in := &CreateRequest{
-			User_Id:    user_id,
-			Amount:     1,
-			Partner_Id: partner_id,
-		}
-		id, err := testContainer.TransactionService.Create(ctx, in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		resp, err := testContainer.TransactionService.Get(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-
-		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
-			User_Id: resp.User_Id,
-		})
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-		wantLen := 1
-		if wantLen > len(resp_param.List) {
-			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
-		}
-	})
 
 	t.Run("partner", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			User_Id:    user_id,
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "232",
+			Status:    "tets",
 		}
 		id, err := testContainer.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -255,7 +233,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		}
 
 		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
-			Partner_Id: resp.Partner_Id,
+			PartnerId: in.PartnerId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
@@ -264,16 +242,22 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		wantLen := 1
 		if wantLen > len(resp_param.List) {
 			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		}
+
+		if resp.PartnerId != in.PartnerId {
+			t.Errorf("Expected partnerId: %v Want: %v", in.PartnerId, resp.PartnerId)
 		}
 	})
 
 	t.Run("date", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
-			User_Id:    user_id,
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "232",
+			Status:    "tets",
 		}
 		id, err := testContainer.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -296,10 +280,83 @@ func Test_GetByParam_happyPath(t *testing.T) {
 			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
 		}
 	})
+
+	t.Run("tx_ref", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "232",
+			Status:    "tets",
+		}
+		id, err := testContainer.TransactionService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := testContainer.TransactionService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
+			TxRef: in.TxRef,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		wantLen := 1
+		if wantLen != len(resp_param.List) {
+			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		}
+
+		if resp.TxRef != in.TxRef {
+			t.Errorf("Expected transactionRef: %v Want: %v", in.TxRef, resp.TxRef)
+		}
+	})
+
+	t.Run("status", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "test",
+			Status:    "test",
+		}
+		id, err := testContainer.TransactionService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := testContainer.TransactionService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		resp_param, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{
+			Status: in.Status,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		wantLen := 1
+		if wantLen != len(resp_param.List) {
+			t.Errorf("Expected len: %v Got len: %v", wantLen, len(resp_param.List))
+		}
+
+		if resp.Status != in.Status {
+			t.Errorf("Expected status: %v Want: %v", in.TxRef, resp.TxRef)
+		}
+	})
 }
 
 func Test_GetByParam_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		_, err := testContainer.TransactionService.GetByParam(ctx, &GetByParamRequest{})
 		wantErr := ErrEmptyGetContent
@@ -307,4 +364,35 @@ func Test_GetByParam_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)
 		}
 	})
+}
+
+func Test_update_status_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.TearDown)
+	ctx := context.Background()
+	//setup
+	in := &CreateRequest{
+		Amount:    1,
+		PartnerId: PartnerId,
+		TxRef:     "test",
+		Status:    "test",
+	}
+	id, err := testContainer.TransactionService.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	in_status := &UpdateRequest{
+		Id:     id,
+		Status: "test",
+	}
+	err = testContainer.TransactionService.UpdateStatus(ctx, in_status)
+	if err != nil {
+		t.Errorf("Failed to update err %v", err)
+	}
+	resp, err := testContainer.TransactionService.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get err: %v", err)
+	}
+	if resp.Status != in_status.Status {
+		t.Errorf("Expected status: %v Want: %v", in.TxRef, resp.TxRef)
+	}
 }

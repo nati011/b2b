@@ -22,9 +22,6 @@ CMD ./main \
     --migration_file_dir /app/migration \
     --smtp $SMTP \
     --email $EMAIL \
-    --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET \
-    --env $ENV \
-    --base_url $BASE_URL \
-    --frontend_base_url $FRONTEND_URL
+    --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET
 
 EXPOSE 8080

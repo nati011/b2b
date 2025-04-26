@@ -43,17 +43,19 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	rows.Row.Scan(
 		&response.Id,
-		&response.User_Id,
 		&amountStr,
-		&response.Partner_Id,
-		&response.Date)
+		&response.PartnerId,
+		&response.TxRef,
+		&response.Status,
+		&response.Date,
+	)
 
 	// Convert amountStr to int64
-	amountFloat, err := strconv.ParseFloat(amountStr, 64)
+	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
 		return port.GetResponse{}, fmt.Errorf("failed to parse amount: %w", err)
 	}
-	response.Amount = int64(amountFloat)
+	response.Amount = amount
 	return response, nil
 }
 
@@ -78,20 +80,21 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
-			&transaction.Partner_Id,
+			&transaction.PartnerId,
+			&transaction.TxRef,
+			&transaction.Status,
 			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		// Convert amountStr to int64
-		amountFloat, err := strconv.ParseFloat(amountStr, 64)
+		amount, err := strconv.ParseFloat(amountStr, 64)
 		if err != nil {
 			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
 		}
-		transaction.Amount = int64(amountFloat)
+		transaction.Amount = amount
 		response.List = append(response.List, transaction)
 	}
 
@@ -124,66 +127,21 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
-			&transaction.Partner_Id,
+			&transaction.PartnerId,
+			&transaction.TxRef,
+			&transaction.Status,
 			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		// Convert amountStr to int64
-		amountFloat, err := strconv.ParseFloat(amountStr, 64)
+		amount, err := strconv.ParseFloat(amountStr, 64)
 		if err != nil {
 			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
 		}
-		transaction.Amount = int64(amountFloat)
-		response.List = append(response.List, transaction)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
-	return response, nil
-}
-
-func (p *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetAllResponse, error) {
-	var response port.GetAllResponse
-
-	query := "SELECT * FROM public.get_transactions_by_user_id($1,$2,$3);"
-
-	limit := p.Pagination.Limit
-	offset := p.Pagination.Offset
-
-	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, user_id, limit, offset)
-
-	if err != nil {
-		return port.GetAllResponse{}, err
-	}
-
-	defer rows.Rows.Close()
-
-	for rows.Rows.Next() {
-		var transaction port.GetResponse
-		var amountStr string
-		if err := rows.Rows.Scan(
-			&transaction.Id,
-			&transaction.User_Id,
-			&amountStr,
-			&transaction.Partner_Id,
-			&transaction.Date); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		// Convert amountStr to int64
-		amountFloat, err := strconv.ParseFloat(amountStr, 64)
-		if err != nil {
-			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
-		}
-		transaction.Amount = int64(amountFloat)
+		transaction.Amount = amount
 		response.List = append(response.List, transaction)
 	}
 
@@ -215,20 +173,113 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 		var amountStr string
 		if err := rows.Rows.Scan(
 			&transaction.Id,
-			&transaction.User_Id,
 			&amountStr,
-			&transaction.Partner_Id,
+			&transaction.PartnerId,
+			&transaction.TxRef,
+			&transaction.Status,
 			&transaction.Date); err != nil {
 
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		// Convert amountStr to int64
-		amountFloat, err := strconv.ParseFloat(amountStr, 64)
+		amount, err := strconv.ParseFloat(amountStr, 64)
 		if err != nil {
 			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
 		}
-		transaction.Amount = int64(amountFloat)
+		transaction.Amount = amount
+		response.List = append(response.List, transaction)
+	}
+
+	if err := rows.Rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetAllResponse{}, port.ErrSysUnknown
+	}
+
+	return response, nil
+}
+
+func (p *Postgres) GetByTxRef(ctx context.Context, tx_ref string) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+
+	query := "SELECT * FROM public.get_transactions_by_tx_ref($1,$2,$3);"
+
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, tx_ref, limit, offset)
+
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	defer rows.Rows.Close()
+
+	for rows.Rows.Next() {
+		var transaction port.GetResponse
+		var amountStr string
+		if err := rows.Rows.Scan(
+			&transaction.Id,
+			&amountStr,
+			&transaction.PartnerId,
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
+
+			log.Printf("unable to scan row: %q", err)
+			return port.GetAllResponse{}, err
+		}
+		// Convert amountStr to int64
+		amount, err := strconv.ParseFloat(amountStr, 64)
+		if err != nil {
+			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
+		}
+		transaction.Amount = amount
+		response.List = append(response.List, transaction)
+	}
+
+	if err := rows.Rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return port.GetAllResponse{}, port.ErrSysUnknown
+	}
+
+	return response, nil
+}
+
+func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+
+	query := "SELECT * FROM public.get_transactions_by_status($1,$2,$3);"
+
+	limit := p.Pagination.Limit
+	offset := p.Pagination.Offset
+	rows, err := handler.MustQueryRow(p.Pool, ctx, query, true, status, limit, offset)
+
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	defer rows.Rows.Close()
+
+	for rows.Rows.Next() {
+		var transaction port.GetResponse
+		var amountStr string
+		if err := rows.Rows.Scan(
+			&transaction.Id,
+			&amountStr,
+			&transaction.PartnerId,
+			&transaction.TxRef,
+			&transaction.Status,
+			&transaction.Date); err != nil {
+
+			log.Printf("unable to scan row: %q", err)
+			return port.GetAllResponse{}, err
+		}
+		// Convert amountStr to int64
+		amount, err := strconv.ParseFloat(amountStr, 64)
+		if err != nil {
+			return port.GetAllResponse{}, fmt.Errorf("failed to parse amount: %w", err)
+		}
+		transaction.Amount = amount
 		response.List = append(response.List, transaction)
 	}
 
@@ -242,19 +293,38 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var id int
-	query := "SELECT * FROM public.record_transaction($1, $2, $3);"
+	query := "SELECT * FROM public.record_transaction($1, $2, $3, $4);"
 	rows, err := handler.MustQueryRow(
 		p.Pool,
 		ctx,
 		query,
 		false,
-		req.User_Id,
-		req.Partner_Id,
 		req.Amount,
+		req.PartnerId,
+		req.Status,
+		req.TxRef,
 	)
 	if err != nil {
 		return 0, err
 	}
 	rows.Row.Scan(&id)
 	return id, nil
+}
+
+func (p *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateRequest) error {
+	var id int
+	query := "SELECT * FROM public.update_transaction_status($1, $2);"
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		false,
+		req.Id,
+		req.Status,
+	)
+	if err != nil {
+		return err
+	}
+	rows.Row.Scan(&id)
+	return nil
 }

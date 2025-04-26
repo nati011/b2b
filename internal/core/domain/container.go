@@ -40,8 +40,6 @@ import (
 
 type Container struct {
 	db                         *sql.DB
-	baseUrl                    string
-	frontendUrl                string
 	CategoryService            category.Provider
 	ProductService             product.Provider
 	ConfigurableProductService configurable_product.Provider
@@ -54,11 +52,10 @@ type Container struct {
 	PaymentService             payment.Provider
 }
 
-func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
+func NewContainer(application_core application_core.Container, db *sql.DB) *Container {
 	container := Container{}
 	container.db = db
 	container.ApplicationServices = application_core
-	container.baseUrl = baseUrl
 
 	// ORDER ORDER!!
 
@@ -116,7 +113,5 @@ func (m *Container) InitPaymentService() {
 		m.ApplicationServices.PaymentPartnerService,
 		m.ApplicationServices.TransactionService,
 		m.PaymentProcessorService,
-		m.frontendUrl,
-		m.baseUrl,
 	)
 }

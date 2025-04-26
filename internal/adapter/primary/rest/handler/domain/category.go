@@ -106,13 +106,13 @@ func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		case category.ErrDescIsNotSupplied,
 			category.ErrDuplicateName,
 			category.ErrEmptyGetContent:
-		case category.ErrUnknown:
-			util.ServerErrorResponse(w, err)
-			return
+
 		default:
 			util.RequestErrorResponse(w, err)
 			return
-
+		case category.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"category": id})

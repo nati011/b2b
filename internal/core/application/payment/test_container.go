@@ -12,21 +12,18 @@ type TestContainer struct {
 	TransactionService transaction.Provider
 	PartnerService     partner.Provider
 	UserService        user.Provider
-	ProcessorService   payment_processor.Provider
+	PaymentProcessor   payment_processor.Provider
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
-	container.ProcessorService = payment_processor.Provider{}
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	container.PaymentService = NewPaymentService(
 		container.PartnerService,
 		container.TransactionService,
-		container.ProcessorService,
-		"example.com",
-		"example.com",
-	)
+		container.PaymentProcessor)
+
 	return container
 }
 
@@ -36,8 +33,5 @@ func (t *TestContainer) TearDown() {
 	t.PaymentService = NewPaymentService(
 		t.PartnerService,
 		t.TransactionService,
-		t.ProcessorService,
-		"example.com",
-		"example.com",
-	)
+		t.PaymentProcessor)
 }

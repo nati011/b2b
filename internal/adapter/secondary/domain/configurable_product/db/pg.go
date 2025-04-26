@@ -138,7 +138,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		p.Pool,
 		ctx,
 		query,
-		true,
+		false,
 	)
 	if err != nil {
 		return port.GetAllResponse{}, err

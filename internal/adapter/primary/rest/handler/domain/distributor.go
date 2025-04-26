@@ -89,7 +89,8 @@ func (d *Distributor) Init(applicationServices *application_core.Container, doma
 }
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /api/v1/distributor", d.middleware.Authenticate(d.GetDistributorHandler))
+	distributorHandler := http.HandlerFunc(d.GetDistributorHandler)
+	mux.Handle("GET /api/v1/distributor", d.middleware.Authenticate(distributorHandler))
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
 	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 

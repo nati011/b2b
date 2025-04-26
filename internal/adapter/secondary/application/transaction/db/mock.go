@@ -8,11 +8,11 @@ import (
 )
 
 type GetResponse struct {
-	Id         int
-	User_Id    int
-	Date       time.Time
-	Amount     int32
-	Partner_Id int
+	Id        int
+	Date      time.Time
+	Amount    float64
+	PartnerId int
+	Status    string
 }
 
 type GetAllResponse struct {
@@ -20,23 +20,26 @@ type GetAllResponse struct {
 }
 
 type CreateRequest struct {
-	User_Id    int
-	Amount     int64
-	Partner_Id int
+	Amount    int64
+	PartnerId int
+	Status    string
+	TxRef     string
 }
 
 type GetByParamRequest struct {
-	Date       time.Time
-	Partner_Id int
-	User_Id    int
+	Date      time.Time
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type MockTransaction struct {
-	Id         int
-	User_Id    int
-	Date       time.Time
-	Amount     int64
-	Partner_Id int
+	Id        int
+	Date      time.Time
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type Mock struct {
@@ -51,11 +54,12 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.resources {
 		if i.Id == id {
 			return port.GetResponse{
-				Id:         i.Id,
-				User_Id:    i.User_Id,
-				Date:       i.Date,
-				Amount:     i.Amount,
-				Partner_Id: i.Partner_Id,
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    i.Status,
 			}, nil
 		}
 	}
@@ -66,11 +70,12 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
 		response = append(response, port.GetResponse{
-			Id:         i.Id,
-			User_Id:    i.User_Id,
-			Date:       i.Date,
-			Amount:     i.Amount,
-			Partner_Id: i.Partner_Id,
+			Id:        i.Id,
+			Date:      i.Date,
+			Amount:    i.Amount,
+			PartnerId: i.PartnerId,
+			TxRef:     i.TxRef,
+			Status:    i.Status,
 		})
 	}
 	if len(response) == 0 {
@@ -86,11 +91,12 @@ func (m *Mock) GetByDate(ctx context.Context, date time.Time) (port.GetAllRespon
 	for _, i := range m.resources {
 		if i.Date == date {
 			response = append(response, port.GetResponse{
-				Id:         i.Id,
-				User_Id:    i.User_Id,
-				Date:       i.Date,
-				Amount:     i.Amount,
-				Partner_Id: i.Partner_Id,
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    i.Status,
 			})
 		}
 	}
@@ -102,16 +108,17 @@ func (m *Mock) GetByDate(ctx context.Context, date time.Time) (port.GetAllRespon
 	}, nil
 }
 
-func (m *Mock) GetByUserId(ctx context.Context, userId int) (port.GetAllResponse, error) {
+func (m *Mock) GetByTxRef(ctx context.Context, txRef string) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
-		if i.User_Id == userId {
+		if i.TxRef == txRef {
 			response = append(response, port.GetResponse{
-				Id:         i.Id,
-				User_Id:    i.User_Id,
-				Date:       i.Date,
-				Amount:     i.Amount,
-				Partner_Id: i.Partner_Id,
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    i.Status,
 			})
 		}
 	}
@@ -121,18 +128,62 @@ func (m *Mock) GetByUserId(ctx context.Context, userId int) (port.GetAllResponse
 	return port.GetAllResponse{
 		List: response,
 	}, nil
+}
+
+func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	response := []port.GetResponse{}
+	for _, i := range m.resources {
+		if i.Status == status {
+			response = append(response, port.GetResponse{
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    i.Status,
+			})
+		}
+	}
+	if len(response) == 0 {
+		return port.GetAllResponse{}, port.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: response,
+	}, nil
+}
+
+func (m *Mock) UpdateStatus(ctx context.Context, req *port.UpdateRequest) error {
+	response := []MockTransaction{}
+	for _, i := range m.resources {
+		if i.Id == req.Id {
+			response = append(response, MockTransaction{
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    req.Status,
+			})
+		}
+	}
+	if len(response) == 0 {
+		return port.ErrSysNoRows
+	}
+	m.resources = response
+	return nil
 }
 
 func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
-		if i.Partner_Id == partnerId {
+		if i.PartnerId == partnerId {
 			response = append(response, port.GetResponse{
-				Id:         i.Id,
-				User_Id:    i.User_Id,
-				Date:       i.Date,
-				Amount:     i.Amount,
-				Partner_Id: i.Partner_Id,
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    i.Status,
 			})
 		}
 	}
@@ -147,11 +198,12 @@ func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int) (port.GetAllRe
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	newResourceId := len(m.resources) + 1
 	m.resources = append(m.resources, MockTransaction{
-		Id:         newResourceId,
-		User_Id:    req.User_Id,
-		Amount:     req.Amount,
-		Partner_Id: req.Partner_Id,
-		Date:       time.Now(),
+		Id:        newResourceId,
+		Amount:    req.Amount,
+		PartnerId: req.PartnerId,
+		Date:      time.Now(),
+		TxRef:     req.TxRef,
+		Status:    req.Status,
 	})
 	return newResourceId, nil
 }
@@ -161,14 +213,14 @@ func (m *Mock) Delete(ctx context.Context, id int) error {
 	for _, i := range m.resources {
 		if i.Id != id {
 			updatedResources = append(updatedResources, MockTransaction{
-				Id:         i.Id,
-				User_Id:    i.User_Id,
-				Date:       i.Date,
-				Amount:     i.Amount,
-				Partner_Id: i.Partner_Id,
+				Id:        i.Id,
+				Date:      i.Date,
+				Amount:    i.Amount,
+				PartnerId: i.PartnerId,
+				TxRef:     i.TxRef,
+				Status:    i.Status,
 			})
 		}
-
 	}
 	m.resources = updatedResources
 	return nil

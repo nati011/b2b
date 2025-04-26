@@ -5,8 +5,6 @@ import (
 	"errors"
 	"time"
 
-	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/user"
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
 )
 
@@ -20,14 +18,26 @@ var (
 	ErrUnknown                     = errors.New("oopsy, unkown error")
 	ErrPartnerDoesNotExist         = errors.New("oopsy, partner does not exist")
 	ErrUserDoesNotExist            = errors.New("oopsy, user does not exist")
+	ErrTransactionRefNotSupplied   = errors.New("oopsy, txRef mandatory")
+)
+
+var (
+	PENDING_STATUS   = "PENDING"
+	COMPLETED_STATUS = "COMPLETED"
 )
 
 type GetResponse struct {
-	Id         int
-	User_Id    int
-	Date       time.Time
-	Amount     int64
-	Partner_Id int
+	Id        int
+	Date      time.Time
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
+}
+
+type UpdateRequest struct {
+	Id     int
+	Status string
 }
 
 type GetAllResponse struct {
@@ -35,15 +45,17 @@ type GetAllResponse struct {
 }
 
 type CreateRequest struct {
-	User_Id    int
-	Amount     int64
-	Partner_Id int
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type GetByParamRequest struct {
-	Date       time.Time
-	Partner_Id int
-	User_Id    int
+	Date      time.Time
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type Provider interface {
@@ -51,43 +63,38 @@ type Provider interface {
 	Get(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByParam(context.Context, *GetByParamRequest) (GetAllResponse, error)
+	UpdateStatus(context.Context, *UpdateRequest) error
 }
 
 type TransactionService struct {
-	DB             port.DB
-	PartnerService partner.Provider
-	UserService    user.Provider
+	DB port.DB
 }
 
 func NewTransactionService(db port.DB,
-	ps partner.Provider,
-	us user.Provider,
 ) Provider {
 	return &TransactionService{
-		DB:             db,
-		PartnerService: ps,
-		UserService:    us,
+		DB: db,
 	}
 }
 
 func (t *TransactionService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	err := t.validateUserId(ctx, req.User_Id)
+	err := validateAmount(req.Amount)
 	if err != nil {
 		return 0, err
 	}
-	err = validateAmount(req.Amount)
+	err = validateTransactionRef(req.TxRef)
 	if err != nil {
 		return 0, err
 	}
-	err = t.validatePartnerId(ctx, req.Partner_Id)
+	err = validatePartnerId(req.PartnerId)
 	if err != nil {
 		return 0, err
 	}
-
 	id, err := t.DB.Create(ctx, &port.CreateRequest{
-		User_Id:    req.User_Id,
-		Partner_Id: req.Partner_Id,
-		Amount:     req.Amount,
+		PartnerId: req.PartnerId,
+		Amount:    req.Amount,
+		TxRef:     req.TxRef,
+		Status:    req.Status,
 	})
 	if err != nil {
 		switch err {
@@ -128,56 +135,92 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 	return ret_resp, nil
 }
 
+func (t *TransactionService) UpdateStatus(ctx context.Context, req *UpdateRequest) error {
+	err := t.DB.UpdateStatus(ctx, &port.UpdateRequest{
+		Id:     req.Id,
+		Status: req.Status,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
+}
+
 func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	ret_resp := GetAllResponse{}
-	if req.Partner_Id != 0 {
-		resp, err := t.DB.GetByPartnerId(ctx, req.Partner_Id)
-		if err != nil {
-			switch err {
-			case port.ErrSysNoRows:
-			default:
-				return GetAllResponse{}, ErrUnknown
-			}
-		}
 
-		for _, i := range resp.List {
-			found := false
-			for _, j := range ret_resp.List {
-				if j.Id == i.Id {
-					found = true
-				}
-			}
-			if !found {
-				ret_resp.List = append(ret_resp.List, GetResponse(i))
-			}
+	resp, err := t.DB.GetByPartnerId(ctx, req.PartnerId)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+		default:
+			return GetAllResponse{}, ErrUnknown
 		}
 	}
 
-	if req.User_Id != 0 {
-		resp, err := t.DB.GetByUserId(ctx, req.User_Id)
-		if err != nil {
-			switch err {
-			case port.ErrSysNoRows:
-			default:
-				return GetAllResponse{}, ErrUnknown
+	for _, i := range resp.List {
+		found := false
+		for _, j := range ret_resp.List {
+			if j.Id == i.Id {
+				found = true
 			}
 		}
-
-		for _, i := range resp.List {
-			found := false
-			for _, j := range ret_resp.List {
-				if j.Id == i.Id {
-					found = true
-				}
-			}
-			if !found {
-				ret_resp.List = append(ret_resp.List, GetResponse(i))
-			}
+		if !found {
+			ret_resp.List = append(ret_resp.List, GetResponse(i))
 		}
 	}
 
 	if !req.Date.IsZero() {
 		resp, err := t.DB.GetByDate(ctx, req.Date)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		for _, i := range resp.List {
+			found := false
+			for _, j := range ret_resp.List {
+				if j.Id == i.Id {
+					found = true
+				}
+			}
+			if !found {
+				ret_resp.List = append(ret_resp.List, GetResponse(i))
+			}
+		}
+	}
+
+	if req.TxRef != "" {
+		resp, err := t.DB.GetByTxRef(ctx, req.TxRef)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		for _, i := range resp.List {
+			found := false
+			for _, j := range ret_resp.List {
+				if j.Id == i.Id {
+					found = true
+				}
+			}
+			if !found {
+				ret_resp.List = append(ret_resp.List, GetResponse(i))
+			}
+		}
+	}
+
+	if req.Status != "" {
+		resp, err := t.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:

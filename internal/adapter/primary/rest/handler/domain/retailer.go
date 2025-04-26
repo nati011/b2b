@@ -24,12 +24,11 @@ type CreateRetailerRequest struct {
 	Region      string `json:"region"`
 	Woreda      string `json:"woreda"`
 
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	Email      string `json:"email"`
-	Phone      string `json:"phone"`
-	Username   string `json:"username"`
-	ExternalId string `json:"external_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Username  string `json:"username"`
 }
 
 type GetRetailerResponse struct {

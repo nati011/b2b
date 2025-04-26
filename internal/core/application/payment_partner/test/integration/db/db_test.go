@@ -41,7 +41,7 @@ func Test_Read(t *testing.T) {
 			Name:    "test",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 			Secret:  "randomSecret",
 		}
 
@@ -69,7 +69,7 @@ func Test_Read(t *testing.T) {
 			Name:    "test",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -97,7 +97,7 @@ func Test_Read(t *testing.T) {
 			Name:    "test4",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -134,7 +134,7 @@ func Test_Read(t *testing.T) {
 			Name:    "test1",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -158,7 +158,7 @@ func Test_Read(t *testing.T) {
 			Name:    "test",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
@@ -187,7 +187,7 @@ func Test_Write(t *testing.T) {
 			Name:    "test",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "https://google.com",
+			BaseURL: "https://google.com",
 			Secret:  "randomSecret",
 		}
 
@@ -214,7 +214,7 @@ func Test_Write(t *testing.T) {
 			Name:    "test",
 			Icon:    "test",
 			Status:  "test",
-			BaseUrl: "test",
+			BaseURL: "test",
 			Secret:  "randomSecret",
 		}
 
