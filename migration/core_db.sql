@@ -366,7 +366,6 @@ CREATE TABLE IF NOT EXISTS public."transactions"
   tx_ref VARCHAR(255),
   status VARCHAR(255),
   date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_Id) REFERENCES public."users" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores transactions';
