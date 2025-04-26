@@ -12,10 +12,12 @@ var (
 )
 
 type GetResponse struct {
-	Id         int
-	Date       time.Time
-	Amount     int64
-	Partner_Id int
+	Id        int
+	Date      time.Time
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type GetAllResponse struct {
@@ -23,15 +25,19 @@ type GetAllResponse struct {
 }
 
 type CreateRequest struct {
-	Amount     int64
-	Partner_Id int
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByDate(context.Context, time.Time) (GetAllResponse, error)
+	GetByTxRef(context.Context, string) (GetAllResponse, error)
 	GetByPartnerId(context.Context, int) (GetAllResponse, error)
+	GetByStatus(context.Context, string) (GetAllResponse, error)
 }
 
 type Writer interface {

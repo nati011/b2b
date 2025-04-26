@@ -31,9 +31,9 @@ func setup() {
 	ctx := context.Background()
 
 	partner_id, _ = container.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:             "test",
-		Icon:             "test",
-		Init_payment_url: "test",
+		Name:    "test",
+		Icon:    "test",
+		BaseURL: "test",
 	})
 	//create user
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
@@ -65,8 +65,8 @@ func Test_write(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: partner_id,
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -87,6 +87,7 @@ func Test_write(t *testing.T) {
 func Test_read(t *testing.T) {
 	t.Run("get_by_id", func(t *testing.T) {
 		//unimplemented in service
+
 	})
 
 	t.Run("get_all", func(t *testing.T) {
@@ -95,8 +96,8 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: partner_id,
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		print(id)
@@ -119,8 +120,8 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: partner_id,
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -150,8 +151,8 @@ func Test_read(t *testing.T) {
 		ctx := context.Background()
 		//setup
 		in := &transaction.CreateRequest{
-			Amount:     1,
-			Partner_Id: partner_id,
+			Amount:    1,
+			PartnerId: partner_id,
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -163,7 +164,7 @@ func Test_read(t *testing.T) {
 		}
 
 		resp_param, err := container.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
-			Partner_Id: resp.Partner_Id,
+			PartnerId: resp.PartnerId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)

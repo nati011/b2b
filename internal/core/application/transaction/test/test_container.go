@@ -29,8 +29,6 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 			Limit:  10,
 			Offset: 0,
 		}),
-		container.PartnerService,
-		container.UserService,
 	)
 	return container
 }
