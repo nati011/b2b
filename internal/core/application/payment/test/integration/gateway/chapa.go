@@ -26,10 +26,10 @@ func setup() {
 	var err error
 	PaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:             "chapa",
-			Icon:             "etst",
-			Init_payment_url: "https://api.chapa.co",
-			Secret:           "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:    "chapa",
+			Icon:    "etst",
+			BaseURL: "https://api.chapa.co",
+			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
 	if err != nil {
 		panic("failed to create payment partner")

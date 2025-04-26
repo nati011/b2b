@@ -24,3 +24,13 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	)
 	return container
 }
+
+func (t *TestContainer) TearDown() {
+	t.PartnerService = partner.NewPartner(
+		partner_db.NewMock(),
+	)
+
+	t.TransactionService = NewTransactionService(
+		transaction_db.NewMock(),
+	)
+}

@@ -365,7 +365,7 @@ CREATE TABLE IF NOT EXISTS public."transactions"
   partner_id INT,
   tx_ref VARCHAR(255),
   status VARCHAR(255),
-  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores transactions';
