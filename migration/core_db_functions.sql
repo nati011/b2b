@@ -2795,7 +2795,27 @@ BEGIN
 
     RETURN new_id;
 END;
-$$;  
+$$; 
+
+
+CREATE OR REPLACE FUNCTION public.update_transaction_status(
+    t_id INT,
+    t_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    UPDATE public.transactions
+    SET status = t_status
+    WHERE id = t_id
+      AND is_deleted = FALSE;
+
+    RETURN t_id;
+END;
+$$; 
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_transaction_by_id(

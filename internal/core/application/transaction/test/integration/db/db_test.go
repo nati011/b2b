@@ -88,6 +88,40 @@ func Test_write(t *testing.T) {
 			t.Errorf("Expected id: %v Got: %v", id, resp.Id)
 		}
 	})
+
+	t.Run("update_status", func(t *testing.T) {
+		setup()
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		in := &transaction.CreateRequest{
+			Amount:    1,
+			PartnerId: PartnerId,
+			TxRef:     "1",
+			Status:    "test",
+		}
+		id, err := container.TransactionService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		update_in := transaction.UpdateRequest{
+			Id:     id,
+			Status: "test_two",
+		}
+		err = container.TransactionService.UpdateStatus(ctx, &update_in)
+		if err != nil {
+			t.Errorf("Failed to update status err: %v", err)
+		}
+		//check
+		resp, err := container.TransactionService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		if resp.Status != update_in.Status {
+			t.Errorf("Expected status: %v Got: %v", update_in.Status, resp.Status)
+		}
+	})
 }
 
 func Test_read(t *testing.T) {

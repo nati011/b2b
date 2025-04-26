@@ -349,7 +349,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		}
 
 		if resp.Status != in.Status {
-			t.Errorf("Expected transactionRef: %v Want: %v", in.TxRef, resp.TxRef)
+			t.Errorf("Expected status: %v Want: %v", in.TxRef, resp.TxRef)
 		}
 	})
 }
@@ -364,4 +364,35 @@ func Test_GetByParam_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)
 		}
 	})
+}
+
+func Test_update_status_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.TearDown)
+	ctx := context.Background()
+	//setup
+	in := &CreateRequest{
+		Amount:    1,
+		PartnerId: PartnerId,
+		TxRef:     "test",
+		Status:    "test",
+	}
+	id, err := testContainer.TransactionService.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+	in_status := &UpdateRequest{
+		Id:     id,
+		Status: "test",
+	}
+	err = testContainer.TransactionService.UpdateStatus(ctx, in_status)
+	if err != nil {
+		t.Errorf("Failed to update err %v", err)
+	}
+	resp, err := testContainer.TransactionService.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get err: %v", err)
+	}
+	if resp.Status != in_status.Status {
+		t.Errorf("Expected status: %v Want: %v", in.TxRef, resp.TxRef)
+	}
 }

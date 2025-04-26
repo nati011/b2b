@@ -31,6 +31,11 @@ type CreateRequest struct {
 	Status    string
 }
 
+type UpdateRequest struct {
+	Id     int
+	Status string
+}
+
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
@@ -38,6 +43,7 @@ type Reader interface {
 	GetByTxRef(context.Context, string) (GetAllResponse, error)
 	GetByPartnerId(context.Context, int) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)
+	UpdateStatus(context.Context, *UpdateRequest) error
 }
 
 type Writer interface {

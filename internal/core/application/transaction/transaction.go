@@ -21,6 +21,11 @@ var (
 	ErrTransactionRefNotSupplied   = errors.New("oopsy, txRef mandatory")
 )
 
+var (
+	PENDING_STATUS   = "PENDING"
+	COMPLETED_STATUS = "COMPLETED"
+)
+
 type GetResponse struct {
 	Id        int
 	Date      time.Time
@@ -28,6 +33,11 @@ type GetResponse struct {
 	PartnerId int
 	TxRef     string
 	Status    string
+}
+
+type UpdateRequest struct {
+	Id     int
+	Status string
 }
 
 type GetAllResponse struct {
@@ -53,6 +63,7 @@ type Provider interface {
 	Get(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByParam(context.Context, *GetByParamRequest) (GetAllResponse, error)
+	UpdateStatus(context.Context, *UpdateRequest) error
 }
 
 type TransactionService struct {
@@ -122,6 +133,20 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 		ret_resp.List = append(ret_resp.List, GetResponse(i))
 	}
 	return ret_resp, nil
+}
+
+func (t *TransactionService) UpdateStatus(ctx context.Context, req *UpdateRequest) error {
+	err := t.DB.UpdateStatus(ctx, &port.UpdateRequest{
+		Id:     req.Id,
+		Status: req.Status,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
 }
 
 func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {

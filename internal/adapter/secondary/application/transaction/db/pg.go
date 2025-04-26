@@ -310,3 +310,21 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	rows.Row.Scan(&id)
 	return id, nil
 }
+
+func (p *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateRequest) error {
+	var id int
+	query := "SELECT * FROM public.update_transaction_status($1, $2);"
+	rows, err := handler.MustQueryRow(
+		p.Pool,
+		ctx,
+		query,
+		false,
+		req.Id,
+		req.Status,
+	)
+	if err != nil {
+		return err
+	}
+	rows.Row.Scan(&id)
+	return nil
+}
