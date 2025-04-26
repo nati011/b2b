@@ -126,6 +126,7 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 
 func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	ret_resp := GetAllResponse{}
+
 	resp, err := t.DB.GetByPartnerId(ctx, req.PartnerId)
 	if err != nil {
 		switch err {
@@ -194,7 +195,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 	}
 
 	if req.Status != "" {
-		resp, err := t.DB.GetByStatus(ctx, req.TxRef)
+		resp, err := t.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
