@@ -13,21 +13,20 @@ import (
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
-type CreateTransactionRequest struct {
-	Amount     int64 `json:"amount"`
-	Partner_Id int   `json:"partner_id"`
-}
-
 type GetByParamRequest struct {
-	Date       time.Time `json:"date"`
-	Partner_Id int       `json:"partner_id"`
+	Date      time.Time `json:"date"`
+	PartnerId int       `json:"partner_id"`
+	TxRef     string    `json:"tx_ref"`
+	Status    string    `json:"status"`
 }
 
 type GetResponse struct {
-	Id         int       `json:"id"`
-	Date       time.Time `json:"date"`
-	Amount     int64     `json:"amount"`
-	Partner_Id int       `json:"partner_id"`
+	Id        int       `json:"id"`
+	Date      time.Time `json:"date"`
+	Amount    float64   `json:"amount"`
+	PartnerId int       `json:"partner_id"`
+	TxRef     string    `json:"tx_ref"`
+	Status    string    `json:"status"`
 }
 
 type GetAllResponse struct {
@@ -93,8 +92,8 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		params := &transaction.GetByParamRequest{
-			Partner_Id: typedPartnerId,
-			Date:       parsedDate,
+			PartnerId: typedPartnerId,
+			Date:      parsedDate,
 		}
 
 		resp, err := p.service.GetByParam(r.Context(), params)

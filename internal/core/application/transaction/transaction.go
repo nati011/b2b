@@ -5,8 +5,6 @@ import (
 	"errors"
 	"time"
 
-	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/user"
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
 )
 
@@ -23,10 +21,12 @@ var (
 )
 
 type GetResponse struct {
-	Id         int
-	Date       time.Time
-	Amount     int64
-	Partner_Id int
+	Id        int
+	Date      time.Time
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type GetAllResponse struct {
@@ -34,13 +34,17 @@ type GetAllResponse struct {
 }
 
 type CreateRequest struct {
-	Amount     int64
-	Partner_Id int
+	Amount    float64
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type GetByParamRequest struct {
-	Date       time.Time
-	Partner_Id int
+	Date      time.Time
+	PartnerId int
+	TxRef     string
+	Status    string
 }
 
 type Provider interface {
@@ -51,35 +55,23 @@ type Provider interface {
 }
 
 type TransactionService struct {
-	DB             port.DB
-	PartnerService partner.Provider
-	UserService    user.Provider
+	DB port.DB
 }
 
 func NewTransactionService(db port.DB,
-	ps partner.Provider,
-	us user.Provider,
 ) Provider {
 	return &TransactionService{
-		DB:             db,
-		PartnerService: ps,
-		UserService:    us,
+		DB: db,
 	}
 }
 
 func (t *TransactionService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	err := validateAmount(req.Amount)
-	if err != nil {
-		return 0, err
-	}
-	err = t.validatePartnerId(ctx, req.Partner_Id)
-	if err != nil {
-		return 0, err
-	}
 
 	id, err := t.DB.Create(ctx, &port.CreateRequest{
-		Partner_Id: req.Partner_Id,
-		Amount:     req.Amount,
+		PartnerId: req.PartnerId,
+		Amount:    req.Amount,
+		TxRef:     req.TxRef,
+		Status:    req.Status,
 	})
 	if err != nil {
 		switch err {
@@ -122,8 +114,29 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 
 func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	ret_resp := GetAllResponse{}
-	if req.Partner_Id != 0 {
-		resp, err := t.DB.GetByPartnerId(ctx, req.Partner_Id)
+	resp, err := t.DB.GetByPartnerId(ctx, req.PartnerId)
+	if err != nil {
+		switch err {
+		case port.ErrSysNoRows:
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	for _, i := range resp.List {
+		found := false
+		for _, j := range ret_resp.List {
+			if j.Id == i.Id {
+				found = true
+			}
+		}
+		if !found {
+			ret_resp.List = append(ret_resp.List, GetResponse(i))
+		}
+	}
+
+	if !req.Date.IsZero() {
+		resp, err := t.DB.GetByDate(ctx, req.Date)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
@@ -145,8 +158,8 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 		}
 	}
 
-	if !req.Date.IsZero() {
-		resp, err := t.DB.GetByDate(ctx, req.Date)
+	if req.TxRef != "" {
+		resp, err := t.DB.GetByTxRef(ctx, req.TxRef)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:

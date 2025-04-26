@@ -26,15 +26,36 @@ func setup() {
 	var err error
 	PaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:             "chapa",
-			Icon:             "etst",
-			Init_payment_url: "https://api.chapa.co",
-			Secret:           "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:    "chapa",
+			Icon:    "etst",
+			BaseURL: "https://api.chapa.co",
+			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
 	if err != nil {
 		panic("failed to create payment partner")
 	}
 }
+func Test_CreateTransactionUponPaymentInitAndSetStatusToPending(t *testing.T) {
+	ctx := context.Background()
+	//init transaction
+
+	currentTimestamp := time.Now()
+	generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
+	in := &payment.CheckoutRequest{
+		Amount:           1,
+		PaymentPartnerId: PaymentPartnerId,
+		TransactionRef:   generatedTxRef,
+	}
+
+	_, err := testContainer.PaymentService.Checkout(ctx, in)
+	if err != nil {
+		t.Errorf("Failed to checkout err: %v", err)
+	}
+
+	//check if transaction has been created
+
+}
+
 func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 	ctx := context.Background()
 	//init transaction
@@ -60,4 +81,7 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 	if resp != wantIsValidStatus {
 		t.Errorf("Expected status: %v Got: %v", wantIsValidStatus, resp)
 	}
+
+	//check if transaction has been created and status has been set to uploaded
+
 }

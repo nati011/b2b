@@ -2772,9 +2772,10 @@ $$;
 
     -- writer
 CREATE OR REPLACE FUNCTION public.record_transaction(
-    t_user_id INT,
+    t_amount DECIMAL(12,2),
     t_partner_id INT,
-    t_amount DECIMAL(12,2)
+    t_status VARCHAR(255),
+    t_tx_ref VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -2782,12 +2783,15 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.transactions (user_id, 
-                                      partner_id, 
-                                      amount)
-    VALUES (t_user_id, 
-            t_partner_id, 
-            t_amount)
+    INSERT INTO public.transactions ( amount,
+                                      partner_id,
+                                      status,
+                                      tx_ref 
+                                      )
+    VALUES (t_amount,
+            t_partner_id,
+            t_status,
+            t_tx_ref)
     RETURNING id INTO new_id;
 
     RETURN new_id;
@@ -2799,41 +2803,19 @@ CREATE OR REPLACE FUNCTION public.get_transaction_by_id(
     t_id INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
-              amount DECIMAL(2,12),
+              amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.date, t.status
     FROM public.transactions t
     WHERE t.id = t_id
       AND t.is_deleted = FALSE;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_transactions_by_user_id(
-    t_user_id INT,
-     t_limit INT,
-    t_offset INT
-)
-RETURNS TABLE(id INT,
-              user_id INT,
-              amount DECIMAL(2,12),
-              partner_id INT,
-              date TIMESTAMP)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
-    FROM public.transactions t
-    WHERE t.user_id = t_user_id
-      AND t.is_deleted = FALSE
-       LIMIT t_limit
-    OFFSET t_offset;
 END;
 $$;
 
@@ -2842,15 +2824,16 @@ CREATE OR REPLACE FUNCTION public.get_all_transactions(
     t_offset INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
               amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.is_deleted = FALSE
     LIMIT t_limit
@@ -2860,19 +2843,20 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_partner_id(
     t_partner_id INT,
-     t_limit INT,
+    t_limit INT,
     t_offset INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
               amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.partner_id = t_partner_id
       AND t.is_deleted = FALSE
@@ -2883,26 +2867,74 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_date(
     t_date TIMESTAMP,
-     t_limit INT,
+    t_limit INT,
     t_offset INT
 )
 RETURNS TABLE(id INT,
-              user_id INT,
               amount DECIMAL(12,2),
               partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
               date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT t.id, t.user_id, t.amount, t.partner_id, t.date
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
     WHERE t.date = t_date
       AND t.is_deleted = FALSE
        LIMIT t_limit
     OFFSET t_offset;
 END;
+$$;
 
+CREATE OR REPLACE FUNCTION public.get_transactions_by_tx_ref(
+    t_tx_ref TIMESTAMP,
+    t_limit INT,
+    t_offset INT
+)
+RETURNS TABLE(id INT,
+              amount DECIMAL(12,2),
+              partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
+    FROM public.transactions t
+    WHERE t.tx_ref = t_tx_ref
+      AND t.is_deleted = FALSE
+       LIMIT t_limit
+    OFFSET t_offset;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_transactions_by_status(
+    t_status TIMESTAMP,
+    t_limit INT,
+    t_offset INT
+)
+RETURNS TABLE(id INT,
+              amount DECIMAL(12,2),
+              partner_id INT,
+              tx_ref VARCHAR(255),
+              status VARCHAR(255),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
+    FROM public.transactions t
+    WHERE t.status = t_status
+      AND t.is_deleted = FALSE
+       LIMIT t_limit
+    OFFSET t_offset;
+END;
 $$;
 
 --- payment_partner --------------------------------------

@@ -18,12 +18,9 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.PartnerService = partner.NewPartner(
 		partner_db.NewMock(),
 	)
-	container.UserService = user.NewTestContainer().UserService
 
 	container.TransactionService = NewTransactionService(
 		transaction_db.NewMock(),
-		container.PartnerService,
-		container.UserService,
 	)
 	return container
 }

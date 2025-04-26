@@ -28,25 +28,25 @@ var (
 )
 
 type CreateRequest struct {
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
-	Secret           string
+	Name    string
+	Icon    string
+	Status  string
+	BaseURL string
+	Secret  string
 }
 
 type GetResponse struct {
-	Id               int
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
+	Id      int
+	Name    string
+	Icon    string
+	Status  string
+	BaseURL string
 }
 
 type GetSecretResponse struct {
-	Name             string
-	Init_payment_url string
-	Secret           string
+	Name    string
+	BaseURL string
+	Secret  string
 }
 
 type GetAllResponse struct {
@@ -88,7 +88,7 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-	err = validateInitPaymentURL(req.Init_payment_url)
+	err = validateInitPaymentURL(req.BaseURL)
 	if err != nil {
 		return 0, err
 	}
@@ -99,11 +99,11 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	}
 
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
-		Name:             req.Name,
-		Icon:             req.Icon,
-		Status:           INACTIVE_STATUS,
-		Init_payment_url: req.Init_payment_url,
-		Secret:           req.Secret,
+		Name:    req.Name,
+		Icon:    req.Icon,
+		Status:  INACTIVE_STATUS,
+		BaseURL: req.BaseURL,
+		Secret:  req.Secret,
 	})
 	if err != nil {
 		switch err {

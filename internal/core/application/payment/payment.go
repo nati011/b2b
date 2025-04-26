@@ -9,7 +9,8 @@ import (
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
-	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
+	db_port "b2b.nati011.github.com/internal/port/application/payment/db"
+	gateway_port "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
 
 var (
@@ -38,6 +39,7 @@ type Provider interface {
 }
 
 type PaymentService struct {
+	DB                 db_port.DB
 	PartnerService     partner.Provider
 	TransactionService transaction.Provider
 	PaymentProcessor   payment_processor.Provider
@@ -73,15 +75,17 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 		return CheckoutResponse{}, err
 	}
 
-	checkoutUrl, err := paymentGateway.Initiate(payment.InitiateRequest{
+	checkoutUrl, err := paymentGateway.Initiate(gateway_port.InitiateRequest{
 		Amount:         req.Amount,
 		TransactionRef: req.TransactionRef,
-		PartnerUrl:     paymentPartner.Init_payment_url,
+		PartnerUrl:     paymentPartner.BaseURL,
 		PartnerSecret:  paymentPartner.Secret,
 	})
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
+
+	// create payment process
 
 	return CheckoutResponse{
 		Checkout_url: checkoutUrl,
@@ -108,8 +112,8 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 		return false, err
 	}
 
-	paymentVerificationRequest := payment.VerificationRequest{
-		PartnerUrl:     paymentPartner.Init_payment_url,
+	paymentVerificationRequest := gateway_port.VerificationRequest{
+		PartnerUrl:     paymentPartner.BaseURL,
 		TransactionRef: tx_ref,
 		PartnerSecret:  paymentPartner.Secret,
 	}
@@ -119,8 +123,11 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 		return false, ErrUnknown
 	}
 
-	// if verified create transaction
-
+	// // if verified create transaction
+	// p.TransactionService.Create(ctx, &transaction.CreateRequest{
+	// 	Amount: ,
+	// 	Partner_Id:
+	// })
 	return is_verified, nil
 }
 
