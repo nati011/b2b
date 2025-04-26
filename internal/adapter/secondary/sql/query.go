@@ -31,10 +31,5 @@ func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, 
 	if row.Err() != nil {
 		return nil, port_commons.ErrSysUnknown
 	}
-
-	if err := row.Scan(); err != nil {
-		return nil, port_commons.ErrNoRows
-	}
-
 	return &QueryResult{Row: row}, nil
 }

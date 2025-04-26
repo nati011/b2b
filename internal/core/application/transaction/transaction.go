@@ -18,6 +18,7 @@ var (
 	ErrUnknown                     = errors.New("oopsy, unkown error")
 	ErrPartnerDoesNotExist         = errors.New("oopsy, partner does not exist")
 	ErrUserDoesNotExist            = errors.New("oopsy, user does not exist")
+	ErrTransactionRefNotSupplied   = errors.New("oopsy, txRef mandatory")
 )
 
 type GetResponse struct {
@@ -66,7 +67,18 @@ func NewTransactionService(db port.DB,
 }
 
 func (t *TransactionService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-
+	err := validateAmount(req.Amount)
+	if err != nil {
+		return 0, err
+	}
+	err = validateTransactionRef(req.TxRef)
+	if err != nil {
+		return 0, err
+	}
+	err = validatePartnerId(req.PartnerId)
+	if err != nil {
+		return 0, err
+	}
 	id, err := t.DB.Create(ctx, &port.CreateRequest{
 		PartnerId: req.PartnerId,
 		Amount:    req.Amount,
@@ -160,6 +172,29 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 
 	if req.TxRef != "" {
 		resp, err := t.DB.GetByTxRef(ctx, req.TxRef)
+		if err != nil {
+			switch err {
+			case port.ErrSysNoRows:
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		for _, i := range resp.List {
+			found := false
+			for _, j := range ret_resp.List {
+				if j.Id == i.Id {
+					found = true
+				}
+			}
+			if !found {
+				ret_resp.List = append(ret_resp.List, GetResponse(i))
+			}
+		}
+	}
+
+	if req.Status != "" {
+		resp, err := t.DB.GetByStatus(ctx, req.TxRef)
 		if err != nil {
 			switch err {
 			case port.ErrSysNoRows:
