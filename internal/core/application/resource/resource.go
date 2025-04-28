@@ -165,7 +165,7 @@ func (r *ResourceProvider) Get(ctx context.Context, id int) (GetResponse, error)
 	resp, err := r.db.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -179,7 +179,7 @@ func (r *ResourceProvider) GetAll(ctx context.Context) (GetAllResponse, error) {
 	allResources, err := r.db.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
