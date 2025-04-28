@@ -177,20 +177,6 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_resources() 
-RETURNS table (id INT, 
-               action VARCHAR(255), 
-               name VARCHAR(255)) 
-LANGUAGE plpgsql 
-AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT r.id, r.action, r.name
-        FROM public.resources r
-        WHERE r.is_deleted = FALSE;
-    END;
-$$;
-
 
 -- Roles ----------------------------------------
     

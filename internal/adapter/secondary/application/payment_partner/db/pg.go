@@ -136,7 +136,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			&responseBase.Status,
 			&responseBase.BaseURL,
 		}}
-	args := []any{status}
+	args := []any{&status}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -165,7 +165,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_payment_partner_by_status($1);"
+	query := "SELECT * FROM public.get_payment_partner_by_name($1);"
 
 	result := [][]any{
 		{
@@ -228,18 +228,18 @@ func (p *Postgres) UpdateStatus(ctx context.Context, id int, status string) (int
 	var partner_id int
 	query := "SELECT * FROM public.update_payment_partner_status($1, $2);"
 
-	rows, err := query_handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		id,
-		status,
-	)
+	result := []any{&partner_id}
+	args := []any{id, status}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
-	rows.Row.Scan(&partner_id)
 	return partner_id, nil
 }
 
@@ -247,18 +247,18 @@ func (p *Postgres) UpdateName(ctx context.Context, id int, name string) (int, er
 	var partner_id int
 	query := "SELECT * FROM public.update_payment_partner_name($1, $2);"
 
-	rows, err := query_handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		id,
-		name,
-	)
+	result := []any{&partner_id}
+	args := []any{id, name}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
-	rows.Row.Scan(&partner_id)
 
 	return partner_id, nil
 }
