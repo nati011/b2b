@@ -3,6 +3,7 @@ package core
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
@@ -50,6 +51,7 @@ type Container struct {
 	ApplicationServices        application_core.Container
 	PaymentProcessorService    payment_processor.Provider
 	PaymentService             payment.Provider
+	Pagination                 config.Pagination
 }
 
 func NewContainer(application_core application_core.Container, db *sql.DB) *Container {
@@ -60,6 +62,9 @@ func NewContainer(application_core application_core.Container, db *sql.DB) *Cont
 	// ORDER ORDER!!
 
 	//	messing up the order creates chaos
+
+	//utils
+	container.InitPagination()
 
 	container.InitCategoryService()
 	container.InitProductService()
@@ -72,6 +77,10 @@ func NewContainer(application_core application_core.Container, db *sql.DB) *Cont
 	container.InitPaymentService()
 
 	return &container
+}
+
+func (m *Container) InitPagination() {
+	m.Pagination = *config.NewPaginationBuilder().Build()
 }
 
 func (m *Container) InitCategoryService() {
@@ -97,7 +106,7 @@ func (m *Container) InitOrderService() {
 }
 
 func (m *Container) InitDistributorService() {
-	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db))
+	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitRetailerService() {

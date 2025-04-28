@@ -3,19 +3,21 @@ package db
 import (
 	"context"
 	"database/sql"
-	"log"
 
-	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	"b2b.nati011.github.com/config"
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool       *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(db *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool: db,
+		Pool:       DB,
+		Pagination: pagination,
 	}
 }
 
@@ -23,25 +25,26 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 	var distributorId int
 	query := "SELECT * FROM public.create_distributor($1, $2, $3, $4, $5, $6, $7);"
 
-	rows, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		false,
+	result := []any{&distributorId}
+	args := []any{
 		req.Name,
 		req.Tin,
 		req.Latitude,
 		req.Longitude,
 		req.GeneralZone,
 		req.Region,
-		req.Woreda,
-	)
+		req.Woreda}
 
-	rows.Row.Scan(&distributorId)
-
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
+
 	_, err = r.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
 		User_id:        req.UserId,
 		Distributor_Id: distributorId,
@@ -59,104 +62,111 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_distributor_by_id($1);"
-	rows, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		false,
-		id,
-	)
-
-	if err != nil {
-		return port.GetResponse{}, err
-	}
-
-	rows.Row.Scan(
-		&response.Id,
+	result := []any{&response.Id,
 		&response.Name,
 		&response.Tin,
 		&response.Latitude,
 		&response.Longitude,
 		&response.GeneralZone,
 		&response.Region,
-		&response.Woreda)
+		&response.Woreda}
+
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+	response.Id = *result[0].(*int)
+	response.Name = *result[1].(*string)
+	response.Tin = *result[2].(*string)
+	response.Latitude = *result[3].(*string)
+	response.Longitude = *result[4].(*string)
+	response.GeneralZone = *result[5].(*string)
+	response.Region = *result[6].(*string)
+	response.Woreda = *result[7].(*string)
 
 	return response, nil
 }
 
 func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
 	query := "SELECT * FROM public.update_distributor_name($1, $2);"
-	_, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Name,
-	)
+	args := []any{&req.Id, &req.Name}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoStuff()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error {
 	query := "SELECT * FROM public.update_distributor_tin($1, $2);"
-	_, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Tin,
-	)
+	args := []any{&req.Id, &req.Tin}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoStuff()
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
+	query := "SELECT * FROM public.get_all_distributors($1, $2);"
 
-	query := "SELECT * FROM public.get_all_distributors();"
-	rows, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		true,
-	)
+	result := [][]any{
+		{&responseBase.Id,
+			&responseBase.Name,
+			&responseBase.Tin,
+			&responseBase.Latitude,
+			&responseBase.Longitude,
+			&responseBase.GeneralZone,
+			&responseBase.Region,
+			&responseBase.Woreda},
+	}
+	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Rows.Close()
-
-	for rows.Rows.Next() {
-		var retailer port.GetResponse
-		if err := rows.Rows.Scan(
-			&retailer.Id,
-			&retailer.Name,
-			&retailer.Tin,
-			&retailer.Latitude,
-			&retailer.Longitude,
-			&retailer.GeneralZone,
-			&retailer.Region,
-			&retailer.Woreda); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:          *res[0].(*int),
+			Name:        *res[1].(*string),
+			Tin:         *res[2].(*string),
+			Latitude:    *res[3].(*string),
+			Longitude:   *res[4].(*string),
+			GeneralZone: *res[5].(*string),
+			Region:      *res[6].(*string),
+			Woreda:      *res[7].(*string),
 		}
-		response.List = append(response.List, retailer)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		response.List = append(response.List, responseBase)
 	}
 
 	return response, nil
@@ -164,41 +174,45 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_distributor_by_name($1);"
-	rows, err := r.Pool.QueryContext(ctx, query, name)
+	query := "SELECT * FROM public.get_distributor_by_name($1,$2,$3);"
+
+	result := [][]any{
+		{&responseBase.Id,
+			&responseBase.Name,
+			&responseBase.Tin,
+			&responseBase.Latitude,
+			&responseBase.Longitude,
+			&responseBase.GeneralZone,
+			&responseBase.Region,
+			&responseBase.Woreda},
+	}
+	args := []any{name, r.Pagination.Limit, r.Pagination.Offset}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var retailer port.GetResponse
-		if err := rows.Scan(
-			&retailer.Id,
-			&retailer.Name,
-			&retailer.Tin,
-			&retailer.Latitude,
-			&retailer.Longitude,
-			&retailer.GeneralZone,
-			&retailer.Region,
-			&retailer.Woreda); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, retailer)
+		return port.GetAllResponse{}, err
 	}
 
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:          *res[0].(*int),
+			Name:        *res[1].(*string),
+			Tin:         *res[2].(*string),
+			Latitude:    *res[3].(*string),
+			Longitude:   *res[4].(*string),
+			GeneralZone: *res[5].(*string),
+			Region:      *res[6].(*string),
+			Woreda:      *res[7].(*string),
+		}
+		response.List = append(response.List, responseBase)
 	}
 
 	return response, nil
@@ -207,82 +221,83 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_distributor_by_tin($1);"
-	rows, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		false,
-		tin,
-	)
 
-	if err != nil {
-		return port.GetResponse{}, err
-	}
-	rows.Row.Scan(
-		&response.Id,
+	result := []any{&response.Id,
 		&response.Name,
 		&response.Tin,
 		&response.Latitude,
 		&response.Longitude,
 		&response.GeneralZone,
 		&response.Region,
-		&response.Woreda)
+		&response.Woreda}
+
+	args := []any{&tin}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+	response.Id = *result[0].(*int)
+	response.Name = *result[1].(*string)
+	response.Tin = *result[2].(*string)
+	response.Latitude = *result[3].(*string)
+	response.Longitude = *result[4].(*string)
+	response.GeneralZone = *result[5].(*string)
+	response.Region = *result[6].(*string)
+	response.Woreda = *result[7].(*string)
 
 	return response, nil
 }
 
 func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUserResponse, error) {
 	var response port.GetAllUserResponse
+	var responseBase port.GetUserResponse
 
-	query := "SELECT * FROM public.get_all_distributor_users($1);"
-	rows, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		true,
-		id,
-	)
+	query := "SELECT * FROM public.get_all_distributor_users($1, $2, $3);"
+	result := [][]any{
+		{&responseBase.Id},
+	}
+	args := []any{id, r.Pagination.Limit, r.Pagination.Offset}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return port.GetAllUserResponse{}, err
 	}
-
-	defer rows.Rows.Close()
-
-	for rows.Rows.Next() {
-		var retailer_user port.GetUserResponse
-		if err := rows.Rows.Scan(&retailer_user.Id); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllUserResponse{}, err
+	for _, res := range result {
+		responseBase := port.GetUserResponse{
+			Id: *res[0].(*int),
 		}
-		response.List = append(response.List, retailer_user)
+		response.List = append(response.List, responseBase)
 	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllUserResponse{}, port.ErrSysUnknown
-	}
-
 	return response, nil
 }
 
 func (r *Postgres) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
 	query := "SELECT * FROM public.create_distributor_user($1, $2);"
-	var retailer_id int
-	rows, err := handler.MustQueryRow(
-		r.Pool,
-		ctx,
-		query,
-		false,
-		req.Distributor_Id,
-		req.User_id,
-	)
+	var distributorUserId int
 
-	rows.Row.Scan(&retailer_id)
+	result := []any{&distributorUserId}
+	args := []any{req.Distributor_Id, req.User_id}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
 
-	return retailer_id, nil
+	return distributorUserId, nil
 }
