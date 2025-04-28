@@ -87,6 +87,7 @@ func Test_Read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
+
 		resp, err := testContainer.DistributorService.GetAll(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)

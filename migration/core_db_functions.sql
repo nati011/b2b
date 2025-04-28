@@ -982,7 +982,9 @@ AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_distributor_by_name (
-    d_distributor_name VARCHAR(255)
+    d_distributor_name VARCHAR(255),
+    t_limit INT,
+    t_offset INT
 ) 
 RETURNS TABLE (
     id INT,
@@ -1007,7 +1009,9 @@ BEGIN
     JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
     WHERE db.name ILIKE '%' || d_distributor_name || '%'
-      AND d.is_deleted = FALSE;
+      AND d.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
@@ -1041,7 +1045,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_distributors () 
+create or replace function public.get_all_distributors (
+    t_limit INT,
+    t_offset INT
+) 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -1064,7 +1071,9 @@ AS $$
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
-        WHERE d.is_deleted = FALSE;
+        WHERE d.is_deleted = FALSE
+        LIMIT t_limit
+        OFFSET t_offset;
     END;
 $$;
 
@@ -1090,7 +1099,9 @@ $$;
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_all_distributor_users (
-    d_id INT
+    d_id INT,
+    t_limit INT,
+    t_offset INT
 ) 
 RETURNS TABLE (
   id INT
@@ -1102,7 +1113,9 @@ BEGIN
     SELECT user_id
     FROM public.distributor_users du
     WHERE du.distributor_id = d_id
-     AND du.is_deleted = FALSE;
+     AND du.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
@@ -1265,7 +1278,10 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_retailers () 
+create or replace function public.get_all_retailers (
+    t_limit INT,
+    t_offset INT
+) 
 RETURNS TABLE (
   id INT,
   name VARCHAR(255),
@@ -1287,7 +1303,9 @@ AS $$
         JOIN public.retailer_business_info rb 
         ON rb.retailer_id = r.id
         JOIN public.rb_locations rb_loc 
-        ON rb_loc.business_id = rb.id;
+        ON rb_loc.business_id = rb.id
+        LIMIT t_limit
+        OFFSET t_offset;
     END;
 $$;
 
