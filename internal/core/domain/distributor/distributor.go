@@ -183,7 +183,7 @@ func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, erro
 	resp, err := d.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -259,7 +259,7 @@ func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error)
 	resp_name, err := d.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -343,7 +343,7 @@ func (d *DistributorService) GetAllUsers(ctx context.Context, id int) (GetAllUse
 	users, err := d.DB.GetAllUserAgents(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllUsers{}, ErrEmptyGetContent
 		default:
 			return GetAllUsers{}, ErrUnknown
