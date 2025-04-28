@@ -82,7 +82,7 @@ func Test_Read(t *testing.T) {
 		})
 		resId, err := container.ResourceService.Create(ctx, &resource.CreateRequest{
 			Action: "test",
-			Name:   "taken",
+			Name:   "taken_2",
 		})
 		if err != nil {
 			t.Errorf("Failed")
