@@ -105,9 +105,13 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_resources()
+CREATE OR REPLACE FUNCTION public.get_all_resources(
+    r_limit INT,
+    r_offset INT
+)
 RETURNS TABLE(
-    id INT, action VARCHAR(255), 
+    id INT, 
+    action VARCHAR(255), 
     name VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
@@ -115,7 +119,9 @@ AS $$
         RETURN QUERY
         SELECT r.id, r.action, r.name
         FROM public.resources r
-        WHERE r.is_deleted = FALSE;
+        WHERE r.is_deleted = FALSE
+        LIMIT r_limit
+        OFFSET r_offset;
     END;
     $$;
 
@@ -135,17 +141,6 @@ AS $$
     END;
     $$;
 
-create or replace function public.delete_resource (
-    r_id INT) 
-RETURNS VOID 
-LANGUAGE plpgsql 
-AS $$
-    BEGIN
-        UPDATE public.resources
-        SET is_deleted = TRUE
-        WHERE id = r_id;
-    END;
-    $$;
 
 --readers
 create or replace function public.get_resources_by_id (
@@ -182,7 +177,7 @@ AS $$
     END;
 $$;
 
-create or replace function public.get_all_resources () 
+create or replace function public.get_all_resources() 
 RETURNS table (id INT, 
                action VARCHAR(255), 
                name VARCHAR(255)) 
