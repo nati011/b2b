@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	port "b2b.nati011.github.com/internal/port/application/resource"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 var (
@@ -151,7 +152,7 @@ func (r *ResourceProvider) GetByName(ctx context.Context, name string) (GetRespo
 	resp, err := r.db.GetByName(ctx, name)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrNameNotFound
 		default:
 			return GetResponse{}, ErrUnknown
