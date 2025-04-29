@@ -30,6 +30,7 @@ func setup() {
 
 func teardown() {
 	db_test_container.Teardown(db)
+	testContainer.Teardown(db)
 }
 
 func Test_Timeout(t *testing.T) {

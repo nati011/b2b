@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/application/user"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
@@ -100,12 +101,8 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 	})
 	if err != nil {
 		switch err {
-		case user.ErrEmailNotValid,
-			user.ErrPhoneNotValid,
-			user.ErrPhoneOrEmailMandatory,
-			user.ErrFirstNameMandatory:
-
-			return 0, err
+		case user.ErrUnknown:
+			return 0, ErrUnknown
 		default:
 			return 0, ErrUnknown
 		}
@@ -137,7 +134,7 @@ func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) 
 	resp, err := r.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -163,7 +160,7 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 		resp_name, err := r.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -177,7 +174,7 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 		resp_tin, err := r.DB.GetByTin(ctx, req.Tin)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -214,7 +211,8 @@ func (r *RetailerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp_name, err := r.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case ErrIdNotFound:
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
@@ -246,7 +244,7 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) (int, 
 	_, err := r.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case ErrIdNotFound:
+		case port_commons.ErrSysNoRows:
 			return 0, err
 		default:
 			return 0, ErrUnknown
@@ -299,7 +297,7 @@ func (r *RetailerService) GetAllUsers(ctx context.Context, id int) (GetAllUsers,
 	users, err := r.DB.GetAllUserAgents(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllUsers{}, ErrRetailerHasNoUsers
 		default:
 			return GetAllUsers{}, ErrUnknown
