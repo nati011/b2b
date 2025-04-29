@@ -105,7 +105,7 @@ func (c *CategoryService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := c.db.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
