@@ -2701,7 +2701,10 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_orders()
+CREATE OR REPLACE FUNCTION public.get_all_orders(
+    t_limit INT,
+    t_offset INT
+)
 RETURNS TABLE(id INT, 
               retailer_id INT,
               status VARCHAR(255),
@@ -2719,7 +2722,9 @@ BEGIN
            o.payment_status,
            o.delivery_status
     FROM public.orders o
-    WHERE o.is_deleted = FALSE;
+    WHERE o.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
