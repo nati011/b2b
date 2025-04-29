@@ -24,7 +24,7 @@ type TestContainer struct {
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
 	container.InvoiceService = invoice.NewInvoice(
-		invoice_db.NewPostgres(db),
+		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
 	)
 	container.RetailerService = retailer_test.NewDBIntegrationTestContainer(db).RetailerService
 
@@ -44,7 +44,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 
 func (t *TestContainer) Teardown(db *sql.DB) {
 	t.InvoiceService = invoice.NewInvoice(
-		invoice_db.NewPostgres(db),
+		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
 	)
 	t.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
 

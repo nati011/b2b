@@ -1388,7 +1388,13 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_invoices_by_id(
     i_invoice_id INT
 )
-RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+RETURNS TABLE(
+    id INT, 
+    status VARCHAR(255), 
+    external_id VARCHAR(255), 
+    order_id INT, 
+    subtotal DECIMAL(12,2), 
+    tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1401,15 +1407,26 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_all_invoices()
-RETURNS TABLE(id INT, status VARCHAR(255), external_id VARCHAR(255), order_id INT, subtotal DECIMAL(12,2), tax_amount DECIMAL(12,2))
+CREATE OR REPLACE FUNCTION public.get_all_invoices(
+    t_limit INT,
+    t_offset INT
+)
+RETURNS TABLE(
+    id INT, 
+    status VARCHAR(255), 
+    external_id VARCHAR(255), 
+    order_id INT, 
+    subtotal DECIMAL(12,2), 
+    tax_amount DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
     FROM public.invoices i
-    WHERE i.is_deleted = FALSE;
+    WHERE i.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
@@ -1440,7 +1457,10 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION public.get_invoices_by_status(
-     i_status VARCHAR(255)
+    i_status VARCHAR(255),
+    t_limit INT,
+    t_offset INT
+     
 )
 RETURNS TABLE(id INT, 
               status VARCHAR(255), 
@@ -1460,7 +1480,9 @@ BEGIN
            i.tax_amount
     FROM public.invoices i
     WHERE i.is_deleted = FALSE 
-    AND i.status = i_status;
+    AND i.status = i_status
+    LIMIT t_limit
+    OFFSET t_offset;
 END;
 $$;
 
