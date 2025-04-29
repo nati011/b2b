@@ -3,6 +3,7 @@ package order
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
@@ -29,7 +30,10 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 
 	container.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
 	container.OrderService = order.NewOrderService(
-		order_db.NewPostgres(db),
+		order_db.NewPostgres(db, &config.Pagination{
+			Limit:  10,
+			Offset: 0,
+		}),
 		container.InvoiceService,
 		container.ProductService,
 		container.RetailerService,
@@ -46,7 +50,10 @@ func (t *TestContainer) Teardown(db *sql.DB) {
 
 	t.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
 	t.OrderService = order.NewOrderService(
-		order_db.NewPostgres(db),
+		order_db.NewPostgres(db, &config.Pagination{
+			Limit:  10,
+			Offset: 0,
+		}),
 		t.InvoiceService,
 		t.ProductService,
 		t.RetailerService,
