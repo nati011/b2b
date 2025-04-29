@@ -210,13 +210,13 @@ func (p *Postgres) RemoveResource(ctx context.Context, role_id int, resource_id 
 
 func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAllResourcesResponse, error) {
 	var response port.GetAllResourcesResponse
-	var responseBase port.GetResponse
+	var responseBase int
 
-	query := "SELECT * FROM public.get_all_resources($1, $2);"
+	query := "SELECT * FROM public.get_all_resource_by_role($1);"
 	result := [][]any{
-		{&responseBase.Id, &responseBase.Name, &responseBase.Desc},
+		{&responseBase},
 	}
-	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	args := []any{role_id}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -231,9 +231,7 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResourceResponse{
-			Id:     *res[0].(*int),
-			Name:   *res[1].(*string),
-			Action: *res[2].(*string),
+			Id: *res[0].(*int),
 		}
 		response.List = append(response.List, responseBase)
 	}

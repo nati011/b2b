@@ -27,8 +27,8 @@ func setup() {
 	container = test_container.NewIntegrationTestContainer(db)
 	ctx := context.Background()
 	resource_id, err = container.ResourceService.Create(ctx, &resource.CreateRequest{
-		Action: "resourceTest00145",
-		Name:   "resourceTest00145",
+		Action: "resourceTest",
+		Name:   "resourceTest",
 	})
 	if err != nil {
 		panic(err.Error())
