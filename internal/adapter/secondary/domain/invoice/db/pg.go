@@ -159,7 +159,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 			&responseBase.TaxAmount,
 		},
 	}
-	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	args := []any{extId}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
