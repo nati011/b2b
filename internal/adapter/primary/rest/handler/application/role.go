@@ -56,7 +56,7 @@ type HasResourceInRoleRequest struct {
 }
 
 type GetAllResourcesResponse struct {
-	List []int `json:"resources"`
+	List []GetResourceResponse `json:"resources"`
 }
 
 var (
@@ -269,7 +269,13 @@ func (ro *Role) GetAllResourcesHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		var response GetAllResourcesResponse
-		response.List = append(response.List, resp.List...)
+		for _, i := range resp.List {
+			response.List = append(response.List, GetResourceResponse{
+				Id:     i.Id,
+				Name:   i.Name,
+				Action: i.Action,
+			})
+		}
 		util.WriteJSON(w, util.Envelope{"resources": response}, http.StatusAccepted)
 	} else {
 		resp, err := ro.service.GetAll(r.Context())
