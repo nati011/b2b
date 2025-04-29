@@ -98,7 +98,7 @@ func (m *Container) InitConfigrableProductService() {
 }
 
 func (m *Container) InitInvoiceService() {
-	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db))
+	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitOrderService() {

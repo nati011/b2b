@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/config"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	invoice "b2b.nati011.github.com/internal/core/domain/invoice"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	db = db_test_container.Setup()
 	invoiceService = invoice.NewInvoice(
-		invoice_db.NewPostgres(db),
+		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
 	)
 	//create order
 	// orderService := order.NewOrderService(
