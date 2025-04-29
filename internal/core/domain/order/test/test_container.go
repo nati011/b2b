@@ -3,6 +3,7 @@ package order
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
@@ -23,7 +24,7 @@ type TestContainer struct {
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
 	container.InvoiceService = invoice.NewInvoice(
-		invoice_db.NewPostgres(db),
+		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
 	)
 	container.RetailerService = retailer_test.NewDBIntegrationTestContainer(db).RetailerService
 
@@ -40,7 +41,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 
 func (t *TestContainer) Teardown(db *sql.DB) {
 	t.InvoiceService = invoice.NewInvoice(
-		invoice_db.NewPostgres(db),
+		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
 	)
 	t.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
 
