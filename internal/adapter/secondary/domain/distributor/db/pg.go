@@ -82,6 +82,7 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	if err != nil {
 		return port.GetResponse{}, err
 	}
+
 	response.Id = *result[0].(*int)
 	response.Name = *result[1].(*string)
 	response.Tin = *result[2].(*string)

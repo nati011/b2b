@@ -43,10 +43,10 @@ func Test_create_default_admin_user_upon_retailer_registration(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
+		Username:    "test",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -76,10 +76,10 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
+		Username:    "test",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -103,10 +103,10 @@ func Test_Get_All_Users_unhappyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
+		Username:    "test",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -116,6 +116,7 @@ func Test_Get_All_Users_unhappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get user agents %v", err)
 	}
+
 	//remove retailer
 	err = testContainer.UserService.Remove(ctx, retailer_users.List[0])
 	if err != nil {
