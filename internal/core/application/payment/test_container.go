@@ -22,7 +22,10 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.PaymentService = NewPaymentService(
 		container.PartnerService,
 		container.TransactionService,
-		container.PaymentProcessor)
+		container.PaymentProcessor,
+		"example.com",
+		"example.com",
+	)
 
 	return container
 }
@@ -33,5 +36,8 @@ func (t *TestContainer) TearDown() {
 	t.PaymentService = NewPaymentService(
 		t.PartnerService,
 		t.TransactionService,
-		t.PaymentProcessor)
+		t.PaymentProcessor,
+		"example.com",
+		"example.com",
+	)
 }

@@ -44,7 +44,6 @@ func Test_CreateTransactionUponPaymentInitAndSetStatusToPending(t *testing.T) {
 	currentTimestamp := time.Now()
 	generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 	in := &payment.CheckoutRequest{
-		Amount:           1,
 		PaymentPartnerId: PaymentPartnerId,
 		TransactionRef:   generatedTxRef,
 	}
@@ -74,7 +73,6 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 	currentTimestamp := time.Now()
 	generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 	in := &payment.CheckoutRequest{
-		Amount:           1,
 		PaymentPartnerId: PaymentPartnerId,
 		TransactionRef:   generatedTxRef,
 	}

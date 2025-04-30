@@ -38,7 +38,6 @@ func Test_Checkout(t *testing.T) {
 		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			Amount:         1,
 			TransactionRef: "1",
 		}
 		_, err := testContainer.PaymentService.Checkout(ctx, in)
@@ -51,7 +50,6 @@ func Test_Checkout(t *testing.T) {
 	t.Run("transactionRefNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 		}
 		_, err := testContainer.PaymentService.Checkout(ctx, in)
