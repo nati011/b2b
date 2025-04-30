@@ -1,3 +1,4 @@
+'use client'
 import { useState, useCallback, useEffect } from "react";
 
 import Image from "next/image";
@@ -9,20 +10,16 @@ import { Progress, Button } from "antd";
 
 import axios from "axios";
 
-export type Image = {
-  image_url: string;
-  is_cover: boolean;
-  blur_hash?: string;
-};
+
 
 interface ImageUploadProps {
-  onChange: (value: Image[]) => void;
-  value?: Image[];
+  onChange: (value: string[]) => void;
+  value?: string[];
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
-  const [previews, setPreviews] = useState<Image[]>([]);
-  const [values, setValues] = useState<Image[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [values, setValues] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
 
   const api_key = "AmdeORpwsw7AJGbbjfwAYgPk1yQ";
@@ -69,11 +66,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
         }
       );
       console.log(response.data)
-      return {
-        image_url: response.data.secure_url,
-        is_cover: false,
-        blur_hash: "eoG9Hrt5bbWAR*Y8s:ofoeofXVbcjYkCjss.ogWAWXWBaJWBa}j?oL",
-      };
+      return response.data.secure_url
     } catch (error) {
       console.error("Error uploading image:", error);
       throw error;
@@ -159,7 +152,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
             <div key={index} className="relative border rounded-lg p-4">
               <div className="relative aspect-square w-full overflow-hidden rounded-lg">
                 <Image
-                  src={preview.image_url}
+                  src={preview}
                   alt={`Preview ${index + 1}`}
                   fill
                   className="object-cover"

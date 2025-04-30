@@ -6,7 +6,8 @@ import (
 )
 
 func Core_db_functions() ([]byte, error) {
-	filepath := "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql"
+	filepath := "/home/delilah/Documents/work/non-kifya/b2b/migration/core_db_functions.sql"
+	print(filepath)
 	sqlBytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file: %w", err)
@@ -15,7 +16,8 @@ func Core_db_functions() ([]byte, error) {
 }
 
 func Core_db_schema() ([]byte, error) {
-	filepath := "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql"
+	filepath := "/home/delilah/Documents/work/non-kifya/b2b/migration/core_db.sql"
+	print(filepath)
 	sqlBytes, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file: %w", err)
