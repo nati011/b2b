@@ -44,7 +44,6 @@ func Test_Checkout(t *testing.T) {
 		currentTimestamp := time.Now()
 		generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 		in := &payment.CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 			TransactionRef:   generatedTxRef,
 		}
@@ -65,7 +64,6 @@ func Test_Verify_Payment(t *testing.T) {
 		currentTimestamp := time.Now()
 		generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 		in := &payment.CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 			TransactionRef:   generatedTxRef,
 		}
@@ -91,7 +89,6 @@ func Test_Verify_Payment(t *testing.T) {
 		currentTimestamp := time.Now()
 		generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 		in := &payment.CheckoutRequest{
-			Amount:           1,
 			PaymentPartnerId: PaymentPartnerId,
 			TransactionRef:   generatedTxRef,
 		}
