@@ -3,10 +3,9 @@ package adapter
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"b2b.nati011.github.com/config"
-	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/resource"
 )
 
@@ -15,9 +14,9 @@ type Postgres struct {
 	Pagination *config.Pagination
 }
 
-func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
+func NewPostgres(db *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool:       DB,
+		Pool:       db,
 		Pagination: pagination,
 	}
 }
@@ -27,82 +26,79 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_resources_by_id($1);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		id,
-	)
+	result := []any{&response.Id, &response.Action, &response.Name}
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
 
-	rows.Row.Scan(
-		&response.Id,
-		&response.Action,
-		&response.Name,
-	)
+	response.Id = *result[0].(*int)
+	response.Action = *result[1].(*string)
+	response.Name = *result[2].(*string)
+
 	return response, nil
 }
 
 func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
 	var response port.GetResponse
+
 	query := "SELECT * FROM public.get_resources_by_name($1);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		name,
-	)
+	result := []any{&response.Id, &response.Action, &response.Name}
+	args := []any{&name}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
 
-	rows.Rows.Scan(
-		&response.Id,
-		&response.Action,
-		&response.Name,
-	)
+	response.Id = *result[0].(*int)
+	response.Action = *result[1].(*string)
+	response.Name = *result[2].(*string)
 
 	return response, nil
 }
-
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
-	limit := p.Pagination.Limit
-	offset := p.Pagination.Offset
+	query := "SELECT * FROM public.get_all_resources($1, $2);"
 
-	query := "SELECT * FROM public.get_all_resources($1,$2);"
+	result := [][]any{
+		{&responseBase.Id, &responseBase.Name, &responseBase.Action},
+	}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		limit,
-		offset,
-	)
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Rows.Close()
 
-	for rows.Rows.Next() {
-		var resource port.GetResponse
-		if err := rows.Rows.Scan(&resource.Id, &resource.Action, &resource.Name); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:     *res[0].(*int),
+			Action: *res[1].(*string),
+			Name:   *res[2].(*string),
 		}
-		response.List = append(response.List, resource)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		response.List = append(response.List, responseBase)
 	}
 
 	return response, nil
@@ -112,19 +108,19 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var resourceId int
 	query := "SELECT * FROM public.create_resource($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Name,
-		req.Action,
-	)
+	result := []any{&resourceId}
+	args := []any{req.Name, req.Action}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
 
-	rows.Row.Scan(&resourceId)
 	return resourceId, nil
 }
 
@@ -132,20 +128,18 @@ func (p *Postgres) UpdateAction(ctx context.Context, req *port.UpdateActionReque
 	var resourceId int
 	query := "SELECT * FROM public.update_resource_action($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Action,
-	)
+	result := []any{&resourceId}
+	args := []any{req.Id, req.Action}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
-
-	rows.Row.Scan(&resourceId)
 
 	return resourceId, nil
 }
@@ -154,34 +148,34 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 	var resourceId int
 	query := "SELECT * FROM public.update_resource_name($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Name,
-	)
+	result := []any{&resourceId}
+	args := []any{req.Id, req.Name}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 	if err != nil {
 		return 0, err
 	}
 
-	rows.Row.Scan(&resourceId)
 	return resourceId, nil
 }
 
 func (p *Postgres) Delete(ctx context.Context, id int) error {
 	query := "SELECT * FROM public.delete_resource($1);"
 
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		id,
-	)
+	// result := []any{nil}
+	args := []any{&id}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoStuff()
 	if err != nil {
 		return err
 	}

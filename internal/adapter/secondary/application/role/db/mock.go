@@ -15,6 +15,8 @@ type MockRole struct {
 type MockResource struct {
 	roleId     int
 	resourceId int
+	Name       string
+	Action     string
 }
 
 type Mock struct {
@@ -163,10 +165,12 @@ func (p *Mock) RemoveResource(ctx context.Context, role_id int, resource_id int)
 }
 
 func (p *Mock) GetAllResources(ctx context.Context, role_id int) (port.GetAllResourcesResponse, error) {
-	var resp []int
+	var resp []port.GetResourceResponse
 	for _, i := range p.resources {
 		if i.roleId == role_id {
-			resp = append(resp, i.resourceId)
+			resp = append(resp, port.GetResourceResponse{
+				Id: i.resourceId,
+			})
 		}
 	}
 	return port.GetAllResourcesResponse{

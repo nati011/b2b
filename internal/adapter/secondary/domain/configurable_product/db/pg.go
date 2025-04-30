@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"log"
 
-	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
 )
 
@@ -22,50 +21,46 @@ func NewPostgres(DB *sql.DB) port.DB {
 func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_configurable_products_by_id($1);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		id,
-	)
 
-	rows.Row.Scan(
+	err := p.Pool.QueryRowContext(ctx, query, id).Scan(
 		&response.Id,
 		&response.Name,
 		&response.Desc,
 		&response.ExternalId,
 		&response.IsAvailable)
 	if err != nil {
-		return port.GetResponse{}, err
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
 	}
 
 	// get images
 	var productImages []string
 	query = "SELECT * FROM public.get_images_by_cp_Id($1);"
-	rows, err = handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		id,
-	)
-
+	rows, err := p.Pool.QueryContext(ctx, query, id)
 	if err != nil {
-		return port.GetResponse{}, err
-	}
-	defer rows.Rows.Close()
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
 
-	for rows.Rows.Next() {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
 		var productImage string
-		if err := rows.Rows.Scan(&productImage); err != nil {
+		if err := rows.Scan(&productImage); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
 		productImages = append(productImages, productImage)
 	}
 
-	if err := rows.Rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetResponse{}, port.ErrSysUnknown
 	}
@@ -74,23 +69,19 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	// get attribute-values
 	var productAttruteValue = []string{}
 	query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
-	rows, err = handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		id,
-	)
-
+	rows, err = p.Pool.QueryContext(ctx, query, id)
 	if err != nil {
-		return port.GetResponse{}, err
-
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
 	}
-	defer rows.Rows.Close()
+	defer rows.Close()
 
-	for rows.Rows.Next() {
+	for rows.Next() {
 		var attributeName string
-		if err := rows.Rows.Scan(&attributeName); err != nil {
+		if err := rows.Scan(&attributeName); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
@@ -101,28 +92,27 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	// get member products
 	var member_productIds []int
 	query = "SELECT * FROM public.get_all_configurable_product_members($1);"
-	rows, err = handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		id,
-	)
+	rows, err = p.Pool.QueryContext(ctx, query, id)
 	if err != nil {
-		return port.GetResponse{}, err
-	}
-	defer rows.Rows.Close()
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetResponse{}, port.ErrSysUnknown
+		}
 
-	for rows.Rows.Next() {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
 		var productId int
-		if err := rows.Rows.Scan(&productId); err != nil {
+		if err := rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
 		member_productIds = append(member_productIds, productId)
 	}
 
-	if err := rows.Rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetResponse{}, port.ErrSysUnknown
 	}
@@ -134,27 +124,27 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	// get all Id
 	var cp_Ids []int
 	query := "SELECT * FROM public.get_all_configurable_products();"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-	)
+	rows, err := p.Pool.QueryContext(ctx, query)
 	if err != nil {
-		return port.GetAllResponse{}, err
-	}
-	defer rows.Rows.Close()
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
 
-	for rows.Rows.Next() {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
 		var productId int
-		if err := rows.Rows.Scan(&productId); err != nil {
+		if err := rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		cp_Ids = append(cp_Ids, productId)
 	}
 
-	if err := rows.Rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -185,28 +175,27 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	// get all Id
 	var cp_Ids []int
 	query := "SELECT * FROM public.get_all_configurable_products_by_name($1);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		name,
-	)
+	rows, err := p.Pool.QueryContext(ctx, query, name)
 	if err != nil {
-		return port.GetAllResponse{}, err
-	}
-	defer rows.Rows.Close()
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
 
-	for rows.Rows.Next() {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
 		var productId int
-		if err := rows.Rows.Scan(&productId); err != nil {
+		if err := rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		cp_Ids = append(cp_Ids, productId)
 	}
 
-	if err := rows.Rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -238,28 +227,27 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	// get all Id
 	var cp_Ids []int
 	query := "SELECT * FROM public.get_all_configurable_products_by_ext_id($1);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		extId,
-	)
+	rows, err := p.Pool.QueryContext(ctx, query, extId)
 	if err != nil {
-		return port.GetAllResponse{}, err
-	}
-	defer rows.Rows.Close()
+		switch err {
+		case sql.ErrNoRows:
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
+		}
 
-	for rows.Rows.Next() {
+	}
+	defer rows.Close()
+
+	for rows.Next() {
 		var productId int
-		if err := rows.Rows.Scan(&productId); err != nil {
+		if err := rows.Scan(&productId); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetAllResponse{}, err
 		}
 		cp_Ids = append(cp_Ids, productId)
 	}
 
-	if err := rows.Rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetAllResponse{}, port.ErrSysUnknown
 	}
@@ -290,35 +278,35 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var configurable_product_id int
 	query := "SELECT * FROM public.create_configurable_product($1, $2, $3);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
+	err := p.Pool.QueryRowContext(ctx, query,
 		req.Name,
 		req.Desc,
 		req.ExternalId,
-	)
-	rows.Row.Scan(&configurable_product_id)
+	).Scan(&configurable_product_id)
 	if err != nil {
-		return 0, err
+		switch err {
+		case sql.ErrNoRows:
+			return 0, port.ErrSysNoRows
+		default:
+			return 0, port.ErrSysUnknown
+		}
 	}
 
 	// add images
 	for _, i := range req.Images {
 		query = "SELECT * FROM public.add_image_to_configurable_product($1, $2, $3);"
-		_, err := handler.MustQueryRow(
-			p.Pool,
-			ctx,
-			query,
-			false,
+
+		_, err = p.Pool.QueryContext(ctx, query,
 			i,
 			"",
 			configurable_product_id,
 		)
-
 		if err != nil {
-			return 0, err
+			switch err {
+			case sql.ErrNoRows:
+			default:
+				return 0, port.ErrSysUnknown
+			}
 		}
 	}
 	// create attributes
@@ -327,22 +315,19 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		var attribute_ids []int
 
 		query = "SELECT * FROM public.get_attribute_id_by_name($1)"
-		rows, err := handler.MustQueryRow(
-			p.Pool,
-			ctx,
-			query,
-			true,
-			v,
-		)
-
+		rows, err := p.Pool.QueryContext(ctx, query, v)
 		if err != nil {
-			return 0, err
+			switch err {
+			case sql.ErrNoRows:
+			default:
+				return 0, port.ErrSysUnknown
+			}
 		}
-		defer rows.Rows.Close()
+		defer rows.Close()
 
-		for rows.Rows.Next() {
+		for rows.Next() {
 			var attribute_id int
-			if err := rows.Rows.Scan(&attribute_id); err != nil {
+			if err := rows.Scan(&attribute_id); err != nil {
 				log.Printf("unable to scan row: %q", err)
 				return 0, err
 			}
@@ -351,17 +336,16 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 		for _, i := range attribute_ids {
 			query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
-			_, err := handler.MustQueryRow(
-				p.Pool,
-				ctx,
-				query,
-				false,
+			_, err = p.Pool.QueryContext(ctx, query,
 				i,
 				configurable_product_id,
 			)
-
 			if err != nil {
-				return 0, err
+				switch err {
+				case sql.ErrNoRows:
+				default:
+					return 0, port.ErrSysUnknown
+				}
 			}
 		}
 
@@ -371,16 +355,16 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	for _, i := range req.Products {
 		query = "SELECT * FROM public.add_product_to_configurable_product($1, $2);"
 
-		_, err = handler.MustQueryRow(
-			p.Pool,
-			ctx,
-			query,
-			false,
+		_, err = p.Pool.QueryContext(ctx, query,
 			configurable_product_id,
 			i,
 		)
 		if err != nil {
-			return 0, err
+			switch err {
+			case sql.ErrNoRows:
+			default:
+				return 0, port.ErrSysUnknown
+			}
 		}
 	}
 
@@ -388,18 +372,17 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 }
 
 func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
+	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_name($1, $2);"
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Name,
-	)
 
+	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Name).Scan(&resourceId)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 	return nil
 }
@@ -408,18 +391,14 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_desc($1, $2);"
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Desc,
-	)
-
-	rows.Row.Scan(&resourceId)
+	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Desc).Scan(&resourceId)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 	return nil
 }
@@ -427,18 +406,15 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExternalIdRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_externalId($1, $2);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.ExternalId,
-	)
 
-	rows.Row.Scan(&resourceId)
+	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.ExternalId).Scan(&resourceId)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 	return nil
 }
@@ -446,18 +422,15 @@ func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExterna
 func (p *Postgres) UpdateIsAvailableStatus(ctx context.Context, req *port.UpdateIsAvailableStatusRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_isAvailable_status($1, $2);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Status,
-	)
 
-	rows.Row.Scan(&resourceId)
+	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Status).Scan(&resourceId)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 	return nil
 }
@@ -468,33 +441,31 @@ func (p *Postgres) UpdateProducts(ctx context.Context, req *port.UpdateProductRe
 	//remove all products
 	query := "SELECT * FROM public.remove_all_configurable_product_members($1);"
 
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-	)
-
+	_, err := p.Pool.QueryContext(ctx, query, req.Id)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 
 	//add product
 	for _, i := range req.ProductIds {
 		query = "SELECT * FROM public.add_product_to_configurable_product($1, $2);"
 
-		_, err := handler.MustQueryRow(
-			p.Pool,
-			ctx,
-			query,
-			false,
+		_, err = p.Pool.QueryContext(ctx, query,
 			req.Id,
 			i,
 		)
-
 		if err != nil {
-			return err
+			switch err {
+			case sql.ErrNoRows:
+				return port.ErrSysNoRows
+			default:
+				return port.ErrSysUnknown
+			}
 		}
 	}
 	return nil
@@ -504,36 +475,29 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 	//remove images
 	query := "SELECT * FROM public.remove_all_configurable_product_images($1);"
 
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-	)
-
+	_, err := p.Pool.QueryContext(ctx, query, req.Id)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
 
 	//attach new images
 	for _, i := range req.Images {
 		query := "SELECT * FROM public.add_image_to_configurable_product($1, $2, $3);"
 
-		_, err := handler.MustQueryRow(
-			p.Pool,
-			ctx,
-			query,
-			false,
-			i,
-			"",
-			req.Id,
-		)
-
+		_, err := p.Pool.QueryContext(ctx, query, i, "", req.Id)
 		if err != nil {
-			return err
+			switch err {
+			case sql.ErrNoRows:
+				return port.ErrSysNoRows
+			default:
+				return port.ErrSysUnknown
+			}
 		}
-
 	}
 	return nil
 }
@@ -542,36 +506,29 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 	//remove attributes
 	query := "SELECT * FROM public.remove_all_configurable_product_attributes($1);"
 
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-	)
-
+	_, err := p.Pool.QueryContext(ctx, query, req.Id)
 	if err != nil {
-		return err
+		switch err {
+		case sql.ErrNoRows:
+			return port.ErrSysNoRows
+		default:
+			return port.ErrSysUnknown
+		}
 	}
-
 	//attach new attributes
 	for _, i := range req.AttributeKeys {
 		query := "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
 
 		for key := range i {
-			_, err := handler.MustQueryRow(
-				p.Pool,
-				ctx,
-				query,
-				false,
-				key,
-				req.Id,
-			)
-
+			_, err := p.Pool.QueryContext(ctx, query, key, req.Id)
 			if err != nil {
-				return err
+				switch err {
+				case sql.ErrNoRows:
+					return port.ErrSysNoRows
+				default:
+					return port.ErrSysUnknown
+				}
 			}
-
 		}
 
 	}

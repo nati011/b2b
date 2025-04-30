@@ -3,6 +3,7 @@ package db
 import "errors"
 
 var (
-	ErrSysUnknown = errors.New("unknown error")
-	ErrNoRows     = errors.New("no rows")
+	ErrSysUnknown           = errors.New("unknown error")
+	ErrSysNoRows            = errors.New("no rows")
+	ErrSysResultSetMismatch = errors.New("result set mismatch")
 )
