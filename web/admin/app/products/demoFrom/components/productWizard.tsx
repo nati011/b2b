@@ -177,7 +177,8 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
                         formData.attributes.map(attr => [attr.key, attr.value])
                     ),
                     category_id: formData.categories,
-                    external_id: `product-${Date.now()}`
+                    external_id: `product-${Date.now()}`,
+                    distributor_id: 1,
                 });
             } else {
                 await onCreateConfigurableProduct({
