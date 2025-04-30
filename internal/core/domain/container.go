@@ -52,9 +52,11 @@ type Container struct {
 	PaymentProcessorService    payment_processor.Provider
 	PaymentService             payment.Provider
 	Pagination                 config.Pagination
+	FrontendURL                string
+	BaseURL                    string
 }
 
-func NewContainer(application_core application_core.Container, db *sql.DB) *Container {
+func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
 	container := Container{}
 	container.db = db
 	container.ApplicationServices = application_core
@@ -110,7 +112,7 @@ func (m *Container) InitDistributorService() {
 }
 
 func (m *Container) InitRetailerService() {
-	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db))
+	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitPaymentProcessorService() {
@@ -122,5 +124,7 @@ func (m *Container) InitPaymentService() {
 		m.ApplicationServices.PaymentPartnerService,
 		m.ApplicationServices.TransactionService,
 		m.PaymentProcessorService,
+		m.FrontendURL,
+		m.BaseURL,
 	)
 }
