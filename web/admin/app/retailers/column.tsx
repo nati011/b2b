@@ -1,3 +1,5 @@
+import { UserAccount } from "../libs/types";
+
 export type Retailer = {
     id: number;
     name: string;

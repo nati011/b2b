@@ -1,6 +1,6 @@
-import { create } from 'zustand'
-import axiosIns from '@/app/libs/axios'
-import { Product } from '@/app/libs/types';
+import { create } from "zustand";
+import axiosIns from "@/app/libs/axios";
+import { Product, Category } from "@/app/libs/types";
 
 interface ProductsStore {
   products: Product[];
@@ -8,9 +8,16 @@ interface ProductsStore {
   error: string | null;
   next: string | null;
   previous: string | null;
+  categories: Category[];
+  categoriesLoading: boolean;
+  categoriesError: string | null;
 
   fetchProducts: (url?: string) => Promise<void>;
-  createProducts: (ProductsData: Partial<Product>) => Promise<void>;
+  // createProducts: (ProductsData: Partial<Product>) => Promise<void>;
+  fetchCategories: () => Promise<void>;
+  createCategory: (name: string) => Promise<void>;
+  deleteCategory: (id: number) => Promise<void>;
+  createProduct: (productData: any) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -19,33 +26,93 @@ const useProductsStore = create<ProductsStore>((set) => ({
   error: null,
   next: null,
   previous: null,
+  categories: [],
+  categoriesLoading: false,
+  categoriesError: null,
 
   fetchProducts: async (url?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get('/product');
+      const response = await axiosIns.get("/api/product");
       set({
-        products: response.data.body.Products,
-        loading: false
+        products: response.data.body.products.List,
+        loading: false,
       });
     } catch (error) {
-      set({ error: 'Failed to fetch Loan', loading: false });
+      set({ error: "Failed to fetch products", loading: false });
     }
   },
 
-  createProducts: async (ProductsData: Partial<Product>) => {
+  // createProducts: async (ProductsData: Partial<Product>) => {
+  //   set({ loading: true, error: null });
+  //   try {
+  //     const response = await axiosIns.post("/product/", ProductsData);
+  //     set((state) => ({
+  //       products: [...state.products, response.data.detail],
+  //       loading: false,
+  //     }));
+  //   } catch (error) {
+  //     set({ error: "Failed to create product", loading: false });
+  //   }
+  // },
+
+  fetchCategories: async () => {
+    set({ categoriesLoading: true, categoriesError: null });
+    try {
+      const response = await axiosIns.get("/api/category");
+      set({
+        categories: response.data.body.category.categories,
+        categoriesLoading: false,
+      });
+    } catch (error) {
+      set({
+        categoriesError: "Failed to fetch categories",
+        categoriesLoading: false,
+      });
+    }
+  },
+  createCategory: async (name: string) => {
+    set({ categoriesLoading: true, categoriesError: null });
+    try {
+      const response = await axiosIns.post(
+        "/api/category",
+        { name: name },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      await useProductsStore.getState().fetchCategories();
+      set({ categoriesLoading: false });
+    } catch (error: any) {
+      set({ categoriesLoading: false, categoriesError: error.message });
+    }
+  },
+  deleteCategory: async (id: number) => {
+    set({ categoriesLoading: true, categoriesError: null });
+    try {
+      await axiosIns.delete(`/api/category?id=${id}`);
+      await useProductsStore.getState().fetchCategories();
+      set({ categoriesLoading: false });
+    } catch (error: any) {
+      set({ categoriesLoading: false, categoriesError: error.message });
+    }
+  },
+  createProduct: async (productData: any) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.post('/product/', ProductsData);
-      set(state => ({
-        Products: [...state.products, response.data.detail],
-        loading: false
-      }));
-    } catch (error) {
-      set({ error: 'Failed to create product', loading: false });
+      const response = await axiosIns.post("/api/product", productData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      await useProductsStore.getState().fetchProducts();
+      set({ loading: false });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
     }
   },
-
 }));
 
 export default useProductsStore;
