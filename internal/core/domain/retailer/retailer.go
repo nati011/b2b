@@ -104,7 +104,7 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		case user.ErrUnknown:
 			return 0, ErrUnknown
 		default:
-			return 0, ErrUnknown
+			return 0, err
 		}
 	}
 

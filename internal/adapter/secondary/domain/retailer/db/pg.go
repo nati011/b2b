@@ -291,6 +291,7 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 	if err != nil {
 		return port.GetAllUserResponse{}, err
 	}
+
 	for _, res := range result {
 		responseBase := port.GetUserResponse{
 			Id: *res[0].(*int),
