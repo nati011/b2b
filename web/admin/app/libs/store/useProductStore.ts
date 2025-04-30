@@ -18,6 +18,7 @@ interface ProductsStore {
   createCategory: (name: string) => Promise<void>;
   deleteCategory: (id: number) => Promise<void>;
   createProduct: (productData: any) => Promise<void>;
+  createConfigurableProduct: (productData: any) => Promise<void>
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -105,6 +106,20 @@ const useProductsStore = create<ProductsStore>((set) => ({
       const response = await axiosIns.post("/api/product", productData, {
         headers: {
           "Content-Type": "application/json",
+        },
+      });
+      await useProductsStore.getState().fetchProducts();
+      set({ loading: false });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
+    }
+  },
+  createConfigurableProduct: async (productData: any) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosIns.post('/api/configurable_product', productData, {
+        headers: {
+          'Content-Type': 'application/json',
         },
       });
       await useProductsStore.getState().fetchProducts();
