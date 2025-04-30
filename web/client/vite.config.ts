@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       "/api": {
-        target: "http://localhost:8084",
+        target: "https://b2b-67gk.onrender.com",
         changeOrigin: true,
       },
     },

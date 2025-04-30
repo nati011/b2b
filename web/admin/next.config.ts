@@ -6,7 +6,7 @@ module.exports = {
       beforeFiles: [
         {
           source: "/api/:path*",
-          destination: "http://localhost:8084/api/v1/:path*",
+          destination: "https://b2b-67gk.onrender.com/api/v1/:path*",
         },
       ],
     };
