@@ -13,7 +13,7 @@ func NewPaginationBuilder() *PaginationBuilder {
 	return &PaginationBuilder{
 		pagination: &Pagination{
 			Limit:  10,
-			Offset: 1,
+			Offset: 0,
 		},
 	}
 }
