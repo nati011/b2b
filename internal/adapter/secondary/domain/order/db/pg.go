@@ -3,84 +3,93 @@ package order
 import (
 	"context"
 	"database/sql"
-	"log"
 
-	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	"b2b.nati011.github.com/config"
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool       *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(DB *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool: DB,
+		Pool:       DB,
+		Pagination: pagination,
 	}
 }
 
 func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_orders_by_id($1);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		id,
-	)
-
-	if err != nil {
-		return port.GetResponse{}, err
-	}
-
-	rows.Row.Scan(
+	args := []any{&id}
+	result := []any{
 		&response.Id,
 		&response.RetailerId,
 		&response.Status,
 		&response.Total,
 		&response.PaymentStatus,
-		&response.DeliveryStatus)
+		&response.DeliveryStatus,
+	}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
+	if err != nil {
+		return port.GetResponse{}, nil
+	}
+
+	response.Id = *result[0].(*int)
+	response.RetailerId = *result[1].(*int)
+	response.Status = *result[2].(*string)
+	response.Total = *result[3].(*float64)
+	response.PaymentStatus = *result[4].(*string)
+	response.DeliveryStatus = *result[5].(*string)
 
 	return response, nil
 }
 
 func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_orders_by_retailer_id($1);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		retailerId,
-	)
+
+	args := []any{&retailerId}
+	result := [][]any{{
+		&responseBase.Id,
+		&responseBase.RetailerId,
+		&responseBase.Status,
+		&responseBase.Total,
+		&responseBase.PaymentStatus,
+		&responseBase.DeliveryStatus,
+	}}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Rows.Close()
 
-	for rows.Rows.Next() {
-		var order port.GetResponse
-		if err := rows.Rows.Scan(
-			&order.Id,
-			&order.RetailerId,
-			&order.Status,
-			&order.Total,
-			&order.PaymentStatus,
-			&order.DeliveryStatus); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, order)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+	for _, res := range result {
+		response.List = append(response.List, port.GetResponse{
+			Id:             *res[0].(*int),
+			RetailerId:     *res[1].(*int),
+			Status:         *res[2].(*string),
+			Total:          *res[3].(*float64),
+			PaymentStatus:  *res[4].(*string),
+			DeliveryStatus: *res[5].(*string),
+		})
 	}
 
 	return response, nil
@@ -88,40 +97,39 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 
 func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_orders_by_status($1);"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-		status,
-	)
+	args := []any{&status}
+	result := [][]any{{
+		&responseBase.Id,
+		&responseBase.RetailerId,
+		&responseBase.Status,
+		&responseBase.Total,
+		&responseBase.PaymentStatus,
+		&responseBase.DeliveryStatus,
+	}}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
-	defer rows.Rows.Close()
 
-	for rows.Rows.Next() {
-		var order port.GetResponse
-		if err := rows.Rows.Scan(
-			&order.Id,
-			&order.RetailerId,
-			&order.Status,
-			&order.Total,
-			&order.PaymentStatus,
-			&order.DeliveryStatus); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, order)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+	for _, res := range result {
+		response.List = append(response.List, port.GetResponse{
+			Id:             *res[0].(*int),
+			RetailerId:     *res[1].(*int),
+			Status:         *res[2].(*string),
+			Total:          *res[3].(*float64),
+			PaymentStatus:  *res[4].(*string),
+			DeliveryStatus: *res[5].(*string),
+		})
 	}
 
 	return response, nil
@@ -129,39 +137,39 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_all_orders();"
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		true,
-	)
+	query := "SELECT * FROM public.get_all_orders($1,$2);"
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	result := [][]any{{
+		&responseBase.Id,
+		&responseBase.RetailerId,
+		&responseBase.Status,
+		&responseBase.Total,
+		&responseBase.PaymentStatus,
+		&responseBase.DeliveryStatus,
+	}}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
+
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	defer rows.Rows.Close()
-
-	for rows.Rows.Next() {
-		var order port.GetResponse
-		if err := rows.Rows.Scan(
-			&order.Id,
-			&order.RetailerId,
-			&order.Status,
-			&order.Total,
-			&order.PaymentStatus,
-			&order.DeliveryStatus); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, order)
-	}
-
-	if err := rows.Rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+	for _, res := range result {
+		response.List = append(response.List, port.GetResponse{
+			Id:             *res[0].(*int),
+			RetailerId:     *res[1].(*int),
+			Status:         *res[2].(*string),
+			Total:          *res[3].(*float64),
+			PaymentStatus:  *res[4].(*string),
+			DeliveryStatus: *res[5].(*string),
+		})
 	}
 
 	return response, nil
@@ -170,20 +178,16 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var orderId int
 	query := "SELECT * FROM public.create_order($1, $2, $3, $4, $5);"
+	args := []any{req.RetailerId, req.Status, req.Total, req.PaymentStatus, req.DeliveryStatus}
+	result := []any{&orderId}
 
-	rows, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.RetailerId,
-		req.Status,
-		req.Total,
-		req.PaymentStatus,
-		req.DeliveryStatus,
-	)
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoStuff()
 
-	rows.Row.Scan(&orderId)
 	if err != nil {
 		return 0, err
 	}
@@ -191,16 +195,14 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	//orderItem
 	for _, i := range req.Items {
 		query = "SELECT * FROM public.create_order_item($1, $2, $3, $4);"
-		_, err := handler.MustQueryRow(
-			p.Pool,
-			ctx,
-			query,
-			false,
-			orderId,
-			i.ProductId,
-			i.Quantity,
-			i.Price,
-		)
+		itemArgs := []any{orderId, i.ProductId, i.Quantity, i.Price}
+
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(itemArgs, nil),
+		).DoStuff()
 
 		if err != nil {
 			return 0, err
@@ -213,42 +215,42 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 func (p *Postgres) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderStatusRequest) error {
 	query := "SELECT * FROM public.update_order_status($1, $2);"
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.Status,
-	)
+	args := []any{req.Id, req.Status}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoStuff()
 
 	return err
 }
 
 func (p *Postgres) UpdatePaymentStatus(ctx context.Context, req *port.UpdateOrderPaymentStatusRequest) error {
 	query := "SELECT * FROM public.update_order_payment_status($1, $2);"
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.PaymentStatus,
-	)
+	args := []any{req.Id, req.PaymentStatus}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoStuff()
 
 	return err
 }
 
 func (p *Postgres) UpdateDeliveryStatus(ctx context.Context, req *port.UpdateOrderDeliveryStatusRequest) error {
 	query := "SELECT * FROM public.update_order_delivery_status($1, $2);"
-	_, err := handler.MustQueryRow(
-		p.Pool,
-		ctx,
-		query,
-		false,
-		req.Id,
-		req.DeliveryStatus,
-	)
+	args := []any{req.Id, req.DeliveryStatus}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoStuff()
 
 	return err
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/application/user"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
@@ -148,7 +149,6 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		Username:  req.Username,
 	})
 
-	print(user_id)
 	if err != nil {
 		switch err {
 		case user.ErrUnknown:
@@ -183,7 +183,7 @@ func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, erro
 	resp, err := d.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -222,7 +222,8 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequ
 		resp_tin, err := d.DB.GetByTin(ctx, req.Tin)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
+				return GetAllResponse{}, ErrEmptyGetContent
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -258,7 +259,7 @@ func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error)
 	resp_name, err := d.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -342,7 +343,7 @@ func (d *DistributorService) GetAllUsers(ctx context.Context, id int) (GetAllUse
 	users, err := d.DB.GetAllUserAgents(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllUsers{}, ErrEmptyGetContent
 		default:
 			return GetAllUsers{}, ErrUnknown
