@@ -15,7 +15,6 @@ func (r *RoleProvider) validateName(ctx context.Context, name string) error {
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
-			return nil
 		default:
 			return err
 		}

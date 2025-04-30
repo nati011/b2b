@@ -91,20 +91,20 @@ func Test_Writer(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		// t.Cleanup(teardown)
 		ctx := context.Background()
-		// in := &category.CreateRequest{
-		// 	Name: "test",
-		// }
-		// id, err := service.Create(ctx, in)
-		// if err != nil {
-		// 	t.Fatalf("Failed to create category err: %v", err)
-		// }
+		in := &category.CreateRequest{
+			Name: "test",
+		}
+		id, err := service.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create category err: %v", err)
+		}
 
-		resp, err := service.Get(ctx, 99)
+		resp, err := service.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get category err: %v", err)
 		}
-		if resp.Id != 99 {
-			t.Errorf("Expected id: %v Got id: %v", 2, resp.Id)
+		if resp.Id != id {
+			t.Errorf("Expected id: %v Got id: %v", id, resp.Id)
 		}
 	})
 

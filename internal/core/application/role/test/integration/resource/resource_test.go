@@ -27,8 +27,8 @@ func setup() {
 	container = test_container.NewIntegrationTestContainer(db)
 	ctx := context.Background()
 	resource_id, err = container.ResourceService.Create(ctx, &resource.CreateRequest{
-		Action: "resourceTest00145",
-		Name:   "resourceTest00145",
+		Action: "resourceTest",
+		Name:   "resourceTest",
 	})
 	if err != nil {
 		panic(err.Error())
@@ -82,7 +82,7 @@ func Test_Read(t *testing.T) {
 		})
 		resId, err := container.ResourceService.Create(ctx, &resource.CreateRequest{
 			Action: "test",
-			Name:   "taken",
+			Name:   "taken_2",
 		})
 		if err != nil {
 			t.Errorf("Failed")

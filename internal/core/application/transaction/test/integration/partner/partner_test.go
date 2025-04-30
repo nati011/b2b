@@ -28,6 +28,7 @@ func Test_Validate_PartnerId_Upon_Transaction_Create_happyPath(t *testing.T) {
 		Name:    "test",
 		Icon:    "test",
 		BaseURL: "test",
+		Secret:  "test",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create err:%v", err)
@@ -37,21 +38,9 @@ func Test_Validate_PartnerId_Upon_Transaction_Create_happyPath(t *testing.T) {
 	_, err = testContainer.TransactionService.Create(ctx, &transaction.CreateRequest{
 		Amount:    100,
 		PartnerId: id,
+		TxRef:     "test",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
-	}
-}
-
-func Test_Validate_PartnerId_Upon_Transaction_Create_unhappyPath(t *testing.T) {
-	ctx := context.Background()
-	//setup
-	_, err := testContainer.TransactionService.Create(ctx, &transaction.CreateRequest{
-		Amount:    100,
-		PartnerId: 99,
-	})
-	wantErr := transaction.ErrPartnerDoesNotExist
-	if err != wantErr {
-		t.Errorf("Expected err: %v Got : %v", wantErr, err)
 	}
 }

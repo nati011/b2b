@@ -22,7 +22,14 @@ func setup() {
 	)
 }
 
+func teardown() {
+	invoiceService = NewInvoice(
+		db.NewMock(),
+	)
+}
+
 func Test_CreateInvoice_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &CreateRequest{
 		OrderId:    1,
@@ -68,6 +75,7 @@ func Test_CreateInvoice_happyPath(t *testing.T) {
 
 func Test_CreateInvoice_unhappyPath(t *testing.T) {
 	t.Run("status_mandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
 			ExternalId: "test",
@@ -82,6 +90,7 @@ func Test_CreateInvoice_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("orderId_mandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
 			ExternalId: "test",
@@ -97,6 +106,7 @@ func Test_CreateInvoice_unhappyPath(t *testing.T) {
 }
 
 func Test_Update_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//setup
 	in := &CreateRequest{
@@ -136,6 +146,7 @@ func Test_Update_happyPath(t *testing.T) {
 
 func Test_Update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		err := invoiceService.Update(ctx, &UpdateByParamRequest{
 			Id:     99,
@@ -150,6 +161,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 
 func Test_GetInvoice_happyPath(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
@@ -180,6 +192,7 @@ func Test_GetInvoice_happyPath(t *testing.T) {
 
 func Test_GetInvoice_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		err := invoiceService.Update(ctx, &UpdateByParamRequest{
 			Id:     99,
@@ -194,6 +207,7 @@ func Test_GetInvoice_unhappyPath(t *testing.T) {
 
 func Test_GetByParam_happyPath(t *testing.T) {
 	t.Run("getByStatus", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
@@ -219,6 +233,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByExternalId", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
@@ -231,7 +246,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create invoice err: %v", err)
 		}
 		resp, err := invoiceService.GetByParam(ctx, &GetByParamRequest{
-			ExternalId: "test",
+			ExternalId: in.ExternalId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get by param err: %v", err)
@@ -244,6 +259,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByOrderId", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		in := &CreateRequest{
@@ -275,6 +291,7 @@ func Test_GetByParam_happyPath(t *testing.T) {
 
 func Test_GetByParam_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		_, err := invoiceService.GetByParam(ctx, &GetByParamRequest{
 			ExternalId: "test",
@@ -288,6 +305,7 @@ func Test_GetByParam_unhappyPath(t *testing.T) {
 }
 
 func Test_GetAll_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	//setup
 	in := &CreateRequest{
@@ -312,6 +330,7 @@ func Test_GetAll_happyPath(t *testing.T) {
 
 func Test_GetAll_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		_, err := invoiceService.GetAll(ctx)
 		wantErr := ErrSysEmptyGetContent
