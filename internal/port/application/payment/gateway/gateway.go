@@ -13,6 +13,7 @@ type InitiateRequest struct {
 	ReturnUrl      string  `json:"return_url"`
 	PartnerUrl     string  `json:"partner_url"`
 	PartnerSecret  string  `json:"partner_secret"`
+	BaseUrl        string  `json:"base_url"`
 }
 
 type VerificationRequest struct {
