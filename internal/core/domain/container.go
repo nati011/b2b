@@ -63,11 +63,9 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 
 	// ORDER ORDER!!
 
-	//	messing up the order creates chaos
-
-	//utils
+	//  messing up the order creates chaos
+	// //utils
 	container.InitPagination()
-
 	container.InitCategoryService()
 	container.InitProductService()
 	container.InitConfigrableProductService()
@@ -77,7 +75,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitDistributorService()
 	container.InitPaymentProcessorService()
 	container.InitPaymentService()
-
+	container.InitOrderService()
 	return &container
 }
 
@@ -100,7 +98,7 @@ func (m *Container) InitConfigrableProductService() {
 }
 
 func (m *Container) InitInvoiceService() {
-	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db, &m.Pagination))
+	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitOrderService() {
@@ -108,11 +106,11 @@ func (m *Container) InitOrderService() {
 }
 
 func (m *Container) InitDistributorService() {
-	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db, &m.Pagination))
+	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitRetailerService() {
-	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db, &m.Pagination))
+	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitPaymentProcessorService() {

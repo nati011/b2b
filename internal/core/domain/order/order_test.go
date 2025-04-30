@@ -62,6 +62,7 @@ func teardown() {
 func Test_Place_Order_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		t.Cleanup(teardown)
+		setup()
 		ctx := context.Background()
 		in := &PlaceRequest{
 			RetailerId: retailer_id,
