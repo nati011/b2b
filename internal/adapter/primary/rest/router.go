@@ -23,7 +23,6 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 
 	domain_handler.InitDistributor()
 	domain_handler.InitRetailer()
-	domain_handler.InitDistributor()
 	domain_handler.InitProduct()
 	domain_handler.InitCatalogue()
 	domain_handler.InitCategory()
