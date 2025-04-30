@@ -112,9 +112,9 @@ func NewOrderService(
 }
 
 func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest) error {
-	if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
-		return err
-	}
+	// if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
+	// 	return err
+	// }
 
 	if err := o.validate_items(ctx, req.Items); err != nil {
 		return err
