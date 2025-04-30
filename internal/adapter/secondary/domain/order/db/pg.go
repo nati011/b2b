@@ -9,6 +9,17 @@ import (
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
+type GetOrderItem struct {
+	Id        int
+	ProductId int
+	Quantity  int
+	Price     float64
+}
+
+type GetAllOrderItems struct {
+	Items []GetOrderItem
+}
+
 type Postgres struct {
 	Pool       *sql.DB
 	Pagination *config.Pagination
@@ -50,6 +61,55 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.Total = *result[3].(*float64)
 	response.PaymentStatus = *result[4].(*string)
 	response.DeliveryStatus = *result[5].(*string)
+
+	allOrderItems, err := p.GetAllOrderItems(ctx, response.Id)
+	if err != nil {
+		return port.GetResponse{}, nil
+	}
+
+	for _, s := range allOrderItems.Items {
+		response.Items = append(response.Items, port.Item{
+			ProductId: s.ProductId,
+			Quantity:  s.Quantity,
+			Price:     s.Price,
+		})
+	}
+
+	return response, nil
+}
+
+func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrderItems, error) {
+	var response GetAllOrderItems
+	var responseBase GetOrderItem
+
+	query := "SELECT * FROM public.get_order_items_by_order_id($1);"
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	result := [][]any{{
+		&responseBase.Id,
+		&responseBase.ProductId,
+		&responseBase.Quantity,
+		&responseBase.Price,
+	}}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, result),
+	).DoStuff()
+
+	if err != nil {
+		return GetAllOrderItems{}, err
+	}
+
+	for _, res := range result {
+		response.Items = append(response.Items, GetOrderItem{
+			Id:        *res[0].(*int),
+			ProductId: *res[1].(*int),
+			Quantity:  *res[2].(*int),
+			Price:     *res[3].(*float64),
+		})
+	}
 
 	return response, nil
 }
@@ -162,14 +222,28 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}
 
 	for _, res := range result {
-		response.List = append(response.List, port.GetResponse{
+		val := port.GetResponse{
 			Id:             *res[0].(*int),
 			RetailerId:     *res[1].(*int),
 			Status:         *res[2].(*string),
 			Total:          *res[3].(*float64),
 			PaymentStatus:  *res[4].(*string),
 			DeliveryStatus: *res[5].(*string),
-		})
+		}
+		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
+		if err != nil {
+			return port.GetAllResponse{}, nil
+		}
+
+		for _, s := range allOrderItems.Items {
+			val.Items = append(val.Items, port.Item{
+				ProductId: s.ProductId,
+				Quantity:  s.Quantity,
+				Price:     s.Price,
+			})
+		}
+
+		response.List = append(response.List, val)
 	}
 
 	return response, nil
