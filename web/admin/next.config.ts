@@ -1,13 +1,17 @@
+/** @type {import('next').NextConfig} */
 module.exports = {
+  reactStrictMode: true,
   async rewrites() {
     return {
       beforeFiles: [
         {
-          source: '/random/:path',
-          destination: 'http://localhost:9000/api/v1/:path*',
+          source: "/api/:path*",
+          destination: "http://localhost:8084/api/v1/:path*",
         },
       ],
-
-    }
+    };
   },
-}
+  images: {
+    domains: ["res.cloudinary.com"],
+  },
+};
