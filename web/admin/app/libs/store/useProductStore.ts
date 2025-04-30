@@ -108,6 +108,8 @@ const useProductsStore = create<ProductsStore>((set) => ({
           "Content-Type": "application/json",
         },
       });
+      console.log(productData)
+      console.log(response.data)
       await useProductsStore.getState().fetchProducts();
       set({ loading: false });
     } catch (error: any) {
