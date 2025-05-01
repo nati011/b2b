@@ -3,6 +3,7 @@ package category
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/category"
@@ -13,6 +14,7 @@ type Postgres struct {
 }
 
 func NewPostgres(DB *sql.DB) port.DB {
+
 	return &Postgres{
 		Pool: DB,
 	}
@@ -20,31 +22,51 @@ func NewPostgres(DB *sql.DB) port.DB {
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
-	var responseBase port.GetResponse
+	// var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_all_category();"
-	result := [][]any{
-		{
-			&responseBase.Id,
-			&responseBase.Name,
-		}}
-
-	err := query_handler.NewQuery(
-		query_handler.WithCtx(ctx),
-		query_handler.WithDB(p.Pool),
-		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(nil, result),
-	).DoStuff()
+	// result := [][]any{
+	// 	{
+	// 		&responseBase.Id,
+	// 		&responseBase.Name,
+	// 	}}
+	rows, err := p.Pool.QueryContext(ctx, query)
 	if err != nil {
-		return port.GetAllResponse{}, err
-	}
-	for _, res := range result {
-		responseBase := port.GetResponse{
-			Id:   *res[0].(*int),
-			Name: *res[1].(*string),
+		switch err {
+		case sql.ErrNoRows:
+			return port.GetAllResponse{}, port.ErrSysNoRows
+		default:
+			return port.GetAllResponse{}, port.ErrSysUnknown
 		}
-		response.List = append(response.List, responseBase)
+
 	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var category port.GetResponse
+		if err := rows.Scan(&category.Id, &category.Name); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return port.GetAllResponse{}, err
+		}
+		response.List = append(response.List, category)
+	}
+
+	// err := query_handler.NewQuery(
+	// 	query_handler.WithCtx(ctx),
+	// 	query_handler.WithDB(p.Pool),
+	// 	query_handler.WithQuery(query),
+	// 	query_handler.WithMultiRowResultSet(nil, result),
+	// ).DoStuff()
+	// if err != nil {
+	// 	return port.GetAllResponse{}, err
+	// }
+	// for _, res := range result {
+	// 	responseBase := port.GetResponse{
+	// 		Id:   *res[0].(*int),
+	// 		Name: *res[1].(*string),
+	// 	}
+	// 	response.List = append(response.List, responseBase)
+	// }
 
 	return response, nil
 }

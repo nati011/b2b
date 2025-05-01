@@ -103,7 +103,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("init_payment_url_mandatory", func(t *testing.T) {
+	t.Run("base_url_mandatory", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
