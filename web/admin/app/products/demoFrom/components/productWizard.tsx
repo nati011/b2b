@@ -7,6 +7,7 @@ import CategoriesForm, { Category } from "./categoriesForm";
 import AttributesForm from "./attributesForm";
 import ImageUploader from './imageUploader';
 import ConfigurableProducts from "./configurableProduct";
+import ReviewScreen from "./reviewScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product } from "@/app/libs/types";
 
@@ -97,7 +98,6 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
         } else {
             return [
                 "Basic Info",
-                "Categories",
                 "Variation Keys",
                 "Products",
                 "Images",
@@ -176,7 +176,7 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
                     attributes: Object.fromEntries(
                         formData.attributes.map(attr => [attr.key, attr.value])
                     ),
-                    category_id: formData.categories,
+                    cabetegory_id: formData.categories,
                     external_id: `product-${Date.now()}`,
                     distributor_id: 1,
                 });
@@ -292,78 +292,22 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
                 );
             case "Review":
                 return (
-                    <div className="space-y-4">
-                        <div>
-                            <h3 className="font-medium">Product Type</h3>
-                            <p>{formData.productType}</p>
-                        </div>
-                        <div>
-                            <h3 className="font-medium">Basic Information</h3>
-                            <p>Name: {formData.basicInfo.name}</p>
-                            <p>Description: {formData.basicInfo.description}</p>
-                            {formData.productType === "simple" && (
-                                <p>Price: {formData.basicInfo.price}</p>
-                            )}
-                        </div>
-                        <div>
-                            <h3 className="font-medium">Categories</h3>
-                            <ul>
-                                {formData.categories.map(id => (
-                                    <li key={id}>
-                                        {categories.find(c => c.id === id)?.name || `Category ${id}`}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        {formData.productType === "simple" ? (
-                            <div>
-                                <h3 className="font-medium">Attributes</h3>
-                                <ul>
-                                    {formData.attributes.map((attr, index) => (
-                                        <li key={index}>
-                                            {attr.key}: {attr.value}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ) : (
-                            <div>
-                                <h3 className="font-medium">Variation Keys</h3>
-                                <ul>
-                                    {formData.attributeKeys.map((key, index) => (
-                                        <li key={index}>{key}</li>
-                                    ))}
-                                </ul>
-                                <h3 className="font-medium mt-4">Selected Products</h3>
-                                <ul>
-                                    {formData.selectedProducts.map(id => (
-                                        <li key={id}>
-                                            {products.find(p => p.Id === id)?.Name || `Product ${id}`}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        <div>
-                            <h3 className="font-medium">Images</h3>
-                            <p>{formData.images.length} images selected</p>
-                        </div>
-                        <div className="flex justify-between mt-6">
-                            <button
-                                onClick={goToPrevious}
-                                className="px-4 py-2 border rounded-md"
-                            >
-                                Back
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={isSubmitting}
-                                className="px-4 py-2 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
-                            >
-                                {isSubmitting ? "Creating..." : "Create Product"}
-                            </button>
-                        </div>
-                    </div>
+                    <ReviewScreen
+                        formData={{
+                            ...formData,
+                            categoryNames: formData.categories.map(id => {
+                                const category = categories.find(c => c.id === id);
+                                return category ? category.name : "Unknown";
+                            }),
+                            selectedProductNames: formData.selectedProducts.map(id => {
+                                const product = products.find(c => c.Id === id);
+                                return product ? product.Name : "Unknown";
+                            }),
+                        }}
+                        onBack={goToPrevious}
+                        onSubmit={handleSubmit}
+                        isSubmitting={isSubmitting}
+                    />
                 );
             default:
                 return null;
