@@ -46,11 +46,11 @@ type PaymentService struct {
 
 func NewPaymentService(partner partner.Provider, transaction transaction.Provider, processor payment_processor.Provider, frontendUrl string, baseUrl string) Provider {
 	return &PaymentService{
-		baseUrl:          baseUrl,
+		baseUrl:          "http://localhost:3000",
 		paymentPartner:   partner,
 		transaction:      transaction,
 		paymentProcessor: processor,
-		frontendUrl:      frontendUrl,
+		frontendUrl:      "http://localhost:3000",
 	}
 }
 
@@ -75,7 +75,7 @@ func (p *PaymentService) Checkout(ctx context.Context, req *CheckoutRequest) (Ch
 	}
 
 	paymentInitiateRequest := payment.InitiateRequest{
-		Amount:         float64(order.Total),
+		Amount:         order.Total,
 		TransactionRef: req.TransactionRef,
 		PartnerUrl:     paymentPartner.BaseURL,
 		PartnerSecret:  paymentPartner.Secret,
