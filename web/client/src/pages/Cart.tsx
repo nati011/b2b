@@ -5,6 +5,8 @@ import { ArrowLeft, Minus, Plus, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { placeOrder } from "@/api/CheckotApi";
+
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
@@ -30,7 +32,11 @@ const Cart = () => {
       toast.error("Your cart is empty");
       return;
     }
-    navigate("/checkout");
+    const request = {
+      "items": items
+    }
+    placeOrder(request)
+    // navigate("/checkout");
   };
 
   return (
@@ -49,8 +55,8 @@ const Cart = () => {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-2xl font-semibold text-primary">Shopping Cart</h1>
             {items.length > 0 && (
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleClearCart}
                 className="flex items-center gap-2"
               >
