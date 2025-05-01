@@ -195,21 +195,21 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
                 description: `Your ${formData.productType} product has been created.`,
             });
 
-            // // Reset form
-            // setFormData({
-            //     productType: 'simple',
-            //     basicInfo: {
-            //         name: "",
-            //         description: "",
-            //         price: ""
-            //     },
-            //     categories: [],
-            //     attributes: [],
-            //     attributeKeys: [],
-            //     images: [],
-            //     selectedProducts: []
-            // });
-            // setCurrentStep(0);
+            // Reset form
+            setFormData({
+                productType: 'simple',
+                basicInfo: {
+                    name: "",
+                    description: "",
+                    price: ""
+                },
+                categories: [],
+                attributes: [],
+                attributeKeys: [],
+                images: [],
+                selectedProducts: []
+            });
+            setCurrentStep(0);
 
         } catch (error) {
             console.error("Error creating product:", error);
