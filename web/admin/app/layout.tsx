@@ -1,5 +1,7 @@
 "use client"
 import { Poppins, DM_Sans } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css";
 import {
   MenuFoldOutlined,
@@ -107,6 +109,7 @@ export default function RootLayout({
               </Header>
               <div className="bg-[#F4F5F9] py-4 px-2 md:p-10 min-h-screen">
                 {children}
+                <Toaster />
               </div>
 
 
