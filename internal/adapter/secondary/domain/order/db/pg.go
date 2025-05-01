@@ -83,7 +83,7 @@ func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrd
 	var responseBase GetOrderItem
 
 	query := "SELECT * FROM public.get_order_items_by_order_id($1);"
-	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	args := []any{orderId}
 	result := [][]any{{
 		&responseBase.Id,
 		&responseBase.ProductId,
