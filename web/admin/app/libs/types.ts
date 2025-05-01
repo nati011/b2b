@@ -51,3 +51,47 @@ export type Category = {
   id: number;
   name: string;
 };
+
+export type DistributorRequest = {
+  name: string;
+  tin: string;
+  latitude: string;
+  longitude: string
+  general_zone: string;
+  region: string;
+  woreda: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  username: string;
+  dob: string;
+  external_id: string;
+}
+
+
+export type Item = {
+  ProductId: number
+  Quantity: number
+}
+
+
+export type Order = {
+  Id: number;
+  RetailerId: number;
+  Items: Item[]
+  Total: number
+  Status: string
+  DeliveryStatus: string
+  PaymentStatus: string
+}
+
+export type Profile = {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  username: string
+  dob: string
+}

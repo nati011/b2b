@@ -108,7 +108,7 @@ export function DataTable<TData, TValue>({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-[#1C40CA] bg-slate-100 dark:bg-black hover:text-[#1C40CA] text-[#1C40CA] px-6 sm:mb-0 mb-2"
+                                className="border-blue-900 bg-slate-100 dark:bg-black hover:text-blue-900 text-blue-900 px-6 py-4 sm:mb-0 mb-2"
                             >
                                 + {buttonObj.name}
                             </Button>

@@ -105,7 +105,7 @@ const Products = () => {
               to='/'
               className='text-xl font-semibold text-primary shrink-0'
             >
-              Store
+              Efoyta Store
             </Link>
 
             {/* Desktop Navigation */}
@@ -195,11 +195,10 @@ const Products = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm transition-colors whitespace-nowrap ${
-                  selectedCategory === category.id
+                className={`shrink-0 px-4 py-2 rounded-full text-sm transition-colors whitespace-nowrap ${selectedCategory === category.id
                     ? "bg-primary text-white"
                     : "bg-secondary text-primary hover:bg-opacity-80"
-                }`}
+                  }`}
               >
                 {category.name}
               </button>

@@ -1,10 +1,6 @@
-import { VscAccount } from "react-icons/vsc";
 import Link from 'next/link';
-import { BiTask } from 'react-icons/bi';
 import { PiUsersThreeLight } from "react-icons/pi";
 import { AiOutlineProduct } from "react-icons/ai";;
-import {  TbReportSearch
- } from "react-icons/tb";
 import { CiSettings } from 'react-icons/ci';
 import { MdOutlineDashboard, MdOutlineAddShoppingCart } from 'react-icons/md';
 
@@ -29,15 +25,6 @@ export const Sidebar = [
   },
   {
     key: '3',
-    icon: <BiTask />,
-    label: (
-      <Link href='/grns'>
-        GRN
-      </Link>
-    ),
-  },
-  {
-    key: '4',
     icon: <PiUsersThreeLight />,
     label: (
       <Link href='/retailers'>
@@ -47,18 +34,36 @@ export const Sidebar = [
   },
 
   {
-    key: '5',
+    key: '4',
     icon: <PiUsersThreeLight />,
     label: (
-      <Link href='/distributors'>
+      <p>
         Distributors
-      </Link>
-    )
+      </p>
+    ),
+    children: [
+      {
+        icon: <PiUsersThreeLight />,
+        label: (
+          <Link href='/distributors'>
+            Distributors
+          </Link>
+        ),
+      },
+      {
+        icon: <PiUsersThreeLight />,
+        label: (
+          <Link href='/distributors/agents'>
+            Agents
+          </Link>
+        ),
+      },
+    ]
   },
 
 
   {
-    key: '6',
+    key: '5',
     icon: <MdOutlineAddShoppingCart />,
     label: (
       <Link href='/orders'>
@@ -66,30 +71,12 @@ export const Sidebar = [
       </Link>
     ),
   },
-    {
-    key: '7',
-    icon: <VscAccount />,
-    label: (
-      <Link href='/agents'>
-        Agents
-      </Link>
-    ),
-  },
   {
-    key: '8',
-    icon: <TbReportSearch/>,
-    label:(
-      <Link href='/report'>
-       Report
-      </Link>
-    ),
-  },
-  {
-    key: '9',
-    icon: <CiSettings/>,
+    key: '6',
+    icon: <CiSettings />,
     label: (
       <Link href='/settings'>
-       Account Settings
+        Account Settings
       </Link>
     ),
   },
