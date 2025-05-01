@@ -1,7 +1,7 @@
-import { Retailer } from "../libs/types";
 import { ColumnDef } from "@tanstack/react-table";
+import { Distributor } from '@/app/libs/types';
 
-export const columns: ColumnDef<Retailer>[] = [
+export const columns: ColumnDef<Distributor>[] = [
     {
         accessorKey: "Id",
         header: "Id",
@@ -27,4 +27,3 @@ export const columns: ColumnDef<Retailer>[] = [
         header: "Woreda",
     },
 ];
-

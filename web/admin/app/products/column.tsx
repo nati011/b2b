@@ -1,29 +1,32 @@
-export const column = [
+
+import { ColumnDef } from "@tanstack/react-table";
+import { Product } from '@/app/libs/types';
+
+export const columns: ColumnDef<Product>[] = [
     {
-        title: 'Id',
-        dataIndex: 'Id',
-        key: 'Id',
+        accessorKey: "Id",
+        header: "Id",
     },
     {
-        title: 'Name',
-        dataIndex: 'Name',
-        key: 'Name',
+        accessorKey: "Name",
+        header: "Name",
     },
     {
-        title: 'Price',
-        dataIndex: 'Price',
-        key: 'Price'
+        accessorKey: "Price",
+        header: "Price",
     },
     {
-        title: 'Stock',
-        dataIndex: 'Stock',
-        key: 'Stock'
+        accessorKey: "Stock",
+        header: "Stock",
     },
     {
-        title: 'Is Active',
-        dataIndex: 'IsActive',
-        key: 'IsActive',
+        accessorKey: "IsActive",
+        header: () => <div className="text-left">Status</div>,
+        cell: ({ row }) => {
+            const status = row.getValue("IsActive")
+            return <div className={status ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>
+                {status ? "Inactive" : "Active"}
+            </div>
+        },
     },
 ];
-
-

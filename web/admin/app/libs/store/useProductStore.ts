@@ -19,6 +19,8 @@ interface ProductsStore {
   deleteCategory: (id: number) => Promise<void>;
   createProduct: (productData: any) => Promise<void>;
   createConfigurableProduct: (productData: any) => Promise<void>
+  addStock: (stock: number, id: number) => Promise<void>;
+  depleteStock: (stock: number, id: number) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -130,6 +132,29 @@ const useProductsStore = create<ProductsStore>((set) => ({
       set({ loading: false, error: error.message });
     }
   },
+  addStock: async (stock: number, id: number) => {
+    try {
+      const response = await axiosIns.patch(`/api/product/${id}/stock?amount=${stock}&command=receive`);
+      console.log(response.data)
+      await useProductsStore.getState().fetchProducts();
+      set({ loading: false });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
+    }
+  },
+  depleteStock: async (stock: number, id: number) => {
+    try {
+      const response = await axiosIns.patch(`/api/product/${id}/stock?amount=${stock}&command=deplete`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      await useProductsStore.getState().fetchProducts();
+      set({ loading: false });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
+    }
+  }
 }));
 
 export default useProductsStore;
