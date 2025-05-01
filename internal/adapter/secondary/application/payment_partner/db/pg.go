@@ -56,7 +56,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSecret, error) {
 	var response port.GetPartnerSecret
 
-	query := "SELECT * FROM public.get_payment_partner_secret($1);"
+	query := "SELECT * FROM public.get_payment_partner_secrets($1);"
 
 	result := []any{
 		&response.Name,
