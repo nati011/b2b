@@ -89,7 +89,7 @@ const ConfigurableProducts: React.FC<ConfigurableProductsProps> = ({
                                         />
                                         <div className="flex-1">
                                             <p className="font-medium">{product.Name}</p>
-                                            <div className="flex flex-wrap gap-2 mt-1">
+                                            {/* <div className="flex flex-wrap gap-2 mt-1">
                                                 {product.Attributes?.filter((attr: { key: string; }) => attributeKeys.includes(attr.key))
                                                     .map((attr: any, idx: any) => (
                                                         <span key={idx} className="text-xs bg-accent rounded px-2 py-0.5">
@@ -97,7 +97,7 @@ const ConfigurableProducts: React.FC<ConfigurableProductsProps> = ({
                                                         </span>
                                                     ))
                                                 }
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </CardContent>
                                 </Card>

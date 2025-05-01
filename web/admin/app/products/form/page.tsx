@@ -1,5 +1,5 @@
 "use client";
-import ImageUpload, { Image } from "@/app/components/image-upload";
+import ImageUpload from "@/app/components/image-upload";
 import useProductsStore from "@/app/libs/store/useProductStore";
 import { Button, Card, Form, Input, Select, Modal, Space, Typography, Row, Col } from "antd"; // Import Row and Col
 import { useState, useEffect } from "react";
@@ -40,7 +40,7 @@ export default function ProductsForm() {
   const [newAttributeKey, setNewAttributeKey] = useState("");
   const [newAttributeValue, setNewAttributeValue] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]); // State for selected category IDs
-  const [productImages, setProductImages] = useState<Image[]>([]); // State for product images using your Image type
+  const [productImages, setProductImages] = useState<string[]>([]); // State for product images using your Image type
   const [activeForm, setActiveForm] = useState<'product' | 'configurable'>('configurable'); // State for active form
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]); // State for selected products in configurable product form
 
@@ -137,8 +137,8 @@ export default function ProductsForm() {
         name: values.productName, // Use the field name from the form
         desc: values.description, // Use the field name from the form
         external_id: externalId,
-        images: productImages.map(img => img.image_url), // Extract image URLs from your Image type
-        price: parseFloat(values.price), // Use the field name from the form and convert to a number
+        images: productImages,
+        price: parseFloat(values.price),
         attributes: attributes,
         distributor_id: 1,
         category_id: selectedCategoryIds,
@@ -156,7 +156,7 @@ export default function ProductsForm() {
     }
   };
 
-  const handleImageChange = (images: Image[]) => {
+  const handleImageChange = (images: string[]) => {
     setProductImages(images);
   };
 
@@ -178,7 +178,7 @@ export default function ProductsForm() {
         external_id: "", // Or generate a random one if needed
         attribute_keys: values.attributeKeys, // Use the array of attribute keys
         products: selectedProducts, // Send the selected product IDs
-        images: productImages.map(img => img.image_url),
+        images: productImages,
       };
 
       await createConfigurableProduct(configurableProductData);
