@@ -67,7 +67,8 @@ func WithQuery(query string) Option {
 func (s QueryMaster) DoStuff() error {
 	if s.hasMultipleResultSet {
 		dest := s.multiRowResultSet[0]
-		rows, _ := s.db.QueryContext(s.ctx, s.query, s.args...)
+		rows, error := s.db.QueryContext(s.ctx, s.query, s.args...)
+		log.Printf("Error:%v", error)
 		err := rows.Scan(dest...)
 		if err != nil {
 			switch err {

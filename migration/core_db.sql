@@ -376,7 +376,7 @@ CREATE TABLE IF NOT EXISTS public."payment_partners"
   name VARCHAR(255),
   icon VARCHAR(255),
   status VARCHAR(255),
-  init_payment_url VARCHAR(255),
+  base_url VARCHAR(255),
   secret VARCHAR(255)
 ) INHERITS (public."base");
 
