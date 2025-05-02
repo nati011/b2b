@@ -5,19 +5,16 @@ import (
 	"database/sql"
 	"log"
 
-	"b2b.nati011.github.com/config"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 type QueryMaster struct {
-	hasMultipleResultSet bool
-	args                 []any
-	multiRowResultSet    [][]any
-	singleRowResultSet   []any
-	db                   *sql.DB
-	ctx                  context.Context
-	query                string
-	pagination           *config.Pagination
+	args                  []any
+	multiRowResultSetDest []any
+	singleRowResultSet    []any
+	db                    *sql.DB
+	ctx                   context.Context
+	query                 string
 }
 
 type Option func(*QueryMaster)
@@ -30,11 +27,10 @@ func NewQuery(options ...Option) QueryMaster {
 	return svr
 }
 
-func WithMultiRowResultSet(args []any, results [][]any) Option {
+func WithMultiRowResultSet(args []any, dest []any) Option {
 	return func(q *QueryMaster) {
-		q.hasMultipleResultSet = true
 		q.args = args
-		q.multiRowResultSet = results
+		q.multiRowResultSetDest = dest
 	}
 }
 
@@ -63,40 +59,43 @@ func WithQuery(query string) Option {
 	}
 }
 
-// todo: offset and limit
-func (s QueryMaster) DoStuff() error {
-	if s.hasMultipleResultSet {
-		dest := s.multiRowResultSet[0]
-		rows, error := s.db.QueryContext(s.ctx, s.query, s.args...)
-		log.Printf("Error:%v", error)
-		err := rows.Scan(dest...)
-		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-				return port_commons.ErrSysNoRows
-			}
+// todo: manage offset and limit
+func (s QueryMaster) DoMultiQuery() ([][]any, error) {
+	rows, error := s.db.QueryContext(s.ctx, s.query, s.args...)
+	log.Printf("Error:%v", error)
+	err := rows.Scan(s.multiRowResultSetDest...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, port_commons.ErrSysNoRows
 		}
-
-		defer rows.Close()
-		//build list of lists from the one sample on top
-
-		for rows.Next() {
-			if err := rows.Scan(dest...); err != nil {
-				log.Printf("unable to scan row: %q", err)
-				return port_commons.ErrSysUnknown
-			}
-			s.multiRowResultSet = append(s.multiRowResultSet, dest)
-		}
-
-		if err := rows.Err(); err != nil {
-			log.Printf("error occurred during rows iteration: %q", err)
-			return port_commons.ErrSysUnknown
-		}
-
-		return nil
 	}
 
-	//single row result set
+	defer rows.Close()
+	//build list of lists from the one sample on top
+
+	result := make([][]any, 0)
+
+	// Iterate over the remaining rows
+	for rows.Next() {
+		if err := rows.Scan(s.multiRowResultSetDest...); err != nil {
+			log.Printf("unable to scan row: %q", err)
+			return nil, port_commons.ErrSysUnknown
+		}
+		result = append(result, s.multiRowResultSetDest)
+	}
+
+	// Check for any errors encountered during iteration
+	if err := rows.Err(); err != nil {
+		log.Printf("error occurred during rows iteration: %q", err)
+		return nil, port_commons.ErrSysUnknown
+	}
+
+	return result, nil
+
+}
+
+func (s QueryMaster) DoSingleQuery() error {
 	row := s.db.QueryRowContext(s.ctx, s.query, s.args...)
 	if row.Err() != nil {
 		return port_commons.ErrSysUnknown
