@@ -40,7 +40,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -71,7 +71,7 @@ func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartne
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetPartnerSecret{}, err
 	}
@@ -89,22 +89,21 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_payment_partners($1,$2);"
 
-	result := [][]any{
-		{
-			&responseBase.Id,
-			&responseBase.Name,
-			&responseBase.Icon,
-			&responseBase.Status,
-			&responseBase.BaseURL,
-		}}
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Icon,
+		&responseBase.Status,
+		&responseBase.BaseURL,
+	}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -128,22 +127,20 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 	query := "SELECT * FROM public.get_payment_partner_by_status($1);"
 
-	result := [][]any{
-		{
-			&responseBase.Id,
-			&responseBase.Name,
-			&responseBase.Icon,
-			&responseBase.Status,
-			&responseBase.BaseURL,
-		}}
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Icon,
+		&responseBase.Status,
+		&responseBase.BaseURL,
+	}
 	args := []any{&status}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -167,22 +164,21 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	query := "SELECT * FROM public.get_payment_partner_by_name($1);"
 
-	result := [][]any{
-		{
-			&responseBase.Id,
-			&responseBase.Name,
-			&responseBase.Icon,
-			&responseBase.Status,
-			&responseBase.BaseURL,
-		}}
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Icon,
+		&responseBase.Status,
+		&responseBase.BaseURL,
+	}
 	args := []any{name}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -217,7 +213,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -236,7 +232,7 @@ func (p *Postgres) UpdateStatus(ctx context.Context, id int, status string) (int
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -255,7 +251,7 @@ func (p *Postgres) UpdateName(ctx context.Context, id int, name string) (int, er
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
