@@ -40,7 +40,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -78,7 +78,7 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -104,7 +104,7 @@ func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -133,24 +133,22 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_distributors($1, $2);"
 
-	result := [][]any{
-		{&responseBase.Id,
-			&responseBase.Name,
-			&responseBase.Tin,
-			&responseBase.Latitude,
-			&responseBase.Longitude,
-			&responseBase.GeneralZone,
-			&responseBase.Region,
-			&responseBase.Woreda},
-	}
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Tin,
+		&responseBase.Latitude,
+		&responseBase.Longitude,
+		&responseBase.GeneralZone,
+		&responseBase.Region,
+		&responseBase.Woreda}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -179,24 +177,22 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	query := "SELECT * FROM public.get_distributor_by_name($1,$2,$3);"
 
-	result := [][]any{
-		{&responseBase.Id,
-			&responseBase.Name,
-			&responseBase.Tin,
-			&responseBase.Latitude,
-			&responseBase.Longitude,
-			&responseBase.GeneralZone,
-			&responseBase.Region,
-			&responseBase.Woreda},
-	}
-	args := []any{name, r.Pagination.Limit, r.Pagination.Offset}
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Tin,
+		&responseBase.Latitude,
+		&responseBase.Longitude,
+		&responseBase.GeneralZone,
+		&responseBase.Region,
+		&responseBase.Woreda}
+	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -239,7 +235,7 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -260,20 +256,19 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 	var responseBase port.GetUserResponse
 
 	query := "SELECT * FROM public.get_all_distributor_users($1, $2, $3);"
-	result := [][]any{
-		{&responseBase.Id},
-	}
+	dest := []any{&responseBase.Id}
 	args := []any{id, r.Pagination.Limit, r.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllUserResponse{}, err
 	}
+
 	for _, res := range result {
 		responseBase := port.GetUserResponse{
 			Id: *res[0].(*int),
@@ -295,7 +290,7 @@ func (r *Postgres) CreateDistributorUser(ctx context.Context, req *port.CreateUs
 		query_handler.WithDB(r.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
