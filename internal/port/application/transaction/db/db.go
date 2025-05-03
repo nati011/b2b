@@ -29,11 +29,17 @@ type CreateRequest struct {
 	PartnerId int
 	TxRef     string
 	Status    string
+	OrderId   int
 }
 
 type UpdateRequest struct {
 	Id     int
 	Status string
+}
+
+type UpdateByTransactionRefRequest struct {
+	TransactionRef string
+	Status         string
 }
 
 type Reader interface {
@@ -44,6 +50,7 @@ type Reader interface {
 	GetByPartnerId(context.Context, int) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)
 	UpdateStatus(context.Context, *UpdateRequest) error
+	UpdateByTransactionRef(context.Context, *UpdateByTransactionRefRequest) error
 }
 
 type Writer interface {

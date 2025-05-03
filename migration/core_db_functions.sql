@@ -2850,6 +2850,24 @@ BEGIN
 END;
 $$; 
 
+CREATE OR REPLACE FUNCTION public.update_transaction_by_transaction_ref(
+    tx_ref VARCHAR(255),
+    t_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    UPDATE public.transactions
+    SET status = t_status
+    WHERE tx_ref = tx_ref
+      AND is_deleted = FALSE
+    RETURNING id INTO new_id;
+END;
+$$; 
+
     -- reader
 CREATE OR REPLACE FUNCTION public.get_transaction_by_id(
     t_id INT

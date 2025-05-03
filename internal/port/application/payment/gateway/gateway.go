@@ -8,7 +8,7 @@ var (
 )
 
 type InitiateRequest struct {
-	Amount         float32 `json:"amount"`
+	Amount         float64 `json:"amount"`
 	TransactionRef string  `json:"tx_ref"`
 	ReturnUrl      string  `json:"return_url"`
 	PartnerUrl     string  `json:"partner_url"`

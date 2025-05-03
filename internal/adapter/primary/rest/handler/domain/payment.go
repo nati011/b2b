@@ -9,7 +9,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
-	"b2b.nati011.github.com/internal/core/application/payment"
+	"b2b.nati011.github.com/internal/core/application/checkout"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
@@ -18,12 +18,12 @@ var (
 )
 
 type CheckoutRequest struct {
-	TransactionRef   string `json:"transaction_ref"`
-	PaymentPartnerId int    `json:"payment_partner_id"`
+	OrderId          int `json:"order_id"`
+	PaymentPartnerId int `json:"payment_partner_id"`
 }
 
 type Payment struct {
-	service payment.Provider
+	service checkout.Provider
 }
 
 func InitPayment() {
@@ -31,7 +31,7 @@ func InitPayment() {
 }
 
 func (p *Payment) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	p.service = domainService.PaymentService
+	p.service = domainService.CheckoutService
 	return nil
 }
 
@@ -67,7 +67,7 @@ func (p *Payment) CheckoutHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
-	response, err := p.service.Checkout(r.Context(), (*payment.CheckoutRequest)(&requestBody))
+	response, err := p.service.Checkout(r.Context(), (*checkout.CheckoutRequest)(&requestBody))
 	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return

@@ -1,3 +1,6 @@
 .vscode
 .env
 */cfg.env
+*/node_modules/
+*/.vite/
+*/.next/
