@@ -156,14 +156,14 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:          *res[0].(*int),
-			Name:        *res[1].(*string),
-			Tin:         *res[2].(*string),
-			Latitude:    *res[3].(*string),
-			Longitude:   *res[4].(*string),
-			GeneralZone: *res[5].(*string),
-			Region:      *res[6].(*string),
-			Woreda:      *res[7].(*string),
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Tin:         res[2].(string),
+			Latitude:    res[3].(string),
+			Longitude:   res[4].(string),
+			GeneralZone: res[5].(string),
+			Region:      res[6].(string),
+			Woreda:      res[7].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -200,14 +200,14 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:          *res[0].(*int),
-			Name:        *res[1].(*string),
-			Tin:         *res[2].(*string),
-			Latitude:    *res[3].(*string),
-			Longitude:   *res[4].(*string),
-			GeneralZone: *res[5].(*string),
-			Region:      *res[6].(*string),
-			Woreda:      *res[7].(*string),
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Tin:         res[2].(string),
+			Latitude:    res[3].(string),
+			Longitude:   res[4].(string),
+			GeneralZone: res[5].(string),
+			Region:      res[6].(string),
+			Woreda:      res[7].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -271,7 +271,7 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 
 	for _, res := range result {
 		responseBase := port.GetUserResponse{
-			Id: *res[0].(*int),
+			Id: int(res[0].(int64)),
 		}
 		response.List = append(response.List, responseBase)
 	}
