@@ -12,12 +12,13 @@ type GetResponse struct {
 	Id             int
 	Date           time.Time
 	Amount         float64
+	OrderId        int
 	PartnerId      int
 	TransactionRef string
 }
 
 type CreateRequest struct {
-	Amount         float64
+	OrderId        int
 	PartnerId      int
 	TransactionRef string
 }
@@ -25,7 +26,7 @@ type CreateRequest struct {
 type Reader interface {
 	GetByID(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
-	GetByTransactionRef(txRef string, ctx context.Context) (GetResponse, error)
+	GetByTransactionRef(ctx context.Context, txRef string) (GetResponse, error)
 }
 
 type Writer interface {

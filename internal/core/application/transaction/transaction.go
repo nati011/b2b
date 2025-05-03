@@ -40,6 +40,11 @@ type UpdateRequest struct {
 	Status string
 }
 
+type UpdateByTransactionRefRequest struct {
+	TransactionRef string
+	Status         string
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
@@ -64,6 +69,7 @@ type Provider interface {
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByParam(context.Context, *GetByParamRequest) (GetAllResponse, error)
 	UpdateStatus(context.Context, *UpdateRequest) error
+	UpdateByTransactionRef(context.Context, *UpdateByTransactionRefRequest) error
 }
 
 type TransactionService struct {
@@ -139,6 +145,20 @@ func (t *TransactionService) UpdateStatus(ctx context.Context, req *UpdateReques
 	err := t.DB.UpdateStatus(ctx, &port.UpdateRequest{
 		Id:     req.Id,
 		Status: req.Status,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
+}
+
+func (t *TransactionService) UpdateByTransactionRef(ctx context.Context, req *UpdateByTransactionRefRequest) error {
+	err := t.DB.UpdateByTransactionRef(ctx, &port.UpdateByTransactionRefRequest{
+		TransactionRef: req.TransactionRef,
+		Status:         req.Status,
 	})
 	if err != nil {
 		switch err {

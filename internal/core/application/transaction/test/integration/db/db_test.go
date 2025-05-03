@@ -71,8 +71,6 @@ func Test_write(t *testing.T) {
 		in := &transaction.CreateRequest{
 			Amount:    1,
 			PartnerId: PartnerId,
-			TxRef:     "1",
-			Status:    "test",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -97,8 +95,6 @@ func Test_write(t *testing.T) {
 		in := &transaction.CreateRequest{
 			Amount:    1,
 			PartnerId: PartnerId,
-			TxRef:     "1",
-			Status:    "test",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -133,8 +129,6 @@ func Test_read(t *testing.T) {
 		in := &transaction.CreateRequest{
 			Amount:    1,
 			PartnerId: PartnerId,
-			TxRef:     "test",
-			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -159,8 +153,6 @@ func Test_read(t *testing.T) {
 		in := &transaction.CreateRequest{
 			Amount:    1,
 			PartnerId: PartnerId,
-			TxRef:     "test",
-			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		print(id)
@@ -185,8 +177,6 @@ func Test_read(t *testing.T) {
 		in := &transaction.CreateRequest{
 			Amount:    1,
 			PartnerId: PartnerId,
-			TxRef:     "test",
-			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
@@ -218,8 +208,6 @@ func Test_read(t *testing.T) {
 		in := &transaction.CreateRequest{
 			Amount:    1,
 			PartnerId: PartnerId,
-			TxRef:     "test",
-			Status:    "tesdt",
 		}
 		id, err := container.TransactionService.Create(ctx, in)
 		if err != nil {
