@@ -6,6 +6,7 @@ import (
 
 	"math/rand"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
 )
 
@@ -74,7 +75,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -99,7 +100,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		)
 	}
 	if len(responses.List) == 0 {
-		return responses, port.ErrSysNoRows
+		return responses, port_commons.ErrSysNoRows
 	}
 	return responses, nil
 }
@@ -129,7 +130,7 @@ func (m *Mock) GetByName(ctx context.Context, req *port.GetByNameRequest) (port.
 
 	}
 	if len(responses.List) == 0 {
-		return responses, port.ErrSysNoRows
+		return responses, port_commons.ErrSysNoRows
 	}
 	return responses, nil
 }
@@ -159,7 +160,7 @@ func (m *Mock) GetByExternalId(ctx context.Context, req *port.GetByExternalIdReq
 
 	}
 	if len(responses.List) == 0 {
-		return responses, port.ErrSysNoRows
+		return responses, port_commons.ErrSysNoRows
 	}
 	return responses, nil
 }
@@ -189,7 +190,7 @@ func (m *Mock) GetByDistributorId(ctx context.Context, req *port.GetByDistributo
 
 	}
 	if len(responses.List) == 0 {
-		return responses, port.ErrSysNoRows
+		return responses, port_commons.ErrSysNoRows
 	}
 	return responses, nil
 }
@@ -224,7 +225,7 @@ func (m *Mock) GetByCategory(ctx context.Context, req *port.GetByCategoryRequest
 
 	}
 	if len(responses.List) == 0 {
-		return responses, port.ErrSysNoRows
+		return responses, port_commons.ErrSysNoRows
 	}
 	return responses, nil
 }
@@ -254,7 +255,7 @@ func (m *Mock) GetByPriceRange(ctx context.Context, req *port.GetByPriceRangeReq
 	}
 
 	if len(responses.List) == 0 {
-		return responses, port.ErrSysNoRows
+		return responses, port_commons.ErrSysNoRows
 	}
 	return responses, nil
 }

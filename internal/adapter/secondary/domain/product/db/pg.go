@@ -7,6 +7,7 @@ import (
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
 )
 
@@ -78,7 +79,12 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 	).DoMultiQuery()
 	if err != nil {
-		return port.GetResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetResponse{}, err
+		}
+
 	}
 
 	for _, i := range imagesResult {
@@ -105,7 +111,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 	).DoMultiQuery()
 	if err != nil {
-		return port.GetResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetResponse{}, err
+		}
 	}
 
 	for _, i := range categoryResult {
@@ -137,7 +147,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	).DoMultiQuery()
 
 	if err != nil {
-		return port.GetResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetResponse{}, err
+		}
 	}
 
 	for _, a := range avResult {
@@ -170,10 +184,14 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(nil, dest),
 	).DoMultiQuery()
 	if err != nil {
-		return port.GetAllResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetAllResponse{}, err
+		}
 	}
 	for _, res := range result {
 		v, _ := strconv.ParseFloat(res[4].(string), 64)
@@ -182,12 +200,12 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Name:           res[1].(string),
 			Desc:           res[2].(string),
 			ExternalID:     res[3].(string),
-			Price:          v,
+			IsActive:       res[4].(bool),
 			DistributorId:  int(res[5].(int64)),
 			Stock:          int(res[6].(int64)),
 			AvailableStock: int(res[7].(int64)),
 			ReservedStock:  int(res[8].(int64)),
-			IsActive:       res[9].(bool),
+			Price:          v,
 		}
 		// images
 		//--------------------
@@ -207,7 +225,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range imagesResult {
@@ -232,7 +254,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range categoryResult {
@@ -262,7 +288,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		).DoMultiQuery()
 
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, a := range avResult {
@@ -279,6 +309,7 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_products_by_name($1);"
+	args := []any{&req.Name}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -295,7 +326,7 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(nil, dest),
+		query_handler.WithSingleRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -332,7 +363,11 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range imagesResult {
@@ -357,7 +392,11 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range categoryResult {
@@ -387,7 +426,11 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 		).DoMultiQuery()
 
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, a := range avResult {
@@ -457,7 +500,11 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range imagesResult {
@@ -482,7 +529,11 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range categoryResult {
@@ -512,7 +563,11 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 		).DoMultiQuery()
 
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, a := range avResult {
@@ -582,7 +637,11 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range imagesResult {
@@ -607,7 +666,11 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range categoryResult {
@@ -637,7 +700,11 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 		).DoMultiQuery()
 
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, a := range avResult {
@@ -707,7 +774,11 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range imagesResult {
@@ -732,7 +803,11 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range categoryResult {
@@ -762,7 +837,11 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 		).DoMultiQuery()
 
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, a := range avResult {
@@ -903,7 +982,7 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var product_id int
-	query := "SELECT * FROM public.create_product($1, $2, $3, $4);"
+	query := "SELECT * FROM public.create_product($1, $2, $3, $4, $5);"
 	args := []any{
 		req.Name,
 		req.Desc,
@@ -911,7 +990,8 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.DistributorId,
 		req.Price,
 	}
-	result := []any{product_id}
+	result := []any{
+		&product_id}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -938,25 +1018,12 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithSingleRowResultSet(productImageArgs, nil),
 		).DoSingleQuery()
 		if err != nil {
-			return 0, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return 0, err
+			}
 		}
-	}
-
-	// create price
-	query = "SELECT * FROM public.add_price_to_product($1, $2);"
-
-	productPriceArgs := []any{
-		product_id,
-		req.Price,
-	}
-	err = query_handler.NewQuery(
-		query_handler.WithCtx(ctx),
-		query_handler.WithDB(p.db),
-		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(productPriceArgs, nil),
-	).DoSingleQuery()
-	if err != nil {
-		return 0, err
 	}
 
 	// create category
@@ -974,7 +1041,11 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithSingleRowResultSet(productImageArgs, nil),
 		).DoSingleQuery()
 		if err != nil {
-			return 0, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return 0, err
+			}
 		}
 	}
 
@@ -994,7 +1065,11 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithSingleRowResultSet(productImageArgs, pAResult),
 		).DoSingleQuery()
 		if err != nil {
-			return 0, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return 0, err
+			}
 		}
 
 		query = "SELECT * FROM public.create_product_attribute_value($1, $2, $3);"
@@ -1010,7 +1085,11 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithSingleRowResultSet(productAVArgs, nil),
 		).DoSingleQuery()
 		if err != nil {
-			return 0, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return 0, err
+			}
 		}
 	}
 
@@ -1145,7 +1224,11 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 			query_handler.WithSingleRowResultSet(productImageArgs, nil),
 		).DoSingleQuery()
 		if err != nil {
-			return err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return err
+			}
 		}
 	}
 	return nil
@@ -1182,7 +1265,11 @@ func (p *Postgres) UpdateCategoryId(ctx context.Context, req *port.UpdateCategor
 			query_handler.WithSingleRowResultSet(productImageArgs, nil),
 		).DoSingleQuery()
 		if err != nil {
-			return err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return err
+			}
 		}
 	}
 	return nil
@@ -1226,7 +1313,11 @@ func (p *Postgres) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingR
 		query_handler.WithSingleRowResultSet(productUpdateStockArgs, pUResult),
 	).DoSingleQuery()
 	if err != nil {
-		return err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
 	}
 
 	//store to stock ledger
@@ -1245,7 +1336,11 @@ func (p *Postgres) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingR
 		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
 	).DoSingleQuery()
 	if err != nil {
-		return err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
 	}
 	return nil
 }
@@ -1283,7 +1378,11 @@ func (p *Postgres) Dispatch(ctx context.Context, req *port.DispatchRequest) erro
 		query_handler.WithSingleRowResultSet(productUpdateStockArgs, pUResult),
 	).DoSingleQuery()
 	if err != nil {
-		return err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
 	}
 
 	//store to stock ledger
@@ -1302,7 +1401,11 @@ func (p *Postgres) Dispatch(ctx context.Context, req *port.DispatchRequest) erro
 		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
 	).DoSingleQuery()
 	if err != nil {
-		return err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
 	}
 	return nil
 }
