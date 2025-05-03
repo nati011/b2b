@@ -252,7 +252,7 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) (int, 
 	_, err := r.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port_commons.ErrSysNoRows:
+		case ErrIdNotFound:
 			return 0, err
 		default:
 			return 0, ErrUnknown
