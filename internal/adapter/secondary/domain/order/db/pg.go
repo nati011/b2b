@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"database/sql"
+	"strconv"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -104,11 +105,12 @@ func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrd
 	}
 
 	for _, res := range result {
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
 		response.Items = append(response.Items, GetOrderItem{
-			Id:        *res[0].(*int),
-			ProductId: *res[1].(*int),
-			Quantity:  *res[2].(*int),
-			Price:     *res[3].(*float64),
+			Id:        int(res[0].(int64)),
+			ProductId: int(res[1].(int64)),
+			Quantity:  int(res[2].(int64)),
+			Price:     v,
 		})
 	}
 
@@ -143,14 +145,29 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 	}
 
 	for _, res := range result {
-		response.List = append(response.List, port.GetResponse{
-			Id:             *res[0].(*int),
-			RetailerId:     *res[1].(*int),
-			Status:         *res[2].(*string),
-			Total:          *res[3].(*float64),
-			PaymentStatus:  *res[4].(*string),
-			DeliveryStatus: *res[5].(*string),
-		})
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		val := port.GetResponse{
+			Id:             int(res[0].(int64)),
+			RetailerId:     int(res[1].(int64)),
+			Status:         res[2].(string),
+			Total:          v,
+			PaymentStatus:  res[4].(string),
+			DeliveryStatus: res[5].(string),
+		}
+		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
+		if err != nil {
+			return port.GetAllResponse{}, err
+		}
+
+		for _, s := range allOrderItems.Items {
+			val.Items = append(val.Items, port.Item{
+				ProductId: s.ProductId,
+				Quantity:  s.Quantity,
+				Price:     s.Price,
+			})
+		}
+
+		response.List = append(response.List, val)
 	}
 
 	return response, nil
@@ -183,14 +200,29 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	}
 
 	for _, res := range result {
-		response.List = append(response.List, port.GetResponse{
-			Id:             *res[0].(*int),
-			RetailerId:     *res[1].(*int),
-			Status:         *res[2].(*string),
-			Total:          *res[3].(*float64),
-			PaymentStatus:  *res[4].(*string),
-			DeliveryStatus: *res[5].(*string),
-		})
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		val := port.GetResponse{
+			Id:             int(res[0].(int64)),
+			RetailerId:     int(res[1].(int64)),
+			Status:         res[2].(string),
+			Total:          v,
+			PaymentStatus:  res[4].(string),
+			DeliveryStatus: res[5].(string),
+		}
+		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
+		if err != nil {
+			return port.GetAllResponse{}, err
+		}
+
+		for _, s := range allOrderItems.Items {
+			val.Items = append(val.Items, port.Item{
+				ProductId: s.ProductId,
+				Quantity:  s.Quantity,
+				Price:     s.Price,
+			})
+		}
+
+		response.List = append(response.List, val)
 	}
 
 	return response, nil
@@ -224,17 +256,18 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}
 
 	for _, res := range result {
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
 		val := port.GetResponse{
-			Id:             *res[0].(*int),
-			RetailerId:     *res[1].(*int),
-			Status:         *res[2].(*string),
-			Total:          *res[3].(*float64),
-			PaymentStatus:  *res[4].(*string),
-			DeliveryStatus: *res[5].(*string),
+			Id:             int(res[0].(int64)),
+			RetailerId:     int(res[1].(int64)),
+			Status:         res[2].(string),
+			Total:          v,
+			PaymentStatus:  res[4].(string),
+			DeliveryStatus: res[5].(string),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
-			return port.GetAllResponse{}, nil
+			return port.GetAllResponse{}, err
 		}
 
 		for _, s := range allOrderItems.Items {
