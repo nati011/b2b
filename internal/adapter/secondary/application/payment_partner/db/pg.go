@@ -110,11 +110,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:      *res[0].(*int),
-			Name:    *res[1].(*string),
-			Icon:    *res[2].(*string),
-			Status:  *res[3].(*string),
-			BaseURL: *res[4].(*string),
+			Id:      int(res[0].(int64)),
+			Name:    res[1].(string),
+			Icon:    res[2].(string),
+			Status:  res[3].(string),
+			BaseURL: res[4].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -147,11 +147,11 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:      *res[0].(*int),
-			Name:    *res[1].(*string),
-			Icon:    *res[2].(*string),
-			Status:  *res[3].(*string),
-			BaseURL: *res[4].(*string),
+			Id:      int(res[0].(int64)),
+			Name:    res[1].(string),
+			Icon:    res[2].(string),
+			Status:  res[3].(string),
+			BaseURL: res[4].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -185,11 +185,11 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:      *res[0].(*int),
-			Name:    *res[1].(*string),
-			Icon:    *res[2].(*string),
-			Status:  *res[3].(*string),
-			BaseURL: *res[4].(*string),
+			Id:      int(res[0].(int64)),
+			Name:    res[1].(string),
+			Icon:    res[2].(string),
+			Status:  res[3].(string),
+			BaseURL: res[4].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
