@@ -92,9 +92,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:     *res[0].(*int),
-			Action: *res[1].(*string),
-			Name:   *res[2].(*string),
+			Id:     int(res[0].(int64)),
+			Action: res[1].(string),
+			Name:   res[2].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
