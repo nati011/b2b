@@ -5,6 +5,7 @@ import (
 	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 type GetResponse struct {
@@ -63,7 +64,7 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -79,7 +80,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		})
 	}
 	if len(response) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,
@@ -101,7 +102,7 @@ func (m *Mock) GetByDate(ctx context.Context, date time.Time) (port.GetAllRespon
 		}
 	}
 	if len(response) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,
@@ -123,7 +124,7 @@ func (m *Mock) GetByTxRef(ctx context.Context, txRef string) (port.GetAllRespons
 		}
 	}
 	if len(response) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,
@@ -145,7 +146,7 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 		}
 	}
 	if len(response) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,
@@ -188,7 +189,7 @@ func (m *Mock) GetByPartnerId(ctx context.Context, partnerId int) (port.GetAllRe
 		}
 	}
 	if len(response) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,
