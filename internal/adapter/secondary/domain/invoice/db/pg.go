@@ -3,6 +3,7 @@ package invoice
 import (
 	"context"
 	"database/sql"
+	"strconv"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -86,11 +87,12 @@ func (p *Postgres) getInvoiceLineItemsByProductId(ctx context.Context, invoice_I
 
 	//convert
 	for _, res := range result {
+		product_price, _ := strconv.ParseFloat(res[3].(string), 64)
 		responseBase := port.Item{
-			ProductName:     *res[1].(*string),
-			ProductQuantity: *res[2].(*int),
-			ProductPrice:    *res[3].(*float64),
-			ProductId:       *res[4].(*int),
+			ProductName:     res[1].(string),
+			ProductQuantity: int(res[2].(int64)),
+			ProductPrice:    product_price,
+			ProductId:       int(res[4].(int64)),
 		}
 		response = append(response, responseBase)
 	}
@@ -122,13 +124,15 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		return port.GetAllResponse{}, err
 	}
 	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
 		resp := port.GetResponse{
-			Id:         *res[0].(*int),
-			ExternalId: *res[1].(*string),
-			Status:     *res[2].(*string),
-			OrderId:    *res[3].(*int),
-			SubTotal:   *res[4].(*float64),
-			TaxAmount:  *res[5].(*float64),
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
@@ -165,13 +169,15 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		return port.GetAllResponse{}, err
 	}
 	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
 		resp := port.GetResponse{
-			Id:         *res[0].(*int),
-			ExternalId: *res[1].(*string),
-			Status:     *res[2].(*string),
-			OrderId:    *res[3].(*int),
-			SubTotal:   *res[4].(*float64),
-			TaxAmount:  *res[5].(*float64),
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
@@ -209,13 +215,15 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	}
 
 	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
 		resp := port.GetResponse{
-			Id:         *res[0].(*int),
-			ExternalId: *res[1].(*string),
-			Status:     *res[2].(*string),
-			OrderId:    *res[3].(*int),
-			SubTotal:   *res[4].(*float64),
-			TaxAmount:  *res[5].(*float64),
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
