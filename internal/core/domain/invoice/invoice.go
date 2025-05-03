@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
@@ -169,7 +170,7 @@ func (i *InvoiceService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := i.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrSysIdNotFound
 		default:
 			return GetResponse{}, ErrSysUnknown
@@ -200,7 +201,7 @@ func (i *InvoiceService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	db_resp, err := i.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrSysEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrSysUnknown
@@ -240,7 +241,7 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		db_resp, err := i.DB.GetByExternalId(ctx, req.ExternalId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrSysUnknown
 			}
@@ -272,7 +273,7 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		db_resp, err := i.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrSysUnknown
 			}
@@ -305,7 +306,7 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		db_resp, err := i.DB.GetByOrderId(ctx, req.OrderId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrSysUnknown
 			}

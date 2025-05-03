@@ -168,7 +168,7 @@ func (m *Mock) UpdateStatus(ctx context.Context, req *port.UpdateRequest) error 
 		}
 	}
 	if len(response) == 0 {
-		return port.ErrSysNoRows
+		return port_commons.ErrSysNoRows
 	}
 	m.resources = response
 	return nil
