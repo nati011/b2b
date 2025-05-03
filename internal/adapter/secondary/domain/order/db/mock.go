@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -48,7 +49,7 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetByRetailerID(ctx context.Context, id int) (port.GetAllResponse, error) {
@@ -73,7 +74,7 @@ func (m *Mock) GetByRetailerID(ctx context.Context, id int) (port.GetAllResponse
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: resp,
@@ -102,7 +103,7 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: resp,
@@ -129,7 +130,7 @@ func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 		})
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: resp,

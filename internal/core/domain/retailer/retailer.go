@@ -16,6 +16,7 @@ var (
 	ErrIdNotFound         = errors.New("oopsy, id not found")
 	ErrEmptyGetContent    = errors.New("oopsy, empty get content")
 	ErrRetailerHasNoUsers = errors.New("oopys, retailer has no users")
+	ErrPhoneMandatory     = errors.New("oopys, phonenumber mandatory")
 )
 
 type CreateRequest struct {
@@ -86,7 +87,14 @@ func NewRetailerService(up user.Provider, db port.DB) Provider {
 
 func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate
-	err := r.validateTin(ctx, req.Tin)
+	if req.Tin != "" {
+		err := r.validateTin(ctx, req.Tin)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	err := validatePhone(req.Phone)
 	if err != nil {
 		return 0, err
 	}
@@ -244,7 +252,7 @@ func (r *RetailerService) Update(ctx context.Context, req *UpdateRequest) (int, 
 	_, err := r.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port_commons.ErrSysNoRows:
+		case ErrIdNotFound:
 			return 0, err
 		default:
 			return 0, ErrUnknown

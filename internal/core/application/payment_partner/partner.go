@@ -6,6 +6,7 @@ import (
 	"log"
 
 	port "b2b.nati011.github.com/internal/port/application/partner/db"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 const (
@@ -119,7 +120,7 @@ func (p *PartnerService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := p.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -132,7 +133,7 @@ func (p *PartnerService) GetPartnerSecret(ctx context.Context, id int) (GetSecre
 	resp, err := p.DB.GetPartnerSecret(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetSecretResponse{}, ErrIdNotFound
 		default:
 			return GetSecretResponse{}, ErrUnknown
@@ -197,7 +198,7 @@ func (p *PartnerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := p.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -214,7 +215,7 @@ func (p *PartnerService) GetActive(ctx context.Context) (GetAllResponse, error) 
 	resp, err := p.DB.GetByStatus(ctx, ACTIVE_STATUS)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -233,7 +234,7 @@ func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		resp_name, err := p.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -247,7 +248,7 @@ func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		resp_name, err := p.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}

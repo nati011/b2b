@@ -24,3 +24,10 @@ func (r *RetailerService) validateTin(ctx context.Context, tin string) error {
 	}
 	return nil
 }
+
+func validatePhone(phone string) error {
+	if phone == "" {
+		return ErrPhoneMandatory
+	}
+	return nil
+}
