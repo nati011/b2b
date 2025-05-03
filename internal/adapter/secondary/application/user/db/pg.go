@@ -82,15 +82,15 @@ func (p *Postgres) GetByEmail(ctx context.Context, email string) (port.GetAllRes
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -120,15 +120,15 @@ func (p *Postgres) GetByPhone(ctx context.Context, phone string) (port.GetAllRes
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -158,15 +158,15 @@ func (p *Postgres) GetByUsername(ctx context.Context, username string) (port.Get
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -196,15 +196,15 @@ func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool) (port.Get
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -234,15 +234,15 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -298,15 +298,15 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
