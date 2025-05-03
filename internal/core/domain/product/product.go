@@ -174,7 +174,7 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := p.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port_commons.ErrSysNoRows:
+		case port.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown

@@ -36,8 +36,8 @@ func Test_Create_happyPath(t *testing.T) {
 		Username:    "retailer_user",
 		FirstName:   "test",
 		LastName:    "test",
-
-		Email: "test@gmail.com",
+		Phone:       "+251949184879",
+		Email:       "test@gmail.com",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -69,6 +69,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		_, err := testContainer.RetailerService.Create(ctx, &in)
 		wantErr := ErrInvalidTin
@@ -91,6 +92,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -130,23 +132,6 @@ func Test_Create_unhappyPath(t *testing.T) {
 			LastName:    "test",
 			Email:       "test@gmail.com",
 		})
-		if err != nil {
-			t.Fatalf("Failed to create %v", err)
-		}
-
-		in := CreateRequest{
-			Tin:         "1234567891",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-			Username:    "retailer_user",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
-		}
-		_, err = testContainer.RetailerService.Create(ctx, &in)
 		wantErr := ErrPhoneMandatory
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
@@ -169,6 +154,7 @@ func Test_Update_happyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -207,6 +193,7 @@ func Test_Update_happyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -262,6 +249,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -294,6 +282,7 @@ func Test_Get_happyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -322,6 +311,7 @@ func Test_Get_happyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -356,6 +346,7 @@ func Test_Get_happyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -389,6 +380,7 @@ func Test_Get_happyPath(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
