@@ -4,6 +4,7 @@ import (
 	"context"
 
 	port "b2b.nati011.github.com/internal/port/application/role"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 type MockRole struct {
@@ -38,7 +39,7 @@ func (p *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, nil
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
@@ -51,7 +52,7 @@ func (p *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 			}, nil
 		}
 	}
-	return port.GetResponse{}, nil
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -62,6 +63,11 @@ func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Name: i.Name,
 			Desc: i.Desc,
 		})
+	}
+	if len(response) == 0 {
+		return port.GetAllResponse{
+			List: response,
+		}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: response,
@@ -172,6 +178,11 @@ func (p *Mock) GetAllResources(ctx context.Context, role_id int) (port.GetAllRes
 				Id: i.resourceId,
 			})
 		}
+	}
+	if len(resp) == 0 {
+		return port.GetAllResourcesResponse{
+			List: resp,
+		}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResourcesResponse{
 		List: resp,
