@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
@@ -58,7 +59,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -86,7 +87,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	}
 	if len(res.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return res, nil
 }
@@ -117,7 +118,7 @@ func (m *Mock) GetByExternalId(ctx context.Context, extId string) (port.GetAllRe
 		}
 	}
 	if len(res.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return res, nil
 }
@@ -148,7 +149,7 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 		}
 	}
 	if len(res.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return res, nil
 }
@@ -177,7 +178,7 @@ func (m *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetResponse,
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {

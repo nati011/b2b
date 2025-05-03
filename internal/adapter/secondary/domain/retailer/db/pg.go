@@ -50,10 +50,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		Retailer_id: retailerId,
 	})
 	if err != nil {
-		switch err {
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
 
 	return retailerId, nil
