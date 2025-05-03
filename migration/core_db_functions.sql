@@ -1613,7 +1613,8 @@ CREATE OR REPLACE FUNCTION public.create_product(
   p_product_name VARCHAR(255),
   p_product_description VARCHAR(255),
   p_external_id VARCHAR(255),
-  p_distributor_id INT
+  p_distributor_id INT,
+  p_price DECIMAL(12,2)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -1624,12 +1625,16 @@ BEGIN
     INSERT INTO public.products (name, 
                                  description, 
                                  external_id, 
-                                 distributor_id)
+                                 distributor_id,
+                                 price)
     VALUES (p_product_name, 
             p_product_description, 
             p_external_id, 
-            p_distributor_id) 
+            p_distributor_id,
+            p_price) 
     RETURNING id INTO new_id;
+    
+    create_product_stock(new_id)    
 
     RETURN new_id;
 END;
@@ -1705,6 +1710,24 @@ END;
 $$;
 
 
+CREATE OR REPLACE FUNCTION public.update_product_price(
+    i_product_id INT,
+    i_price DECIMAL(12,2)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.products
+    SET price = i_price
+    WHERE id = i_product_id
+      AND is_deleted = FALSE;
+
+    RETURN i_product_id;
+END;
+$$;
+
+
     -- readers
 CREATE OR REPLACE FUNCTION public.get_products_by_id(
     p_product_id INT
@@ -1714,7 +1737,11 @@ RETURNS TABLE(id INT,
               product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
-              distributor_id INT)
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1724,10 +1751,16 @@ BEGIN
            p.description, 
            p.external_id, 
            p.is_active, 
-           p.distributor_id
+           p.distributor_id,
+           ps.quantity,
+           ps.available_quantity,
+           ps.reserved_quantity,
+           p.price
     FROM public.products p
     WHERE p.id = p_product_id
       AND p.is_deleted = FALSE
+    JOIN p_stock ps 
+      ON  ps.product_id = p.id
     LIMIT 1;
 END;
 $$;
@@ -1740,7 +1773,11 @@ RETURNS TABLE(id INT,
               product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
-              distributor_id INT)
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1750,10 +1787,16 @@ BEGIN
            p.description, 
            p.external_id, 
            p.is_active, 
-           p.distributor_id
+           p.distributor_id,
+           ps.quantity,
+           ps.available_quantity,
+           ps.reserved_quantity,
+           p.price
     FROM public.products p
     WHERE p.name = p_product_name
       AND p.is_deleted = FALSE
+    JOIN p_stock ps 
+      ON  ps.product_id = p.id
     LIMIT 1;
 END;
 $$;
@@ -1766,7 +1809,11 @@ RETURNS TABLE(id INT,
               product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
-              distributor_id INT)
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1776,10 +1823,16 @@ BEGIN
            p.description, 
            p.external_id, 
            p.is_active, 
-           p.distributor_id
+           p.distributor_id,
+           ps.quantity,
+           ps.available_quantity,
+           ps.reserved_quantity,
+           p.price
     FROM public.products p
     WHERE p.external_id = p_external_id
       AND p.is_deleted = FALSE
+    JOIN p_stock ps 
+      ON  ps.product_id = p.id
     LIMIT 1;
 END;
 $$;
@@ -1792,20 +1845,30 @@ RETURNS TABLE(id INT,
               product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
-              distributor_id INT)
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, 
+      SELECT p.id, 
            p.name, 
            p.description, 
            p.external_id, 
            p.is_active, 
-           p.distributor_id
+           p.distributor_id,
+           ps.quantity,
+           ps.available_quantity,
+           ps.reserved_quantity,
+           p.price
     FROM public.products p
     WHERE p.distributor_id = p_distributor_id
       AND p.is_deleted = FALSE
+    JOIN p_stock ps 
+      ON  ps.product_id = p.id
     LIMIT 1;
 END;
 $$;
@@ -1816,19 +1879,66 @@ RETURNS TABLE(id INT,
               product_description VARCHAR(255), 
               external_id VARCHAR(255), 
               is_active BOOLEAN, 
-              distributor_id INT)
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, 
+     SELECT p.id, 
            p.name, 
            p.description, 
            p.external_id, 
            p.is_active, 
-           p.distributor_id
+           p.distributor_id,
+           ps.quantity,
+           ps.available_quantity,
+           ps.reserved_quantity,
+           p.price
     FROM public.products p
-    WHERE p.is_deleted = FALSE;
+    WHERE p.is_deleted = FALSE
+    JOIN p_stock ps 
+    ON  ps.product_id = p.id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_products_by_price_range(
+    p_min DECIMAL(12, 2),
+    p_max DECIMAL(12, 2)
+)
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+      SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id,
+           ps.quantity,
+           ps.available_quantity,
+           ps.reserved_quantity,
+           p.price
+    FROM public.products p
+    WHERE p.price BETWEEN p_min AND p_max
+      AND p.is_deleted = FALSE
+    JOIN p_stock ps 
+      ON  ps.product_id = p.id
+    LIMIT 1;
 END;
 $$;
 
@@ -2311,87 +2421,18 @@ BEGIN
 END;
 $$;
 
-
--- product_price ---------------------------------------------------
-
-    -- writer
-CREATE OR REPLACE FUNCTION public.add_price_to_product(
-  i_product_id INT,
-  i_price INT
-)
-RETURNS VOID
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    INSERT INTO public.p_prices (price, product_id)
-    VALUES (i_price, i_product_id);
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.update_product_price(
-    i_product_id INT,
-    i_product_price DECIMAL(12, 2)
-)
-RETURNS VOID
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE public.p_prices
-    SET price = i_product_price
-    WHERE product_id = i_product_id
-        AND is_deleted = FALSE;
-END;
-$$;
-
-    -- reader
-CREATE OR REPLACE FUNCTION public.get_price_by_productId(
-    p_product_id INT
-)
-RETURNS DECIMAL(12, 2)
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    price DECIMAL(12, 2);
-BEGIN
-    SELECT p.price INTO price
-    FROM public.p_prices p
-    WHERE p.product_id = p_product_id
-      AND p.is_deleted = FALSE
-    LIMIT 1;
-
-    RETURN COALESCE(price, 0);
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_products_by_price_range(
-    p_min DECIMAL(12, 2),
-    p_max DECIMAL(12, 2)
-)
-RETURNS TABLE(product_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.product_id
-    FROM public.p_prices p
-    WHERE p.price BETWEEN p_min AND p_max
-      AND p.is_deleted = FALSE;
-END;
-$$;
-
--- product stock ----------------------------------------------------
+-- -- product stock ----------------------------------------------------
 
     -- writer
 CREATE OR REPLACE FUNCTION public.create_product_stock(
-  i_quantity INT,
   i_product_id INT
 )
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    INSERT INTO public.p_stock (quantity, product_id)
-    VALUES (i_quantity, i_product_id);
+    INSERT INTO public.p_stock (product_id)
+    VALUES (i_product_id);
 END;
 $$;
 
@@ -2405,6 +2446,37 @@ AS $$
 BEGIN
     UPDATE public.p_stock
     SET quantity = i_quantity
+    WHERE product_id = i_product_id
+        AND is_deleted = FALSE;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.reserve_product_stock(
+    i_product_id INT,
+    new_reserved_quantity INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_stock
+    SET reserved_quantity = reserved_quantity + new_reserved_quantity
+    WHERE product_id = i_product_id
+        AND is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.free_reserved_product_stock(
+    i_product_id INT,
+    new_freed_quantity INT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.p_stock
+    SET reserved_quantity = reserved_quantity - new_freed_quantity
     WHERE product_id = i_product_id
         AND is_deleted = FALSE;
 END;
