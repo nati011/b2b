@@ -3,7 +3,6 @@ package category
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/category"
@@ -22,51 +21,30 @@ func NewPostgres(DB *sql.DB) port.DB {
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
-	// var responseBase port.GetResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_all_category();"
-	// result := [][]any{
-	// 	{
-	// 		&responseBase.Id,
-	// 		&responseBase.Name,
-	// 	}}
-	rows, err := p.Pool.QueryContext(ctx, query)
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+	}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var category port.GetResponse
-		if err := rows.Scan(&category.Id, &category.Name); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:   int(res[0].(int64)),
+			Name: res[1].(string),
 		}
-		response.List = append(response.List, category)
+		response.List = append(response.List, responseBase)
 	}
-
-	// err := query_handler.NewQuery(
-	// 	query_handler.WithCtx(ctx),
-	// 	query_handler.WithDB(p.Pool),
-	// 	query_handler.WithQuery(query),
-	// 	query_handler.WithMultiRowResultSet(nil, result),
-	// ).DoStuff()
-	// if err != nil {
-	// 	return port.GetAllResponse{}, err
-	// }
-	// for _, res := range result {
-	// 	responseBase := port.GetResponse{
-	// 		Id:   *res[0].(*int),
-	// 		Name: *res[1].(*string),
-	// 	}
-	// 	response.List = append(response.List, responseBase)
-	// }
 
 	return response, nil
 }
@@ -86,7 +64,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -105,7 +83,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -122,7 +100,7 @@ func (p *Postgres) Remove(ctx context.Context, id int) error {
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
