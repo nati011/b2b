@@ -224,7 +224,7 @@ func (m *Mock) GetUserProvider(context.Context, int) (port.GetUserProviderRespon
 		})
 	}
 	if len(resp) == 0 {
-		return port.GetUserProviderResponse{}, port.ErrSysNoRows
+		return port.GetUserProviderResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetUserProviderResponse{

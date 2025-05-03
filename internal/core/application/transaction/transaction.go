@@ -6,6 +6,7 @@ import (
 	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 var (
@@ -109,7 +110,7 @@ func (t *TransactionService) Get(ctx context.Context, id int) (GetResponse, erro
 	resp, err := t.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -122,7 +123,7 @@ func (t *TransactionService) GetAll(ctx context.Context) (GetAllResponse, error)
 	resp, err := t.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -155,7 +156,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 	resp, err := t.DB.GetByPartnerId(ctx, req.PartnerId)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
@@ -177,7 +178,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 		resp, err := t.DB.GetByDate(ctx, req.Date)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -200,7 +201,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 		resp, err := t.DB.GetByTxRef(ctx, req.TxRef)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -223,7 +224,7 @@ func (t *TransactionService) GetByParam(ctx context.Context, req *GetByParamRequ
 		resp, err := t.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
