@@ -2,13 +2,7 @@ package invoice
 
 import (
 	"context"
-	"errors"
 	"time"
-)
-
-var (
-	ErrSysNoRows  = errors.New("no rows found")
-	ErrSysUnknown = errors.New("unknown eror")
 )
 
 type Item struct {
