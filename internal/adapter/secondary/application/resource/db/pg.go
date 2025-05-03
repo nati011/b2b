@@ -70,6 +70,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 
 	return response, nil
 }
+
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
