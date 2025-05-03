@@ -3,6 +3,7 @@ package invoice
 import (
 	"context"
 	"database/sql"
+	"strconv"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -37,7 +38,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -64,35 +65,34 @@ func (p *Postgres) getInvoiceLineItemsByProductId(ctx context.Context, invoice_I
 	var id int
 	var invoiceId int
 	query := "SELECT * FROM public.get_invoice_line_item_by_invoice_id($1);"
-	result := [][]any{
-		{
-			&id,
-			&responseBase.ProductName,
-			&responseBase.ProductQuantity,
-			&responseBase.ProductPrice,
-			&responseBase.ProductId,
-			&invoiceId},
-	}
+	dest := []any{
+		&id,
+		&responseBase.ProductName,
+		&responseBase.ProductQuantity,
+		&responseBase.ProductPrice,
+		&responseBase.ProductId,
+		&invoiceId}
 
 	args := []any{invoice_Id}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return []port.Item{}, err
 	}
 
 	//convert
 	for _, res := range result {
+		product_price, _ := strconv.ParseFloat(res[3].(string), 64)
 		responseBase := port.Item{
-			ProductName:     *res[1].(*string),
-			ProductQuantity: *res[2].(*int),
-			ProductPrice:    *res[3].(*float64),
-			ProductId:       *res[4].(*int),
+			ProductName:     res[1].(string),
+			ProductQuantity: int(res[2].(int64)),
+			ProductPrice:    product_price,
+			ProductId:       int(res[4].(int64)),
 		}
 		response = append(response, responseBase)
 	}
@@ -105,34 +105,34 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_all_invoices($1, $2);"
-	result := [][]any{
-		{&responseBase.Id,
-			&responseBase.Status,
-			&responseBase.ExternalId,
-			&responseBase.OrderId,
-			&responseBase.SubTotal,
-			&responseBase.TaxAmount,
-		},
+	dest := []any{&responseBase.Id,
+		&responseBase.Status,
+		&responseBase.ExternalId,
+		&responseBase.OrderId,
+		&responseBase.SubTotal,
+		&responseBase.TaxAmount,
 	}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
 		resp := port.GetResponse{
-			Id:         *res[0].(*int),
-			ExternalId: *res[1].(*string),
-			Status:     *res[2].(*string),
-			OrderId:    *res[3].(*int),
-			SubTotal:   *res[4].(*float64),
-			TaxAmount:  *res[5].(*float64),
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
@@ -150,34 +150,34 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 
 	query := "SELECT * FROM public.get_invoices_by_external_id($1);"
 
-	result := [][]any{
-		{&responseBase.Id,
-			&responseBase.Status,
-			&responseBase.ExternalId,
-			&responseBase.OrderId,
-			&responseBase.SubTotal,
-			&responseBase.TaxAmount,
-		},
+	dest := []any{&responseBase.Id,
+		&responseBase.Status,
+		&responseBase.ExternalId,
+		&responseBase.OrderId,
+		&responseBase.SubTotal,
+		&responseBase.TaxAmount,
 	}
-	args := []any{extId}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
 		resp := port.GetResponse{
-			Id:         *res[0].(*int),
-			ExternalId: *res[1].(*string),
-			Status:     *res[2].(*string),
-			OrderId:    *res[3].(*int),
-			SubTotal:   *res[4].(*float64),
-			TaxAmount:  *res[5].(*float64),
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
@@ -186,7 +186,6 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		resp.LineItems = items
 		response.List = append(response.List, resp)
 	}
-
 	return response, nil
 }
 
@@ -196,35 +195,35 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 	query := "SELECT * FROM public.get_invoices_by_status($1, $2, $3);"
 
-	result := [][]any{
-		{&responseBase.Id,
-			&responseBase.Status,
-			&responseBase.ExternalId,
-			&responseBase.OrderId,
-			&responseBase.SubTotal,
-			&responseBase.TaxAmount,
-		},
+	dest := []any{&responseBase.Id,
+		&responseBase.Status,
+		&responseBase.ExternalId,
+		&responseBase.OrderId,
+		&responseBase.SubTotal,
+		&responseBase.TaxAmount,
 	}
 	args := []any{status, p.Pagination.Limit, p.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
 	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
 		resp := port.GetResponse{
-			Id:         *res[0].(*int),
-			ExternalId: *res[1].(*string),
-			Status:     *res[2].(*string),
-			OrderId:    *res[3].(*int),
-			SubTotal:   *res[4].(*float64),
-			TaxAmount:  *res[5].(*float64),
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
@@ -254,7 +253,7 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -293,7 +292,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -316,7 +315,7 @@ func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExterna
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -338,7 +337,7 @@ func (p *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateStatusReque
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}

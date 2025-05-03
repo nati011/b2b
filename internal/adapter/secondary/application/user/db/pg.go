@@ -43,7 +43,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -64,19 +64,17 @@ func (p *Postgres) GetByEmail(ctx context.Context, email string) (port.GetAllRes
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	result := [][]any{
-		{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId},
-	}
+	dest := []any{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId}
 	args := []any{email}
 
 	query := "SELECT * FROM public.get_users_by_email($1);"
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -84,15 +82,15 @@ func (p *Postgres) GetByEmail(ctx context.Context, email string) (port.GetAllRes
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -104,19 +102,17 @@ func (p *Postgres) GetByPhone(ctx context.Context, phone string) (port.GetAllRes
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	result := [][]any{
-		{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId},
-	}
+	dest := []any{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId}
 	args := []any{phone}
 
 	query := "SELECT * FROM public.get_users_by_phone($1);"
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -124,15 +120,15 @@ func (p *Postgres) GetByPhone(ctx context.Context, phone string) (port.GetAllRes
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -144,19 +140,17 @@ func (p *Postgres) GetByUsername(ctx context.Context, username string) (port.Get
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	result := [][]any{
-		{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId},
-	}
+	dest := []any{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId}
 	args := []any{username}
 
 	query := "SELECT * FROM public.get_users_by_username($1);"
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -164,15 +158,15 @@ func (p *Postgres) GetByUsername(ctx context.Context, username string) (port.Get
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -186,17 +180,15 @@ func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool) (port.Get
 
 	query := "SELECT * FROM public.get_users_by_active_status($1,$2,$3);"
 
-	result := [][]any{
-		{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId},
-	}
+	dest := []any{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId}
 	args := []any{status, p.Pagination.Limit, p.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -204,15 +196,15 @@ func (p *Postgres) GetByActiveStatus(ctx context.Context, status bool) (port.Get
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -226,17 +218,15 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 
 	query := "SELECT * FROM public.get_users_by_external_id($1);"
 
-	result := [][]any{
-		{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId},
-	}
+	dest := []any{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId}
 	args := []any{extId}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -244,15 +234,15 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -264,17 +254,15 @@ func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserPro
 	var responseBase port.UserProvider
 
 	query := "SELECT * FROM public.get_user_provider($1);"
-	result := [][]any{
-		{&responseBase.UserId, &responseBase.ProviderId},
-	}
+	dest := []any{&responseBase.UserId, &responseBase.ProviderId}
 	args := []any{id}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetUserProviderResponse{}, err
 	}
@@ -294,17 +282,15 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_users($1,$2);"
 
-	result := [][]any{
-		{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId},
-	}
+	dest := []any{&responseBase.Id, &responseBase.FirstName, &responseBase.LastName, &responseBase.Email, &responseBase.Phone, &responseBase.Username, &responseBase.DOB, &responseBase.IsActive, &responseBase.ExternalId}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -312,15 +298,15 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:         *res[0].(*int),
-			FirstName:  *res[1].(*string),
-			LastName:   *res[2].(*string),
-			Email:      *res[3].(*string),
-			Phone:      *res[4].(*string),
-			Username:   *res[5].(*string),
-			DOB:        *res[6].(*time.Time),
-			IsActive:   *res[7].(*bool),
-			ExternalId: *res[8].(*string),
+			Id:         int(res[0].(int64)),
+			FirstName:  res[1].(string),
+			LastName:   res[2].(string),
+			Email:      res[3].(string),
+			Phone:      res[4].(string),
+			Username:   res[5].(string),
+			DOB:        res[6].(time.Time),
+			IsActive:   res[7].(bool),
+			ExternalId: res[8].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -333,15 +319,14 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var resourceId int
 	query := "SELECT * FROM public.create_user($1, $2, $3, $4, $5, $6, $7);"
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
-	result := [][]any{
-		{&resourceId}}
+	result := []any{&resourceId}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -361,7 +346,7 @@ func (p *Postgres) CreateAndActivate(ctx context.Context, req *port.CreateReques
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -380,7 +365,7 @@ func (p *Postgres) CreateUserProvider(ctx context.Context, req *port.CreateUserP
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -397,7 +382,7 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -417,7 +402,7 @@ func (p *Postgres) UpdateFirstName(ctx context.Context, req *port.UpdateFirstNam
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -437,7 +422,7 @@ func (p *Postgres) UpdateEmail(ctx context.Context, req *port.UpdateEmailRequest
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -457,7 +442,7 @@ func (p *Postgres) UpdateDOB(ctx context.Context, req *port.UpdateDOBRequest) (i
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -477,7 +462,7 @@ func (p *Postgres) UpdateIsActiveStatus(ctx context.Context, req *port.UpdateIsA
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -497,7 +482,7 @@ func (p *Postgres) UpdatePhone(ctx context.Context, req *port.UpdatePhoneRequest
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -517,7 +502,7 @@ func (p *Postgres) UpdateUsername(ctx context.Context, req *port.UpdateUsernameR
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -533,7 +518,7 @@ func (p *Postgres) AssignRole(ctx context.Context, id int, role_id int) error {
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithMultiRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -550,7 +535,7 @@ func (p *Postgres) RemoveAssignedRole(ctx context.Context, id int, role_id int) 
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithMultiRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -563,15 +548,15 @@ func (p *Postgres) GetAllAssignedRole(ctx context.Context, id int) (port.GetAllA
 	var responseBase port.GetAssignedRoleResponse
 
 	query := "SELECT * FROM public.get_all_role_by_user($1);"
-	result := [][]any{{&responseBase.Id}}
+	dest := []any{&responseBase.Id}
 
 	args := []any{id}
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 
 	if err != nil {
 		return port.GetAllAssignedRoleResponse{}, err
