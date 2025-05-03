@@ -10,9 +10,13 @@ type PaginationBuilder struct {
 }
 
 func NewPaginationBuilder() *PaginationBuilder {
+	return DefaultPaginationBuilder()
+}
+
+func DefaultPaginationBuilder() *PaginationBuilder {
 	return &PaginationBuilder{
 		pagination: &Pagination{
-			Limit:  100,
+			Limit:  10,
 			Offset: 0,
 		},
 	}
