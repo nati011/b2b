@@ -250,7 +250,6 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		query_handler.WithQuery(query),
 		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
-
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
@@ -287,7 +286,13 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var orderId int
 	query := "SELECT * FROM public.create_order($1, $2, $3, $4, $5);"
-	args := []any{req.RetailerId, req.Status, req.Total, req.PaymentStatus, req.DeliveryStatus}
+	args := []any{
+		req.RetailerId,
+		req.Status,
+		req.Total,
+		req.PaymentStatus,
+		req.DeliveryStatus}
+
 	result := []any{&orderId}
 
 	err := query_handler.NewQuery(
@@ -296,7 +301,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
 	).DoSingleQuery()
-
 	if err != nil {
 		return 0, err
 	}
