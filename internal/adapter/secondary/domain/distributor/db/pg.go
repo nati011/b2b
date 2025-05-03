@@ -6,6 +6,7 @@ import (
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
@@ -52,7 +53,7 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 	if err != nil {
 		switch err {
 		default:
-			return 0, port.ErrSysUnknown
+			return 0, port_commons.ErrSysUnknown
 		}
 	}
 
