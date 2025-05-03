@@ -205,7 +205,6 @@ CREATE TABLE IF NOT EXISTS public."p_stock"
 (
   quantity INT DEFAULT 0,
   reserved_quantity INT DEFAULT 0,
-  available_quantity INT GENERATED ALWAYS AS (quantity - reserved_quantity) VIRTUAL,
   product_id INT,
   FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
 ) INHERITS(public."base");
