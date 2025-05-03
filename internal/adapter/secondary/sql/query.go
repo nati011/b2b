@@ -61,38 +61,48 @@ func WithQuery(query string) Option {
 
 // todo: manage offset and limit
 func (s QueryMaster) DoMultiQuery() ([][]any, error) {
-	rows, error := s.db.QueryContext(s.ctx, s.query, s.args...)
-	log.Printf("Error:%v", error)
-	err := rows.Scan(s.multiRowResultSetDest...)
+	rows, err := s.db.QueryContext(s.ctx, s.query, s.args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, port_commons.ErrSysNoRows
-		}
+		log.Printf("Query error: %v", err)
+		return nil, port_commons.ErrSysUnknown
 	}
-
 	defer rows.Close()
-	//build list of lists from the one sample on top
 
 	result := make([][]any, 0)
 
-	// Iterate over the remaining rows
 	for rows.Next() {
-		if err := rows.Scan(s.multiRowResultSetDest...); err != nil {
+		// Create a new slice for each row
+		rowValues := make([]any, len(s.multiRowResultSetDest))
+
+		// Initialize each element with a pointer to a new zero value
+		for i := range rowValues {
+			rowValues[i] = new(any)
+		}
+
+		if err := rows.Scan(rowValues...); err != nil {
 			log.Printf("unable to scan row: %q", err)
 			return nil, port_commons.ErrSysUnknown
 		}
-		result = append(result, s.multiRowResultSetDest)
+
+		// Dereference the pointers to get the actual values
+		finalRow := make([]any, len(rowValues))
+		for i, val := range rowValues {
+			finalRow[i] = *(val.(*any))
+		}
+
+		result = append(result, finalRow)
 	}
 
-	// Check for any errors encountered during iteration
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return nil, port_commons.ErrSysUnknown
 	}
 
-	return result, nil
+	if len(result) == 0 {
+		return nil, port_commons.ErrSysNoRows
+	}
 
+	return result, nil
 }
 
 func (s QueryMaster) DoSingleQuery() error {
