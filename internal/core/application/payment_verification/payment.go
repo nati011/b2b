@@ -21,6 +21,7 @@ var (
 	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is mandatory")
 	ErrTransactionReferenceNotSupplied = errors.New("oopsy, transaction refrence is mandatory")
 	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
+	ErrCannotProceedWithPaymentPartner = errors.New("oopsy, cannot proceed with payment partner")
 )
 
 type CheckoutRequest struct {
@@ -90,7 +91,7 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
 	if err != nil {
-		return false, err
+		return false, ErrCannotProceedWithPaymentPartner
 	}
 
 	paymentVerificationRequest := payment.VerificationRequest{
