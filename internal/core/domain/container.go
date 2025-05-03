@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"b2b.nati011.github.com/config"
+	payment_db_port "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
@@ -12,13 +13,13 @@ import (
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	retailer_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	application_core "b2b.nati011.github.com/internal/core/application"
-	payment "b2b.nati011.github.com/internal/core/application/payment"
+	checkout "b2b.nati011.github.com/internal/core/application/checkout"
+	payment_verification "b2b.nati011.github.com/internal/core/application/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
-	payment_processor "b2b.nati011.github.com/internal/core/domain/paymentProcessor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
@@ -49,8 +50,8 @@ type Container struct {
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	ApplicationServices        application_core.Container
-	PaymentProcessorService    payment_processor.Provider
-	PaymentService             payment.Provider
+	PaymentVerificationService payment_verification.Provider
+	CheckoutService            checkout.Provider
 	Pagination                 config.Pagination
 	FrontendURL                string
 	BaseURL                    string
@@ -60,6 +61,8 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container := Container{}
 	container.db = db
 	container.ApplicationServices = application_core
+	container.FrontendURL = frontendUrl
+	container.BaseURL = baseUrl
 
 	// ORDER ORDER!!
 
@@ -73,8 +76,8 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitRetailerService()
 	container.InitOrderService()
 	container.InitDistributorService()
-	container.InitPaymentProcessorService()
-	container.InitPaymentService()
+	container.InitPaymentVerificationService()
+	container.InitCheckoutService()
 	container.InitOrderService()
 	return &container
 }
@@ -113,16 +116,10 @@ func (m *Container) InitRetailerService() {
 	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
 }
 
-func (m *Container) InitPaymentProcessorService() {
-	m.PaymentProcessorService = payment_processor.NewProcessor(m.OrderService)
+func (m *Container) InitPaymentVerificationService() {
+	m.PaymentVerificationService = payment_verification.NewPaymentVerificationService(payment_db_port.NewPostgres(m.db), m.ApplicationServices.PaymentPartnerService, m.ApplicationServices.TransactionService, m.OrderService)
 }
 
-func (m *Container) InitPaymentService() {
-	m.PaymentService = payment.NewPaymentService(
-		m.ApplicationServices.PaymentPartnerService,
-		m.ApplicationServices.TransactionService,
-		m.PaymentProcessorService,
-		m.FrontendURL,
-		m.BaseURL,
-	)
+func (m *Container) InitCheckoutService() {
+	m.CheckoutService = checkout.NewCheckoutService(payment_db_port.NewPostgres(m.db), m.ApplicationServices.PaymentPartnerService, m.ApplicationServices.TransactionService, m.FrontendURL, m.BaseURL)
 }
