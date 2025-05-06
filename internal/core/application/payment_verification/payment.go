@@ -68,16 +68,6 @@ func NewPaymentVerificationService(DB port.DB, partner partner.Provider, transac
 	}
 }
 
-func (p *PaymentService) GetPayment(ctx context.Context, tx_ref string) (GetPaymentResponse, error) {
-	payment, err := p.db.GetByTransactionRef(ctx, tx_ref)
-	if err != nil {
-		return GetPaymentResponse{}, err
-	}
-
-	return (GetPaymentResponse)(payment), err
-
-}
-
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
 	if err != nil {
