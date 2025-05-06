@@ -2,13 +2,7 @@ package distributor
 
 import (
 	"context"
-	"errors"
 	"time"
-)
-
-var (
-	ErrSysNoRows  = errors.New("no rows")
-	ErrSysUnknown = errors.New("unknown error")
 )
 
 type UpdateRequest struct {

@@ -8,6 +8,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -231,7 +232,7 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	got, err := o.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -260,7 +261,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := o.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -288,7 +289,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := o.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetResponse
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -308,6 +309,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			Id:             i.Id,
 			RetailerId:     i.RetailerId,
 			Items:          items,
+			Total:          float32(i.Total),
 			Status:         i.Status,
 			DeliveryStatus: i.DeliveryStatus,
 			PaymentStatus:  i.PaymentStatus,
@@ -322,7 +324,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 		resp, err := o.DB.GetByRetailerID(ctx, req.RetailerId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -347,6 +349,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					Id:             i.Id,
 					RetailerId:     i.RetailerId,
 					Items:          items,
+					Total:          float32(i.Total),
 					Status:         i.Status,
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
@@ -359,7 +362,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 		resp, err := o.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetResponse
 			default:
 				return GetAllResponse{}, ErrUnknown
@@ -385,6 +388,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					Id:             i.Id,
 					RetailerId:     i.RetailerId,
 					Items:          items,
+					Total:          float32(i.Total),
 					Status:         i.Status,
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
@@ -404,7 +408,7 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return 0, ErrIdNotFound
 		default:
 			return 0, ErrUnknown
@@ -433,7 +437,7 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return 0, ErrIdNotFound
 		default:
 			return 0, ErrUnknown
@@ -463,7 +467,7 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return 0, ErrIdNotFound
 		default:
 			return 0, ErrUnknown

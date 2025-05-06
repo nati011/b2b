@@ -2,12 +2,6 @@ package adapter
 
 import (
 	"context"
-	"errors"
-)
-
-var (
-	ErrSysUnknown = errors.New("unknown error")
-	ErrNoRows     = errors.New("no rows")
 )
 
 type CreateRequest struct {

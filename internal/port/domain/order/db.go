@@ -2,12 +2,6 @@ package order
 
 import (
 	"context"
-	"errors"
-)
-
-var (
-	ErrSysUnknown = errors.New("unknown error")
-	ErrSysNoRows  = errors.New("no rows")
 )
 
 type Item struct {
