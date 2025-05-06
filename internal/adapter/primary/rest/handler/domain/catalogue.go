@@ -157,12 +157,20 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 	var configurables []CatalogueResponse
 	for _, i := range pr.List {
 		if !productInSlice(products_belonging_to_cps, i.Id) {
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
 			configurables = append(configurables, CatalogueResponse{
 				Id:            i.Id,
 				Name:          i.Name,
 				Desc:          i.Desc,
 				ExternalID:    i.ExternalID,
-				Images:        i.Images,
+				Images:        images,
 				Price:         i.Price,
 				Attributes:    i.Attributes,
 				DistributorId: i.DistributorId,
@@ -180,12 +188,20 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 					},
 				}
 			}
+			var imageCatalogue []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				imageCatalogue = append(imageCatalogue, image)
+			}
 
 			resp = append(resp, GetCatalogueResponse{
 				Name:                   i.Name,
 				Desc:                   i.Desc,
 				IsActive:               i.IsActive,
-				Images:                 i.Images,
+				Images:                 imageCatalogue,
 				ConfigurableAttributes: configurableAttribute,
 				Configurables:          configurables,
 			})
