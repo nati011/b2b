@@ -9,13 +9,10 @@ import (
 	"b2b.nati011.github.com/internal/core/application/checkout/test"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
-	"b2b.nati011.github.com/internal/core/domain/order"
-	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var testContainer test.TestContainer
 var PaymentPartnerId int
-var OrderId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -35,47 +32,6 @@ func setup() {
 			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
 
-	product_id, _ := testContainer.ProductService.Create(ctx, &product.CreateRequest{
-		Name:       "testProduct",
-		Desc:       "test",
-		ExternalID: "123",
-		Images: []string{
-			"test",
-			"test",
-		},
-		Price: 100.00,
-		Attributes: map[string]string{
-			"test":         "test",
-			"another_test": "another_test",
-		},
-	})
-
-	if err != nil {
-		panic("failed to create product")
-	}
-
-	err = testContainer.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
-		Id:     product_id,
-		Amount: 100,
-	})
-
-	if err != nil {
-		panic("failed to add amount")
-	}
-	if err != nil {
-		panic("failed to create payment partner")
-	}
-	OrderId, err = testContainer.OrderService.Place(ctx,
-		&order.PlaceRequest{
-			RetailerId: 1,
-			Items: []order.Item{
-				{
-					ProductId: product_id,
-					Quantity:  1},
-			},
-		},
-	)
-
 	if err != nil {
 		panic("failed to create order partner")
 	}
@@ -87,7 +43,7 @@ func Test_CreateTransactionUponPaymentInitAndSetStatusToPending(t *testing.T) {
 	//init transaction
 	in := &checkout.CheckoutRequest{
 		PaymentPartnerId: PaymentPartnerId,
-		OrderId:          OrderId,
+		OrderId:          1,
 		Amount:           100,
 	}
 

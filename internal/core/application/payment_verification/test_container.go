@@ -2,7 +2,8 @@ package payment_verification
 
 import (
 	adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
-	checkout "b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/checkout"
+	checkout_test "b2b.nati011.github.com/internal/core/application/checkout/test"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -27,7 +28,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 		container.TransactionService,
 		container.OrderService,
 	)
-	container.CheckoutService = checkout.NewPackageIntegrationTestContainer().CheckoutService
+	container.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
 
 	return container
 }
@@ -35,11 +36,12 @@ func NewPackageIntegrationTestContainer() TestContainer {
 func (t *TestContainer) TearDown() {
 	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	t.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
+	t.OrderService = order.NewPackageIntegrationTestContainer().OrderService
 	t.PaymentVerificationService = NewPaymentVerificationService(
 		adapter.NewMock(),
 		t.PartnerService,
 		t.TransactionService,
 		t.OrderService,
 	)
-
+	t.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
 }

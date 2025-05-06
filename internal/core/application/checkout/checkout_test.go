@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/domain/order"
-	product "b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var testContainer TestContainer
@@ -35,48 +33,6 @@ func setup() {
 	if err != nil {
 		panic("failed to create payment partner")
 	}
-	product_id, _ := testContainer.ProductService.Create(ctx, &product.CreateRequest{
-		Name:       "testProduct",
-		Desc:       "test",
-		ExternalID: "123",
-		Images: []string{
-			"test",
-			"test",
-		},
-		Price: 100.00,
-		Attributes: map[string]string{
-			"test":         "test",
-			"another_test": "another_test",
-		},
-	})
-
-	if err != nil {
-		panic("failed to create product")
-	}
-
-	err = testContainer.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
-		Id:     product_id,
-		Amount: 100,
-	})
-
-	if err != nil {
-		panic("failed to add amount")
-	}
-
-	OrderId, err = testContainer.OrderService.Place(ctx,
-		&order.PlaceRequest{
-			RetailerId: 1,
-			Items: []order.Item{
-				{
-					ProductId: product_id,
-					Quantity:  1},
-			},
-		},
-	)
-
-	if err != nil {
-		panic("failed to create order")
-	}
 }
 
 func Test_Checkout(t *testing.T) {
@@ -97,7 +53,7 @@ func Test_Checkout(t *testing.T) {
 		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
 		in := &CheckoutRequest{
-			OrderId:          OrderId,
+			OrderId:          1,
 			Amount:           400,
 			PaymentPartnerId: PaymentPartnerId,
 		}

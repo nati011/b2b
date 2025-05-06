@@ -1,15 +1,13 @@
 package domain
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
-	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/payment_verification"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
@@ -23,7 +21,7 @@ type CheckoutRequest struct {
 }
 
 type Payment struct {
-	service checkout.Provider
+	service payment_verification.Provider
 }
 
 func InitPayment() {
@@ -31,13 +29,12 @@ func InitPayment() {
 }
 
 func (p *Payment) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	p.service = domainService.CheckoutService
+	p.service = domainService.PaymentVerificationService
 	return nil
 }
 
 func (p *Payment) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackHandler)
-	mux.HandleFunc("POST /api/v1/payment/checkout", p.CheckoutHandler)
 }
 
 func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,25 +49,4 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.service.Callback(r.Context(), typedParamGatewayId, typedParamTxRef)
-}
-
-func (p *Payment) CheckoutHandler(w http.ResponseWriter, r *http.Request) {
-	var requestBody CheckoutRequest
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	defer r.Body.Close()
-
-	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	response, err := p.service.Checkout(r.Context(), (*checkout.CheckoutRequest)(&requestBody))
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	util.OperationSuccessResponse(w, response)
 }
