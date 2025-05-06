@@ -1437,3 +1437,43 @@ func (p *Postgres) Dispatch(ctx context.Context, req *port.DispatchRequest) erro
 	}
 	return nil
 }
+
+func (p *Postgres) Reserve(ctx context.Context, req *port.ReserveRequest) error {
+	var stock int
+	query := "SELECT * FROM public.reserve_product_stock($1, $2);"
+	productStockArgs := []any{
+		req.Id,
+		req.Amount,
+	}
+	pResult := []any{&stock}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(productStockArgs, pResult),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Postgres) FreeReservation(ctx context.Context, req *port.FreeReservedRequest) error {
+	var stock int
+	query := "SELECT * FROM public.free_reserved_product_stock($1, $2);"
+	productStockArgs := []any{
+		req.Id,
+		req.Amount,
+	}
+	pResult := []any{&stock}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(productStockArgs, pResult),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}

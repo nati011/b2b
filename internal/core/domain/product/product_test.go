@@ -1206,3 +1206,199 @@ func Test_Deactvate_unhappyPath(t *testing.T) {
 		}
 	})
 }
+
+func Test_Reserve_happyPath(t *testing.T) {
+	t.Run("deduct_available_item_upon_reservation", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
+
+		reserved_stock := 50
+		err = container.ProductService.Reserve(
+			ctx,
+			id,
+			reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+
+		product, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get product err: %v", err)
+		}
+
+		if product.AvailableStock != inital_stock-reserved_stock {
+			t.Errorf("Want availableStock: %v, Got: %v", inital_stock-reserved_stock, product.AvailableStock)
+		}
+	})
+
+	t.Run("add_reserved_item_upon_reservation", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
+
+		reserved_stock := 50
+		err = container.ProductService.Reserve(ctx, id, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+
+		product, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get product err: %v", err)
+		}
+
+		if product.ReservedStock != reserved_stock {
+			t.Errorf("Want reservedStock: %v, Got: %v", reserved_stock, product.AvailableStock)
+		}
+	})
+}
+
+func Test_Reserve_unhappyPath(t *testing.T) {
+	t.Run("id_not_found", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
+
+		reserved_stock := 50
+		err = container.ProductService.Reserve(ctx, 9999, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+
+	t.Run("qty_not_found", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"test",
+				"test",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
+
+		err = container.ProductService.Reserve(ctx, 9999, 100000)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+	})
+}
+
+func Test_Free_Reservation_happyPath(t *testing.T) {
+	t.Run("add_available_item_upon_reservation", func(t *testing.T) {
+
+	})
+
+	t.Run("deduct_reserved_item_upon_reservation", func(t *testing.T) {
+
+	})
+}
+
+func Test_Free_Reservation_unhappyPath(t *testing.T) {
+	t.Run("id_not_found", func(t *testing.T) {
+
+	})
+
+	t.Run("qty_more_than_reservation", func(t *testing.T) {
+
+	})
+}
