@@ -44,8 +44,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -64,8 +64,8 @@ func Test_read(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -94,8 +94,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -114,8 +114,8 @@ func Test_read(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -144,8 +144,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -164,8 +164,8 @@ func Test_read(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -193,8 +193,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -213,8 +213,8 @@ func Test_read(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -245,8 +245,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -266,8 +266,8 @@ func Test_write(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -293,8 +293,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -317,8 +317,8 @@ func Test_write(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -355,8 +355,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -375,8 +375,8 @@ func Test_write(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -413,8 +413,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -433,8 +433,8 @@ func Test_write(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -471,8 +471,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -491,8 +491,8 @@ func Test_write(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -530,8 +530,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -550,8 +550,8 @@ func Test_write(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)

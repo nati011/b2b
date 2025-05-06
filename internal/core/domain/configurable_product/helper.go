@@ -2,7 +2,11 @@ package configurable_product
 
 import (
 	"context"
-	"image/png"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"log"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -114,7 +118,7 @@ func generateBlurHash(images []string) ([]port.Image, error) {
 			return []port.Image{}, ErrUnknown
 		}
 		imageFile := res.Body
-		loadedImage, err := png.Decode(imageFile)
+		loadedImage, _, err := image.Decode(imageFile)
 		str, _ := blurhash.Encode(4, 3, loadedImage)
 		if err != nil {
 			return []port.Image{}, ErrUnknown
@@ -123,6 +127,8 @@ func generateBlurHash(images []string) ([]port.Image, error) {
 			ImageUrl: value,
 			BlurHash: str,
 		}
+
+		log.Printf("Blurhash %v:", str)
 		imageWithBlurHash = append(imageWithBlurHash, image)
 	}
 	return imageWithBlurHash, nil

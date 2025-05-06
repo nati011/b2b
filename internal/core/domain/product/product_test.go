@@ -34,8 +34,8 @@ func Test_Create_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
-				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -66,8 +66,8 @@ func Test_Create_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -103,8 +103,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -126,8 +126,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -143,8 +143,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -165,8 +165,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Name:       "t",
 			ExternalID: "1",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -188,7 +188,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -210,8 +210,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -233,8 +233,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Attributes: map[string]string{
 				"test": "test",
@@ -255,8 +255,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 0.00,
 			Attributes: map[string]string{
@@ -280,8 +280,8 @@ func Test_Get_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -348,8 +348,8 @@ func Test_Get_All_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -367,8 +367,8 @@ func Test_Get_All_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -414,8 +414,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -449,8 +449,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -484,8 +484,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -520,8 +520,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 500.00,
 			Attributes: map[string]string{
@@ -560,8 +560,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 500.00,
 			Attributes: map[string]string{
@@ -596,8 +596,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 900.00,
 			Attributes: map[string]string{
@@ -610,8 +610,8 @@ func Test_Get_by_param_happyPath(t *testing.T) {
 			Desc:       "test1",
 			ExternalID: "1233",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 950.00,
 			Attributes: map[string]string{
@@ -666,8 +666,8 @@ func Test_Update_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -728,8 +728,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			ExternalID: "321",
 			Desc:       "1",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 200,
 		}
@@ -749,8 +749,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -789,8 +789,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -808,8 +808,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -828,8 +828,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			ExternalID: "321",
 			Desc:       "1",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 200,
 		}
@@ -849,8 +849,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -869,8 +869,8 @@ func Test_Update_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "321",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: -1,
 		}
@@ -891,8 +891,8 @@ func Test_goods_receiving_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -950,8 +950,8 @@ func Test_dispatch_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -1015,8 +1015,8 @@ func Test_dispatch_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -1057,8 +1057,8 @@ func Test_Activate_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -1106,8 +1106,8 @@ func Test_Activate_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -1141,8 +1141,8 @@ func Test_Deactvate_happyPath(t *testing.T) {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -1185,8 +1185,8 @@ func Test_Deactvate_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{

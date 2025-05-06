@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/domain/product"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
 )
 
@@ -154,7 +155,7 @@ func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetRespon
 	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -190,7 +191,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 		get_by_name_resp, err := c.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetContent
 			default:
 				return GetAllResponse{}, ErrUnknown
@@ -224,7 +225,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 		get_by_name_resp, err := c.DB.GetByExternalId(ctx, req.ExternalId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetContent
 			default:
 				return GetAllResponse{}, ErrUnknown
@@ -266,7 +267,7 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 	get_by_name_resp, err := c.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -306,7 +307,7 @@ func (c *ConfigurableProductService) Avail(ctx context.Context, id int) error {
 	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -336,7 +337,7 @@ func (c *ConfigurableProductService) Disable(ctx context.Context, id int) error 
 	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -366,7 +367,7 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 	_, err := c.DB.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
