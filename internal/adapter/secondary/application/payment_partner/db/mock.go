@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log"
 
 	port "b2b.nati011.github.com/internal/port/application/partner/db"
 )
@@ -24,6 +25,7 @@ func NewMock() port.DB {
 }
 
 func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
+	log.Printf("Resources, %v", m.resources)
 	for _, i := range m.resources {
 		if i.Id == id {
 			return port.GetResponse{

@@ -105,7 +105,7 @@ func (m *Container) InitInvoiceService() {
 }
 
 func (m *Container) InitOrderService() {
-	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db, &m.Pagination), m.InvoiceService, m.ProductService, m.RetailerService)
+	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db, &m.Pagination), m.InvoiceService, m.ProductService, m.RetailerService, m.CheckoutService)
 }
 
 func (m *Container) InitDistributorService() {

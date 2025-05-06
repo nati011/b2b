@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
@@ -49,8 +50,9 @@ type Item struct {
 }
 
 type PlaceRequest struct {
-	RetailerId int
-	Items      []Item
+	RetailerId       int
+	Items            []Item
+	PaymentPartnerId int
 }
 
 type GetResponse struct {
@@ -95,19 +97,24 @@ type OrderService struct {
 	InvoiceService  invoice.Provider
 	ProductService  product.Provider
 	RetailerService retailer.Provider
+	PaymentService  checkout.Provider
 }
 
 func NewOrderService(
 	db port.DB,
 	is invoice.Provider,
 	ps product.Provider,
-	rs retailer.Provider) Provider {
+	rs retailer.Provider,
+	pays checkout.Provider,
+
+) Provider {
 
 	return &OrderService{
 		DB:              db,
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
+		PaymentService:  pays,
 	}
 }
 
@@ -155,8 +162,19 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		DeliveryStatus: DELIVERY_PENDING_STATUS,
 		Total:          itemsTotal,
 	})
+
 	if err != nil {
 		return 0, ErrUnknown
+	}
+
+	_, err = o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
+		OrderId:          order_id,
+		Amount:           itemsTotal,
+		PaymentPartnerId: req.PaymentPartnerId,
+	})
+
+	if err != nil {
+		return 0, err
 	}
 
 	// create invoice

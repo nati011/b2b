@@ -69,14 +69,8 @@ func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentR
 		PartnerId:      req.PaymentPartnerId,
 		TransactionRef: generatedTxRef,
 	}
-	_, err := p.transaction.Create(ctx, &transaction.CreateRequest{
-		Amount:    req.Amount,
-		PartnerId: req.PaymentPartnerId,
-		TxRef:     generatedTxRef,
-		Status:    transaction.PENDING_STATUS,
-	})
 
-	_, err = p.db.Create(ctx, createRequest)
+	_, err := p.db.Create(ctx, createRequest)
 	if err != nil {
 		return "", err
 	}
@@ -100,19 +94,20 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 	}
 
 	transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
+		Amount:           req.Amount,
 		PaymentPartnerId: req.PaymentPartnerId,
 		OrderId:          req.OrderId,
 	})
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
-
 	_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
 		Amount:    req.Amount,
 		PartnerId: req.PaymentPartnerId,
 		TxRef:     transaction_ref,
 		Status:    transaction.PENDING_STATUS,
 	})
+
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
