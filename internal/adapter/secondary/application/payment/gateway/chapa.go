@@ -63,9 +63,6 @@ func NewChapa() port.Provider {
 func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 	initalization_url := fmt.Sprintf("%v/v1/transaction/initialize", request.PartnerUrl)
 	var response InitatePaymentChapaResponse
-	currentTimestamp := time.Now()
-	request.TransactionRef = currentTimestamp.Format("2006_01_02_15_04_05")
-	print(request.TransactionRef)
 	payload, err := json.Marshal(request)
 	if err != nil {
 		return "", port.ErrUnknown
