@@ -11,6 +11,7 @@ import (
 	"b2b.nati011.github.com/config"
 	handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/transaction/db"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 type Postgres struct {
@@ -100,7 +101,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	return response, nil
@@ -147,7 +148,7 @@ func (p *Postgres) GetByDate(ctx context.Context, date time.Time) (port.GetAllRe
 
 	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	return response, nil
@@ -193,7 +194,7 @@ func (p *Postgres) GetByPartnerId(ctx context.Context, partner_id int) (port.Get
 
 	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	return response, nil
@@ -239,7 +240,7 @@ func (p *Postgres) GetByTxRef(ctx context.Context, tx_ref string) (port.GetAllRe
 
 	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	return response, nil
@@ -285,7 +286,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 	if err := rows.Rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	return response, nil

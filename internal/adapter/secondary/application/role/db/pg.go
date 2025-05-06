@@ -34,7 +34,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -57,7 +57,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, err
 	}
@@ -73,26 +73,25 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_roles($1,$2);"
-	result := [][]any{
-		{&responseBase.Id, &responseBase.Name, &responseBase.Desc},
-	}
+
+	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Desc}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
-	err := query_handler.NewQuery(
+
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
-	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:   *res[0].(*int),
-			Name: *res[1].(*string),
-			Desc: *res[2].(*string),
+			Id:   int(res[0].(int64)),
+			Name: res[1].(string),
+			Desc: res[2].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -112,7 +111,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -132,7 +131,7 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -151,7 +150,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}
@@ -167,7 +166,7 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -184,7 +183,7 @@ func (p *Postgres) AddResource(ctx context.Context, role_id int, resource_id int
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -201,7 +200,7 @@ func (p *Postgres) RemoveResource(ctx context.Context, role_id int, resource_id 
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return err
 	}
@@ -213,17 +212,15 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 	var responseBase int
 
 	query := "SELECT * FROM public.get_all_resource_by_role($1);"
-	result := [][]any{
-		{&responseBase},
-	}
+	dest := []any{&responseBase}
 	args := []any{role_id}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResourcesResponse{}, err
 	}

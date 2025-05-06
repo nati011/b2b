@@ -59,10 +59,7 @@ func (t *TestContainer) Teardown(db *sql.DB) {
 	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	t.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
 	t.OrderService = order.NewOrderService(
-		order_db.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		order_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
 		t.InvoiceService,
 		t.ProductService,
 		t.RetailerService,
