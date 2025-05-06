@@ -25,11 +25,6 @@ var (
 	ErrAttributeKeysDoNotExistInProduct = errors.New("oopsy, attributes not found in products")
 )
 
-type Image struct {
-	ImageUrl string
-	BlurHash string
-}
-
 type CreateRequest struct {
 	Name          string
 	Desc          string
@@ -55,7 +50,7 @@ type GetResponse struct {
 	PriceRange    PriceRangeResponse
 	CategoryId    []int
 	DistributorId int
-	Images        []Image
+	Images        []string
 }
 
 type GetAllResponse struct {
@@ -128,10 +123,6 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 	if err != nil {
 		return 0, err
 	}
-	images, err := generateBlurHash(req.Images)
-	if err != nil {
-		return 0, err
-	}
 
 	id, err := c.DB.Create(ctx, &port.CreateRequest{
 		Name:              req.Name,
@@ -140,7 +131,7 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 		IsAvailableStatus: false,
 		Products:          req.Products,
 		AttributeKeys:     req.AttributeKeys,
-		Images:            images,
+		Images:            req.Images,
 	})
 	if err != nil {
 		switch err {
@@ -161,14 +152,6 @@ func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetRespon
 			return GetResponse{}, ErrUnknown
 		}
 	}
-	var images []Image
-	for _, value := range resp.Images {
-		image := Image{
-			ImageUrl: value.ImageUrl,
-			BlurHash: value.BlurHash,
-		}
-		images = append(images, image)
-	}
 
 	return GetResponse{
 		Id:            resp.Id,
@@ -180,7 +163,7 @@ func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetRespon
 		PriceRange:    PriceRangeResponse(resp.PriceRange),
 		CategoryId:    resp.CategoryId,
 		DistributorId: resp.DistributorId,
-		Images:        images,
+		Images:        resp.Images,
 		Attributes:    resp.Attributes,
 	}, nil
 }
@@ -198,14 +181,6 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 			}
 		}
 		for _, i := range get_by_name_resp.List {
-			var images []Image
-			for _, value := range i.Images {
-				image := Image{
-					ImageUrl: value.ImageUrl,
-					BlurHash: value.BlurHash,
-				}
-				images = append(images, image)
-			}
 			resp = append(resp, GetResponse{
 				Id:            i.Id,
 				Name:          i.Name,
@@ -216,7 +191,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 				PriceRange:    PriceRangeResponse(i.PriceRange),
 				CategoryId:    i.CategoryId,
 				DistributorId: i.DistributorId,
-				Images:        images,
+				Images:        i.Images,
 			})
 		}
 	}
@@ -232,14 +207,6 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 			}
 		}
 		for _, i := range get_by_name_resp.List {
-			var images []Image
-			for _, value := range i.Images {
-				image := Image{
-					ImageUrl: value.ImageUrl,
-					BlurHash: value.BlurHash,
-				}
-				images = append(images, image)
-			}
 			resp = append(resp, GetResponse{
 				Id:            i.Id,
 				Name:          i.Name,
@@ -250,7 +217,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 				PriceRange:    PriceRangeResponse(i.PriceRange),
 				CategoryId:    i.CategoryId,
 				DistributorId: i.DistributorId,
-				Images:        images,
+				Images:        i.Images,
 			})
 		}
 	}
@@ -274,14 +241,6 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 		}
 	}
 	for _, i := range get_by_name_resp.List {
-		var images []Image
-		for _, value := range i.Images {
-			image := Image{
-				ImageUrl: value.ImageUrl,
-				BlurHash: value.BlurHash,
-			}
-			images = append(images, image)
-		}
 		resp = append(resp, GetResponse{
 			Id:            i.Id,
 			Name:          i.Name,
@@ -292,7 +251,7 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 			PriceRange:    PriceRangeResponse(i.PriceRange),
 			CategoryId:    i.CategoryId,
 			DistributorId: i.DistributorId,
-			Images:        images,
+			Images:        i.Images,
 			Attributes:    i.Attributes,
 		})
 	}
@@ -454,13 +413,9 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 		if err != nil {
 			return err
 		}
-		images, err := generateBlurHash(req.Images)
-		if err != nil {
-			return err
-		}
 		err = c.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
-			Images: images,
+			Images: req.Images,
 		})
 		if err != nil {
 			switch err {

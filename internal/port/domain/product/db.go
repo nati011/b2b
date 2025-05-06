@@ -4,16 +4,11 @@ import (
 	"context"
 )
 
-type Image struct {
-	ImageUrl string
-	BlurHash string
-}
-
 type CreateRequest struct {
 	Name          string
 	Desc          string
 	ExternalID    string
-	Images        []Image
+	Images        []string
 	Price         float64
 	Attributes    map[string]string
 	DistributorId int
@@ -25,7 +20,7 @@ type GetResponse struct {
 	Name           string
 	Desc           string
 	ExternalID     string
-	Images         []Image
+	Images         []string
 	Price          float64
 	Attributes     map[string]string
 	DistributorId  int
@@ -83,7 +78,7 @@ type UpdateDescRequest struct {
 
 type UpdateImagesRequest struct {
 	Id     int
-	Images []Image
+	Images []string
 }
 
 type UpdateActiveStatusRequest struct {
