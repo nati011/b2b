@@ -168,7 +168,7 @@ func (m *Mock) UpdateByTransactionRef(ctx context.Context, req *port.UpdateByTra
 		}
 	}
 	if len(response) == 0 {
-		return port.ErrSysNoRows
+		return port_commons.ErrSysNoRows
 	}
 	m.resources = response
 	return nil
