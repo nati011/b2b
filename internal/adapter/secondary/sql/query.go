@@ -17,10 +17,6 @@ type QueryMaster struct {
 	query                 string
 }
 
-func (s QueryMaster) DoStuff() any {
-	panic("unimplemented")
-}
-
 type Option func(*QueryMaster)
 
 func NewQuery(options ...Option) QueryMaster {

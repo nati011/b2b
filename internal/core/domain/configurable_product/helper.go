@@ -2,16 +2,8 @@ package configurable_product
 
 import (
 	"context"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
-	"log"
-	"net/http"
 
 	"b2b.nati011.github.com/internal/core/domain/product"
-	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
-	"github.com/buckket/go-blurhash"
 )
 
 func (p *ConfigurableProductService) validateName(ctx context.Context, name string) error {
@@ -108,28 +100,4 @@ func (p *ConfigurableProductService) validateProducts(ctx context.Context, produ
 	}
 
 	return nil
-}
-
-func generateBlurHash(images []string) ([]port.Image, error) {
-	var imageWithBlurHash []port.Image
-	for _, value := range images {
-		res, err := http.Get(value)
-		if err != nil {
-			return []port.Image{}, ErrUnknown
-		}
-		imageFile := res.Body
-		loadedImage, _, err := image.Decode(imageFile)
-		str, _ := blurhash.Encode(4, 3, loadedImage)
-		if err != nil {
-			return []port.Image{}, ErrUnknown
-		}
-		image := port.Image{
-			ImageUrl: value,
-			BlurHash: str,
-		}
-
-		log.Printf("Blurhash %v:", str)
-		imageWithBlurHash = append(imageWithBlurHash, image)
-	}
-	return imageWithBlurHash, nil
 }

@@ -3,6 +3,7 @@ package configurable_product
 import (
 	"context"
 	"math/rand"
+	"time"
 
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
@@ -15,7 +16,7 @@ type MockConfigurableProduct struct {
 	ExternalId        string
 	IsAvailableStatus bool
 	Products          []int
-	Images            []port.Image
+	Images            []string
 	AttributeKeys     []string
 	CategoryId        []int
 	DistributorId     int
@@ -30,17 +31,8 @@ func NewMock() port.DB {
 }
 
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
-	// rand.Seed(time.Now().UnixNano()) // Seed the random number generator
+	rand.Seed(time.Now().UnixNano()) // Seed the random number generator
 	id := rand.Intn(1000-10+1) + 10
-	var images []port.Image
-	for _, value := range req.Images {
-		image := port.Image{
-			ImageUrl: value.ImageUrl,
-			BlurHash: value.BlurHash,
-		}
-		images = append(images, image)
-	}
-
 	m.configurables = append(m.configurables, MockConfigurableProduct{
 		Id:                id,
 		Name:              req.Name,
@@ -48,7 +40,7 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 		ExternalId:        req.ExternalId,
 		IsAvailableStatus: req.IsAvailableStatus,
 		Products:          req.Products,
-		Images:            images,
+		Images:            req.Images,
 		AttributeKeys:     req.AttributeKeys,
 	})
 	return id, nil
@@ -126,14 +118,6 @@ func (m *Mock) UpdateImages(ctx context.Context, req *port.UpdateImagesRequest) 
 		if i.Id != req.Id {
 			new_list = append(new_list, i)
 		} else {
-			var images []port.Image
-			for _, value := range req.Images {
-				image := port.Image{
-					ImageUrl: value.ImageUrl,
-					BlurHash: value.BlurHash,
-				}
-				images = append(images, image)
-			}
 			new_list = append(new_list, MockConfigurableProduct{
 				Id:                i.Id,
 				Name:              i.Name,
@@ -141,7 +125,7 @@ func (m *Mock) UpdateImages(ctx context.Context, req *port.UpdateImagesRequest) 
 				ExternalId:        i.ExternalId,
 				IsAvailableStatus: i.IsAvailableStatus,
 				Products:          i.Products,
-				Images:            images,
+				Images:            req.Images,
 				AttributeKeys:     i.AttributeKeys,
 			})
 		}
