@@ -3,6 +3,7 @@ package checkout
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
@@ -10,6 +11,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	port "b2b.nati011.github.com/internal/port/application/payment/db"
 	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
+	"github.com/google/uuid"
 )
 
 var (
@@ -63,7 +65,8 @@ func NewCheckoutService(DB port.DB, partner partner.Provider, transaction transa
 
 func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentRequest) (string, error) {
 	currentTimestamp := time.Now()
-	generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
+	//to ensure uniqueness use current time stamp as transaction ref
+	generatedTxRef := fmt.Sprintf("%s_%s", currentTimestamp.Format("2006_01_02_15_04_05"), uuid.New().String())
 	createRequest := port.CreateRequest{
 		OrderId:        req.OrderId,
 		PartnerId:      req.PaymentPartnerId,
@@ -90,7 +93,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 
 	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
 	if err != nil {
-		return CheckoutResponse{}, err
+		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
 	}
 
 	transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
@@ -98,16 +101,6 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		PaymentPartnerId: req.PaymentPartnerId,
 		OrderId:          req.OrderId,
 	})
-	if err != nil {
-		return CheckoutResponse{}, err
-	}
-	_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
-		Amount:    req.Amount,
-		PartnerId: req.PaymentPartnerId,
-		TxRef:     transaction_ref,
-		Status:    transaction.PENDING_STATUS,
-	})
-
 	if err != nil {
 		return CheckoutResponse{}, err
 	}
@@ -124,6 +117,22 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)
 	if err != nil {
 		return CheckoutResponse{}, err
+	}
+
+	_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
+		Amount:    req.Amount,
+		PartnerId: req.PaymentPartnerId,
+		TxRef:     transaction_ref,
+		Status:    transaction.PENDING_STATUS,
+	})
+
+	if err != nil {
+		switch err {
+		case transaction.ErrAmountIsNotSupplied:
+			return CheckoutResponse{}, ErrAmountNotSupplied
+		default:
+			return CheckoutResponse{}, err
+		}
 	}
 
 	return CheckoutResponse{
