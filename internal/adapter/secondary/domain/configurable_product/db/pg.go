@@ -86,7 +86,6 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
 	avArgs := []any{id}
 	avDest := []any{
-		&attributeValueResponseBase.AttributeKey,
 		&attributeValueResponseBase.AttributeValue,
 	}
 
@@ -164,11 +163,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for _, res := range result {
 		val := port.GetResponse{
-			Id:          *res[0].(*int),
-			Name:        *res[1].(*string),
-			Desc:        *res[2].(*string),
-			ExternalId:  *res[3].(*string),
-			IsAvailable: *res[4].(*bool),
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Desc:        res[2].(string),
+			ExternalId:  res[3].(string),
+			IsAvailable: res[4].(bool),
 		}
 		// images
 		//--------------------
@@ -211,7 +210,6 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
 		avArgs := []any{val.Id}
 		avDest := []any{
-			&attributeValueResponseBase.AttributeKey,
 			&attributeValueResponseBase.AttributeValue,
 		}
 
@@ -266,7 +264,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}
 
 	if len(response.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return response, nil
@@ -276,6 +274,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_configurable_products_by_name($1);"
+	args := []any{&name}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -286,7 +285,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -294,11 +293,11 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	for _, res := range result {
 		val := port.GetResponse{
-			Id:          *res[0].(*int),
-			Name:        *res[1].(*string),
-			Desc:        *res[2].(*string),
-			ExternalId:  *res[3].(*string),
-			IsAvailable: *res[4].(*bool),
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Desc:        res[2].(string),
+			ExternalId:  res[3].(string),
+			IsAvailable: res[4].(bool),
 		}
 		// images
 		//--------------------
@@ -341,7 +340,6 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
 		avArgs := []any{val.Id}
 		avDest := []any{
-			&attributeValueResponseBase.AttributeKey,
 			&attributeValueResponseBase.AttributeValue,
 		}
 
@@ -396,7 +394,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	}
 
 	if len(response.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return response, nil
@@ -406,6 +404,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_configurable_products_by_ext_id($1);"
+	args := []any{&extId}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -416,7 +415,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
@@ -424,11 +423,11 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 
 	for _, res := range result {
 		val := port.GetResponse{
-			Id:          *res[0].(*int),
-			Name:        *res[1].(*string),
-			Desc:        *res[2].(*string),
-			ExternalId:  *res[3].(*string),
-			IsAvailable: *res[4].(*bool),
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Desc:        res[2].(string),
+			ExternalId:  res[3].(string),
+			IsAvailable: res[4].(bool),
 		}
 		// images
 		//--------------------
@@ -471,7 +470,6 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
 		avArgs := []any{val.Id}
 		avDest := []any{
-			&attributeValueResponseBase.AttributeKey,
 			&attributeValueResponseBase.AttributeValue,
 		}
 
@@ -526,7 +524,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	}
 
 	if len(response.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return response, nil
@@ -613,7 +611,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithCtx(ctx),
 			query_handler.WithDB(p.Pool),
 			query_handler.WithQuery(query),
-			query_handler.WithSingleRowResultSet(nil, cpAttrArgs),
+			query_handler.WithSingleRowResultSet(cpAttrArgs, nil),
 		).DoSingleQuery()
 		if err != nil {
 			switch err {
@@ -845,7 +843,6 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 				}
 			}
 		}
-
 	}
 	return nil
 }
