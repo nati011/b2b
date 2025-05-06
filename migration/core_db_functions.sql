@@ -2025,12 +2025,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_productId(
     i_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255), image_blur_hash VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT url,blur_hash
+    SELECT url
     FROM public.p_images i
     WHERE i.product_id = i_product_id
       AND i.is_deleted = FALSE;
@@ -2135,11 +2135,11 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_configurable_products_by_id(
     cp_product_id INT
 )
-RETURNS TABLE(cp_id INT, 
-              cp_name VARCHAR(255), 
-              cp_description VARCHAR(255), 
-              cp_external_id VARCHAR(255), 
-              cp_is_available BOOLEAN)
+RETURNS TABLE(id INT, 
+              name VARCHAR(255), 
+              description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_available BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2157,12 +2157,20 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_configurable_products()
-RETURNS TABLE(cp_id INT)
+RETURNS TABLE(id INT, 
+              name VARCHAR(255), 
+              description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_available BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT cp.id
+    SELECT cp.id, 
+           cp.name, 
+           cp.description, 
+           cp.external_id, 
+           cp.is_available
     FROM public.configurable_products cp
     WHERE cp.is_deleted = FALSE;
 END;
@@ -2171,12 +2179,20 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_all_configurable_products_by_name(
     cp_name VARCHAR(255) 
 )
-RETURNS TABLE(cp_id INT)
+RETURNS TABLE(id INT, 
+              name VARCHAR(255), 
+              description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_available BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT cp.id
+     SELECT cp.id, 
+           cp.name, 
+           cp.description, 
+           cp.external_id, 
+           cp.is_available
     FROM public.configurable_products cp
     WHERE cp.name = cp_name
         AND cp.is_deleted = FALSE;
@@ -2186,12 +2202,20 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_all_configurable_products_by_ext_id(
     cp_external_id VARCHAR(255) 
 )
-RETURNS TABLE(cp_id INT)
+RETURNS TABLE(id INT, 
+              name VARCHAR(255), 
+              description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_available BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT cp.id
+    SELECT cp.id, 
+           cp.name, 
+           cp.description, 
+           cp.external_id, 
+           cp.is_available
     FROM public.configurable_products cp
     WHERE cp.external_id = cp_external_id
         AND cp.is_deleted = FALSE;
@@ -2330,12 +2354,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_cp_Id(
     i_configurable_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255), image_blur_hash VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT url,blur_hash
+    SELECT url
     FROM public.cp_images i
     WHERE i.configurable_product_id = i_configurable_product_id
       AND i.is_deleted = FALSE;

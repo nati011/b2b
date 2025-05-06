@@ -11,11 +11,6 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
-type Image struct {
-	ImageUrl string
-	BlurHash string
-}
-
 type CatalogueResponse struct {
 	Id            int               `json:"id"`
 	Name          string            `json:"name"`
@@ -24,7 +19,7 @@ type CatalogueResponse struct {
 	Stock         int               `json:"stock"`
 	ExternalID    string            `json:"external_id"`
 	Attributes    map[string]string `json:"attributes"`
-	Images        []Image           `json:"images"`
+	Images        []string          `json:"images"`
 	DistributorId int               `json:"distributor_id"`
 	CategoryId    []int             `json:"categories"`
 	IsActive      bool              `json:"is_active"`
@@ -39,7 +34,7 @@ type GetCatalogueResponse struct {
 	Name                   string                                               `json:"name"`
 	Desc                   string                                               `json:"desc"`
 	IsActive               bool                                                 `json:"is_active"`
-	Images                 []Image                                              `json:"images"`
+	Images                 []string                                             `json:"images"`
 	ConfigurableAttributes map[string][]CatalogueConfigurableAttributesResponse `json:"configurable_attributes"`
 	Configurables          []CatalogueResponse                                  `json:"configurables"`
 }
@@ -95,21 +90,12 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 					util.ServerErrorResponse(w, err)
 				}
 			}
-			var images []Image
-			for _, value := range resp.Images {
-				image := Image{
-					ImageUrl: value.ImageUrl,
-					BlurHash: value.BlurHash,
-				}
-				images = append(images, image)
-			}
-
 			configurables = append(configurables, CatalogueResponse{
 				Id:            resp.Id,
 				Name:          resp.Name,
 				Desc:          resp.Desc,
 				ExternalID:    resp.ExternalID,
-				Images:        images,
+				Images:        resp.Images,
 				Price:         resp.Price,
 				Attributes:    resp.Attributes,
 				DistributorId: resp.DistributorId,
@@ -125,20 +111,12 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 
 			}
 		}
-		var images []Image
-		for _, value := range j.Images {
-			image := Image{
-				ImageUrl: value.ImageUrl,
-				BlurHash: value.BlurHash,
-			}
-			images = append(images, image)
-		}
 
 		resp = append(resp, GetCatalogueResponse{
 			Name:                   j.Name,
 			Desc:                   j.Desc,
 			IsActive:               j.IsAvailable,
-			Images:                 images,
+			Images:                 j.Images,
 			ConfigurableAttributes: configurableAttribute,
 			Configurables:          configurables,
 		})
@@ -157,20 +135,12 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 	var configurables []CatalogueResponse
 	for _, i := range pr.List {
 		if !productInSlice(products_belonging_to_cps, i.Id) {
-			var images []Image
-			for _, value := range i.Images {
-				image := Image{
-					ImageUrl: value.ImageUrl,
-					BlurHash: value.BlurHash,
-				}
-				images = append(images, image)
-			}
 			configurables = append(configurables, CatalogueResponse{
 				Id:            i.Id,
 				Name:          i.Name,
 				Desc:          i.Desc,
 				ExternalID:    i.ExternalID,
-				Images:        images,
+				Images:        i.Images,
 				Price:         i.Price,
 				Attributes:    i.Attributes,
 				DistributorId: i.DistributorId,
@@ -188,20 +158,12 @@ func (p *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 					},
 				}
 			}
-			var imageCatalogue []Image
-			for _, value := range i.Images {
-				image := Image{
-					ImageUrl: value.ImageUrl,
-					BlurHash: value.BlurHash,
-				}
-				imageCatalogue = append(imageCatalogue, image)
-			}
 
 			resp = append(resp, GetCatalogueResponse{
 				Name:                   i.Name,
 				Desc:                   i.Desc,
 				IsActive:               i.IsActive,
-				Images:                 imageCatalogue,
+				Images:                 i.Images,
 				ConfigurableAttributes: configurableAttribute,
 				Configurables:          configurables,
 			})
