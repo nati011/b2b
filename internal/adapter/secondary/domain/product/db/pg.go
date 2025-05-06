@@ -63,13 +63,14 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 	// images
 	//--------------------
-	var imageResponse []string
-	var imageResponseBase string
+	var imageResponse []port.Image
+	var imageResponseBase port.Image
 	query = "SELECT * FROM public.get_images_by_productId($1);"
 
 	productImageArgs := []any{id}
 	imagesDest := []any{
-		&imageResponseBase,
+		&imageResponseBase.ImageUrl,
+		&imageResponseBase.BlurHash,
 	}
 
 	imagesResult, err := query_handler.NewQuery(
@@ -88,7 +89,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	}
 
 	for _, i := range imagesResult {
-		imageResponse = append(imageResponse, i[0].(string))
+		image := port.Image{
+			ImageUrl: i[0].(string),
+			BlurHash: i[1].(string),
+		}
+		imageResponse = append(imageResponse, image)
 	}
 	response.Images = imageResponse
 	//--------------------
@@ -209,13 +214,14 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		}
 		// images
 		//--------------------
-		var imageResponse []string
-		var imageResponseBase string
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 
 		productImageArgs := []any{val.Id}
 		imagesDest := []any{
-			&imageResponseBase,
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
 		}
 
 		imagesResult, err := query_handler.NewQuery(
@@ -233,7 +239,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		}
 
 		for _, i := range imagesResult {
-			imageResponse = append(imageResponse, i[0].(string))
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
 		}
 		val.Images = imageResponse
 
@@ -351,13 +361,14 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 		}
 		// images
 		//--------------------
-		var imageResponse []string
-		var imageResponseBase string
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 
 		productImageArgs := []any{val.Id}
 		imagesDest := []any{
-			&imageResponseBase,
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
 		}
 
 		imagesResult, err := query_handler.NewQuery(
@@ -375,7 +386,11 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 		}
 
 		for _, i := range imagesResult {
-			imageResponse = append(imageResponse, i[0].(string))
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
 		}
 		val.Images = imageResponse
 
@@ -494,13 +509,14 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 		}
 		// images
 		//--------------------
-		var imageResponse []string
-		var imageResponseBase string
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 
 		productImageArgs := []any{val.Id}
 		imagesDest := []any{
-			&imageResponseBase,
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
 		}
 
 		imagesResult, err := query_handler.NewQuery(
@@ -518,7 +534,11 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 		}
 
 		for _, i := range imagesResult {
-			imageResponse = append(imageResponse, i[0].(string))
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
 		}
 		val.Images = imageResponse
 
@@ -632,13 +652,14 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 		}
 		// images
 		//--------------------
-		var imageResponse []string
-		var imageResponseBase string
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 
 		productImageArgs := []any{val.Id}
 		imagesDest := []any{
-			&imageResponseBase,
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
 		}
 
 		imagesResult, err := query_handler.NewQuery(
@@ -656,7 +677,11 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 		}
 
 		for _, i := range imagesResult {
-			imageResponse = append(imageResponse, i[0].(string))
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
 		}
 		val.Images = imageResponse
 
@@ -770,13 +795,14 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 		}
 		// images
 		//--------------------
-		var imageResponse []string
-		var imageResponseBase string
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 
 		productImageArgs := []any{val.Id}
 		imagesDest := []any{
-			&imageResponseBase,
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
 		}
 
 		imagesResult, err := query_handler.NewQuery(
@@ -794,7 +820,11 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 		}
 
 		for _, i := range imagesResult {
-			imageResponse = append(imageResponse, i[0].(string))
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
 		}
 		val.Images = imageResponse
 
@@ -913,13 +943,14 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 		}
 		// images
 		//--------------------
-		var imageResponse []string
-		var imageResponseBase string
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 
 		productImageArgs := []any{val.Id}
 		imagesDest := []any{
-			&imageResponseBase,
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
 		}
 
 		imagesResult, err := query_handler.NewQuery(
@@ -937,7 +968,11 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 		}
 
 		for _, i := range imagesResult {
-			imageResponse = append(imageResponse, i[0].(string))
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
 		}
 		val.Images = imageResponse
 
@@ -1036,8 +1071,8 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	for _, i := range req.Images {
 		query := "SELECT * FROM public.add_image_to_product($1, $2, $3);"
 		productImageArgs := []any{
-			i,
-			"",
+			i.ImageUrl,
+			i.BlurHash,
 			product_id,
 		}
 		err := query_handler.NewQuery(
