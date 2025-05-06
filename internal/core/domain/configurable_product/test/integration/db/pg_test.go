@@ -576,7 +576,7 @@ func Test_write(t *testing.T) {
 			t.Fatalf("Failed to get err: %v", err)
 		}
 		wantImages := "updated"
-		if resp.Images[0] != wantImages && resp.Images[1] != wantImages {
+		if resp.Images[0].ImageUrl != wantImages && resp.Images[1].ImageUrl != wantImages {
 			t.Errorf("Expected image: %v Got: %v", wantImages, resp.Images[0])
 		}
 	})
