@@ -2025,12 +2025,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_productId(
     i_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255), blur_hash VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT url
+    SELECT url,blur_hash
     FROM public.p_images i
     WHERE i.product_id = i_product_id
       AND i.is_deleted = FALSE;
@@ -2330,12 +2330,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_cp_Id(
     i_configurable_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255), blur_hash VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT url
+    SELECT url,blur_hash
     FROM public.cp_images i
     WHERE i.configurable_product_id = i_configurable_product_id
       AND i.is_deleted = FALSE;
