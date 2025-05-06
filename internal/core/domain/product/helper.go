@@ -2,7 +2,10 @@ package product
 
 import (
 	"context"
-	"image/png"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"log"
 	"net/http"
 
@@ -73,7 +76,7 @@ func generateBlurHash(images []string) ([]port.Image, error) {
 			return []port.Image{}, ErrUnknown
 		}
 		imageFile := res.Body
-		loadedImage, err := png.Decode(imageFile)
+		loadedImage, _, err := image.Decode(imageFile)
 		str, _ := blurhash.Encode(4, 3, loadedImage)
 		if err != nil {
 			return []port.Image{}, ErrUnknown

@@ -53,8 +53,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -107,8 +107,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -126,8 +126,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -160,8 +160,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -195,8 +195,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -230,8 +230,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -266,8 +266,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -303,8 +303,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -342,8 +342,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -397,8 +397,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -440,8 +440,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -483,8 +483,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -525,8 +525,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -567,8 +567,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -585,9 +585,9 @@ func Test_write(t *testing.T) {
 		update_in := &product.UpdateRequest{
 			Id: id,
 			Images: []string{
-				"new image",
-				"new image",
-				"new image",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
 			},
 		}
 		_, err = container.ProductService.Update(ctx, update_in)
@@ -614,8 +614,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -666,8 +666,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -712,8 +712,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -754,8 +754,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
