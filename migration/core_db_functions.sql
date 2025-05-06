@@ -1947,6 +1947,46 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_products_by_categoryIds(
+   p_category_ids INT[]
+)
+RETURNS TABLE(
+    id INT, 
+    product_name VARCHAR(255), 
+    product_description VARCHAR(255), 
+    external_id VARCHAR(255), 
+    is_active BOOLEAN, 
+    distributor_id INT,
+    quantity INT,
+    available_quantity INT,
+    reserved_quantity INT,
+    price DECIMAL(12, 2)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+      SELECT p.id, 
+             p.name, 
+             p.description, 
+             p.external_id, 
+             p.is_active, 
+             p.distributor_id,
+             ps.quantity,
+             (ps.quantity - ps.reserved_quantity) AS available_quantity,
+             ps.reserved_quantity,
+             p.price
+      FROM public.products p
+      JOIN p_category pc 
+        ON pc.product_id = p.id
+      JOIN p_stock ps 
+        ON ps.product_id = p.id
+      WHERE pc.category_id = ANY(p_category_ids)
+        AND p.is_deleted = FALSE
+      LIMIT 1;
+END;
+$$;
+
 -- product_images ---------------------------------------------------
     
     -- writer
@@ -2407,21 +2447,6 @@ BEGIN
     SELECT p.category_id
     FROM public.p_category p
     WHERE p.product_id = p_product_id
-      AND p.is_deleted = FALSE;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_products_by_categoryId(
-    p_category_id INT
-)
-RETURNS TABLE(product_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.product_id
-    FROM public.p_category p
-    WHERE p.category_id = p_category_id
       AND p.is_deleted = FALSE;
 END;
 $$;

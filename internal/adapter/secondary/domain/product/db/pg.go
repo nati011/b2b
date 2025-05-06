@@ -194,7 +194,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		}
 	}
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			Name:           res[1].(string),
@@ -302,7 +302,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
-	return port.GetAllResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (port.GetAllResponse, error) {
@@ -326,24 +326,28 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(args, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
-		return port.GetAllResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetAllResponse{}, err
+		}
 	}
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			Name:           res[1].(string),
 			Desc:           res[2].(string),
 			ExternalID:     res[3].(string),
-			Price:          v,
+			IsActive:       res[4].(bool),
 			DistributorId:  int(res[5].(int64)),
 			Stock:          int(res[6].(int64)),
 			AvailableStock: int(res[7].(int64)),
 			ReservedStock:  int(res[8].(int64)),
-			IsActive:       res[9].(bool),
+			Price:          v,
 		}
 		// images
 		//--------------------
@@ -440,13 +444,14 @@ func (p *Postgres) GetByName(ctx context.Context, req *port.GetByNameRequest) (p
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
-	return port.GetAllResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalIdRequest) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_products_by_externalId($1);"
+	args := []any{&req.ExternalId}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -463,24 +468,29 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
-		return port.GetAllResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetAllResponse{}, err
+		}
 	}
+
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			Name:           res[1].(string),
 			Desc:           res[2].(string),
 			ExternalID:     res[3].(string),
-			Price:          v,
+			IsActive:       res[4].(bool),
 			DistributorId:  int(res[5].(int64)),
 			Stock:          int(res[6].(int64)),
 			AvailableStock: int(res[7].(int64)),
 			ReservedStock:  int(res[8].(int64)),
-			IsActive:       res[9].(bool),
+			Price:          v,
 		}
 		// images
 		//--------------------
@@ -577,13 +587,14 @@ func (p *Postgres) GetByExternalId(ctx context.Context, req *port.GetByExternalI
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
-	return port.GetAllResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistributorIdRequest) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_products_by_distributorId($1);"
+	args := []any{&req.DistributorId}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -600,24 +611,24 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			Name:           res[1].(string),
 			Desc:           res[2].(string),
 			ExternalID:     res[3].(string),
-			Price:          v,
+			IsActive:       res[4].(bool),
 			DistributorId:  int(res[5].(int64)),
 			Stock:          int(res[6].(int64)),
 			AvailableStock: int(res[7].(int64)),
 			ReservedStock:  int(res[8].(int64)),
-			IsActive:       res[9].(bool),
+			Price:          v,
 		}
 		// images
 		//--------------------
@@ -714,13 +725,14 @@ func (p *Postgres) GetByDistributorId(ctx context.Context, req *port.GetByDistri
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
-	return port.GetAllResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryRequest) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
-	query := "SELECT * FROM public.get_products_by_categoryId($1);"
+	query := "SELECT * FROM public.get_products_by_categoryIds($1);"
+	args := []any{&req.CategoryId}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -737,24 +749,24 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			Name:           res[1].(string),
 			Desc:           res[2].(string),
 			ExternalID:     res[3].(string),
-			Price:          v,
+			IsActive:       res[4].(bool),
 			DistributorId:  int(res[5].(int64)),
 			Stock:          int(res[6].(int64)),
 			AvailableStock: int(res[7].(int64)),
 			ReservedStock:  int(res[8].(int64)),
-			IsActive:       res[9].(bool),
+			Price:          v,
 		}
 		// images
 		//--------------------
@@ -851,7 +863,7 @@ func (p *Postgres) GetByCategory(ctx context.Context, req *port.GetByCategoryReq
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
-	return port.GetAllResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRangeRequest) (port.GetAllResponse, error) {
@@ -859,6 +871,7 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 	var responseBase port.GetResponse
 	// get product ids
 	query := "SELECT * FROM public.get_products_by_price_range($1, $2);"
+	args := []any{&req.PriceMin, &req.PriceMax}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -875,24 +888,28 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
-		return port.GetAllResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetAllResponse{}, err
+		}
 	}
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			Name:           res[1].(string),
 			Desc:           res[2].(string),
 			ExternalID:     res[3].(string),
-			Price:          v,
+			IsActive:       res[4].(bool),
 			DistributorId:  int(res[5].(int64)),
 			Stock:          int(res[6].(int64)),
 			AvailableStock: int(res[7].(int64)),
 			ReservedStock:  int(res[8].(int64)),
-			IsActive:       res[9].(bool),
+			Price:          v,
 		}
 		// images
 		//--------------------
@@ -912,7 +929,11 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range imagesResult {
@@ -937,7 +958,11 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
 		).DoMultiQuery()
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, i := range categoryResult {
@@ -967,7 +992,11 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 		).DoMultiQuery()
 
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 
 		for _, a := range avResult {
@@ -977,7 +1006,7 @@ func (p *Postgres) GetByPriceRange(ctx context.Context, req *port.GetByPriceRang
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
-	return port.GetAllResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
@@ -1092,7 +1121,6 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			}
 		}
 	}
-
 	return product_id, nil
 }
 
