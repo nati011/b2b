@@ -28,7 +28,7 @@ func (p *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return 0, err
 	}

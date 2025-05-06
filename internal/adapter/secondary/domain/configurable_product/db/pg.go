@@ -64,7 +64,16 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		log.Printf("error occurred during rows iteration: %q", err)
 		return port.GetResponse{}, port.ErrSysUnknown
 	}
-	response.Images = productImages
+
+	var images []port.Image
+	for _, value := range productImages {
+		image := port.Image{
+			ImageUrl: value,
+			BlurHash: "",
+		}
+		images = append(images, image)
+	}
+	response.Images = images
 
 	// get attribute-values
 	var productAttruteValue = []string{}

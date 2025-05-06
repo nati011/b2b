@@ -34,8 +34,8 @@ func Test_Create_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -320,7 +320,7 @@ func Test_Get_happyPath(t *testing.T) {
 	}
 
 	for i, v := range in.Images {
-		if got.Images[i] != v {
+		if got.Images[i].ImageUrl != v {
 			t.Errorf("Expected attr:%v Got: %v", v, got.Images[i])
 		}
 	}

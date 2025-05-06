@@ -14,7 +14,7 @@ type MockProduct struct {
 	Name          string
 	Desc          string
 	ExternalID    string
-	Images        []string
+	Images        []port.Image
 	Price         float64
 	Attributes    map[string]string
 	DistributorId int

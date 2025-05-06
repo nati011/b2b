@@ -46,7 +46,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.Price = price
 
 	// get images
-	var productImages []string
+	var productImages []port.Image
 	query = "SELECT * FROM public.get_images_by_productId($1);"
 	rows, err := p.db.QueryContext(ctx, query, id)
 	if err != nil {
@@ -65,7 +65,12 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
-		productImages = append(productImages, productImage)
+		image := port.Image{
+			ImageUrl: productImage,
+			BlurHash: "",
+		}
+
+		productImages = append(productImages, image)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -181,7 +186,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		product.Price = price
 
 		// get images
-		var productImages []string
+		var productImages []port.Image
 		query = "SELECT * FROM public.get_images_by_productId($1);"
 		rows, err := p.db.QueryContext(ctx, query, product.Id)
 		if err != nil {
@@ -201,7 +206,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 				log.Printf("unable to scan row: %q", err)
 				return port.GetAllResponse{}, err
 			}
-			productImages = append(productImages, productImage)
+			image := port.Image{
+				ImageUrl: productImage,
+				BlurHash: "",
+			}
+			productImages = append(productImages, image)
 		}
 
 		if err := rows.Err(); err != nil {

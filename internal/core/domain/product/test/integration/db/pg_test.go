@@ -92,7 +92,7 @@ func Test_read(t *testing.T) {
 		}
 
 		for i, v := range in.Images {
-			if got.Images[i] != v {
+			if got.Images[i].ImageUrl != v {
 				t.Errorf("Expected attr:%v Got: %v", v, got.Images[i])
 			}
 		}
@@ -382,7 +382,7 @@ func Test_write(t *testing.T) {
 		}
 
 		for i, v := range in.Images {
-			if resp.Images[i] != v {
+			if resp.Images[i].ImageUrl != v {
 				t.Errorf("Expected attr:%v Got: %v", v, resp.Images[i])
 			}
 		}
