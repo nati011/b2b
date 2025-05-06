@@ -3171,3 +3171,25 @@ BEGIN
     RETURN p_id;
 END;
 $$;
+
+-- payment ----------------------------------------
+-- writer
+
+CREATE OR REPLACE FUNCTION public.create_payment(
+    p_order_id INT,
+    p_partner_id INT,
+    p_transaction_ref VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.payment(order_id, partner_id, transaction_ref)
+    VALUES ( p_order_id,p_partner_id,p_transaction_ref) 
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;

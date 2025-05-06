@@ -381,3 +381,13 @@ CREATE TABLE IF NOT EXISTS public."payment_partners"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores payment processing partners';
+
+
+CREATE TABLE IF NOT EXISTS public."payment"(
+    id SERIAL PRIMARY KEY,
+    order_id INT,
+    partner_id INT,
+    transaction_ref VARCHAR(255)
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."payment" IS 'stores payment info';
