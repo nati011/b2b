@@ -6,6 +6,7 @@ import (
 	"math"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
 )
 
@@ -43,17 +44,19 @@ type CreateRequest struct {
 }
 
 type GetResponse struct {
-	Id            int
-	Name          string
-	Desc          string
-	ExternalID    string
-	Images        []Image
-	Price         float64
-	Attributes    map[string]string
-	DistributorId int
-	CategoryId    []int
-	Stock         int
-	IsActive      bool
+	Id             int
+	Name           string
+	Desc           string
+	ExternalID     string
+	Images         []Image
+	Price          float64
+	Attributes     map[string]string
+	DistributorId  int
+	CategoryId     []int
+	Stock          int
+	AvailableStock int
+	ReservedStock  int
+	IsActive       bool
 }
 
 type GetAllResponse struct {
@@ -184,7 +187,7 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := p.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -225,7 +228,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -264,7 +267,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -314,7 +317,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -352,7 +355,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -391,7 +394,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -427,7 +430,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -463,7 +466,7 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -504,7 +507,7 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := p.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -554,7 +557,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -573,7 +576,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -591,7 +594,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -610,7 +613,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -631,7 +634,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -657,7 +660,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}

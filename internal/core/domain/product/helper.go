@@ -18,7 +18,7 @@ func (p *ProductService) validateName(ctx context.Context, name string) error {
 	_, err := p.GetByParam(ctx, &GetByParamRequest{
 		Name: name,
 	})
-	if err != ErrEmptyGetContent {
+	if err != ErrEmptyGetContent && err != ErrUnknown {
 		return ErrNameDuplicate
 	}
 	return nil
