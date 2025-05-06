@@ -185,7 +185,8 @@ CREATE TABLE IF NOT EXISTS public."products"
   description VARCHAR(255),
   external_id VARCHAR(255),
   is_active BOOLEAN DEFAULT FALSE,
-  distributor_id INT
+  distributor_id INT,
+  price DECIMAL(12,2)
   -- ,
   -- FOREIGN KEY (distributor_id) REFERENCES public."distributors" (id) ON DELETE CASCADE
 ) INHERITS (public."base");
@@ -202,9 +203,10 @@ COMMENT ON TABLE public."p_category" IS 'many to many relationship for category 
 
 CREATE TABLE IF NOT EXISTS public."p_stock"
 (
-  quantity INT,
+  quantity INT DEFAULT 0,
+  reserved_quantity INT DEFAULT 0,
   product_id INT,
-   FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
+  FOREIGN KEY (product_id) REFERENCES public."products"(id) ON DELETE CASCADE
 ) INHERITS(public."base");
 
 COMMENT ON TABLE public."p_stock" IS 'quantiative data about products';
@@ -221,15 +223,6 @@ CREATE TABLE IF NOT EXISTS public."s_ledger"
 );
 
 COMMENT ON TABLE public."s_ledger" IS 'ledger for stock movement';
-
-CREATE TABLE IF NOT EXISTS public."p_prices" 
-(
-  price DECIMAL(12,2),
-  product_id INT,
-  FOREIGN KEY (product_id) REFERENCES public."products" (id) ON DELETE CASCADE
-) INHERITS (public."base");
-
-COMMENT ON TABLE public."p_prices" IS 'stores product price information';
 
 CREATE TABLE IF NOT EXISTS public."p_attributes" 
 (

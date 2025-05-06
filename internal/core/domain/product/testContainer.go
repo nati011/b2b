@@ -16,6 +16,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.CategoryService = category.NewCategory(
 		category_db.NewMock(),
 	)
+
 	container.ProductService = NewProduct(
 		db.NewMock(),
 		container.CategoryService,
