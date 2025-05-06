@@ -10,11 +10,16 @@ var (
 	ErrSysUnknown = errors.New("unknown error")
 )
 
+type Image struct {
+	ImageUrl string
+	BlurHash string
+}
+
 type CreateRequest struct {
 	Name          string
 	Desc          string
 	ExternalID    string
-	Images        []string
+	Images        []Image
 	Price         float64
 	Attributes    map[string]string
 	DistributorId int
@@ -26,7 +31,7 @@ type GetResponse struct {
 	Name          string
 	Desc          string
 	ExternalID    string
-	Images        []string
+	Images        []Image
 	Price         float64
 	Attributes    map[string]string
 	DistributorId int
@@ -82,7 +87,7 @@ type UpdateDescRequest struct {
 
 type UpdateImagesRequest struct {
 	Id     int
-	Images []string
+	Images []Image
 }
 
 type UpdateActiveStatusRequest struct {

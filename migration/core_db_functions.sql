@@ -1875,7 +1875,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT url
+    SELECT url,blur_hash
     FROM public.p_images i
     WHERE i.product_id = i_product_id
       AND i.is_deleted = FALSE;
@@ -2180,7 +2180,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT url
+    SELECT url,blur_hash
     FROM public.cp_images i
     WHERE i.configurable_product_id = i_configurable_product_id
       AND i.is_deleted = FALSE;

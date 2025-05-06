@@ -7,6 +7,7 @@ require github.com/Nerzal/gocloak/v13 v13.9.0
 require github.com/jhillyerd/inbucket v2.0.0+incompatible // indirect
 
 require (
+	github.com/buckket/go-blurhash v1.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
