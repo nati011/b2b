@@ -91,7 +91,7 @@ func (m *Container) InitCategoryService() {
 }
 
 func (m *Container) InitProductService() {
-	m.ProductService = product.NewProduct(product_db_port.NewPostgres(m.db), m.CategoryService)
+	m.ProductService = product.NewProduct(product_db_port.NewPostgres(m.db, &m.Pagination), m.CategoryService)
 }
 
 func (m *Container) InitConfigrableProductService() {
