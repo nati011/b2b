@@ -69,7 +69,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 				DistributorId:  i.DistributorId,
 				CategoryId:     i.CategoryId,
 				Stock:          i.Stock,
-				AvailableStock: i.AvailableStock,
+				AvailableStock: i.Stock - i.ReservedStock,
 				ReservedStock:  i.ReservedStock,
 				IsActive:       i.IsActive,
 			}, nil
@@ -93,7 +93,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 				DistributorId:  i.DistributorId,
 				CategoryId:     i.CategoryId,
 				Stock:          i.Stock,
-				AvailableStock: i.AvailableStock,
+				AvailableStock: i.Stock - i.ReservedStock,
 				ReservedStock:  i.ReservedStock,
 				IsActive:       i.IsActive,
 			},
@@ -121,7 +121,7 @@ func (m *Mock) GetByName(ctx context.Context, req *port.GetByNameRequest) (port.
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: i.Stock - i.ReservedStock,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -151,7 +151,7 @@ func (m *Mock) GetByExternalId(ctx context.Context, req *port.GetByExternalIdReq
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: i.Stock - i.ReservedStock,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -181,7 +181,7 @@ func (m *Mock) GetByDistributorId(ctx context.Context, req *port.GetByDistributo
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: i.Stock - i.ReservedStock,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -213,7 +213,7 @@ func (m *Mock) GetByCategory(ctx context.Context, req *port.GetByCategoryRequest
 							DistributorId:  i.DistributorId,
 							CategoryId:     i.CategoryId,
 							Stock:          i.Stock,
-							AvailableStock: i.AvailableStock,
+							AvailableStock: i.Stock - i.ReservedStock,
 							ReservedStock:  i.ReservedStock,
 							IsActive:       i.IsActive,
 						},
@@ -246,7 +246,7 @@ func (m *Mock) GetByPriceRange(ctx context.Context, req *port.GetByPriceRangeReq
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: i.Stock - i.ReservedStock,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -276,7 +276,7 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -294,7 +294,7 @@ func (m *Mock) UpdateName(ctx context.Context, req *port.UpdateNameRequest) erro
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -322,7 +322,7 @@ func (m *Mock) UpdateExternalID(ctx context.Context, req *port.UpdateExternalIDR
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -340,7 +340,7 @@ func (m *Mock) UpdateExternalID(ctx context.Context, req *port.UpdateExternalIDR
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -368,7 +368,7 @@ func (m *Mock) UpdatePrice(ctx context.Context, req *port.UpdatePriceRequest) er
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -386,7 +386,7 @@ func (m *Mock) UpdatePrice(ctx context.Context, req *port.UpdatePriceRequest) er
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -414,7 +414,7 @@ func (m *Mock) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) erro
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -432,7 +432,7 @@ func (m *Mock) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) erro
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -460,7 +460,7 @@ func (m *Mock) UpdateImages(ctx context.Context, req *port.UpdateImagesRequest) 
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -478,7 +478,7 @@ func (m *Mock) UpdateImages(ctx context.Context, req *port.UpdateImagesRequest) 
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -506,7 +506,7 @@ func (m *Mock) UpdateCategoryId(ctx context.Context, req *port.UpdateCategoryIdR
 					DistributorId:  i.DistributorId,
 					CategoryId:     req.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -524,7 +524,7 @@ func (m *Mock) UpdateCategoryId(ctx context.Context, req *port.UpdateCategoryIdR
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: 0,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
@@ -557,6 +557,10 @@ func (m *Mock) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingReque
 					IsActive:       i.IsActive,
 				},
 			)
+		} else {
+			resp = append(m.products,
+				MockProduct(i),
+			)
 		}
 	}
 	m.products = resp
@@ -564,9 +568,10 @@ func (m *Mock) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingReque
 }
 
 func (m *Mock) Dispatch(ctx context.Context, req *port.DispatchRequest) error {
+	products := []MockProduct{}
 	for _, i := range m.products {
 		if req.Id == i.Id {
-			m.products = append(m.products,
+			products = append(m.products,
 				MockProduct{
 					Id:             i.Id,
 					Name:           i.Name,
@@ -583,8 +588,75 @@ func (m *Mock) Dispatch(ctx context.Context, req *port.DispatchRequest) error {
 					IsActive:       i.IsActive,
 				},
 			)
+		} else {
+			products = append(m.products,
+				MockProduct(i),
+			)
 		}
 	}
+	m.products = products
+	return nil
+}
+
+func (m *Mock) Reserve(ctx context.Context, req *port.ReserveRequest) error {
+	products := []MockProduct{}
+	for _, i := range m.products {
+		if req.Id == i.Id {
+			products = append(m.products,
+				MockProduct{
+					Id:             i.Id,
+					Name:           i.Name,
+					Desc:           i.Desc,
+					ExternalID:     i.ExternalID,
+					Images:         i.Images,
+					Price:          i.Price,
+					Attributes:     i.Attributes,
+					DistributorId:  i.DistributorId,
+					CategoryId:     i.CategoryId,
+					Stock:          i.Stock,
+					AvailableStock: 0,
+					ReservedStock:  i.ReservedStock + req.Amount,
+					IsActive:       i.IsActive,
+				},
+			)
+		} else {
+			products = append(m.products,
+				MockProduct(i),
+			)
+		}
+	}
+	m.products = products
+	return nil
+}
+
+func (m *Mock) FreeReservation(ctx context.Context, req *port.FreeReservedRequest) error {
+	products := []MockProduct{}
+	for _, i := range m.products {
+		if req.Id == i.Id {
+			m.products = append(m.products,
+				MockProduct{
+					Id:             i.Id,
+					Name:           i.Name,
+					Desc:           i.Desc,
+					ExternalID:     i.ExternalID,
+					Images:         i.Images,
+					Price:          i.Price,
+					Attributes:     i.Attributes,
+					DistributorId:  i.DistributorId,
+					CategoryId:     i.CategoryId,
+					Stock:          i.Stock,
+					AvailableStock: i.Stock - i.ReservedStock,
+					ReservedStock:  i.ReservedStock + req.Amount,
+					IsActive:       i.IsActive,
+				},
+			)
+		} else {
+			products = append(m.products,
+				MockProduct(i),
+			)
+		}
+	}
+	m.products = products
 	return nil
 }
 
@@ -604,7 +676,7 @@ func (m *Mock) UpdateActiveStatus(ctx context.Context, req *port.UpdateActiveSta
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: i.Stock - i.ReservedStock,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       req.Status,
 				},
@@ -622,7 +694,7 @@ func (m *Mock) UpdateActiveStatus(ctx context.Context, req *port.UpdateActiveSta
 					DistributorId:  i.DistributorId,
 					CategoryId:     i.CategoryId,
 					Stock:          i.Stock,
-					AvailableStock: i.AvailableStock,
+					AvailableStock: i.Stock - i.ReservedStock,
 					ReservedStock:  i.ReservedStock,
 					IsActive:       i.IsActive,
 				},
