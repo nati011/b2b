@@ -1276,8 +1276,8 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 	for _, i := range req.Images {
 		query := "SELECT * FROM public.add_image_to_product($1, $2, $3);"
 		productImageArgs := []any{
-			i,
-			"",
+			i.ImageUrl,
+			i.BlurHash,
 			req.Id,
 		}
 		err := query_handler.NewQuery(
@@ -1428,7 +1428,7 @@ func (p *Postgres) Dispatch(ctx context.Context, req *port.DispatchRequest) erro
 	//update stock
 	query = "SELECT * FROM public.update_product_stock($1, $2);"
 
-	updatedAmount := stock + req.Amount
+	updatedAmount := stock - req.Amount
 	productUpdateStockArgs := []any{
 		req.Id,
 		updatedAmount,
