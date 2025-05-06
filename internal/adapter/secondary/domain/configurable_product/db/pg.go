@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
 )
 
@@ -33,7 +34,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		case sql.ErrNoRows:
 			return port.GetResponse{}, port.ErrSysNoRows
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
+			return port.GetResponse{}, port_commons.ErrSysUnknown
 		}
 	}
 
@@ -45,7 +46,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		switch err {
 		case sql.ErrNoRows:
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
+			return port.GetResponse{}, port_commons.ErrSysUnknown
 		}
 
 	}
@@ -62,9 +63,18 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetResponse{}, port.ErrSysUnknown
+		return port.GetResponse{}, port_commons.ErrSysUnknown
 	}
-	response.Images = productImages
+
+	var images []port.Image
+	for _, value := range productImages {
+		image := port.Image{
+			ImageUrl: value,
+			BlurHash: "",
+		}
+		images = append(images, image)
+	}
+	response.Images = images
 
 	// get attribute-values
 	var productAttruteValue = []string{}
@@ -74,7 +84,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		switch err {
 		case sql.ErrNoRows:
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
+			return port.GetResponse{}, port_commons.ErrSysUnknown
 		}
 	}
 	defer rows.Close()
@@ -97,7 +107,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		switch err {
 		case sql.ErrNoRows:
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
+			return port.GetResponse{}, port_commons.ErrSysUnknown
 		}
 
 	}
@@ -114,7 +124,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetResponse{}, port.ErrSysUnknown
+		return port.GetResponse{}, port_commons.ErrSysUnknown
 	}
 	response.Products = member_productIds
 	return response, nil
@@ -128,8 +138,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
+			return port.GetAllResponse{}, port_commons.ErrSysUnknown
 		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+			return port.GetAllResponse{}, port_commons.ErrSysUnknown
 		}
 
 	}
@@ -146,7 +157,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	// get member products
@@ -179,8 +190,9 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
+			return port.GetAllResponse{}, port_commons.ErrSysUnknown
 		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+			return port.GetAllResponse{}, port_commons.ErrSysUnknown
 		}
 
 	}
@@ -197,7 +209,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	// get member products
@@ -232,7 +244,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		switch err {
 		case sql.ErrNoRows:
 		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+			return port.GetAllResponse{}, port_commons.ErrSysUnknown
 		}
 
 	}
@@ -249,7 +261,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 
 	if err := rows.Err(); err != nil {
 		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, port_commons.ErrSysUnknown
 	}
 
 	// get member products
@@ -288,7 +300,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		case sql.ErrNoRows:
 			return 0, port.ErrSysNoRows
 		default:
-			return 0, port.ErrSysUnknown
+			return 0, port_commons.ErrSysUnknown
 		}
 	}
 
@@ -305,7 +317,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			switch err {
 			case sql.ErrNoRows:
 			default:
-				return 0, port.ErrSysUnknown
+				return 0, port_commons.ErrSysUnknown
 			}
 		}
 	}
@@ -320,7 +332,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			switch err {
 			case sql.ErrNoRows:
 			default:
-				return 0, port.ErrSysUnknown
+				return 0, port_commons.ErrSysUnknown
 			}
 		}
 		defer rows.Close()
@@ -344,7 +356,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 				switch err {
 				case sql.ErrNoRows:
 				default:
-					return 0, port.ErrSysUnknown
+					return 0, port_commons.ErrSysUnknown
 				}
 			}
 		}
@@ -363,7 +375,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			switch err {
 			case sql.ErrNoRows:
 			default:
-				return 0, port.ErrSysUnknown
+				return 0, port_commons.ErrSysUnknown
 			}
 		}
 	}
@@ -381,7 +393,7 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 	return nil
@@ -397,7 +409,7 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 	return nil
@@ -413,7 +425,7 @@ func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExterna
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 	return nil
@@ -429,7 +441,7 @@ func (p *Postgres) UpdateIsAvailableStatus(ctx context.Context, req *port.Update
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 	return nil
@@ -447,7 +459,7 @@ func (p *Postgres) UpdateProducts(ctx context.Context, req *port.UpdateProductRe
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 
@@ -464,7 +476,7 @@ func (p *Postgres) UpdateProducts(ctx context.Context, req *port.UpdateProductRe
 			case sql.ErrNoRows:
 				return port.ErrSysNoRows
 			default:
-				return port.ErrSysUnknown
+				return port_commons.ErrSysUnknown
 			}
 		}
 	}
@@ -481,7 +493,7 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 
@@ -495,7 +507,7 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 			case sql.ErrNoRows:
 				return port.ErrSysNoRows
 			default:
-				return port.ErrSysUnknown
+				return port_commons.ErrSysUnknown
 			}
 		}
 	}
@@ -512,7 +524,7 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 		case sql.ErrNoRows:
 			return port.ErrSysNoRows
 		default:
-			return port.ErrSysUnknown
+			return port_commons.ErrSysUnknown
 		}
 	}
 	//attach new attributes
@@ -526,7 +538,7 @@ func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttribu
 				case sql.ErrNoRows:
 					return port.ErrSysNoRows
 				default:
-					return port.ErrSysUnknown
+					return port_commons.ErrSysUnknown
 				}
 			}
 		}

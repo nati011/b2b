@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/domain/product"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
 )
 
@@ -23,6 +24,11 @@ var (
 	ErrProductNotFound                  = errors.New("oopsy, product not found")
 	ErrAttributeKeysDoNotExistInProduct = errors.New("oopsy, attributes not found in products")
 )
+
+type Image struct {
+	ImageUrl string
+	BlurHash string
+}
 
 type CreateRequest struct {
 	Name          string
@@ -49,7 +55,7 @@ type GetResponse struct {
 	PriceRange    PriceRangeResponse
 	CategoryId    []int
 	DistributorId int
-	Images        []string
+	Images        []Image
 }
 
 type GetAllResponse struct {
@@ -122,6 +128,10 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 	if err != nil {
 		return 0, err
 	}
+	images, err := generateBlurHash(req.Images)
+	if err != nil {
+		return 0, err
+	}
 
 	id, err := c.DB.Create(ctx, &port.CreateRequest{
 		Name:              req.Name,
@@ -130,7 +140,7 @@ func (c *ConfigurableProductService) Create(ctx context.Context, req *CreateRequ
 		IsAvailableStatus: false,
 		Products:          req.Products,
 		AttributeKeys:     req.AttributeKeys,
-		Images:            req.Images,
+		Images:            images,
 	})
 	if err != nil {
 		switch err {
@@ -145,11 +155,19 @@ func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetRespon
 	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
 		}
+	}
+	var images []Image
+	for _, value := range resp.Images {
+		image := Image{
+			ImageUrl: value.ImageUrl,
+			BlurHash: value.BlurHash,
+		}
+		images = append(images, image)
 	}
 
 	return GetResponse{
@@ -162,7 +180,7 @@ func (c *ConfigurableProductService) Get(ctx context.Context, id int) (GetRespon
 		PriceRange:    PriceRangeResponse(resp.PriceRange),
 		CategoryId:    resp.CategoryId,
 		DistributorId: resp.DistributorId,
-		Images:        resp.Images,
+		Images:        images,
 		Attributes:    resp.Attributes,
 	}, nil
 }
@@ -173,13 +191,21 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 		get_by_name_resp, err := c.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetContent
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range get_by_name_resp.List {
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
 			resp = append(resp, GetResponse{
 				Id:            i.Id,
 				Name:          i.Name,
@@ -190,7 +216,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 				PriceRange:    PriceRangeResponse(i.PriceRange),
 				CategoryId:    i.CategoryId,
 				DistributorId: i.DistributorId,
-				Images:        i.Images,
+				Images:        images,
 			})
 		}
 	}
@@ -199,13 +225,21 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 		get_by_name_resp, err := c.DB.GetByExternalId(ctx, req.ExternalId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetContent
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range get_by_name_resp.List {
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
 			resp = append(resp, GetResponse{
 				Id:            i.Id,
 				Name:          i.Name,
@@ -216,7 +250,7 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 				PriceRange:    PriceRangeResponse(i.PriceRange),
 				CategoryId:    i.CategoryId,
 				DistributorId: i.DistributorId,
-				Images:        i.Images,
+				Images:        images,
 			})
 		}
 	}
@@ -233,13 +267,21 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 	get_by_name_resp, err := c.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
 	}
 	for _, i := range get_by_name_resp.List {
+		var images []Image
+		for _, value := range i.Images {
+			image := Image{
+				ImageUrl: value.ImageUrl,
+				BlurHash: value.BlurHash,
+			}
+			images = append(images, image)
+		}
 		resp = append(resp, GetResponse{
 			Id:            i.Id,
 			Name:          i.Name,
@@ -250,7 +292,7 @@ func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse
 			PriceRange:    PriceRangeResponse(i.PriceRange),
 			CategoryId:    i.CategoryId,
 			DistributorId: i.DistributorId,
-			Images:        i.Images,
+			Images:        images,
 			Attributes:    i.Attributes,
 		})
 	}
@@ -265,7 +307,7 @@ func (c *ConfigurableProductService) Avail(ctx context.Context, id int) error {
 	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -295,7 +337,7 @@ func (c *ConfigurableProductService) Disable(ctx context.Context, id int) error 
 	resp, err := c.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -325,7 +367,7 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 	_, err := c.DB.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -412,9 +454,13 @@ func (c *ConfigurableProductService) Update(ctx context.Context, req *UpdateRequ
 		if err != nil {
 			return err
 		}
+		images, err := generateBlurHash(req.Images)
+		if err != nil {
+			return err
+		}
 		err = c.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
-			Images: req.Images,
+			Images: images,
 		})
 		if err != nil {
 			switch err {
