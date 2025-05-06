@@ -2,27 +2,28 @@ package payment
 
 import (
 	"context"
-	"errors"
-)
-
-var (
-	ErrSysNoRows  = errors.New("no rows")
-	ErrSysUnknown = errors.New("unknown error")
 )
 
 type CreateRequest struct {
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
+	Name    string
+	Icon    string
+	Status  string
+	BaseURL string
+	Secret  string
 }
 
 type GetResponse struct {
-	Id               int
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
+	Id      int
+	Name    string
+	Icon    string
+	Status  string
+	BaseURL string
+}
+
+type GetPartnerSecret struct {
+	Name    string
+	BaseURL string
+	Secret  string
 }
 
 type GetAllResponse struct {
@@ -30,6 +31,7 @@ type GetAllResponse struct {
 }
 
 type Reader interface {
+	GetPartnerSecret(context.Context, int) (GetPartnerSecret, error)
 	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)

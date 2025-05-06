@@ -3,6 +3,7 @@ package core
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	auth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	template_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
@@ -16,7 +17,6 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/email"
-	"b2b.nati011.github.com/internal/core/application/payment"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/resource"
@@ -63,7 +63,6 @@ type Container struct {
 	DistributorService    distributor.Provider
 	RetailerService       retailer.Provider
 	EmailService          email.Provider
-	PaymentService        payment.Provider
 	PaymentPartnerService payment_partner.Provider
 	RenderService         render.Renderer
 	ResourceService       resource.Provider
@@ -72,25 +71,38 @@ type Container struct {
 	TemplateService       template.Provider
 	TransactionService    transaction.Provider
 	UserService           user.Provider
+	Pagination            config.Pagination
 }
 
-func NewContainer(db *sql.DB, keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, email_address, smtp_port string, keycloakClientSecret string) *Container {
+func NewContainer(
+	db *sql.DB,
+	keycloakInstanceURL string,
+	keycloakUsername string,
+	keycloakPassword string,
+	keycloakRealm string,
+	keycloakApplicationRealm string,
+	keycloakClientId string,
+	email_address,
+	smtp_port string,
+	keycloakClientSecret string) *Container {
+
 	container := Container{}
 	container.db = db
 
+	//utils
+	container.InitPagination()
+
 	//ORDER ORDER!!
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
-	container.InitResourceService()
 	container.InitUserService()
-	container.InitRoleService()
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(email_address, smtp_port)
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
-	container.InitPaymentService()
 	container.InitResourceService()
 	container.InitRoleService()
+	container.InitUserService()
 
 	// container.InitSMSService()
 
@@ -108,12 +120,8 @@ func (m *Container) InitEmailService(email_address, smtp_port string) {
 	m.EmailService = email.NewEmailService(email_provider_adapter.NewInbucket(email_address, smtp_port), m.RenderService)
 }
 
-func (m *Container) InitPaymentService() {
-	m.PaymentService = payment.NewPaymentService()
-}
-
 func (m *Container) InitPaymentPartnerService() {
-	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db))
+	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitRenderService() {
@@ -121,11 +129,11 @@ func (m *Container) InitRenderService() {
 }
 
 func (m *Container) InitResourceService() {
-	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db))
+	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitRoleService() {
-	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db), m.ResourceService)
+	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, &m.Pagination), m.ResourceService)
 }
 
 // func (m *Container) InitSMSService() {
@@ -137,9 +145,13 @@ func (m *Container) InitTemplateService() {
 }
 
 func (m *Container) InitTransactionService() {
-	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db), m.PaymentPartnerService, m.UserService)
+	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, &m.Pagination))
 }
 
 func (m *Container) InitUserService() {
-	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db), m.RoleService, m.AuthService)
+	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, &m.Pagination), m.RoleService, m.AuthService)
+}
+
+func (m *Container) InitPagination() {
+	m.Pagination = *config.NewPaginationBuilder().Build()
 }

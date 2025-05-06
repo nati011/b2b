@@ -18,7 +18,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	return container
 }
 
-func (t *TestContainer) Cleanup() {
+func (t *TestContainer) Teardown() {
 	t.UserService = user.NewTestContainer().UserService
 	t.DistributorService = NewDistributorService(t.UserService, db_adapter.NewMock())
 }

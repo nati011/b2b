@@ -6,6 +6,7 @@ import (
 	"math"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
 )
 
@@ -26,6 +27,11 @@ var (
 	ErrStockUnavailable             = errors.New("oopsy, requested quantity greater than stock")
 )
 
+type Image struct {
+	ImageUrl string
+	BlurHash string
+}
+
 type CreateRequest struct {
 	Name          string
 	Desc          string
@@ -38,17 +44,19 @@ type CreateRequest struct {
 }
 
 type GetResponse struct {
-	Id            int
-	Name          string
-	Desc          string
-	ExternalID    string
-	Images        []string
-	Price         float64
-	Attributes    map[string]string
-	DistributorId int
-	CategoryId    []int
-	Stock         int
-	IsActive      bool
+	Id             int
+	Name           string
+	Desc           string
+	ExternalID     string
+	Images         []Image
+	Price          float64
+	Attributes     map[string]string
+	DistributorId  int
+	CategoryId     []int
+	Stock          int
+	AvailableStock int
+	ReservedStock  int
+	IsActive       bool
 }
 
 type GetAllResponse struct {
@@ -149,12 +157,17 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 		}
 	}
 
+	images, err := generateBlurHash(req.Images)
+	if err != nil {
+		return 0, err
+	}
+
 	//create
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
 		Name:          req.Name,
 		Desc:          req.Desc,
 		ExternalID:    req.ExternalID,
-		Images:        req.Images,
+		Images:        images,
 		Price:         req.Price,
 		Attributes:    req.Attributes,
 		CategoryId:    req.CategoryId,
@@ -174,7 +187,7 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := p.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -183,7 +196,28 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 	if resp.Id != id {
 		return GetResponse{}, ErrIdNotFound
 	}
-	return GetResponse(resp), nil
+	var images []Image
+	for _, value := range resp.Images {
+		image := Image{
+			ImageUrl: value.ImageUrl,
+			BlurHash: value.BlurHash,
+		}
+		images = append(images, image)
+	}
+	response := GetResponse{
+		Id:            resp.Id,
+		Name:          resp.Name,
+		Desc:          resp.Desc,
+		ExternalID:    resp.ExternalID,
+		Images:        images,
+		Price:         resp.Price,
+		Attributes:    resp.Attributes,
+		DistributorId: resp.DistributorId,
+		CategoryId:    resp.CategoryId,
+		Stock:         resp.Stock,
+		IsActive:      resp.IsActive,
+	}
+	return response, nil
 }
 
 func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
@@ -194,14 +228,36 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 
 		for _, i := range resp_getByName.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+
+			resp.List = append(resp.List, response)
 		}
 	}
 
@@ -211,13 +267,34 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range resp_getByExtId.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+			resp.List = append(resp.List, response)
 		}
 	}
 
@@ -240,13 +317,35 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range resp_getByCategoryId.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+
+			resp.List = append(resp.List, response)
 		}
 	}
 
@@ -256,13 +355,35 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range resp_getByDistId.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+
+			resp.List = append(resp.List, response)
 		}
 	}
 
@@ -273,13 +394,34 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range resp_getByName.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+			resp.List = append(resp.List, response)
 		}
 	} else if req.PriceMax != 0 && req.PriceMin == 0 {
 		resp_getByName, err := p.DB.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
@@ -288,13 +430,34 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range resp_getByName.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+			resp.List = append(resp.List, response)
 		}
 	} else if req.PriceMax == 0 && req.PriceMin != 0 {
 		resp_getByName, err := p.DB.GetByPriceRange(ctx, &port.GetByPriceRangeRequest{
@@ -303,13 +466,34 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
 		}
 		for _, i := range resp_getByName.List {
-			resp.List = append(resp.List, GetResponse(i))
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			response := GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalID:    i.ExternalID,
+				Images:        images,
+				Price:         i.Price,
+				Attributes:    i.Attributes,
+				DistributorId: i.DistributorId,
+				CategoryId:    i.CategoryId,
+				Stock:         i.Stock,
+				IsActive:      i.IsActive,
+			}
+			resp.List = append(resp.List, response)
 		}
 	}
 	if len(resp.List) == 0 {
@@ -323,7 +507,7 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := p.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -332,7 +516,28 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 
 	resp_val := GetAllResponse{}
 	for _, i := range resp.List {
-		resp_val.List = append(resp_val.List, GetResponse(i))
+		var images []Image
+		for _, value := range i.Images {
+			image := Image{
+				ImageUrl: value.ImageUrl,
+				BlurHash: value.BlurHash,
+			}
+			images = append(images, image)
+		}
+		response := GetResponse{
+			Id:            i.Id,
+			Name:          i.Name,
+			Desc:          i.Desc,
+			ExternalID:    i.ExternalID,
+			Images:        images,
+			Price:         i.Price,
+			Attributes:    i.Attributes,
+			DistributorId: i.DistributorId,
+			CategoryId:    i.CategoryId,
+			Stock:         i.Stock,
+			IsActive:      i.IsActive,
+		}
+		resp_val.List = append(resp_val.List, response)
 	}
 	return resp_val, nil
 }
@@ -352,7 +557,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -371,7 +576,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -389,7 +594,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -408,7 +613,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -420,13 +625,16 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		if err != nil {
 			return 0, err
 		}
+
+		images, err := generateBlurHash(req.Images)
+
 		err = p.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
-			Images: req.Images,
+			Images: images,
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}
@@ -452,7 +660,7 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		})
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return 0, ErrUnknown
 			}

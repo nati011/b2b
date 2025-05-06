@@ -3,6 +3,8 @@ package core
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
+	payment_db_port "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
@@ -11,6 +13,8 @@ import (
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	retailer_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	checkout "b2b.nati011.github.com/internal/core/application/checkout"
+	payment_verification "b2b.nati011.github.com/internal/core/application/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -46,17 +50,25 @@ type Container struct {
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	ApplicationServices        application_core.Container
+	PaymentVerificationService payment_verification.Provider
+	CheckoutService            checkout.Provider
+	Pagination                 config.Pagination
+	FrontendURL                string
+	BaseURL                    string
 }
 
-func NewContainer(application_core application_core.Container, db *sql.DB) *Container {
+func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
 	container := Container{}
 	container.db = db
 	container.ApplicationServices = application_core
+	container.FrontendURL = frontendUrl
+	container.BaseURL = baseUrl
 
 	// ORDER ORDER!!
 
-	//	messing up the order creates chaos
-
+	//  messing up the order creates chaos
+	// //utils
+	container.InitPagination()
 	container.InitCategoryService()
 	container.InitProductService()
 	container.InitConfigrableProductService()
@@ -64,8 +76,14 @@ func NewContainer(application_core application_core.Container, db *sql.DB) *Cont
 	container.InitRetailerService()
 	container.InitOrderService()
 	container.InitDistributorService()
-
+	container.InitPaymentVerificationService()
+	container.InitCheckoutService()
+	container.InitOrderService()
 	return &container
+}
+
+func (m *Container) InitPagination() {
+	m.Pagination = *config.NewPaginationBuilder().Build()
 }
 
 func (m *Container) InitCategoryService() {
@@ -73,7 +91,7 @@ func (m *Container) InitCategoryService() {
 }
 
 func (m *Container) InitProductService() {
-	m.ProductService = product.NewProduct(product_db_port.NewPostgres(m.db), m.CategoryService)
+	m.ProductService = product.NewProduct(product_db_port.NewPostgres(m.db, &m.Pagination), m.CategoryService)
 }
 
 func (m *Container) InitConfigrableProductService() {
@@ -83,17 +101,25 @@ func (m *Container) InitConfigrableProductService() {
 }
 
 func (m *Container) InitInvoiceService() {
-	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db))
+	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitOrderService() {
-	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db), m.InvoiceService, m.ProductService, m.RetailerService)
+	m.OrderService = order.NewOrderService(order_db_port.NewPostgres(m.db, &m.Pagination), m.InvoiceService, m.ProductService, m.RetailerService, m.CheckoutService)
 }
 
 func (m *Container) InitDistributorService() {
-	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db))
+	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitRetailerService() {
-	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db))
+	m.RetailerService = retailer.NewRetailerService(m.ApplicationServices.UserService, retailer_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
+}
+
+func (m *Container) InitPaymentVerificationService() {
+	m.PaymentVerificationService = payment_verification.NewPaymentVerificationService(payment_db_port.NewPostgres(m.db), m.ApplicationServices.PaymentPartnerService, m.ApplicationServices.TransactionService, m.OrderService)
+}
+
+func (m *Container) InitCheckoutService() {
+	m.CheckoutService = checkout.NewCheckoutService(payment_db_port.NewPostgres(m.db), m.ApplicationServices.PaymentPartnerService, m.ApplicationServices.TransactionService, m.FrontendURL, m.BaseURL)
 }

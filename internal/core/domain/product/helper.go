@@ -1,6 +1,17 @@
 package product
 
-import "context"
+import (
+	"context"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"log"
+	"net/http"
+
+	port "b2b.nati011.github.com/internal/port/domain/product"
+	"github.com/buckket/go-blurhash"
+)
 
 func (p *ProductService) validateName(ctx context.Context, name string) error {
 	if name == "" {
@@ -10,7 +21,7 @@ func (p *ProductService) validateName(ctx context.Context, name string) error {
 	_, err := p.GetByParam(ctx, &GetByParamRequest{
 		Name: name,
 	})
-	if err != ErrEmptyGetContent {
+	if err != ErrEmptyGetContent && err != ErrUnknown {
 		return ErrNameDuplicate
 	}
 	return nil
@@ -55,4 +66,28 @@ func validateAttributes(attributes map[string]string) error {
 		}
 	}
 	return nil
+}
+
+func generateBlurHash(images []string) ([]port.Image, error) {
+	var imageWithBlurHash []port.Image
+	for _, value := range images {
+		res, err := http.Get(value)
+		if err != nil {
+			return []port.Image{}, ErrUnknown
+		}
+		imageFile := res.Body
+		loadedImage, _, err := image.Decode(imageFile)
+		str, _ := blurhash.Encode(4, 3, loadedImage)
+		if err != nil {
+			return []port.Image{}, ErrUnknown
+		}
+		image := port.Image{
+			ImageUrl: value,
+			BlurHash: str,
+		}
+
+		log.Printf("Blurhash %v:", str)
+		imageWithBlurHash = append(imageWithBlurHash, image)
+	}
+	return imageWithBlurHash, nil
 }

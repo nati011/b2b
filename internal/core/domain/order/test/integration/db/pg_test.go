@@ -37,9 +37,9 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "ordeR_retailer",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	})
@@ -261,6 +261,80 @@ func Test_Write(t *testing.T) {
 		wantStatus := "New"
 		if resp.Status != wantStatus {
 			t.Errorf("Expected status: %v got: %v", wantStatus, resp.Status)
+		}
+	})
+
+	t.Run("update_payment_status", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []order.Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		id, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		//update
+		_, err = container.OrderService.UpdatePaymentStatus(ctx, &order.UpdateRequest{
+			Id:            id,
+			PaymentStatus: "New",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := container.OrderService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantStatus := "New"
+		if resp.PaymentStatus != wantStatus {
+			t.Errorf("Expected status: %v got: %v", wantStatus, resp.PaymentStatus)
+		}
+	})
+
+	t.Run("update_delivery_status", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []order.Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		id, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		//update
+		_, err = container.OrderService.UpdateDeliveryStatus(ctx, &order.UpdateRequest{
+			Id:             id,
+			DeliveryStatus: "New",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := container.OrderService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantStatus := "New"
+		if resp.DeliveryStatus != wantStatus {
+			t.Errorf("Expected status: %v got: %v", wantStatus, resp.DeliveryStatus)
 		}
 	})
 }

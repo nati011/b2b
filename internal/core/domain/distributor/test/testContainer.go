@@ -3,6 +3,7 @@ package test_container
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -16,12 +17,18 @@ type TestContainer struct {
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
 	container.UserService = user.NewTestContainer().UserService
-	container.DistributorService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db))
+	container.DistributorService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db, &config.Pagination{
+		Limit:  10,
+		Offset: 0,
+	}))
 
 	return container
 }
 
 func (t *TestContainer) Teardown(db *sql.DB) {
 	t.UserService = user.NewTestContainer().UserService
-	t.DistributorService = distributor.NewDistributorService(t.UserService, db_adapter.NewPostgres(db))
+	t.DistributorService = distributor.NewDistributorService(t.UserService, db_adapter.NewPostgres(db, &config.Pagination{
+		Limit:  10,
+		Offset: 0,
+	}))
 }

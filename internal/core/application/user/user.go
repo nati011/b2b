@@ -3,11 +3,13 @@ package user
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/auth"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/user"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 var (
@@ -158,26 +160,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		Username:    req.Username,
 	})
 	if err != nil {
-		switch err {
-		case auth.ErrFirstNameNotSupplied:
-			return 0, ErrFirstNameMandatory
-		case auth.ErrLastNameNotSupplied:
-			return 0, ErrLastNameMandatory
-		case auth.ErrEmailNotSupplied:
-			return 0, ErrEmailNotFound
-		case auth.ErrUsernameNotSupplied:
-			return 0, ErrUsernameMandatory
-		case auth.ErrInvalidEmail:
-			return 0, ErrEmailNotValid
-		case auth.ErrPasswordNotSupplied:
-			return 0, ErrPasswordMandatory
-		case auth.ErrUsernameTaken:
-			return 0, ErrUserNameTaken
-		case auth.ErrEmailTaken:
-			return 0, ErrEmailTaken
-		default:
-			return 0, ErrUnknown
-		}
+		return 0, err
+
 	}
 
 	//create user
@@ -198,6 +182,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		}
 	}
 
+	log.Printf("Registered User %v", user_id)
 	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,
@@ -218,7 +203,7 @@ func (u *UserService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	res, err := u.db.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -249,7 +234,7 @@ func (u *UserService) Get(ctx context.Context, id int) (GetResponse, error) {
 	res, err := u.db.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -262,7 +247,7 @@ func (u *UserService) GetUserProvider(ctx context.Context, id int) (GetUserProvi
 	user_providers, err := u.db.GetUserProvider(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetUserProviderResponse{}, ErrIdNotFound
 		default:
 			return GetUserProviderResponse{}, ErrUnknown
@@ -286,7 +271,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllRe
 		res_email, err := u.db.GetByEmail(ctx, req.Email)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -314,7 +299,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllRe
 		res_phone, err := u.db.GetByPhone(ctx, req.Phone)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -341,7 +326,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllRe
 		res_username, err := u.db.GetByUsername(ctx, req.Username)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -367,7 +352,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllRe
 	res_isActive, err := u.db.GetByActiveStatus(ctx, req.IsActive)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
@@ -393,7 +378,7 @@ func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllRe
 		res_externalId, err := u.db.GetByEmail(ctx, req.ExternalId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -427,12 +412,7 @@ func (u *UserService) Activate(ctx context.Context, id int) error {
 	//validate id
 	_, err := u.Get(ctx, id)
 	if err != nil {
-		switch err {
-		case port.ErrSysNoRows:
-			return ErrIdNotFound
-		default:
-			return ErrUnknown
-		}
+		return err
 	}
 
 	//validate active status
@@ -559,7 +539,7 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 	assigend_roles, err := u.db.GetAllAssignedRole(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
 			return GetAllAssignedRoleResponse{}, ErrUnknown
 		}
@@ -782,12 +762,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 	//validate id
 	_, err := u.Get(ctx, id)
 	if err != nil {
-		switch err {
-		case ErrEmptyGetContent:
-			return ErrIdNotFound
-		default:
-			return ErrUnknown
-		}
+		return err
 	}
 
 	resp, err := u.GetUserProvider(ctx, id)
@@ -810,6 +785,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 	}
 
 	//remove
+	log.Printf("Deleting Id %v", id)
 	err = u.db.Delete(ctx, id)
 	if err != nil {
 		switch err {
@@ -824,12 +800,8 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 	// validate id
 	user, err := u.Get(ctx, id)
 	if err != nil {
-		switch err {
-		case ErrEmptyGetContent:
-			return false, ErrIdNotFound
-		default:
-			return false, ErrUnknown
-		}
+		return false, err
+
 	}
 	return user.IsActive, nil
 }

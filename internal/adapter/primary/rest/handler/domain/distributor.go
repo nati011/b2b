@@ -89,8 +89,8 @@ func (d *Distributor) Init(applicationServices *application_core.Container, doma
 }
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
-	distributorHandler := http.HandlerFunc(d.GetDistributorHandler)
-	mux.Handle("GET /api/v1/distributor", d.middleware.Authenticate(distributorHandler))
+
+	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
 	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 
@@ -311,6 +311,7 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 	defer r.Body.Close()
 
 	var requestBody CreateDistributorRequest
+
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return
@@ -354,4 +355,5 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"distributor": id})
+
 }

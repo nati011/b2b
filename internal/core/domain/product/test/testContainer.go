@@ -3,6 +3,7 @@ package catalogue
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -41,7 +42,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 		category_db.NewMock(),
 	)
 	container.ProductService = product.NewProduct(
-		product_db.NewPostgres(db),
+		product_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		container.CategoryService,
 	)
 	container.ConfigurableProductService =

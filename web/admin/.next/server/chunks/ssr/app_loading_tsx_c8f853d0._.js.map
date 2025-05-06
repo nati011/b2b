@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///home/delilah/Documents/work/non-kifya/b2b/web/admin/app/loading.tsx"],"sourcesContent":["import { PiPlantThin, PiSpinner } from \"react-icons/pi\";\n\nexport default function Loading() {\n  return (\n    <div className=\"min-h-screen min-w-screen flex justify-center items-center\">\n      <div className=\"grid-cols-1 align-middle\">\n        <PiSpinner className=\"animate-spin text-[#1A1F2C] text-6xl\" />\n      </div>\n\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;AAAA;;;AAEe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;kBACb,cAAA,8OAAC;YAAI,WAAU;sBACb,cAAA,8OAAC,8IAAA,CAAA,YAAS;gBAAC,WAAU;;;;;;;;;;;;;;;;AAK7B","debugId":null}}]
+}

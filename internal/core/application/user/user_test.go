@@ -80,6 +80,7 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
+			FirstName:  "natnael asefa",
 			LastName:   "natnael asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
@@ -122,7 +123,7 @@ func Test_create_unhappyPath(t *testing.T) {
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in_only_email)
-		wantErr := ErrEmailNotFound
+		wantErr := ErrPhoneOrEmailMandatory
 		if err != wantErr {
 			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
@@ -432,7 +433,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
-		expecetdLen := 2
+		expecetdLen := 1
 		if len(response.List) != expecetdLen {
 			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(response.List))
 		}

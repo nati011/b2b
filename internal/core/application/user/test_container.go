@@ -3,6 +3,7 @@ package user
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
 	db_resource_mock "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	db_provider "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
@@ -48,19 +49,25 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	db_global = db
 	c := TestContainer{}
 	c.RoleService = role.NewRole(
-		db_role_mock.NewPostgres(
-			db,
-		),
+		db_role_mock.NewPostgres(db, &config.Pagination{
+			Limit:  10,
+			Offset: 0,
+		}),
 		resource.NewResource(
-			db_resource_mock.NewPostgres(
-				db,
-			),
+			db_resource_mock.NewPostgres(db, &config.Pagination{
+				Limit:  10,
+				Offset: 0,
+			}),
 		),
 	)
 	c.AuthService = auth.NewIntegrationAuthContainer()
 	c.UserService = NewUser(
 		db_provider.NewPostgres(
 			db,
+			&config.Pagination{
+				Limit:  10,
+				Offset: 0,
+			},
 		),
 		c.RoleService,
 		c.AuthService,
@@ -73,6 +80,10 @@ func (t *TestContainer) TeardownIntegrationTestContainer() {
 	t.UserService = NewUser(
 		db_provider.NewPostgres(
 			db_global,
+			&config.Pagination{
+				Limit:  10,
+				Offset: 0,
+			},
 		),
 		t.RoleService,
 		t.AuthService,

@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 
+	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -21,13 +23,26 @@ var (
 	ErrAlreadyCanceled                    = errors.New("oopsy, order already canceled")
 	ErrItemMemberProductNotFound          = errors.New("oopsy, product not found")
 	ErrItemMemberProductQuantityNotFound  = errors.New("oopsy, product quantity not found")
-	ErrTargetStatusIdentical              = errors.New("oopsy, new status same as old status")
 )
 
+// order status
 const (
 	CANCELD_STATUS   = "CANCELED"
 	PENDING_STATUS   = "PENDING"
 	COMPLETED_STATUS = "COMPLETED"
+)
+
+// payment
+const (
+	PAYMENT_PENDING_STATUS  = "PENDING"
+	PAYMENT_ACCEPTED_STATUS = "ACCEPTED"
+)
+
+// delivery
+const (
+	DELIVERY_PENDING_STATUS    = "PENDING"
+	DELIVERY_DISPATCHED_STATUS = "DISPATCHED"
+	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
 )
 
 type Item struct {
@@ -36,16 +51,19 @@ type Item struct {
 }
 
 type PlaceRequest struct {
-	RetailerId int
-	Items      []Item
+	RetailerId       int
+	Items            []Item
+	PaymentPartnerId int
 }
 
 type GetResponse struct {
-	Id         int
-	RetailerId int
-	Items      []Item
-	Total      float32
-	Status     string
+	Id             int
+	RetailerId     int
+	Items          []Item
+	Total          float32
+	Status         string
+	DeliveryStatus string
+	PaymentStatus  string
 }
 
 type GetAllResponse struct {
@@ -58,8 +76,10 @@ type GetByParamRequest struct {
 }
 
 type UpdateRequest struct {
-	Id     int
-	Status string
+	Id             int
+	Status         string
+	PaymentStatus  string
+	DeliveryStatus string
 }
 
 type Provider interface {
@@ -68,7 +88,9 @@ type Provider interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
-	UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error)
+	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
 }
 
 type OrderService struct {
@@ -76,26 +98,31 @@ type OrderService struct {
 	InvoiceService  invoice.Provider
 	ProductService  product.Provider
 	RetailerService retailer.Provider
+	PaymentService  checkout.Provider
 }
 
 func NewOrderService(
 	db port.DB,
 	is invoice.Provider,
 	ps product.Provider,
-	rs retailer.Provider) Provider {
+	rs retailer.Provider,
+	pays checkout.Provider,
+
+) Provider {
 
 	return &OrderService{
 		DB:              db,
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
+		PaymentService:  pays,
 	}
 }
 
 func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest) error {
-	if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
-		return err
-	}
+	// if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
+	// 	return err
+	// }
 
 	if err := o.validate_items(ctx, req.Items); err != nil {
 		return err
@@ -129,13 +156,26 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	}
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
-		RetailerId: req.RetailerId,
-		Items:      items,
-		Status:     PENDING_STATUS,
-		Total:      itemsTotal,
+		RetailerId:     req.RetailerId,
+		Items:          items,
+		Status:         PENDING_STATUS,
+		PaymentStatus:  PAYMENT_PENDING_STATUS,
+		DeliveryStatus: DELIVERY_PENDING_STATUS,
+		Total:          itemsTotal,
 	})
+
 	if err != nil {
 		return 0, ErrUnknown
+	}
+
+	_, err = o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
+		OrderId:          order_id,
+		Amount:           itemsTotal,
+		PaymentPartnerId: req.PaymentPartnerId,
+	})
+
+	if err != nil {
+		return 0, err
 	}
 
 	// create invoice
@@ -192,7 +232,7 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	got, err := o.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -221,7 +261,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := o.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -235,10 +275,13 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		})
 	}
 	return GetResponse{
-		Id:         resp.Id,
-		RetailerId: resp.RetailerId,
-		Items:      items,
-		Status:     resp.Status,
+		Id:             resp.Id,
+		RetailerId:     resp.RetailerId,
+		Total:          float32(resp.Total),
+		Items:          items,
+		Status:         resp.Status,
+		DeliveryStatus: resp.DeliveryStatus,
+		PaymentStatus:  resp.PaymentStatus,
 	}, nil
 }
 
@@ -246,7 +289,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := o.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetResponse
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -263,10 +306,13 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
-			Id:         i.Id,
-			RetailerId: i.RetailerId,
-			Items:      items,
-			Status:     i.Status,
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
 		})
 	}
 	return return_response, nil
@@ -278,7 +324,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 		resp, err := o.DB.GetByRetailerID(ctx, req.RetailerId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -300,10 +346,13 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Total:          float32(i.Total),
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -313,7 +362,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 		resp, err := o.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetResponse
 			default:
 				return GetAllResponse{}, ErrUnknown
@@ -336,10 +385,13 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Total:          float32(i.Total),
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -351,20 +403,16 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 	return return_response, nil
 }
 
-func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error) {
-	return_response := GetAllResponse{}
+func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
-			return return_response, ErrIdNotFound
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
 		default:
-			return return_response, ErrUnknown
+			return 0, ErrUnknown
 		}
-	}
-	if req.Status == resp.Status {
-		return return_response, ErrTargetStatusIdentical
 	}
 
 	//update
@@ -375,10 +423,70 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (Ge
 	if err != nil {
 		switch err {
 		default:
-			return return_response, ErrUnknown
+			return 0, ErrUnknown
+		}
+	}
+
+	//TODO: reserve stock
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
+		Id:            req.Id,
+		PaymentStatus: req.PaymentStatus,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//TODO: reserve stock
+	// deplete stock if order status is COMPELETED
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
+		Id:             req.Id,
+		DeliveryStatus: req.DeliveryStatus,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
 		}
 	}
 
 	// deplete stock if order status is COMPELETED
-	return return_response, nil
+
+	return resp.Id, nil
 }

@@ -10,11 +10,9 @@ import (
 	category "b2b.nati011.github.com/internal/core/domain/category"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 var service category.Provider
-var pgContainer *postgres.PostgresContainer
 var db *sql.DB
 
 func TestMain(m *testing.M) {
@@ -91,7 +89,7 @@ func Test_Reader(t *testing.T) {
 
 func Test_Writer(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
-		t.Cleanup(teardown)
+		// t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &category.CreateRequest{
 			Name: "test",

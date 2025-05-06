@@ -68,7 +68,7 @@ func create_validateUserInfo(
 	if err != nil {
 		return err
 	}
-	err = create_validateLastName(FirstName)
+	err = create_validateLastName(LastName)
 	if err != nil {
 		return err
 	}

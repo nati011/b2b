@@ -2,19 +2,18 @@ package product
 
 import (
 	"context"
-	"errors"
 )
 
-var (
-	ErrSysNoRows  = errors.New("no rows")
-	ErrSysUnknown = errors.New("unknown error")
-)
+type Image struct {
+	ImageUrl string
+	BlurHash string
+}
 
 type CreateRequest struct {
 	Name          string
 	Desc          string
 	ExternalID    string
-	Images        []string
+	Images        []Image
 	Price         float64
 	Attributes    map[string]string
 	DistributorId int
@@ -22,17 +21,19 @@ type CreateRequest struct {
 }
 
 type GetResponse struct {
-	Id            int
-	Name          string
-	Desc          string
-	ExternalID    string
-	Images        []string
-	Price         float64
-	Attributes    map[string]string
-	DistributorId int
-	CategoryId    []int
-	Stock         int
-	IsActive      bool
+	Id             int
+	Name           string
+	Desc           string
+	ExternalID     string
+	Images         []Image
+	Price          float64
+	Attributes     map[string]string
+	DistributorId  int
+	CategoryId     []int
+	Stock          int
+	AvailableStock int
+	ReservedStock  int
+	IsActive       bool
 }
 
 type GetAllResponse struct {
@@ -82,7 +83,7 @@ type UpdateDescRequest struct {
 
 type UpdateImagesRequest struct {
 	Id     int
-	Images []string
+	Images []Image
 }
 
 type UpdateActiveStatusRequest struct {

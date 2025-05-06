@@ -3,8 +3,8 @@ package category
 import (
 	"context"
 	"database/sql"
-	"log"
 
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/category"
 )
 
@@ -13,6 +13,7 @@ type Postgres struct {
 }
 
 func NewPostgres(DB *sql.DB) port.DB {
+
 	return &Postgres{
 		Pool: DB,
 	}
@@ -20,32 +21,29 @@ func NewPostgres(DB *sql.DB) port.DB {
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_all_category();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+	}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+		return port.GetAllResponse{}, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var resource port.GetResponse
-		if err := rows.Scan(&resource.Id, &resource.Name); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:   int(res[0].(int64)),
+			Name: res[1].(string),
 		}
-		response.List = append(response.List, resource)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		response.List = append(response.List, responseBase)
 	}
 
 	return response, nil
@@ -55,15 +53,20 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 
 	query := "SELECT * FROM public.get_category($1);"
+	args := []any{id}
+	result := []any{
+		&response.Id,
+		&response.Name,
+	}
 
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Name)
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
 
 	return response, nil
@@ -72,15 +75,17 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
 	query := "SELECT * FROM public.create_category($1);"
+	args := []any{req.Name}
+	result := []any{&resourceId}
 
-	err := p.Pool.QueryRowContext(ctx, query, req.Name).Scan(&resourceId)
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
 
 	return resourceId, nil
@@ -88,15 +93,17 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 
 func (p *Postgres) Remove(ctx context.Context, id int) error {
 	query := "SELECT * FROM public.remove_category($1);"
+	args := []any{id}
 
-	err := p.Pool.QueryRowContext(ctx, query, id).Err()
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
+
 	return nil
 }

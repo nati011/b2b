@@ -2,9 +2,11 @@ package order
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
@@ -12,6 +14,7 @@ import (
 var container TestContainer
 var retailer_id int
 var product_id int
+var PaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -29,9 +32,9 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "order_test",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	})
@@ -53,6 +56,18 @@ func setup() {
 		Id:     product_id,
 		Amount: 100,
 	})
+	var err error
+
+	PaymentPartnerId, err = container.PartnerService.Create(ctx,
+		&payment_partner.CreateRequest{
+			Name:    "chapa",
+			Icon:    "etst",
+			BaseURL: "https://api.chapa.co",
+			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		})
+	if err != nil {
+		panic("failed to create payment partner")
+	}
 }
 
 func teardown() {
@@ -62,15 +77,18 @@ func teardown() {
 func Test_Place_Order_happyPath(t *testing.T) {
 	t.Run("create", func(t *testing.T) {
 		t.Cleanup(teardown)
+		setup()
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,
 					Quantity:  19},
 			},
 		}
+		log.Printf("Partner id %v", PaymentPartnerId)
 		id, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
@@ -89,7 +107,8 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -121,6 +140,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
+			PaymentPartnerId: PaymentPartnerId,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -138,8 +158,9 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
-			Items:      []Item{},
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items:            []Item{},
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		wantErr := ErrAtleastOneOrderItemNeeded
@@ -152,7 +173,8 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id},
@@ -170,7 +192,8 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		RetailerId: retailer_id,
+		PaymentPartnerId: PaymentPartnerId,
+		RetailerId:       retailer_id,
 		Items: []Item{
 			{
 				ProductId: product_id,
@@ -213,7 +236,8 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -243,7 +267,8 @@ func Test_Get_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		RetailerId: retailer_id,
+		PaymentPartnerId: PaymentPartnerId,
+		RetailerId:       retailer_id,
 		Items: []Item{
 			{
 				ProductId: product_id,
@@ -282,7 +307,8 @@ func Test_Get_All_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		RetailerId: retailer_id,
+		PaymentPartnerId: PaymentPartnerId,
+		RetailerId:       retailer_id,
 		Items: []Item{
 			{
 				ProductId: product_id,
@@ -321,7 +347,8 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -349,7 +376,8 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -377,7 +405,8 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -422,7 +451,8 @@ func Test_Update_Status(t *testing.T) {
 	t.Run("update_status", func(t *testing.T) {
 		ctx := context.Background()
 		in := &PlaceRequest{
-			RetailerId: retailer_id,
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
 			Items: []Item{
 				{
 					ProductId: product_id,

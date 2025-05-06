@@ -6,15 +6,14 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/config"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 var service resource.Provider
-var pgContainer *postgres.PostgresContainer
 var db *sql.DB
 
 func TestMain(m *testing.M) {
@@ -28,6 +27,10 @@ func setup() {
 	service = resource.NewResource(
 		db_adapter.NewPostgres(
 			db,
+			&config.Pagination{
+				Limit:  10,
+				Offset: 0,
+			},
 		),
 	)
 }
@@ -45,7 +48,7 @@ func Test_create(t *testing.T) {
 	ctx := context.Background()
 	in := resource.CreateRequest{
 		Action: "test",
-		Name:   "test",
+		Name:   "test121",
 	}
 
 	got, err := service.Create(ctx, &in)
@@ -74,10 +77,7 @@ func Test_delete(t *testing.T) {
 	}
 
 	//verify deletion
-	resp, _ := service.Get(ctx, &resource.GetRequest{
-		Id:   id,
-		Name: "",
-	})
+	resp, _ := service.Get(ctx, id)
 	if resp.Id == id {
 		t.Error("Failed to delete resource")
 	}
@@ -118,10 +118,7 @@ func Test_get(t *testing.T) {
 		})
 
 		// Get by Id
-		in := resource.GetRequest{
-			Id: id,
-		}
-		got, err := service.Get(ctx, &in)
+		got, err := service.Get(ctx, id)
 		if err != nil {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}
@@ -139,11 +136,7 @@ func Test_get(t *testing.T) {
 			Name:   "test",
 		})
 
-		// Get by Id
-		in := resource.GetRequest{
-			Name: "test",
-		}
-		got, err := service.Get(ctx, &in)
+		got, err := service.GetByName(ctx, "test")
 		if err != nil {
 			t.Errorf("Failed to get resource by Id err %v", err)
 		}
