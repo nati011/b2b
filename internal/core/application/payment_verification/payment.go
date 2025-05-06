@@ -68,6 +68,16 @@ func NewPaymentVerificationService(DB port.DB, partner partner.Provider, transac
 	}
 }
 
+func (p *PaymentService) getPayment(ctx context.Context, tx_ref string) (GetPaymentResponse, error) {
+	payment, err := p.db.GetByTransactionRef(ctx, tx_ref)
+	if err != nil {
+		return GetPaymentResponse{}, err
+	}
+
+	return (GetPaymentResponse)(payment), err
+
+}
+
 func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
 	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
 	if err != nil {
@@ -107,7 +117,7 @@ func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref st
 	}
 
 	if is_verified {
-		payment, err := p.GetPayment(ctx, tx_ref)
+		payment, err := p.getPayment(ctx, tx_ref)
 		if err != nil {
 			log.Printf("Error Occured while fetching payment: %v", err)
 		}
