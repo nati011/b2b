@@ -43,8 +43,8 @@ type CheckoutResponse struct {
 }
 
 type Provider interface {
-	Verify(ctx context.Context, PaymentPartnerId int, tx_ref string) (bool, error)
-	Callback(ctx context.Context, PaymentPartnerId int, tx_ref string)
+	Verify(ctx context.Context, PaymentPartnerId int, txRef string) (bool, error)
+	Callback(ctx context.Context, PaymentPartnerId int, txRef string)
 }
 
 type PaymentService struct {
@@ -68,8 +68,8 @@ func NewPaymentVerificationService(DB port.DB, partner partner.Provider, transac
 	}
 }
 
-func (p *PaymentService) GetPayment(ctx context.Context, tx_ref string) (GetPaymentResponse, error) {
-	payment, err := p.db.GetByTransactionRef(ctx, tx_ref)
+func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPaymentResponse, error) {
+	payment, err := p.db.GetByTransactionRef(ctx, txRef)
 	if err != nil {
 		return GetPaymentResponse{}, err
 	}
@@ -78,8 +78,11 @@ func (p *PaymentService) GetPayment(ctx context.Context, tx_ref string) (GetPaym
 
 }
 
-func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref string) (bool, error) {
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gateway_id)
+func (p *PaymentService) Verify(ctx context.Context, gatewayId int, txRef string) (bool, error) {
+	if err := validateTxRef(txRef); err != nil {
+		return false, err
+	}
+	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gatewayId)
 	if err != nil {
 		switch err {
 		case partner.ErrIdNotFound:
@@ -96,7 +99,7 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 
 	paymentVerificationRequest := payment.VerificationRequest{
 		PartnerUrl:     paymentPartner.BaseURL,
-		TransactionRef: tx_ref,
+		TransactionRef: txRef,
 		PartnerSecret:  paymentPartner.Secret,
 	}
 
@@ -107,23 +110,23 @@ func (p *PaymentService) Verify(ctx context.Context, gateway_id int, tx_ref stri
 	return is_verified, nil
 }
 
-func (p *PaymentService) Callback(ctx context.Context, gateway_id int, tx_ref string) {
-	is_verified, err := p.Verify(ctx, gateway_id, tx_ref)
+func (p *PaymentService) Callback(ctx context.Context, gatewayId int, txRef string) {
+	is_verified, err := p.Verify(ctx, gatewayId, txRef)
 	if err != nil {
 		switch err {
 		default:
-			log.Printf("failed to process incoming callback tx_ref: %v, gateway_id: %v", tx_ref, gateway_id)
+			log.Printf("failed to process incoming callback txRef: %v, gateway_id: %v", tx_ref, gateway_id)
 		}
 	}
 
 	if is_verified {
-		payment, err := p.GetPayment(ctx, tx_ref)
+		payment, err := p.getPayment(ctx, txRef)
 		if err != nil {
 			log.Printf("Error Occured while fetching payment: %v", err)
 		}
 
 		err = p.transaction.UpdateByTransactionRef(ctx, &transaction.UpdateByTransactionRefRequest{
-			TransactionRef: tx_ref,
+			TransactionRef: txRef,
 			Status:         transaction.COMPLETED_STATUS,
 		})
 		if err != nil {
