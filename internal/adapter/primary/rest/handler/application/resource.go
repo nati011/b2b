@@ -83,8 +83,10 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 			switch err {
 			case resource.ErrEmptyGetContent:
 				util.RequestErrorResponse(w, err)
+				return
 			default:
 				util.ServerErrorResponse(w, err)
+				return
 			}
 		}
 		var response GetAllResourceResponse

@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"database/sql"
+	"strconv"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -50,7 +51,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 	if err != nil {
 		return port.GetResponse{}, nil
 	}
@@ -84,30 +85,32 @@ func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrd
 
 	query := "SELECT * FROM public.get_order_items_by_order_id($1);"
 	args := []any{orderId}
-	result := [][]any{{
+
+	dest := []any{
 		&responseBase.Id,
 		&responseBase.ProductId,
 		&responseBase.Quantity,
 		&responseBase.Price,
-	}}
+	}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 
 	if err != nil {
 		return GetAllOrderItems{}, err
 	}
 
 	for _, res := range result {
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
 		response.Items = append(response.Items, GetOrderItem{
-			Id:        *res[0].(*int),
-			ProductId: *res[1].(*int),
-			Quantity:  *res[2].(*int),
-			Price:     *res[3].(*float64),
+			Id:        int(res[0].(int64)),
+			ProductId: int(res[1].(int64)),
+			Quantity:  int(res[2].(int64)),
+			Price:     v,
 		})
 	}
 
@@ -121,35 +124,50 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 	query := "SELECT * FROM public.get_orders_by_retailer_id($1);"
 
 	args := []any{&retailerId}
-	result := [][]any{{
+	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
 		&responseBase.Status,
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
-	}}
+	}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
 	for _, res := range result {
-		response.List = append(response.List, port.GetResponse{
-			Id:             *res[0].(*int),
-			RetailerId:     *res[1].(*int),
-			Status:         *res[2].(*string),
-			Total:          *res[3].(*float64),
-			PaymentStatus:  *res[4].(*string),
-			DeliveryStatus: *res[5].(*string),
-		})
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		val := port.GetResponse{
+			Id:             int(res[0].(int64)),
+			RetailerId:     int(res[1].(int64)),
+			Status:         res[2].(string),
+			Total:          v,
+			PaymentStatus:  res[4].(string),
+			DeliveryStatus: res[5].(string),
+		}
+		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
+		if err != nil {
+			return port.GetAllResponse{}, err
+		}
+
+		for _, s := range allOrderItems.Items {
+			val.Items = append(val.Items, port.Item{
+				ProductId: s.ProductId,
+				Quantity:  s.Quantity,
+				Price:     s.Price,
+			})
+		}
+
+		response.List = append(response.List, val)
 	}
 
 	return response, nil
@@ -161,35 +179,50 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 	query := "SELECT * FROM public.get_orders_by_status($1);"
 	args := []any{&status}
-	result := [][]any{{
+	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
 		&responseBase.Status,
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
-	}}
+	}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
 	for _, res := range result {
-		response.List = append(response.List, port.GetResponse{
-			Id:             *res[0].(*int),
-			RetailerId:     *res[1].(*int),
-			Status:         *res[2].(*string),
-			Total:          *res[3].(*float64),
-			PaymentStatus:  *res[4].(*string),
-			DeliveryStatus: *res[5].(*string),
-		})
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		val := port.GetResponse{
+			Id:             int(res[0].(int64)),
+			RetailerId:     int(res[1].(int64)),
+			Status:         res[2].(string),
+			Total:          v,
+			PaymentStatus:  res[4].(string),
+			DeliveryStatus: res[5].(string),
+		}
+		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
+		if err != nil {
+			return port.GetAllResponse{}, err
+		}
+
+		for _, s := range allOrderItems.Items {
+			val.Items = append(val.Items, port.Item{
+				ProductId: s.ProductId,
+				Quantity:  s.Quantity,
+				Price:     s.Price,
+			})
+		}
+
+		response.List = append(response.List, val)
 	}
 
 	return response, nil
@@ -201,38 +234,40 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_orders($1,$2);"
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
-	result := [][]any{{
+
+	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
 		&responseBase.Status,
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
-	}}
+	}
 
-	err := query_handler.NewQuery(
+	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(args, result),
-	).DoStuff()
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 
 	if err != nil {
 		return port.GetAllResponse{}, err
 	}
 
 	for _, res := range result {
+		v, _ := strconv.ParseFloat(res[3].(string), 64)
 		val := port.GetResponse{
-			Id:             *res[0].(*int),
-			RetailerId:     *res[1].(*int),
-			Status:         *res[2].(*string),
-			Total:          *res[3].(*float64),
-			PaymentStatus:  *res[4].(*string),
-			DeliveryStatus: *res[5].(*string),
+			Id:             int(res[0].(int64)),
+			RetailerId:     int(res[1].(int64)),
+			Status:         res[2].(string),
+			Total:          v,
+			PaymentStatus:  res[4].(string),
+			DeliveryStatus: res[5].(string),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
-			return port.GetAllResponse{}, nil
+			return port.GetAllResponse{}, err
 		}
 
 		for _, s := range allOrderItems.Items {
@@ -260,7 +295,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, result),
-	).DoStuff()
+	).DoSingleQuery()
 
 	if err != nil {
 		return 0, err
@@ -276,7 +311,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithDB(p.Pool),
 			query_handler.WithQuery(query),
 			query_handler.WithSingleRowResultSet(itemArgs, nil),
-		).DoStuff()
+		).DoSingleQuery()
 
 		if err != nil {
 			return 0, err
@@ -296,7 +331,7 @@ func (p *Postgres) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderS
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 
 	return err
 }
@@ -310,7 +345,7 @@ func (p *Postgres) UpdatePaymentStatus(ctx context.Context, req *port.UpdateOrde
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 
 	return err
 }
@@ -324,7 +359,7 @@ func (p *Postgres) UpdateDeliveryStatus(ctx context.Context, req *port.UpdateOrd
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
 		query_handler.WithSingleRowResultSet(args, nil),
-	).DoStuff()
+	).DoSingleQuery()
 
 	return err
 }
