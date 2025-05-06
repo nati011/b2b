@@ -1083,7 +1083,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		var attributeId int
 
 		query = "SELECT * FROM public.create_product_attribute($1);"
-		productImageArgs := []any{
+		productAttrArgs := []any{
 			key,
 		}
 		pAResult := []any{&attributeId}
@@ -1091,7 +1091,7 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 			query_handler.WithCtx(ctx),
 			query_handler.WithDB(p.db),
 			query_handler.WithQuery(query),
-			query_handler.WithSingleRowResultSet(productImageArgs, pAResult),
+			query_handler.WithSingleRowResultSet(productAttrArgs, pAResult),
 		).DoSingleQuery()
 		if err != nil {
 			switch err {

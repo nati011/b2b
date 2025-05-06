@@ -3,8 +3,9 @@ package configurable_product
 import (
 	"context"
 	"database/sql"
-	"log"
 
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/configurable_product"
 )
 
@@ -21,349 +22,626 @@ func NewPostgres(DB *sql.DB) port.DB {
 func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_configurable_products_by_id($1);"
-
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(
+	args := []any{&id}
+	result := []any{
 		&response.Id,
 		&response.Name,
 		&response.Desc,
 		&response.ExternalId,
-		&response.IsAvailable)
+		&response.IsAvailable}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
 
-	// get images
-	var productImages []string
+	response.Id = *result[0].(*int)
+	response.Name = *result[1].(*string)
+	response.Desc = *result[2].(*string)
+	response.ExternalId = *result[3].(*string)
+	response.IsAvailable = *result[4].(*bool)
+
+	// images
+	//--------------------
+	var imageResponse []string
+	var imageResponseBase string
 	query = "SELECT * FROM public.get_images_by_cp_Id($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, id)
+
+	productImageArgs := []any{id}
+	imagesDest := []any{
+		&imageResponseBase,
+	}
+	imagesResult, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
+	).DoMultiQuery()
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
-
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var productImage string
-		if err := rows.Scan(&productImage); err != nil {
-			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
-		productImages = append(productImages, productImage)
 	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetResponse{}, port.ErrSysUnknown
+	for _, i := range imagesResult {
+		imageResponse = append(imageResponse, i[0].(string))
 	}
-	response.Images = productImages
+	response.Images = imageResponse
+	//--------------------
 
-	// get attribute-values
-	var productAttruteValue = []string{}
+	// attribute-values
+	//--------------------
+	type avProductReq struct {
+		AttributeKey   string
+		AttributeValue string
+	}
+	var productAttrutes = []string{}
+	var attributeValueResponseBase avProductReq
+
 	query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
-	rows, err = p.Pool.QueryContext(ctx, query, id)
+	avArgs := []any{id}
+	avDest := []any{
+		&attributeValueResponseBase.AttributeKey,
+		&attributeValueResponseBase.AttributeValue,
+	}
+
+	avResult, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(avArgs, avDest),
+	).DoMultiQuery()
+
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var attributeName string
-		if err := rows.Scan(&attributeName); err != nil {
-			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
-		productAttruteValue = append(productAttruteValue, attributeName)
 	}
-	response.Attributes = productAttruteValue
+	for _, a := range avResult {
+		productAttrutes = append(productAttrutes, a[0].(string))
+	}
+	response.Attributes = productAttrutes
+	//--------------------
 
-	// get member products
-	var member_productIds []int
+	// member products
+	//--------------------
+	var memberProductIds []int
+	var memberProductBase int
 	query = "SELECT * FROM public.get_all_configurable_product_members($1);"
-	rows, err = p.Pool.QueryContext(ctx, query, id)
+	memberProductArgs := []any{id}
+	memberProductDest := []any{
+		&memberProductBase,
+	}
+
+	memberProductResult, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(memberProductArgs, memberProductDest),
+	).DoMultiQuery()
 	if err != nil {
 		switch err {
-		case sql.ErrNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
-
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var productId int
-		if err := rows.Scan(&productId); err != nil {
-			log.Printf("unable to scan row: %q", err)
 			return port.GetResponse{}, err
 		}
-		member_productIds = append(member_productIds, productId)
 	}
+	for _, i := range memberProductResult {
+		memberProductIds = append(memberProductIds, int(i[0].(int64)))
+	}
+	response.Products = memberProductIds
+	//--------------------
 
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetResponse{}, port.ErrSysUnknown
-	}
-	response.Products = member_productIds
 	return response, nil
 }
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
-	// get all Id
-	var cp_Ids []int
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_configurable_products();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Desc,
+		&responseBase.ExternalId,
+		&responseBase.IsAvailable}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		val := port.GetResponse{
+			Id:          *res[0].(*int),
+			Name:        *res[1].(*string),
+			Desc:        *res[2].(*string),
+			ExternalId:  *res[3].(*string),
+			IsAvailable: *res[4].(*bool),
 		}
+		// images
+		//--------------------
+		var imageResponse []string
+		var imageResponseBase string
+		query = "SELECT * FROM public.get_images_by_cp_Id($1);"
 
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var productId int
-		if err := rows.Scan(&productId); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+		productImageArgs := []any{val.Id}
+		imagesDest := []any{
+			&imageResponseBase,
 		}
-		cp_Ids = append(cp_Ids, productId)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
-	// get member products
-	var cps []port.GetResponse
-	for _, i := range cp_Ids {
-		resp, err := p.Get(ctx, i)
+		imagesResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
+		).DoMultiQuery()
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
 			default:
 				return port.GetAllResponse{}, err
 			}
 		}
-		cps = append(cps, resp)
+		for _, i := range imagesResult {
+			imageResponse = append(imageResponse, i[0].(string))
+		}
+		val.Images = imageResponse
+		//--------------------
+
+		// attribute-values
+		//--------------------
+		type avProductReq struct {
+			AttributeKey   string
+			AttributeValue string
+		}
+		var productAttrutes = []string{}
+		var attributeValueResponseBase avProductReq
+
+		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
+		avArgs := []any{val.Id}
+		avDest := []any{
+			&attributeValueResponseBase.AttributeKey,
+			&attributeValueResponseBase.AttributeValue,
+		}
+
+		avResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(avArgs, avDest),
+		).DoMultiQuery()
+
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, a := range avResult {
+			productAttrutes = append(productAttrutes, a[0].(string))
+		}
+		val.Attributes = productAttrutes
+		//--------------------
+
+		// member products
+		//--------------------
+		var memberProductIds []int
+		var memberProductBase int
+		query = "SELECT * FROM public.get_all_configurable_product_members($1);"
+		memberProductArgs := []any{val.Id}
+		memberProductDest := []any{
+			&memberProductBase,
+		}
+
+		memberProductResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(memberProductArgs, memberProductDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, i := range memberProductResult {
+			memberProductIds = append(memberProductIds, int(i[0].(int64)))
+		}
+		val.Products = memberProductIds
+		response.List = append(response.List, val)
 	}
 
-	if len(cps) == 0 {
+	if len(response.List) == 0 {
 		return port.GetAllResponse{}, port.ErrSysNoRows
 	}
 
-	return port.GetAllResponse{
-		List: cps,
-	}, nil
+	return response, nil
 }
 
 func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
-	// get all Id
-	var cp_Ids []int
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_configurable_products_by_name($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, name)
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Desc,
+		&responseBase.ExternalId,
+		&responseBase.IsAvailable}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		val := port.GetResponse{
+			Id:          *res[0].(*int),
+			Name:        *res[1].(*string),
+			Desc:        *res[2].(*string),
+			ExternalId:  *res[3].(*string),
+			IsAvailable: *res[4].(*bool),
 		}
+		// images
+		//--------------------
+		var imageResponse []string
+		var imageResponseBase string
+		query = "SELECT * FROM public.get_images_by_cp_Id($1);"
 
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var productId int
-		if err := rows.Scan(&productId); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+		productImageArgs := []any{val.Id}
+		imagesDest := []any{
+			&imageResponseBase,
 		}
-		cp_Ids = append(cp_Ids, productId)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
-	// get member products
-	var cps []port.GetResponse
-	for _, i := range cp_Ids {
-		resp, err := p.Get(ctx, i)
+		imagesResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
+		).DoMultiQuery()
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
 			default:
 				return port.GetAllResponse{}, err
 			}
 		}
-		cps = append(cps, resp)
+		for _, i := range imagesResult {
+			imageResponse = append(imageResponse, i[0].(string))
+		}
+		val.Images = imageResponse
+		//--------------------
+
+		// attribute-values
+		//--------------------
+		type avProductReq struct {
+			AttributeKey   string
+			AttributeValue string
+		}
+		var productAttrutes = []string{}
+		var attributeValueResponseBase avProductReq
+
+		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
+		avArgs := []any{val.Id}
+		avDest := []any{
+			&attributeValueResponseBase.AttributeKey,
+			&attributeValueResponseBase.AttributeValue,
+		}
+
+		avResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(avArgs, avDest),
+		).DoMultiQuery()
+
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, a := range avResult {
+			productAttrutes = append(productAttrutes, a[0].(string))
+		}
+		val.Attributes = productAttrutes
+		//--------------------
+
+		// member products
+		//--------------------
+		var memberProductIds []int
+		var memberProductBase int
+		query = "SELECT * FROM public.get_all_configurable_product_members($1);"
+		memberProductArgs := []any{val.Id}
+		memberProductDest := []any{
+			&memberProductBase,
+		}
+
+		memberProductResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(memberProductArgs, memberProductDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, i := range memberProductResult {
+			memberProductIds = append(memberProductIds, int(i[0].(int64)))
+		}
+		val.Products = memberProductIds
+		response.List = append(response.List, val)
 	}
 
-	if len(cps) == 0 {
+	if len(response.List) == 0 {
 		return port.GetAllResponse{}, port.ErrSysNoRows
 	}
 
-	return port.GetAllResponse{
-		List: cps,
-	}, nil
-
+	return response, nil
 }
 
 func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetAllResponse, error) {
-	// get all Id
-	var cp_Ids []int
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_configurable_products_by_ext_id($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, extId)
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Desc,
+		&responseBase.ExternalId,
+		&responseBase.IsAvailable}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		val := port.GetResponse{
+			Id:          *res[0].(*int),
+			Name:        *res[1].(*string),
+			Desc:        *res[2].(*string),
+			ExternalId:  *res[3].(*string),
+			IsAvailable: *res[4].(*bool),
 		}
+		// images
+		//--------------------
+		var imageResponse []string
+		var imageResponseBase string
+		query = "SELECT * FROM public.get_images_by_cp_Id($1);"
 
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var productId int
-		if err := rows.Scan(&productId); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
+		productImageArgs := []any{val.Id}
+		imagesDest := []any{
+			&imageResponseBase,
 		}
-		cp_Ids = append(cp_Ids, productId)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
-	// get member products
-	var cps []port.GetResponse
-	for _, i := range cp_Ids {
-		resp, err := p.Get(ctx, i)
+		imagesResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
+		).DoMultiQuery()
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
 			default:
 				return port.GetAllResponse{}, err
 			}
 		}
-		cps = append(cps, resp)
+		for _, i := range imagesResult {
+			imageResponse = append(imageResponse, i[0].(string))
+		}
+		val.Images = imageResponse
+		//--------------------
+
+		// attribute-values
+		//--------------------
+		type avProductReq struct {
+			AttributeKey   string
+			AttributeValue string
+		}
+		var productAttrutes = []string{}
+		var attributeValueResponseBase avProductReq
+
+		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
+		avArgs := []any{val.Id}
+		avDest := []any{
+			&attributeValueResponseBase.AttributeKey,
+			&attributeValueResponseBase.AttributeValue,
+		}
+
+		avResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(avArgs, avDest),
+		).DoMultiQuery()
+
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, a := range avResult {
+			productAttrutes = append(productAttrutes, a[0].(string))
+		}
+		val.Attributes = productAttrutes
+		//--------------------
+
+		// member products
+		//--------------------
+		var memberProductIds []int
+		var memberProductBase int
+		query = "SELECT * FROM public.get_all_configurable_product_members($1);"
+		memberProductArgs := []any{val.Id}
+		memberProductDest := []any{
+			&memberProductBase,
+		}
+
+		memberProductResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(memberProductArgs, memberProductDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, i := range memberProductResult {
+			memberProductIds = append(memberProductIds, int(i[0].(int64)))
+		}
+		val.Products = memberProductIds
+		response.List = append(response.List, val)
 	}
 
-	if len(cps) == 0 {
+	if len(response.List) == 0 {
 		return port.GetAllResponse{}, port.ErrSysNoRows
 	}
 
-	return port.GetAllResponse{
-		List: cps,
-	}, nil
+	return response, nil
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var configurable_product_id int
 	query := "SELECT * FROM public.create_configurable_product($1, $2, $3);"
 
-	err := p.Pool.QueryRowContext(ctx, query,
+	args := []any{
 		req.Name,
 		req.Desc,
-		req.ExternalId,
-	).Scan(&configurable_product_id)
+		req.ExternalId}
+	result := []any{
+		&configurable_product_id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
 
 	// add images
 	for _, i := range req.Images {
 		query = "SELECT * FROM public.add_image_to_configurable_product($1, $2, $3);"
-
-		_, err = p.Pool.QueryContext(ctx, query,
+		productImageArgs := []any{
 			i,
 			"",
 			configurable_product_id,
-		)
+		}
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(productImageArgs, nil),
+		).DoSingleQuery()
 		if err != nil {
 			switch err {
-			case sql.ErrNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
-				return 0, port.ErrSysUnknown
+				return 0, err
 			}
 		}
 	}
+
 	// create attributes
+	var attributeIds []int
 	for _, v := range req.AttributeKeys {
 		// get attribute id by name and productId
-		var attribute_ids []int
+		var attributeId int
 
 		query = "SELECT * FROM public.get_attribute_id_by_name($1)"
-		rows, err := p.Pool.QueryContext(ctx, query, v)
+		productAttrArgs := []any{
+			v,
+		}
+		pAResult := []any{&attributeId}
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(productAttrArgs, pAResult),
+		).DoSingleQuery()
 		if err != nil {
 			switch err {
-			case sql.ErrNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
-				return 0, port.ErrSysUnknown
-			}
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var attribute_id int
-			if err := rows.Scan(&attribute_id); err != nil {
-				log.Printf("unable to scan row: %q", err)
 				return 0, err
 			}
-			attribute_ids = append(attribute_ids, attribute_id)
 		}
+		attributeIds = append(attributeIds, attributeId)
+	}
 
-		for _, i := range attribute_ids {
-			query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
-			_, err = p.Pool.QueryContext(ctx, query,
-				i,
-				configurable_product_id,
-			)
-			if err != nil {
-				switch err {
-				case sql.ErrNoRows:
-				default:
-					return 0, port.ErrSysUnknown
-				}
+	for _, i := range attributeIds {
+		query = "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
+		cpAttrArgs := []any{
+			i,
+			configurable_product_id,
+		}
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(nil, cpAttrArgs),
+		).DoSingleQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return 0, err
 			}
 		}
-
 	}
 
 	// add configurable product members
 	for _, i := range req.Products {
 		query = "SELECT * FROM public.add_product_to_configurable_product($1, $2);"
-
-		_, err = p.Pool.QueryContext(ctx, query,
+		cpAttrArgs := []any{
 			configurable_product_id,
 			i,
-		)
+		}
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(cpAttrArgs, nil),
+		).DoSingleQuery()
 		if err != nil {
 			switch err {
-			case sql.ErrNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
-				return 0, port.ErrSysUnknown
+				return 0, err
 			}
 		}
 	}
@@ -374,15 +652,18 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_name($1, $2);"
-
-	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Name).Scan(&resourceId)
+	args := []any{
+		req.Id,
+		req.Name}
+	result := []any{&resourceId}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
 	return nil
 }
@@ -390,15 +671,18 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_desc($1, $2);"
-
-	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Desc).Scan(&resourceId)
+	args := []any{
+		req.Id,
+		req.Desc}
+	result := []any{&resourceId}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
 	return nil
 }
@@ -406,15 +690,18 @@ func (p *Postgres) UpdateDesc(ctx context.Context, req *port.UpdateDescRequest) 
 func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExternalIdRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_externalId($1, $2);"
-
-	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.ExternalId).Scan(&resourceId)
+	args := []any{
+		req.Id,
+		req.ExternalId}
+	result := []any{&resourceId}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
 	return nil
 }
@@ -423,14 +710,18 @@ func (p *Postgres) UpdateIsAvailableStatus(ctx context.Context, req *port.Update
 	var resourceId int
 	query := "SELECT * FROM public.update_configurable_product_isAvailable_status($1, $2);"
 
-	err := p.Pool.QueryRowContext(ctx, query, req.Id, req.Status).Scan(&resourceId)
+	args := []any{
+		req.Id,
+		req.Status}
+	result := []any{&resourceId}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
 	return nil
 }
@@ -440,31 +731,36 @@ func (p *Postgres) UpdateProducts(ctx context.Context, req *port.UpdateProductRe
 
 	//remove all products
 	query := "SELECT * FROM public.remove_all_configurable_product_members($1);"
+	args := []any{req.Id}
 
-	_, err := p.Pool.QueryContext(ctx, query, req.Id)
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
 
 	//add product
 	for _, i := range req.ProductIds {
 		query = "SELECT * FROM public.add_product_to_configurable_product($1, $2);"
-
-		_, err = p.Pool.QueryContext(ctx, query,
+		productArgs := []any{
 			req.Id,
 			i,
-		)
+		}
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(productArgs, nil),
+		).DoSingleQuery()
 		if err != nil {
 			switch err {
-			case sql.ErrNoRows:
-				return port.ErrSysNoRows
+			case port_commons.ErrSysNoRows:
 			default:
-				return port.ErrSysUnknown
+				return err
 			}
 		}
 	}
@@ -475,27 +771,37 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 	//remove images
 	query := "SELECT * FROM public.remove_all_configurable_product_images($1);"
 
-	_, err := p.Pool.QueryContext(ctx, query, req.Id)
+	args := []any{req.Id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
 
 	//attach new images
 	for _, i := range req.Images {
 		query := "SELECT * FROM public.add_image_to_configurable_product($1, $2, $3);"
-
-		_, err := p.Pool.QueryContext(ctx, query, i, "", req.Id)
+		productImageArgs := []any{
+			i,
+			"",
+			req.Id,
+		}
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(productImageArgs, nil),
+		).DoSingleQuery()
 		if err != nil {
 			switch err {
-			case sql.ErrNoRows:
-				return port.ErrSysNoRows
+			case port_commons.ErrSysNoRows:
 			default:
-				return port.ErrSysUnknown
+				return err
 			}
 		}
 	}
@@ -505,28 +811,37 @@ func (p *Postgres) UpdateImages(ctx context.Context, req *port.UpdateImagesReque
 func (p *Postgres) UpdateAttributes(ctx context.Context, req *port.UpdateAttributes) error {
 	//remove attributes
 	query := "SELECT * FROM public.remove_all_configurable_product_attributes($1);"
-
-	_, err := p.Pool.QueryContext(ctx, query, req.Id)
+	args := []any{req.Id}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+		return err
 	}
+
 	//attach new attributes
 	for _, i := range req.AttributeKeys {
 		query := "SELECT * FROM public.add_attribute_to_configurable_product($1, $2);"
 
 		for key := range i {
-			_, err := p.Pool.QueryContext(ctx, query, key, req.Id)
+			productImageArgs := []any{
+				key,
+				req.Id,
+			}
+			err := query_handler.NewQuery(
+				query_handler.WithCtx(ctx),
+				query_handler.WithDB(p.Pool),
+				query_handler.WithQuery(query),
+				query_handler.WithSingleRowResultSet(productImageArgs, nil),
+			).DoSingleQuery()
 			if err != nil {
 				switch err {
-				case sql.ErrNoRows:
-					return port.ErrSysNoRows
+				case port_commons.ErrSysNoRows:
 				default:
-					return port.ErrSysUnknown
+					return err
 				}
 			}
 		}
