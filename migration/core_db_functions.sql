@@ -2025,7 +2025,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_productId(
     i_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255), blur_hash VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255), image_blur_hash VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2330,7 +2330,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_images_by_cp_Id(
     i_configurable_product_id INT
 )
-RETURNS TABLE(image_url VARCHAR(255), blur_hash VARCHAR(255))
+RETURNS TABLE(image_url VARCHAR(255), image_blur_hash VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
