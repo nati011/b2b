@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"errors"
+	"log"
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
@@ -27,7 +28,7 @@ var (
 
 // order status
 const (
-	CANCELD_STATUS   = "CANCELED"
+	CANCELED_STATUS  = "CANCELED"
 	PENDING_STATUS   = "PENDING"
 	COMPLETED_STATUS = "COMPLETED"
 )
@@ -207,13 +208,17 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		return 0, ErrUnknown
 	}
 
-	//TODO
-	/*
-		reserve stock
-	*/
+	//reserve stock
+	for _, i := range req.Items {
+		if err = o.ProductService.Reserve(ctx, i.ProductId, i.Quantity); err != nil {
+			// o.InvoiceService.Cancel(ctx, order_id)
+			o.Cancel(ctx, order_id)
+		}
+	}
 
-	// o.InvoiceService.Cancel(ctxm order_id)
+	// o.InvoiceService.Cancel(ctx, order_id)
 	// o.Cancel(ctx, order_id)
+	// o.ReserveStpc
 
 	//TODO
 	/*
@@ -240,13 +245,13 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	}
 
 	//check if already given status
-	if got.Status == CANCELD_STATUS {
+	if got.Status == CANCELED_STATUS {
 		return ErrAlreadyCanceled
 	}
 
 	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
 		Id:     id,
-		Status: CANCELD_STATUS,
+		Status: CANCELED_STATUS,
 	})
 	if err != nil {
 		switch err {
@@ -427,7 +432,16 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 		}
 	}
 
-	//TODO: reserve stock
+	switch req.Status {
+	case CANCELED_STATUS:
+		//free reserved stock
+		for _, item := range resp.Items {
+			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
+			if err != nil {
+				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
+			}
+		}
+	}
 
 	return resp.Id, nil
 }
@@ -456,9 +470,6 @@ func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateReque
 		}
 	}
 
-	//TODO: reserve stock
-	// deplete stock if order status is COMPELETED
-
 	return resp.Id, nil
 }
 
@@ -486,7 +497,16 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 		}
 	}
 
-	// deplete stock if order status is COMPELETED
+	switch req.DeliveryStatus {
+	case DELIVERY_COMPLETED_STATUS:
+		//free reserved stock
+		for _, item := range resp.Items {
+			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
+			if err != nil {
+				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
+			}
+		}
+	}
 
 	return resp.Id, nil
 }

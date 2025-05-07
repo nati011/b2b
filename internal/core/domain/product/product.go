@@ -11,20 +11,22 @@ import (
 )
 
 var (
-	ErrEmptyGetContent              = errors.New("oopsy, no product found")
-	ErrAlreadyActive                = errors.New("oopsy, product already active")
-	ErrAlreadyInactive              = errors.New("oopsy, product already inactive")
-	ErrIdNotFound                   = errors.New("oopsy, id not found")
-	ErrNameNotSupplied              = errors.New("oopsy, name is not supplied")
-	ErrDescNotSupplied              = errors.New("oopsy, description is not supplied")
-	ErrNameDuplicate                = errors.New("oopsy, name duplicate")
-	ErrImagesMustBeAtleastTwo       = errors.New("oopsy, images must be atleast two")
-	ErrPriceNotSupplied             = errors.New("oopsy, price is not supplied")
-	ErrAttributeValuesCannotBeEmpty = errors.New("oopsy, attribute values cannot be empty")
-	ErrUnknown                      = errors.New("oopsy, unkown error")
-	ErrCategoryNotFound             = errors.New("oopsy, category not found")
-	ErrPriceCannotBeNegative        = errors.New("oopsy, price cannot be negative")
-	ErrStockUnavailable             = errors.New("oopsy, requested quantity greater than stock")
+	ErrEmptyGetContent                                        = errors.New("oopsy, no product found")
+	ErrAlreadyActive                                          = errors.New("oopsy, product already active")
+	ErrAlreadyInactive                                        = errors.New("oopsy, product already inactive")
+	ErrIdNotFound                                             = errors.New("oopsy, id not found")
+	ErrNameNotSupplied                                        = errors.New("oopsy, name is not supplied")
+	ErrDescNotSupplied                                        = errors.New("oopsy, description is not supplied")
+	ErrNameDuplicate                                          = errors.New("oopsy, name duplicate")
+	ErrImagesMustBeAtleastTwo                                 = errors.New("oopsy, images must be atleast two")
+	ErrPriceNotSupplied                                       = errors.New("oopsy, price is not supplied")
+	ErrAttributeValuesCannotBeEmpty                           = errors.New("oopsy, attribute values cannot be empty")
+	ErrUnknown                                                = errors.New("oopsy, unkown error")
+	ErrCategoryNotFound                                       = errors.New("oopsy, category not found")
+	ErrPriceCannotBeNegative                                  = errors.New("oopsy, price cannot be negative")
+	ErrStockUnavailable                                       = errors.New("oopsy, requested quantity greater than stock")
+	ErrStockReservationQtyMustBeLessThanOrEqualToAvailableQty = errors.New("oopsy, reserved quantity cannot be more than available quantity")
+	ErrFreeReservationQtyMustBeLessThanOrEqualToReservedQty   = errors.New("oopsy, free reservation quantity cannot be more than reserved quantity")
 )
 
 type Image struct {
@@ -107,6 +109,8 @@ type Provider interface {
 	Activate(ctx context.Context, id int) error
 	Deactivate(ctx context.Context, id int) error
 	IsActive(ctx context.Context, id int) (bool, error)
+	Reserve(ctx context.Context, id int, qty int) error
+	FreeReservation(ctx context.Context, id int, qty int) error
 }
 
 type ProductService struct {
@@ -770,4 +774,53 @@ func (p *ProductService) IsActive(ctx context.Context, id int) (bool, error) {
 		return false, ErrIdNotFound
 	}
 	return resp.IsActive, nil
+}
+
+func (p *ProductService) Reserve(ctx context.Context, id int, qty int) error {
+	//validate Id
+	product, err := p.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+	//validate if qty is less than or equal to available qty
+	if product.AvailableStock <= qty {
+		return ErrStockReservationQtyMustBeLessThanOrEqualToAvailableQty
+	}
+
+	err = p.DB.Reserve(ctx, &port.ReserveRequest{
+		Id:     id,
+		Amount: qty,
+	})
+	if err != nil {
+		return ErrUnknown
+	}
+	return nil
+}
+
+func (p *ProductService) FreeReservation(ctx context.Context, id int, qty int) error {
+	//validate Id
+	product, err := p.Get(ctx, id)
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	//validate if qty is less than or equal to reserved qty
+	if qty > product.ReservedStock {
+		return ErrFreeReservationQtyMustBeLessThanOrEqualToReservedQty
+	}
+	err = p.DB.FreeReservation(ctx, &port.FreeReservedRequest{
+		Id:     id,
+		Amount: qty,
+	})
+	if err != nil {
+		return ErrIdNotFound
+	}
+	return nil
 }
