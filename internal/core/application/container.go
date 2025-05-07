@@ -38,8 +38,6 @@ import (
 /* Dependency Tree */
 
 // Container
-// ├── AuthService
-// |
 // ├── EmailService
 // │   └── RenderService
 // │       └── TemplateService
@@ -53,12 +51,20 @@ import (
 // |   └── UserService
 // │    	└── RoleService
 // │        	└── ResourceService
+// │
 // ├── DistributorService
-// 	   └── UserService
-// │    	└── RoleService
-// │        	└── ResourceService
+// │	└── UserService
+// │
+// ├── UserService
+// │	└── RoleService
+// │
+// ├── UserService
+// │	└── AuthService
+// │
+// ├── RoleService
+// │    └── ResourceService
 // |
-// ├── SMSService
+// ├── SMS-Service
 
 type Container struct {
 	db                         *sql.DB
@@ -84,7 +90,6 @@ type Container struct {
 func NewContainer(
 	//database
 	db *sql.DB,
-
 	//auth
 	keycloakInstanceURL string,
 	keycloakUsername string,
@@ -93,12 +98,11 @@ func NewContainer(
 	keycloakApplicationRealm string,
 	keycloakClientId string,
 	keycloakClientSecret string,
-
 	email_address,
 	smtp_port string,
-
+	//mobile client version
 	MinMobileClientCompatibleVersion string,
-
+	//baseurl
 	baseUrl string,
 	frontendUrl string) *Container {
 
@@ -155,6 +159,8 @@ func (m *Container) InitResourceService() {
 }
 
 func (m *Container) InitRoleService() {
+	//create superAdminRole
+	//grant Access to all resources
 	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, &m.Pagination), m.ResourceService)
 }
 
@@ -171,6 +177,7 @@ func (m *Container) InitTransactionService() {
 }
 
 func (m *Container) InitUserService() {
+	//create user with superadmin role
 	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, &m.Pagination), m.RoleService, m.AuthService)
 }
 
