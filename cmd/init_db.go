@@ -31,14 +31,21 @@ func InitDB(connectionString string, file_location string) *sql.DB {
 	err = runMigration(db, file_location+`/core_db.sql`)
 
 	if err != nil {
-		log.Fatalf("Error running migration: %v", err)
+		log.Fatalf("Error running ddl migration: %v", err)
 	}
 
 	// functions
 	err = runMigration(db, file_location+"/core_db_functions.sql")
 	if err != nil {
-		log.Fatalf("Error running migration: %v", err)
+		log.Fatalf("Error running function migration: %v", err)
 	}
+
+	// seed
+	err = runMigration(db, file_location+"/core_init_migration_script.sql")
+	if err != nil {
+		log.Fatalf("Error running seed migration: %v", err)
+	}
+
 	return db
 }
 
