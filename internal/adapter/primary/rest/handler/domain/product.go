@@ -30,38 +30,9 @@ type CreateProductRequest struct {
 	CategoryId    []int             `json:"category_id"`
 }
 
-type ProductResponse struct {
-	Id             int               `json:"id"`
-	Name           string            `json:"name"`
-	Desc           string            `json:"desc"`
-	Price          float64           `json:"price"`
-	Stock          int               `json:"stock"`
-	AvailableStock int               `json:"available_stock"`
-	ReservedStock  int               `json:"reserved_stock"`
-	ExternalID     string            `json:"external_id"`
-	Attributes     map[string]string `json:"attributes"`
-	Images         []Image           `json:"images"`
-	DistributorId  int               `json:"distributor_id"`
-	CategoryId     []int             `json:"categories"`
-	IsActive       bool              `json:"is_active"`
-}
-
 type ConfigurableAttributesResponse struct {
 	ProductId      int    `json:"product_id"`
 	AttributeValue string `json:"attribute_value"`
-}
-
-type GetProductResponse struct {
-	Name                   string                                      `json:"name"`
-	Desc                   string                                      `json:"desc"`
-	IsActive               bool                                        `json:"is_active"`
-	Images                 []string                                    `json:"images"`
-	ConfigurableAttributes map[string][]ConfigurableAttributesResponse `json:"configurable_attributes"`
-	Configurables          []ProductResponse                           `json:"configurables"`
-}
-
-type GetAllProductResponse struct {
-	List []GetProductResponse `json:"products"`
 }
 
 type GetProductByParamRequest struct {
