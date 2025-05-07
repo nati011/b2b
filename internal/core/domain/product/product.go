@@ -631,6 +631,9 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 		}
 
 		images, err := generateBlurHash(req.Images)
+		if err != nil {
+			return 0, ErrUnknown
+		}
 
 		err = p.DB.UpdateImages(ctx, &port.UpdateImagesRequest{
 			Id:     req.Id,
