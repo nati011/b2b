@@ -285,6 +285,7 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestBody.Username = requestBody.Phone
 	id, err := p.service.Create(r.Context(), (*retailer.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
