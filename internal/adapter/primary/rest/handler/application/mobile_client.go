@@ -24,7 +24,7 @@ func (m *MobileClientHandler) Init(applicationServices *application_core.Contain
 }
 
 func (m *MobileClientHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/minimumCompatibleVersion", m.CheckminimumCompatibleVersion)
+	mux.HandleFunc("GET /api/v1/minCompatibleClientVersion", m.CheckminimumCompatibleVersion)
 
 }
 
