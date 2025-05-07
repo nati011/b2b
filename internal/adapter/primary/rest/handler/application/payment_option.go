@@ -85,6 +85,8 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		if err != nil {
 			switch err {
 			case payment_partner.ErrIdNotFound:
+				util.RequestErrorResponse(w, err)
+				return
 			default:
 				util.ServerErrorResponse(w, err)
 				return
@@ -92,6 +94,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"payment_option": GetPaymentPartnerResponse(resp)})
 	} else if paramNameValue != "" || paramStatusValue != "" {
+		var response GetAllPaymentPartnerResponse
 		params := &payment_partner.GetByParamRequest{
 			Name:   paramNameValue,
 			Status: paramStatusValue,
@@ -103,20 +106,24 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 			case payment_partner.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
+			case payment_partner.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, response)
+				return
 			default:
 				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		var response GetAllPaymentPartnerResponse
+
 		for _, i := range resp.List {
 			response.List = append(response.List, GetPaymentPartnerResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
+		util.OperationSuccessResponse(w, response)
 	} else {
 		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
+			case payment_partner.ErrEmptyGetContent:
 			default:
 				util.ServerErrorResponse(w, err)
 				return
@@ -126,7 +133,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		for _, i := range resp.List {
 			response.List = append(response.List, GetPaymentPartnerResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }
 
@@ -134,8 +141,11 @@ func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, 
 	resp, err := p.service.GetActive(r.Context())
 	if err != nil {
 		switch err {
-		default:
+		case payment_partner.ErrUnknown:
 			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
