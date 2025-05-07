@@ -17,10 +17,6 @@ import (
 func main() {
 	var cfg config.Config
 
-	// Base url
-	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
-
 	//keycloak
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
@@ -40,8 +36,12 @@ func main() {
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 
-	//min compatible version
-	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_cimpatible_client_version", "1.0.0", "Environment (development|staging|production)")
+	//min mobile client compatible version
+	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Environment (development|staging|production)")
+
+	// Base url
+	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
 
 	flag.Parse()
 	validateFlags(cfg)
@@ -66,6 +66,8 @@ func main() {
 		cfg.SMTP,
 		cfg.KeycloakClientSecret,
 		cfg.MinMobileClientCompatibleVersion,
+		cfg.BaseUrl,
+		cfg.FrontendUrl,
 	)
 
 	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
