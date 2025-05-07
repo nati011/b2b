@@ -215,8 +215,8 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 		t.Fatalf("Failed to get err: %v", err)
 	}
 
-	if got.Status != CANCELD_STATUS {
-		t.Errorf("Expected status: %v Got: %v", CANCELD_STATUS, got.Status)
+	if got.Status != CANCELED_STATUS {
+		t.Errorf("Expected status: %v Got: %v", CANCELED_STATUS, got.Status)
 	}
 }
 
