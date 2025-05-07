@@ -16,6 +16,8 @@ func PaymentPartnerFactory(partnerName string) (port.Provider, error) {
 		return Talari{}, nil
 	case "chapa":
 		return Chapa{}, nil
+	case "payOnDelivery":
+		return PayOnDelivery{}, nil
 	default:
 		return nil, ErrSysInstaceNotFound
 	}
