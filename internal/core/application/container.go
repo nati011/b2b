@@ -17,6 +17,7 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/email"
+	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/resource"
@@ -72,6 +73,7 @@ type Container struct {
 	TransactionService    transaction.Provider
 	UserService           user.Provider
 	Pagination            config.Pagination
+	MobileClient          mobileclient.Provider
 }
 
 func NewContainer(
@@ -84,7 +86,9 @@ func NewContainer(
 	keycloakClientId string,
 	email_address,
 	smtp_port string,
-	keycloakClientSecret string) *Container {
+	keycloakClientSecret string,
+
+	MinMobileClientCompatibleVersion string) *Container {
 
 	container := Container{}
 	container.db = db
@@ -103,10 +107,16 @@ func NewContainer(
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitUserService()
+	container.InitMobileClientService(MinMobileClientCompatibleVersion)
 
 	// container.InitSMSService()
 
 	return &container
+}
+
+func (m *Container) InitMobileClientService(minMobileClientCompatibleVersion string) {
+	m.MobileClient = mobileclient.NewMobileClientProvider(
+		minMobileClientCompatibleVersion)
 }
 
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
