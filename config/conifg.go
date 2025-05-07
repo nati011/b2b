@@ -26,4 +26,7 @@ type Config struct {
 
 	// payment partner
 	ChapaSecretKey string
+
+	//mobile client version
+	MinMobileClientCompatibleVersion string
 }
