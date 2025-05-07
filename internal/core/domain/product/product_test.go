@@ -986,7 +986,7 @@ func Test_dispatch_happyPath(t *testing.T) {
 		t.Fatalf("Failed to get product")
 	}
 
-	wantStock := 2
+	wantStock := 0
 	if got.Stock != wantStock {
 		t.Errorf("Expected stock: %v Got stock: %v", wantStock, got.Stock)
 	}
@@ -1337,9 +1337,6 @@ func Test_Reserve_unhappyPath(t *testing.T) {
 
 		reserved_stock := 50
 		err = container.ProductService.Reserve(ctx, 9999, reserved_stock)
-		if err != nil {
-			t.Fatalf("Failed to reserve stock err: %v", err)
-		}
 		wantErr := ErrIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
@@ -1376,9 +1373,10 @@ func Test_Reserve_unhappyPath(t *testing.T) {
 			t.Fatalf("Failed to recieveGoods err: %v", err)
 		}
 
-		err = container.ProductService.Reserve(ctx, 9999, 100000)
-		if err != nil {
-			t.Fatalf("Failed to reserve stock err: %v", err)
+		err = container.ProductService.Reserve(ctx, id, 100000)
+		wantErr := ErrStockReservationQtyMustBeLessThanOrEqualToAvailableQty
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
 }
