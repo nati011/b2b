@@ -15,6 +15,7 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	checkout "b2b.nati011.github.com/internal/core/application/checkout"
 	payment_verification "b2b.nati011.github.com/internal/core/application/payment_verification"
+	"b2b.nati011.github.com/internal/core/domain/catalogue"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -30,6 +31,10 @@ import (
 // ├── CategoryService
 // │   └── ProductService
 // │     └── ConfigurableProductService
+// │
+// ├──── ProductService
+// │ └── ConfigurableProductService
+// │   		└── CatalogueService
 // │
 // ├── InvoiceService
 // │   └── OrderService
@@ -53,8 +58,11 @@ type Container struct {
 	PaymentVerificationService payment_verification.Provider
 	CheckoutService            checkout.Provider
 	Pagination                 config.Pagination
-	FrontendURL                string
-	BaseURL                    string
+	CatalogueService           catalogue.Provider
+
+	//REMOVE ME FROM HERE
+	FrontendURL string
+	BaseURL     string
 }
 
 func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
@@ -79,6 +87,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitPaymentVerificationService()
 	container.InitCheckoutService()
 	container.InitOrderService()
+	container.InitCatalogueService()
 	return &container
 }
 
@@ -88,6 +97,10 @@ func (m *Container) InitPagination() {
 
 func (m *Container) InitCategoryService() {
 	m.CategoryService = category.NewCategory(category_db_port.NewPostgres(m.db))
+}
+
+func (m *Container) InitCatalogueService() {
+	m.CatalogueService = catalogue.NewCatalogueService(m.ProductService, m.ConfigurableProductService)
 }
 
 func (m *Container) InitProductService() {

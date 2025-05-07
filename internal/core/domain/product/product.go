@@ -161,6 +161,7 @@ func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, e
 		}
 	}
 
+	// FIXME: optimize, perhaps relegate operation to frontend
 	images, err := generateBlurHash(req.Images)
 	if err != nil {
 		return 0, err
