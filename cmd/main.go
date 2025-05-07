@@ -46,7 +46,7 @@ func main() {
 	flag.Parse()
 	validateFlags(cfg)
 
-	db_pool := InitDB(cfg.CoreDBConnectionString, cfg.FileLocation)
+	db_pool := InitDB(&cfg)
 
 	//for testing purposes
 	InitAuth(&cfg)

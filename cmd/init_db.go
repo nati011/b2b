@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"b2b.nati011.github.com/config"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
@@ -17,8 +18,8 @@ var (
 	ErrFailedToConnectDB         = errors.New("oopsy, failed to connect with db")
 )
 
-func InitDB(connectionString string, file_location string) *sql.DB {
-	db, err := sql.Open("pgx", connectionString)
+func InitDB(cfg *config.Config) *sql.DB {
+	db, err := sql.Open("pgx", cfg.CoreDBConnectionString)
 	if err != nil {
 		log.Panic(err.Error())
 	}
@@ -27,8 +28,45 @@ func InitDB(connectionString string, file_location string) *sql.DB {
 		log.Panic(err.Error())
 	}
 
+	switch cfg.Env {
+	case "development":
+		InitDBDevelopment(db, cfg.FileLocation, cfg)
+	case "staging":
+		InitDBStaging(db, cfg.FileLocation, cfg)
+	case "production":
+		InitDBProduction(db, cfg.FileLocation, cfg)
+	}
+
+	return db
+}
+
+func InitDBDevelopment(db *sql.DB, file_location string, cfg *config.Config) {
 	// ddl
-	// err = runMigration(db, file_location+`/core_db.sql`)
+	err := runMigration(db, file_location+`/core_db.sql`)
+
+	if err != nil {
+		log.Fatalf("Error running ddl migration: %v", err)
+	}
+
+	// functions
+	err = runMigration(db, file_location+"/core_db_functions.sql")
+	if err != nil {
+		log.Fatalf("Error running function migration: %v", err)
+	}
+
+	// seed
+	err = runMigration(db, file_location+"/core_init_migration_script.sql")
+	if err != nil {
+		log.Fatalf("Error running seed migration: %v", err)
+	}
+}
+
+func InitDBStaging(db *sql.DB, file_location string, cfg *config.Config) {
+}
+
+func InitDBProduction(db *sql.DB, file_location string, cfg *config.Config) {
+	// // ddl
+	// err := runMigration(db, file_location+`/core_db.sql`)
 
 	// if err != nil {
 	// 	log.Fatalf("Error running ddl migration: %v", err)
@@ -45,8 +83,6 @@ func InitDB(connectionString string, file_location string) *sql.DB {
 	// if err != nil {
 	// 	log.Fatalf("Error running seed migration: %v", err)
 	// }
-
-	return db
 }
 
 func runMigration(db *sql.DB, filename string) error {
