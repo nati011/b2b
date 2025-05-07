@@ -116,7 +116,85 @@ func Test_Reserve_Stock_Upon_order_creation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to fetch product err%v", err)
 		}
-		if product.Stock != wantAvailableStock {
+		if product.AvailableStock != wantAvailableStock {
+			t.Errorf("Expected stock: %v Got stock %v", wantAvailableStock, product.Stock)
+		}
+	})
+}
+
+func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
+	t.Run("delivered", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		orderQty := 1
+		in := &order.PlaceRequest{
+			RetailerId: productId,
+			Items: []order.Item{
+				{
+					ProductId: productId,
+					Quantity:  orderQty},
+			},
+			PaymentPartnerId: paymentPartnerId,
+		}
+		product, err := container.ProductService.Get(ctx, productId)
+		if err != nil {
+			t.Fatalf("Failed to fetch product err%v", err)
+		}
+		wantAvailableStock := product.AvailableStock
+
+		order_id, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err%v", err)
+		}
+
+		container.OrderService.UpdateDeliveryStatus(ctx, &order.UpdateRequest{
+			Id:             order_id,
+			DeliveryStatus: order.DELIVERY_COMPLETED_STATUS,
+		})
+
+		product, err = container.ProductService.Get(ctx, productId)
+		if err != nil {
+			t.Fatalf("Failed to fetch product err%v", err)
+		}
+		if product.AvailableStock != wantAvailableStock {
+			t.Errorf("Expected stock: %v Got stock %v", wantAvailableStock, product.AvailableStock)
+		}
+	})
+
+	t.Run("canceled", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		orderQty := 1
+		in := &order.PlaceRequest{
+			RetailerId: productId,
+			Items: []order.Item{
+				{
+					ProductId: productId,
+					Quantity:  orderQty},
+			},
+			PaymentPartnerId: paymentPartnerId,
+		}
+		product, err := container.ProductService.Get(ctx, productId)
+		if err != nil {
+			t.Fatalf("Failed to fetch product err%v", err)
+		}
+		wantAvailableStock := product.AvailableStock
+
+		order_id, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err%v", err)
+		}
+
+		container.OrderService.UpdateStatus(ctx, &order.UpdateRequest{
+			Id:     order_id,
+			Status: order.CANCELED_STATUS,
+		})
+
+		product, err = container.ProductService.Get(ctx, productId)
+		if err != nil {
+			t.Fatalf("Failed to fetch product err%v", err)
+		}
+		if product.AvailableStock != wantAvailableStock {
 			t.Errorf("Expected stock: %v Got stock %v", wantAvailableStock, product.Stock)
 		}
 	})
@@ -131,7 +209,7 @@ func Test_Check_Stock_Availability_before_order_creation(t *testing.T) {
 			Items: []order.Item{
 				{
 					ProductId: productId,
-					Quantity:  10},
+					Quantity:  1000},
 			},
 			PaymentPartnerId: paymentPartnerId,
 		}
