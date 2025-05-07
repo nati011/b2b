@@ -576,6 +576,8 @@ func (p *ProductService) Reserve(ctx context.Context, id int, qty int) error {
 	product, err := p.Get(ctx, id)
 	if err != nil {
 		switch err {
+		case ErrIdNotFound:
+			return err
 		default:
 			return ErrUnknown
 		}
