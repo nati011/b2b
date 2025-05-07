@@ -152,7 +152,7 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		Distributor_Id: typedParamId,
 		FirstName:      requestBody.FirstName,
 		LastName:       requestBody.LastName,
-		Username:       requestBody.Username,
+		Username:       requestBody.Phone,
 		Email:          requestBody.Email,
 		Phone:          requestBody.Phone,
 	})
@@ -316,6 +316,8 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 		util.RequestErrorResponse(w, err)
 		return
 	}
+
+	requestBody.Username = requestBody.Phone
 	id, err := de.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
