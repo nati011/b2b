@@ -419,7 +419,7 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 			return 0, ErrUnknown
 		}
 	}
-	previous_updated_status := resp.Status
+
 	//update
 	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
 		Id:     req.Id,
@@ -436,14 +436,9 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 	case CANCELED_STATUS:
 		//free reserved stock
 		for _, item := range resp.Items {
-			log.Printf("failed to free reserved stock")
 			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
-			//rollback
 			if err != nil {
-				o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
-					Id:     req.Id,
-					Status: previous_updated_status,
-				})
+				log.Printf("failed to free reserved stock")
 			}
 		}
 	}
