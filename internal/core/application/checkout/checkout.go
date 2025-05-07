@@ -81,7 +81,20 @@ func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentR
 }
 
 func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
+	paymentPartner, err := p.paymentPartner.Get(ctx, req.PaymentPartnerId)
+	if err != nil {
+		switch err {
+		case partner.ErrIdNotFound:
+			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+		default:
+			return CheckoutResponse{}, ErrUnknown
+		}
+	}
+	if paymentPartner.Status != partner.ACTIVE_STATUS {
+		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+	}
+
+	paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
 		switch err {
 		case partner.ErrIdNotFound:
@@ -109,7 +122,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		Amount:         req.Amount,
 		TransactionRef: transaction_ref,
 		PartnerUrl:     paymentPartner.BaseURL,
-		PartnerSecret:  paymentPartner.Secret,
+		PartnerSecret:  paymentPartnerSecret.Secret,
 		BaseUrl:        p.baseUrl,
 		ReturnUrl:      p.frontendUrl,
 	}

@@ -102,7 +102,7 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
 		Name:    req.Name,
 		Icon:    req.Icon,
-		Status:  INACTIVE_STATUS,
+		Status:  ACTIVE_STATUS,
 		BaseURL: req.BaseURL,
 		Secret:  req.Secret,
 	})
