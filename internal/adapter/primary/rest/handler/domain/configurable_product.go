@@ -150,8 +150,12 @@ func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWri
 		configurable_products, err := cp.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
-			default:
+			case configurable_product.ErrEmptyGetContent:
+			case configurable_product.ErrUnknown:
 				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
