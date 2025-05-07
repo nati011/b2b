@@ -101,6 +101,16 @@ type DispatchRequest struct {
 	Amount int
 }
 
+type ReserveRequest struct {
+	Id     int
+	Amount int
+}
+
+type FreeReservedRequest struct {
+	Id     int
+	Amount int
+}
+
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
@@ -122,6 +132,8 @@ type Writer interface {
 	UpdateCategoryId(ctx context.Context, req *UpdateCategoryIdRequest) error
 	GoodsReceiving(ctx context.Context, req *GoodsReceivingRequest) error
 	Dispatch(ctx context.Context, req *DispatchRequest) error
+	Reserve(ctx context.Context, req *ReserveRequest) error
+	FreeReservation(ctx context.Context, req *FreeReservedRequest) error
 }
 
 type DB interface {
