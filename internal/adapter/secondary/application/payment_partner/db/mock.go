@@ -141,6 +141,7 @@ func (m *Mock) UpdateStatus(ctx context.Context, id int, status string) (int, er
 				Status:   status,
 				Icon:     i.Icon,
 				base_url: i.base_url,
+				Secret:   i.Secret,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockPartner{
@@ -149,6 +150,7 @@ func (m *Mock) UpdateStatus(ctx context.Context, id int, status string) (int, er
 				Status:   i.Status,
 				Icon:     i.Icon,
 				base_url: i.base_url,
+				Secret:   i.Secret,
 			})
 		}
 
@@ -169,6 +171,7 @@ func (m *Mock) UpdateName(ctx context.Context, id int, name string) (int, error)
 				Status:   i.Status,
 				Icon:     i.Icon,
 				base_url: i.base_url,
+				Secret:   i.Secret,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockPartner{
@@ -177,6 +180,7 @@ func (m *Mock) UpdateName(ctx context.Context, id int, name string) (int, error)
 				Status:   i.Status,
 				Icon:     i.Icon,
 				base_url: i.base_url,
+				Secret:   i.Secret,
 			})
 		}
 
@@ -195,6 +199,7 @@ func (m *Mock) Delete(ctx context.Context, id int) error {
 				Status:   i.Status,
 				Icon:     i.Icon,
 				base_url: i.base_url,
+				Secret:   i.Secret,
 			})
 		}
 	}

@@ -73,12 +73,18 @@ func generateBlurHash(images []string) ([]port.Image, error) {
 	for _, value := range images {
 		res, err := http.Get(value)
 		if err != nil {
+			log.Printf("failed to genrate bluhash err: %v", err)
 			return []port.Image{}, ErrUnknown
 		}
 		imageFile := res.Body
 		loadedImage, _, err := image.Decode(imageFile)
-		str, _ := blurhash.Encode(4, 3, loadedImage)
 		if err != nil {
+			log.Printf("failed to genrate bluhash err: %v", err)
+			return []port.Image{}, ErrUnknown
+		}
+		str, err := blurhash.Encode(4, 3, loadedImage)
+		if err != nil {
+			log.Printf("failed to genrate bluhash err: %v", err)
 			return []port.Image{}, ErrUnknown
 		}
 		image := port.Image{
