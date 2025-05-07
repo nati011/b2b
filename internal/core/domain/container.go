@@ -29,11 +29,15 @@ import (
 // Container
 // ├── CategoryService
 // │   └── ProductService
-// │     └── ConfigurableProductService
 // │
-// ├──── ProductService
-// │ └── ConfigurableProductService
-// │   		└── CatalogueService
+// ├── ConfigurableProductService
+// │	└── ProductService
+// │
+// ├──── CatalogueService
+// │   	 └── ProductService
+// │
+// ├──── ConfigurableProductService
+// │   	 └── CatalogueService
 // │
 // ├── InvoiceService
 // │   └── OrderService
