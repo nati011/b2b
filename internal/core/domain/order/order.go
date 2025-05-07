@@ -438,7 +438,7 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (in
 		for _, item := range resp.Items {
 			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
 			if err != nil {
-				log.Printf("failed to free reserved stock")
+				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
 			}
 		}
 	}
@@ -501,7 +501,10 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 	case DELIVERY_COMPLETED_STATUS:
 		//free reserved stock
 		for _, item := range resp.Items {
-			o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
+			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
+			if err != nil {
+				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
+			}
 		}
 	}
 
