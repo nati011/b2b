@@ -31,17 +31,19 @@ type CreateProductRequest struct {
 }
 
 type ProductResponse struct {
-	Id            int               `json:"id"`
-	Name          string            `json:"name"`
-	Desc          string            `json:"desc"`
-	Price         float64           `json:"price"`
-	Stock         int               `json:"stock"`
-	ExternalID    string            `json:"external_id"`
-	Attributes    map[string]string `json:"attributes"`
-	Images        []string          `json:"images"`
-	DistributorId int               `json:"distributor_id"`
-	CategoryId    []int             `json:"categories"`
-	IsActive      bool              `json:"is_active"`
+	Id             int               `json:"id"`
+	Name           string            `json:"name"`
+	Desc           string            `json:"desc"`
+	Price          float64           `json:"price"`
+	Stock          int               `json:"stock"`
+	AvailableStock int               `json:"available_stock"`
+	ReservedStock  int               `json:"reserved_stock"`
+	ExternalID     string            `json:"external_id"`
+	Attributes     map[string]string `json:"attributes"`
+	Images         []string          `json:"images"`
+	DistributorId  int               `json:"distributor_id"`
+	CategoryId     []int             `json:"categories"`
+	IsActive       bool              `json:"is_active"`
 }
 
 type ConfigurableAttributesResponse struct {
@@ -148,7 +150,21 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"product": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"product": ProductResponse{
+			Id:             resp.Id,
+			Name:           resp.Name,
+			Desc:           resp.Desc,
+			Price:          resp.Price,
+			Stock:          resp.Stock,
+			AvailableStock: resp.AvailableStock,
+			ReservedStock:  resp.ReservedStock,
+			ExternalID:     resp.ExternalID,
+			Attributes:     resp.Attributes,
+			Images:         resp.Images,
+			DistributorId:  resp.DistributorId,
+			CategoryId:     resp.CategoryId,
+			IsActive:       resp.IsActive,
+		}})
 
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
