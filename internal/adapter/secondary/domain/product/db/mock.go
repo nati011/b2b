@@ -558,7 +558,7 @@ func (m *Mock) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingReque
 				},
 			)
 		} else {
-			resp = append(m.products,
+			resp = append(resp,
 				MockProduct(i),
 			)
 		}
@@ -571,7 +571,7 @@ func (m *Mock) Dispatch(ctx context.Context, req *port.DispatchRequest) error {
 	products := []MockProduct{}
 	for _, i := range m.products {
 		if req.Id == i.Id {
-			products = append(m.products,
+			products = append(products,
 				MockProduct{
 					Id:             i.Id,
 					Name:           i.Name,
@@ -589,7 +589,7 @@ func (m *Mock) Dispatch(ctx context.Context, req *port.DispatchRequest) error {
 				},
 			)
 		} else {
-			products = append(m.products,
+			products = append(products,
 				MockProduct(i),
 			)
 		}
@@ -602,7 +602,7 @@ func (m *Mock) Reserve(ctx context.Context, req *port.ReserveRequest) error {
 	products := []MockProduct{}
 	for _, i := range m.products {
 		if req.Id == i.Id {
-			products = append(m.products,
+			products = append(products,
 				MockProduct{
 					Id:             i.Id,
 					Name:           i.Name,
@@ -620,7 +620,7 @@ func (m *Mock) Reserve(ctx context.Context, req *port.ReserveRequest) error {
 				},
 			)
 		} else {
-			products = append(m.products,
+			products = append(products,
 				MockProduct(i),
 			)
 		}
@@ -633,7 +633,7 @@ func (m *Mock) FreeReservation(ctx context.Context, req *port.FreeReservedReques
 	products := []MockProduct{}
 	for _, i := range m.products {
 		if req.Id == i.Id {
-			m.products = append(m.products,
+			products = append(products,
 				MockProduct{
 					Id:             i.Id,
 					Name:           i.Name,
@@ -651,7 +651,7 @@ func (m *Mock) FreeReservation(ctx context.Context, req *port.FreeReservedReques
 				},
 			)
 		} else {
-			products = append(m.products,
+			products = append(products,
 				MockProduct(i),
 			)
 		}
