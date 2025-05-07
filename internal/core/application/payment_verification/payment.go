@@ -18,7 +18,7 @@ var (
 	ErrUserNotFound                    = errors.New("oopsy, user is found")
 	ErrAmountNotSupplied               = errors.New("oopsy, amount is mandatory")
 	ErrAmountLessThanZero              = errors.New("oopsy, amount must be greater than zero")
-	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is mandatory")
+	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is not supported")
 	ErrTransactionReferenceNotSupplied = errors.New("oopsy, transaction refrence is mandatory")
 	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
 	ErrCannotProceedWithPaymentPartner = errors.New("oopsy, cannot proceed with payment partner")
@@ -78,11 +78,24 @@ func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPayme
 
 }
 
-func (p *PaymentService) Verify(ctx context.Context, gatewayId int, txRef string) (bool, error) {
+func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
 	if err := validateTxRef(txRef); err != nil {
 		return false, err
 	}
-	paymentPartner, err := p.paymentPartner.GetPartnerSecret(ctx, gatewayId)
+	paymentPartner, err := p.paymentPartner.Get(ctx, paymentPartnerId)
+	if err != nil {
+		switch err {
+		case partner.ErrIdNotFound:
+			return false, ErrPaymentPartnerNotSupported
+		default:
+			return false, ErrUnknown
+		}
+	}
+	if paymentPartner.Status != partner.ACTIVE_STATUS {
+		return false, ErrPaymentPartnerNotSupported
+	}
+
+	paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, paymentPartnerId)
 	if err != nil {
 		switch err {
 		case partner.ErrIdNotFound:
@@ -100,7 +113,7 @@ func (p *PaymentService) Verify(ctx context.Context, gatewayId int, txRef string
 	paymentVerificationRequest := payment.VerificationRequest{
 		PartnerUrl:     paymentPartner.BaseURL,
 		TransactionRef: txRef,
-		PartnerSecret:  paymentPartner.Secret,
+		PartnerSecret:  paymentPartnerSecret.Secret,
 	}
 
 	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
