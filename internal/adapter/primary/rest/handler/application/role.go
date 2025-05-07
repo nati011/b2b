@@ -242,7 +242,7 @@ func (ro *Role) GetHandler(w http.ResponseWriter, r *http.Request) {
 		for _, i := range resp.List {
 			response.List = append(response.List, (GetRoleResponse)(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"roles": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }
 
@@ -289,6 +289,6 @@ func (ro *Role) GetAllResourcesHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"roles": resp})
+		util.OperationSuccessResponse(w, resp)
 	}
 }

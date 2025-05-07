@@ -78,18 +78,21 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
 	} else {
+		var response GetAllResourceResponse
 		resp, err := rs.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, err)
+				util.OperationSuccessResponse(w, response)
+				return
+			case resource.ErrUnknown:
+				util.ServerErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		var response GetAllResourceResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, (GetResourceResponse)(i))
 		}
