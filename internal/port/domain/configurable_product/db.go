@@ -2,6 +2,12 @@ package configurableProduct
 
 import (
 	"context"
+	"errors"
+)
+
+var (
+	ErrSysNoRows  = errors.New("no rows")
+	ErrSysUnknown = errors.New("unknown error")
 )
 
 type CreateRequest struct {
@@ -10,13 +16,18 @@ type CreateRequest struct {
 	ExternalId        string
 	AttributeKeys     []string
 	Products          []int
-	Images            []string
+	Images            []Image
 	IsAvailableStatus bool
 }
 
 type PriceRangeResponse struct {
 	Min int
 	Max int
+}
+
+type Image struct {
+	ImageUrl string
+	BlurHash string
 }
 
 type GetResponse struct {
@@ -30,7 +41,7 @@ type GetResponse struct {
 	PriceRange    PriceRangeResponse
 	CategoryId    []int
 	DistributorId int
-	Images        []string
+	Images        []Image
 }
 
 type GetAllResponse struct {
@@ -64,7 +75,7 @@ type UpdateIsAvailableStatusRequest struct {
 
 type UpdateImagesRequest struct {
 	Id     int
-	Images []string
+	Images []Image
 }
 
 type UpdateAttributes struct {

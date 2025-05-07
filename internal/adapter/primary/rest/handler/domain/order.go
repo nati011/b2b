@@ -126,8 +126,6 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case order.ErrEmptyGetResponse:
-				util.RequestErrorResponse(w, err)
-				return
 			default:
 				util.ServerErrorResponse(w, err)
 				return

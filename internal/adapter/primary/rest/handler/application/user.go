@@ -133,7 +133,6 @@ func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				switch err {
 				case user.ErrIdNotFound:
-
 					util.RequestErrorResponse(w, err)
 					return
 				default:
@@ -289,6 +288,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			switch err {
+			case user.ErrEmptyGetContent:
 			case user.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return

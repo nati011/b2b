@@ -79,6 +79,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"transaction": GetResponse(resp)})
 	} else if paramPartnerIdValue != "" || paramDateValue != "" {
+		var response GetAllResponse
 		typedPartnerId, err := strconv.Atoi(paramPartnerIdValue)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
@@ -99,6 +100,9 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		resp, err := p.service.GetByParam(r.Context(), params)
 		if err != nil {
 			switch err {
+			case transaction.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+				return
 			case transaction.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
@@ -107,22 +111,27 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		var response GetAllResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, GetResponse(i))
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
 
 	} else {
+		var response GetAllResponse
 		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
-			default:
+			case transaction.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+				return
+			case transaction.ErrUnknown:
 				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		var response GetAllResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, GetResponse(i))
 		}

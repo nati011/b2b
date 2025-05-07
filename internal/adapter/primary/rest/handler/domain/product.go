@@ -219,7 +219,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+		util.OperationSuccessResponse(w, resp)
 	}
 }
 
