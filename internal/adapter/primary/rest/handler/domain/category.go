@@ -68,18 +68,21 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"category": GetCategoryResponse(resp)})
 	} else {
+		var get_all_response GetAllCategoryResponse
 		resp, err := c.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case category.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, err)
+				util.OperationSuccessResponse(w, util.Envelope{"category": get_all_response})
+				return
+			case category.ErrUnknown:
+				util.ServerErrorResponse(w, err)
 				return
 			default:
-				util.ServerErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		var get_all_response GetAllCategoryResponse
 		for _, i := range resp.List {
 			get_all_response.List = append(get_all_response.List, GetCategoryResponse(i))
 		}
@@ -103,15 +106,11 @@ func (c *Category) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := c.service.Create(r.Context(), (*category.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
-		case category.ErrDescIsNotSupplied,
-			category.ErrDuplicateName,
-			category.ErrEmptyGetContent:
-
-		default:
-			util.RequestErrorResponse(w, err)
-			return
 		case category.ErrUnknown:
 			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
