@@ -61,6 +61,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 }
 
 func (m *Mock) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSecret, error) {
+	log.Printf("Resources %v", m.resources)
 	for _, i := range m.resources {
 		if i.Id == id {
 			return port.GetPartnerSecret{

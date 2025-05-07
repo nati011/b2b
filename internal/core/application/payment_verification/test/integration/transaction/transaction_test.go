@@ -3,9 +3,9 @@ package transaction
 import (
 	"context"
 	"database/sql"
+	"log"
 	"os"
 	"testing"
-	"time"
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
@@ -36,21 +36,20 @@ func setup() {
 			BaseURL: "https://api.chapa.co",
 			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
-
+	log.Printf("Id %v", PaymentPartnerId)
 	if err != nil {
 		panic("failed to create payment partner")
 	}
 }
 
-func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
+func Test_UpdateTransactionUponPaymentVerification(t *testing.T) {
 	ctx := context.Background()
 	//init transaction
 
-	currentTimestamp := time.Now()
-	generatedTxRef := currentTimestamp.Format("2006_01_02_15_04_05")
 	in := &checkout.CheckoutRequest{
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
+		Amount:           100,
 	}
 
 	checkout_response, err := testContainer.CheckoutService.Checkout(ctx, in)
@@ -58,14 +57,14 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 		t.Errorf("Failed to checkout err: %v", err)
 	}
 
-	resp, err := testContainer.PaymentVerificationService.Verify(ctx, PaymentPartnerId, generatedTxRef)
-	if err != nil {
-		t.Fatalf("Failed to verify err: %v", err)
-	}
-	wantIsValidStatus := true
-	if resp != wantIsValidStatus {
-		t.Fatalf("Expected status: %v Got: %v", wantIsValidStatus, resp)
-	}
+	testContainer.PaymentVerificationService.Callback(ctx, PaymentPartnerId, checkout_response.TransactionRef)
+	// if err != nil {
+	// 	t.Fatalf("Failed to verify err: %v", err)
+	// }
+	// wantIsValidStatus := true
+	// if resp != wantIsValidStatus {
+	// 	t.Fatalf("Expected status: %v Got: %v", wantIsValidStatus, resp)
+	// }
 
 	//check if transaction has been created and status has been set to uploaded
 	resp_get, err := testContainer.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{

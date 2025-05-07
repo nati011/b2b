@@ -3,7 +3,6 @@ package payment_verification
 import (
 	adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
-	checkout_test "b2b.nati011.github.com/internal/core/application/checkout/test"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -19,29 +18,33 @@ type TestContainer struct {
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
-	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
+	orderContainer := order.NewPackageIntegrationTestContainer()
+
+	container.PartnerService = orderContainer.PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	container.OrderService = order.NewPackageIntegrationTestContainer().OrderService
+	container.OrderService = orderContainer.OrderService
 	container.PaymentVerificationService = NewPaymentVerificationService(
 		adapter.NewMock(),
 		container.PartnerService,
 		container.TransactionService,
 		container.OrderService,
 	)
-	container.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
+	container.CheckoutService = orderContainer.CheckoutService
 
 	return container
 }
 
 func (t *TestContainer) TearDown() {
-	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
+	orderContainer := order.NewPackageIntegrationTestContainer()
+
+	t.PartnerService = orderContainer.PartnerService
 	t.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	t.OrderService = order.NewPackageIntegrationTestContainer().OrderService
+	t.OrderService = orderContainer.OrderService
 	t.PaymentVerificationService = NewPaymentVerificationService(
 		adapter.NewMock(),
 		t.PartnerService,
 		t.TransactionService,
 		t.OrderService,
 	)
-	t.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
+	t.CheckoutService = orderContainer.CheckoutService
 }
