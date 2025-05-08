@@ -1339,8 +1339,10 @@ func (p *Postgres) UpdateCategoryId(ctx context.Context, req *port.UpdateCategor
 }
 
 const (
-	STOCK_OPERATION_GOODS_RECEIVING = "GOODS_RECEIVING"
-	STOCK_OPERATION_DEPLETION       = "DEPLETION"
+	STOCK_OPERATION_GOODS_RECEIVING  = "GOODS_RECEIVING"
+	STOCK_OPERATION_DEPLETION        = "DEPLETION"
+	STOCK_OPERATION_RESERVE          = "RESERVE"
+	STOCK_OPERATION_FREE_RESERVATION = "FREE_RESERVATION"
 )
 
 func (p *Postgres) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingRequest) error {
@@ -1490,6 +1492,30 @@ func (p *Postgres) Reserve(ctx context.Context, req *port.ReserveRequest) error 
 	if err != nil {
 		return err
 	}
+
+	//store to stock ledger
+	query = "SELECT * FROM public.stock_operation_ledger_entry($1, $2, $3, $4);"
+	productUpdateLedgerArgs := []any{
+		req.Amount,
+		req.Id,
+		STOCK_OPERATION_RESERVE,
+		0,
+	}
+	pULesult := []any{&stock}
+	err = query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
+	).DoSingleQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -1510,5 +1536,29 @@ func (p *Postgres) FreeReservation(ctx context.Context, req *port.FreeReservedRe
 	if err != nil {
 		return err
 	}
+
+	//store to stock ledger
+	query = "SELECT * FROM public.stock_operation_ledger_entry($1, $2, $3, $4);"
+	productUpdateLedgerArgs := []any{
+		req.Amount,
+		req.Id,
+		STOCK_OPERATION_FREE_RESERVATION,
+		0,
+	}
+	pULesult := []any{&stock}
+	err = query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
+	).DoSingleQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
+	}
+
 	return nil
 }
