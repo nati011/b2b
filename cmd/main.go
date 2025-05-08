@@ -39,7 +39,7 @@ func main() {
 	//min mobile client compatible version
 	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Environment (development|staging|production)")
 
-	// Base url
+	// BaseUrl and frontendUrl
 	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
 
