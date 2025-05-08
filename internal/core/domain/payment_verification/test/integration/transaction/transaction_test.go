@@ -9,8 +9,8 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/payment_verification"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 )
 
