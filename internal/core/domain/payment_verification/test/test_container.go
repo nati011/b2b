@@ -5,9 +5,9 @@ import (
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	checkout_test "b2b.nati011.github.com/internal/core/application/checkout/test"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
-	payment_verification "b2b.nati011.github.com/internal/core/application/payment_verification"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
+	payment_verification "b2b.nati011.github.com/internal/core/domain/payment_verification"
 )
 
 type TestContainer struct {
