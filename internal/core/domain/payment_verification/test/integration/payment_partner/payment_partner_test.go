@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/payment_verification"
-	"b2b.nati011.github.com/internal/core/application/payment_verification/test"
+	"b2b.nati011.github.com/internal/core/domain/payment_verification"
+	"b2b.nati011.github.com/internal/core/domain/payment_verification/test"
 )
 
 var testContainer test.TestContainer
