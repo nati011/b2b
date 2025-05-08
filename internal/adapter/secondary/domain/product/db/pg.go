@@ -23,6 +23,43 @@ func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	}
 }
 
+func (p *Postgres) GetStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
+	var response port.GetStockLedgerResponse
+	var responseBase port.GetStockLedgerBaseResponse
+	query := "SELECT * FROM public.get_stock_ledger_entries();"
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Quantity,
+		&responseBase.Product_id,
+		&responseBase.Operation,
+		&responseBase.CreatedOn,
+	}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetStockLedgerResponse{}, err
+		}
+	}
+	for _, res := range result {
+		val := port.GetStockLedgerBaseResponse{
+			Id:         int(res[0].(int)),
+			Quantity:   int(res[1].(int)),
+			Product_id: int(res[2].(int)),
+			Operation:  res[3].(string),
+			CreatedOn:  res[4].(string),
+		}
+		response.List = append(response.List, val)
+	}
+	return port.GetStockLedgerResponse{}, nil
+}
+
 func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_products_by_id($1);"
@@ -1559,6 +1596,5 @@ func (p *Postgres) FreeReservation(ctx context.Context, req *port.FreeReservedRe
 			return err
 		}
 	}
-
 	return nil
 }

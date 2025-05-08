@@ -26,8 +26,17 @@ type MockProduct struct {
 	IsActive       bool
 }
 
+type MockStockLedger struct {
+	id         int
+	quantity   int
+	product_id int
+	operation  string
+	createdOn  string
+}
+
 type Mock struct {
-	products []MockProduct
+	products    []MockProduct
+	stockLedger []MockStockLedger
 }
 
 func NewMock() port.DB {
@@ -96,6 +105,25 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 				AvailableStock: i.Stock - i.ReservedStock,
 				ReservedStock:  i.ReservedStock,
 				IsActive:       i.IsActive,
+			},
+		)
+	}
+	if len(responses.List) == 0 {
+		return responses, port_commons.ErrSysNoRows
+	}
+	return responses, nil
+}
+
+func (m *Mock) GetStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
+	responses := port.GetStockLedgerResponse{}
+	for _, i := range m.stockLedger {
+		responses.List = append(responses.List,
+			port.GetStockLedgerBaseResponse{
+				Id:         i.id,
+				Quantity:   i.quantity,
+				Product_id: i.product_id,
+				Operation:  i.operation,
+				CreatedOn:  i.createdOn,
 			},
 		)
 	}

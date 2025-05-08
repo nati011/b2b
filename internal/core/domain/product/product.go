@@ -61,6 +61,18 @@ type GetResponse struct {
 	IsActive       bool
 }
 
+type GetStockLedgerResponse struct {
+	Id         int
+	Quantity   int
+	Product_id int
+	Operation  string
+	CreatedOn  string
+}
+
+type GetAllStockLedgerResponse struct {
+	List []GetStockLedgerResponse
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
@@ -111,6 +123,7 @@ type Provider interface {
 	IsActive(ctx context.Context, id int) (bool, error)
 	Reserve(ctx context.Context, id int, qty int) error
 	FreeReservation(ctx context.Context, id int, qty int) error
+	GetStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error)
 }
 
 type ProductService struct {
@@ -123,6 +136,24 @@ func NewProduct(db port.DB, categoryService category.Provider) Provider {
 		DB:              db,
 		CategoryService: categoryService,
 	}
+}
+
+func (p *ProductService) GetStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error) {
+	ledger, err := p.DB.GetStockLedger(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllStockLedgerResponse{}, ErrIdNotFound
+		default:
+			return GetAllStockLedgerResponse{}, ErrUnknown
+		}
+	}
+	var resp = GetAllStockLedgerResponse{}
+	for _, i := range ledger.List {
+		resp.List = append(resp.List,
+			GetStockLedgerResponse(i))
+	}
+	return resp, nil
 }
 
 func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, error) {
