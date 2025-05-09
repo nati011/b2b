@@ -4,10 +4,18 @@ import (
 	"context"
 	"errors"
 	"math"
+	"time"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
+)
+
+const (
+	STOCK_OPERATION_GOODS_RECEIVING  = "GOODS_RECEIVING"
+	STOCK_OPERATION_DEPLETION        = "DEPLETION"
+	STOCK_OPERATION_RESERVE          = "RESERVE"
+	STOCK_OPERATION_FREE_RESERVATION = "FREE_RESERVATION"
 )
 
 var (
@@ -61,6 +69,18 @@ type GetResponse struct {
 	IsActive       bool
 }
 
+type GetStockLedgerResponse struct {
+	Id         int
+	Quantity   int
+	Product_id int
+	Operation  string
+	CreatedOn  time.Time
+}
+
+type GetAllStockLedgerResponse struct {
+	List []GetStockLedgerResponse
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
@@ -111,6 +131,7 @@ type Provider interface {
 	IsActive(ctx context.Context, id int) (bool, error)
 	Reserve(ctx context.Context, id int, qty int) error
 	FreeReservation(ctx context.Context, id int, qty int) error
+	GetStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error)
 }
 
 type ProductService struct {
@@ -123,6 +144,24 @@ func NewProduct(db port.DB, categoryService category.Provider) Provider {
 		DB:              db,
 		CategoryService: categoryService,
 	}
+}
+
+func (p *ProductService) GetStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error) {
+	ledger, err := p.DB.GetStockLedger(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllStockLedgerResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllStockLedgerResponse{}, ErrUnknown
+		}
+	}
+	var resp = GetAllStockLedgerResponse{}
+	for _, i := range ledger.List {
+		resp.List = append(resp.List,
+			GetStockLedgerResponse(i))
+	}
+	return resp, nil
 }
 
 func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, error) {
