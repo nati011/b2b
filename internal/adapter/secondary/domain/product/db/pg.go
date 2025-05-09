@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"time"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -43,21 +44,22 @@ func (p *Postgres) GetStockLedger(ctx context.Context) (port.GetStockLedgerRespo
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
+			return port.GetStockLedgerResponse{}, port_commons.ErrSysNoRows
 		default:
 			return port.GetStockLedgerResponse{}, err
 		}
 	}
 	for _, res := range result {
 		val := port.GetStockLedgerBaseResponse{
-			Id:         int(res[0].(int)),
-			Quantity:   int(res[1].(int)),
-			Product_id: int(res[2].(int)),
+			Id:         int(res[0].(int64)),
+			Quantity:   int(res[1].(int64)),
+			Product_id: int(res[2].(int64)),
 			Operation:  res[3].(string),
-			CreatedOn:  res[4].(string),
+			CreatedOn:  res[4].(time.Time),
 		}
 		response.List = append(response.List, val)
 	}
-	return port.GetStockLedgerResponse{}, nil
+	return response, nil
 }
 
 func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
