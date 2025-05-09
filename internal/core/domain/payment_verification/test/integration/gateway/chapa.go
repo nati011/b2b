@@ -7,8 +7,8 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
-	"b2b.nati011.github.com/internal/core/application/payment_verification/test"
 	"b2b.nati011.github.com/internal/core/domain/order"
+	"b2b.nati011.github.com/internal/core/domain/payment_verification/test"
 )
 
 var testContainer test.TestContainer
