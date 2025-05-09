@@ -28,6 +28,7 @@ import { MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import Image from "next/image";
 
 
 export default function Products() {
@@ -60,39 +61,47 @@ export default function Products() {
 
   const columns: ColumnDef<Product>[] = [
     {
-      accessorKey: "Id",
-      header: () => <div className="text-left">Id</div>,
+      accessorKey: "Images",
+      header: "",
       cell: ({ row }) => {
-        return <div>{row.original.Id}</div>
+        const image = row.original.Images[0].ImageUrl
+        console.log(image)
+        return <div className="border rounded">
+          <Image src={image} alt="product-image" width={40} height={40} />
+        </div>
       },
+    },
+    {
+      accessorKey: "Id",
+      header: "Id",
     },
     {
       accessorKey: "Name",
-      header: () => <div className="text-left">Name</div>,
-      cell: ({ row }) => {
-        return <div>{row.original.Name}</div>
-      },
+      header: "Name",
     },
     {
       accessorKey: "Price",
-      header: () => <div className="text-left">Price</div>,
-      cell: ({ row }) => {
-        return <div>{row.original.Price}</div>
-      },
+      header: "Price",
+    },
+    {
+      accessorKey: "AvailableStock",
+      header: "Available Stock",
+    },
+    {
+      accessorKey: "ReservedStock",
+      header: "Reserved Stock",
     },
     {
       accessorKey: "Stock",
-      header: () => <div className="text-left">Stock</div>,
-      cell: ({ row }) => {
-        return <div>{row.original.Stock}</div>
-      },
+      header: "Stock",
     },
     {
       accessorKey: "IsActive",
       header: () => <div className="text-left">Status</div>,
       cell: ({ row }) => {
-        return <div className={!row.original.IsActive ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>
-          {row.original.IsActive ? "Active" : "Inactive"}
+        const status = row.getValue("IsActive")
+        return <div className={status ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>
+          {status ? "Inactive" : "Active"}
         </div>
       },
     },

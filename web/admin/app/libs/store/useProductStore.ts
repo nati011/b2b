@@ -37,8 +37,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosIns.get("/api/product");
+      console.log(response.data)
       set({
-        products: response.data.body.products.List,
+        products: response.data.body.List,
         loading: false,
       });
     } catch (error) {
