@@ -64,9 +64,11 @@ func (o *Order) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/order", o.GetHandler)
 	mux.HandleFunc("POST /api/v1/order", o.PostHandler)
 	mux.HandleFunc("PATCH /api/v1/order", o.CommandHandler)
+	mux.HandleFunc("GET /api/v1/orders/retailer", o.GetRetailerOrders)
+	mux.HandleFunc("GET /api/v1/orders/distributor", o.GetDistributorOrders)
 }
 
-func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
+func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
 	// get by id
 	const ParamId = "id"
 	const ParamRetailerId = "retailer_id"
@@ -122,6 +124,94 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 	} else {
 		// get all
+		resp, err := o.service.GetAll(r.Context())
+		if err != nil {
+			switch err {
+			case order.ErrEmptyGetResponse:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+	}
+
+}
+
+func (o *Order) GetDistributorOrders(w http.ResponseWriter, r *http.Request) {
+	// get by id
+	const ParamDistributorId = "distributor_id"
+
+	paramValues := r.URL.Query()
+	paramDistributorIdValue := paramValues.Get(ParamDistributorId)
+	if paramDistributorIdValue != "" {
+		// get by param
+		var typedDistributorId int
+		var err error
+		if paramDistributorIdValue != "" {
+			typedDistributorId, err = strconv.Atoi(paramDistributorIdValue)
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		resp, err := o.service.GetDistributorOrders(r.Context(), typedDistributorId)
+		if err != nil {
+			switch err {
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+	}
+}
+
+func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	const ParamStatus = "status"
+
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	paramStatus := paramValues.Get(ParamStatus)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+
+		resp, err := o.service.Get(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"order": resp})
+	} else if paramStatus != "" {
+		var err error
+		resp, err := o.service.GetByParam(r.Context(), &order.GetByParamRequest{
+			Status: paramStatus,
+		})
+		if err != nil {
+			switch err {
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+	} else {
 		resp, err := o.service.GetAll(r.Context())
 		if err != nil {
 			switch err {

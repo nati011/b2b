@@ -92,6 +92,8 @@ type Provider interface {
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
+	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
 }
 
 type OrderService struct {
@@ -121,9 +123,9 @@ func NewOrderService(
 }
 
 func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest) error {
-	// if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
-	// 	return err
-	// }
+	if err := o.validate_retailerId(ctx, req.RetailerId); err != nil {
+		return err
+	}
 
 	if err := o.validate_items(ctx, req.Items); err != nil {
 		return err
@@ -211,8 +213,8 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	//reserve stock
 	for _, i := range req.Items {
 		if err = o.ProductService.Reserve(ctx, i.ProductId, i.Quantity); err != nil {
-			// o.InvoiceService.Cancel(ctx, order_id)
-			o.Cancel(ctx, order_id)
+			log.Printf("order placement failed due to inability to reserve stock qty: %v for productId: %v", i.Quantity, i.ProductId)
+			return 0, ErrUnknown
 		}
 	}
 
@@ -292,6 +294,76 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 
 func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := o.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetResponse
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	return_response := GetAllResponse{}
+	for _, i := range resp.List {
+		items := []Item{}
+		for _, i := range i.Items {
+			items = append(items, Item{
+				ProductId: i.ProductId,
+				Quantity:  i.Quantity,
+			})
+		}
+		return_response.List = append(return_response.List, GetResponse{
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
+		})
+	}
+	return return_response, nil
+}
+
+func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id int) (GetAllResponse, error) {
+	resp, err := o.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetResponse
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	return_response := GetAllResponse{}
+	for _, i := range resp.List {
+		items := []Item{}
+		for _, i := range i.Items {
+			items = append(items, Item{
+				ProductId: i.ProductId,
+				Quantity:  i.Quantity,
+			})
+		}
+		return_response.List = append(return_response.List, GetResponse{
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
+		})
+	}
+	return return_response, nil
+}
+
+func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (GetAllResponse, error) {
+	if err := o.validate_retailerId(ctx, retailer_id); err != nil {
+		return GetAllResponse{}, err
+	}
+
+	resp, err := o.DB.GetByRetailerID(ctx, retailer_id)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
