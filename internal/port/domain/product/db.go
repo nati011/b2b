@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"time"
 )
 
 type Image struct {
@@ -45,7 +46,7 @@ type GetStockLedgerBaseResponse struct {
 	Quantity   int
 	Product_id int
 	Operation  string
-	CreatedOn  string
+	CreatedOn  time.Time
 }
 
 type GetAllResponse struct {

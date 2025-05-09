@@ -4,10 +4,18 @@ import (
 	"context"
 	"errors"
 	"math"
+	"time"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
+)
+
+const (
+	STOCK_OPERATION_GOODS_RECEIVING  = "GOODS_RECEIVING"
+	STOCK_OPERATION_DEPLETION        = "DEPLETION"
+	STOCK_OPERATION_RESERVE          = "RESERVE"
+	STOCK_OPERATION_FREE_RESERVATION = "FREE_RESERVATION"
 )
 
 var (
@@ -66,7 +74,7 @@ type GetStockLedgerResponse struct {
 	Quantity   int
 	Product_id int
 	Operation  string
-	CreatedOn  string
+	CreatedOn  time.Time
 }
 
 type GetAllStockLedgerResponse struct {
@@ -143,7 +151,7 @@ func (p *ProductService) GetStockLedger(ctx context.Context) (GetAllStockLedgerR
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
-			return GetAllStockLedgerResponse{}, ErrIdNotFound
+			return GetAllStockLedgerResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllStockLedgerResponse{}, ErrUnknown
 		}
