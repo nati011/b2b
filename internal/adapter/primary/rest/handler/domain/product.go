@@ -83,12 +83,25 @@ func (r *Product) Init(applicationServices *application_core.Container, domainSe
 
 func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/product", p.GetHandler)
+	mux.HandleFunc("GET /api/v1/stock_ledger", p.GetStockLedgerHandler)
 	mux.HandleFunc("POST /api/v1/product", p.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
 	mux.HandleFunc("PATCH /api/v1/product/{id}/status", p.StatusHandler)
 	mux.HandleFunc("PATCH /api/v1/product/{id}/stock", p.StockHandler)
 }
 
+func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := p.service.GetStockLedger(r.Context())
+	if err != nil {
+		switch err {
+		case product.ErrEmptyGetContent:
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, resp)
+}
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamName = "name"
