@@ -179,7 +179,6 @@ func (m *Mock) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderStatu
 				DeliveryStatus: i.DeliveryStatus,
 			})
 		}
-
 	}
 	m.orders = updatedResources
 	return nil
