@@ -31,7 +31,7 @@ type MockStockLedger struct {
 	quantity   int
 	product_id int
 	operation  string
-	createdOn  string
+	createdOn  time.Time
 }
 
 type Mock struct {
