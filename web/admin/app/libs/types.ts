@@ -1,3 +1,7 @@
+interface Dictionary<T> {
+  [Key: string]: T;
+}
+
 export type UserAccount = {
   id: number;
   first_name: string;
@@ -34,17 +38,24 @@ export type Distributor = {
   user: UserAccount;
 };
 
+export type Image = {
+  ImageUrl: string
+  BlurHash: string
+}
+
 export type Product = {
   Id: number;
   Name: string;
   Desc: string;
   ExternalID: string;
-  Images: string;
+  Images: Image[];
   Price: number;
-  Attributes: any;
+  Attributes: Dictionary<string>;
   DistributorId: number;
   CategoryId: number;
   Stock: number;
+  AvailableStock: number;
+  ReservedStock: number;
   IsActive: number;
 };
 export type Category = {
