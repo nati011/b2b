@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"time"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -21,6 +22,44 @@ func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 		db:         DB,
 		Pagination: pagination,
 	}
+}
+
+func (p *Postgres) GetStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
+	var response port.GetStockLedgerResponse
+	var responseBase port.GetStockLedgerBaseResponse
+	query := "SELECT * FROM public.get_stock_ledger_entries();"
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Quantity,
+		&responseBase.Product_id,
+		&responseBase.Operation,
+		&responseBase.CreatedOn,
+	}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return port.GetStockLedgerResponse{}, port_commons.ErrSysNoRows
+		default:
+			return port.GetStockLedgerResponse{}, err
+		}
+	}
+	for _, res := range result {
+		val := port.GetStockLedgerBaseResponse{
+			Id:         int(res[0].(int64)),
+			Quantity:   int(res[1].(int64)),
+			Product_id: int(res[2].(int64)),
+			Operation:  res[3].(string),
+			CreatedOn:  res[4].(time.Time),
+		}
+		response.List = append(response.List, val)
+	}
+	return response, nil
 }
 
 func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
@@ -1339,8 +1378,10 @@ func (p *Postgres) UpdateCategoryId(ctx context.Context, req *port.UpdateCategor
 }
 
 const (
-	STOCK_OPERATION_GOODS_RECEIVING = "GOODS_RECEIVING"
-	STOCK_OPERATION_DEPLETION       = "DEPLETION"
+	STOCK_OPERATION_GOODS_RECEIVING  = "GOODS_RECEIVING"
+	STOCK_OPERATION_DEPLETION        = "DEPLETION"
+	STOCK_OPERATION_RESERVE          = "RESERVE"
+	STOCK_OPERATION_FREE_RESERVATION = "FREE_RESERVATION"
 )
 
 func (p *Postgres) GoodsReceiving(ctx context.Context, req *port.GoodsReceivingRequest) error {
@@ -1490,6 +1531,30 @@ func (p *Postgres) Reserve(ctx context.Context, req *port.ReserveRequest) error 
 	if err != nil {
 		return err
 	}
+
+	//store to stock ledger
+	query = "SELECT * FROM public.stock_operation_ledger_entry($1, $2, $3, $4);"
+	productUpdateLedgerArgs := []any{
+		req.Amount,
+		req.Id,
+		STOCK_OPERATION_RESERVE,
+		0,
+	}
+	pULesult := []any{&stock}
+	err = query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
+	).DoSingleQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -1509,6 +1574,29 @@ func (p *Postgres) FreeReservation(ctx context.Context, req *port.FreeReservedRe
 	).DoSingleQuery()
 	if err != nil {
 		return err
+	}
+
+	//store to stock ledger
+	query = "SELECT * FROM public.stock_operation_ledger_entry($1, $2, $3, $4);"
+	productUpdateLedgerArgs := []any{
+		req.Amount,
+		req.Id,
+		STOCK_OPERATION_FREE_RESERVATION,
+		0,
+	}
+	pULesult := []any{&stock}
+	err = query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
+	).DoSingleQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return err
+		}
 	}
 	return nil
 }

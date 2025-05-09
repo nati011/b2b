@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"time"
 )
 
 type Image struct {
@@ -34,6 +35,18 @@ type GetResponse struct {
 	AvailableStock int
 	ReservedStock  int
 	IsActive       bool
+}
+
+type GetStockLedgerResponse struct {
+	List []GetStockLedgerBaseResponse
+}
+
+type GetStockLedgerBaseResponse struct {
+	Id         int
+	Quantity   int
+	Product_id int
+	Operation  string
+	CreatedOn  time.Time
 }
 
 type GetAllResponse struct {
@@ -124,6 +137,7 @@ type Reader interface {
 	GetByDistributorId(ctx context.Context, req *GetByDistributorIdRequest) (GetAllResponse, error)
 	GetByCategory(ctx context.Context, req *GetByCategoryRequest) (GetAllResponse, error)
 	GetByPriceRange(ctx context.Context, req *GetByPriceRangeRequest) (GetAllResponse, error)
+	GetStockLedger(ctx context.Context) (GetStockLedgerResponse, error)
 }
 
 type Writer interface {
