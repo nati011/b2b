@@ -22,8 +22,9 @@ type OrderItem struct {
 }
 
 type PlaceOrderRequest struct {
-	RetailerId int         `json:"retailer_id"`
-	Items      []OrderItem `json:"items"`
+	RetailerId       int         `json:"retailer_id"`
+	Items            []OrderItem `json:"items"`
+	PaymentPartnerId int         `json:"payment_partner_id"`
 }
 
 type GetOrderResponse struct {
@@ -205,8 +206,9 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 		orderItems = append(orderItems, (order.Item)(i))
 	}
 	id, err := o.service.Place(r.Context(), &order.PlaceRequest{
-		RetailerId: requestBody.RetailerId,
-		Items:      orderItems,
+		RetailerId:       requestBody.RetailerId,
+		Items:            orderItems,
+		PaymentPartnerId: requestBody.PaymentPartnerId,
 	})
 	if err != nil {
 		switch err {
