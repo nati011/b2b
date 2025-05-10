@@ -90,16 +90,16 @@ func Test_Read(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		order_id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		got, err := container.OrderService.Get(ctx, order_id)
+		got, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
-		wantId := order_id
+		wantId := order_resp.Id
 		if got.Id != wantId {
 			t.Errorf("Expected id: %v Got: %v", wantId, got.Id)
 		}
@@ -147,13 +147,13 @@ func Test_Read(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		order_id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//update
 		_, err = container.OrderService.UpdateStatus(ctx, &order.UpdateRequest{
-			Id:     order_id,
+			Id:     order_resp.Id,
 			Status: "test",
 		})
 		if err != nil {
@@ -213,17 +213,17 @@ func Test_Write(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
-		if resp.Id != id {
-			t.Errorf("Expected Id: %v Got Id: %v", id, resp.Id)
+		if resp.Id != order_resp.Id {
+			t.Errorf("Expected Id: %v Got Id: %v", order_resp.Id, resp.Id)
 		}
 	})
 
@@ -239,14 +239,14 @@ func Test_Write(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 
 		//update
 		_, err = container.OrderService.UpdateStatus(ctx, &order.UpdateRequest{
-			Id:     id,
+			Id:     order_resp.Id,
 			Status: "New",
 		})
 		if err != nil {
@@ -254,7 +254,7 @@ func Test_Write(t *testing.T) {
 		}
 
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
@@ -276,14 +276,14 @@ func Test_Write(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 
 		//update
 		_, err = container.OrderService.UpdatePaymentStatus(ctx, &order.UpdateRequest{
-			Id:            id,
+			Id:            order_resp.Id,
 			PaymentStatus: "New",
 		})
 		if err != nil {
@@ -291,7 +291,7 @@ func Test_Write(t *testing.T) {
 		}
 
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
@@ -313,14 +313,14 @@ func Test_Write(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 
 		//update
 		_, err = container.OrderService.UpdateDeliveryStatus(ctx, &order.UpdateRequest{
-			Id:             id,
+			Id:             order_resp.Id,
 			DeliveryStatus: "New",
 		})
 		if err != nil {
@@ -328,7 +328,7 @@ func Test_Write(t *testing.T) {
 		}
 
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}

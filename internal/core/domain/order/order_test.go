@@ -96,17 +96,17 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			},
 		}
 		log.Printf("Partner id %v", PaymentPartnerId)
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
-		if resp.Id != id {
-			t.Errorf("Expected Id: %v Got Id: %v", id, resp.Id)
+		if resp.Id != order_resp.Id {
+			t.Errorf("Expected Id: %v Got Id: %v", order_resp.Id, resp.Id)
 		}
 	})
 
@@ -122,17 +122,17 @@ func Test_Place_Order_happyPath(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
-		if resp.Id != id {
-			t.Errorf("Expected Id: %v Got Id: %v", id, resp.Id)
+		if resp.Id != order_resp.Id {
+			t.Errorf("Expected Id: %v Got Id: %v", order_resp.Id, resp.Id)
 		}
 
 		if resp.Status != PENDING_STATUS {
@@ -207,17 +207,17 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 				Quantity:  19},
 		},
 	}
-	id, err := container.OrderService.Place(ctx, in)
+	order_resp, err := container.OrderService.Place(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
 
-	err = container.OrderService.Cancel(ctx, id)
+	err = container.OrderService.Cancel(ctx, order_resp.Id)
 	if err != nil {
 		t.Fatalf("Failed to cancel order err:%v", err)
 	}
 
-	got, err := container.OrderService.Get(ctx, id)
+	got, err := container.OrderService.Get(ctx, order_resp.Id)
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
@@ -251,18 +251,18 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 					Quantity:  19},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 
-		err = container.OrderService.Cancel(ctx, id)
+		err = container.OrderService.Cancel(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to cancel order err:%v", err)
 		}
 
 		//cancel again
-		err = container.OrderService.Cancel(ctx, id)
+		err = container.OrderService.Cancel(ctx, order_resp.Id)
 		wantErr := ErrAlreadyCanceled
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err:%v", wantErr, err)
@@ -282,18 +282,18 @@ func Test_Get_happyPath(t *testing.T) {
 				Quantity:  19},
 		},
 	}
-	id, err := container.OrderService.Place(ctx, in)
+	order_resp, err := container.OrderService.Place(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
 	//check
-	got, err := container.OrderService.Get(ctx, id)
+	got, err := container.OrderService.Get(ctx, order_resp.Id)
 	if err != nil {
 		t.Fatalf("Failed to fetch order err: err %v", err)
 	}
 
-	if got.Id != id {
-		t.Errorf("Expected id: %v Got: %v", id, got.Id)
+	if got.Id != order_resp.Id {
+		t.Errorf("Expected id: %v Got: %v", order_resp.Id, got.Id)
 	}
 }
 
@@ -571,14 +571,14 @@ func Test_Update_Status(t *testing.T) {
 					Quantity:  19},
 			},
 		}
-		id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 
 		//update
 		_, err = container.OrderService.UpdateStatus(ctx, &UpdateRequest{
-			Id:     id,
+			Id:     order_resp.Id,
 			Status: "New",
 		})
 		if err != nil {
@@ -586,7 +586,7 @@ func Test_Update_Status(t *testing.T) {
 		}
 
 		//check
-		resp, err := container.OrderService.Get(ctx, id)
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
