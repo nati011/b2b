@@ -50,6 +50,12 @@ type GetSecretResponse struct {
 	Secret  string
 }
 
+type UpdatePartnerSecret struct {
+	Id      int
+	BaseURL string
+	Secret  string
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
@@ -63,6 +69,7 @@ type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	Get(context.Context, int) (GetResponse, error)
 	GetPartnerSecret(context.Context, int) (GetSecretResponse, error)
+	UpdatePartnerSecret(context.Context, UpdatePartnerSecret) error
 	Activate(context.Context, int) error
 	Deactivate(context.Context, int) error
 	GetAll(context.Context) (GetAllResponse, error)
@@ -140,6 +147,29 @@ func (p *PartnerService) GetPartnerSecret(ctx context.Context, id int) (GetSecre
 		}
 	}
 	return GetSecretResponse(resp), nil
+}
+
+func (p *PartnerService) UpdatePartnerSecret(ctx context.Context, req UpdatePartnerSecret) error {
+	//validate
+	_, err := p.Get(ctx, req.Id)
+	if err != nil {
+		return err
+	}
+
+	err = p.DB.UpdatePartnerSecret(ctx, port.UpdatePartnerSecret{
+		Id:      req.Id,
+		BaseURL: req.BaseURL,
+		Secret:  req.Secret,
+	})
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return ErrIdNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
 }
 
 func (p *PartnerService) Activate(ctx context.Context, id int) error {
