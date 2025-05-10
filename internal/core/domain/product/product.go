@@ -131,7 +131,8 @@ type Provider interface {
 	IsActive(ctx context.Context, id int) (bool, error)
 	Reserve(ctx context.Context, id int, qty int) error
 	FreeReservation(ctx context.Context, id int, qty int) error
-	GetStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error)
+	GetAllStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error)
+	GetStockLedger(ctx context.Context, product_id int) (GetAllStockLedgerResponse, error)
 }
 
 type ProductService struct {
@@ -146,8 +147,26 @@ func NewProduct(db port.DB, categoryService category.Provider) Provider {
 	}
 }
 
-func (p *ProductService) GetStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error) {
-	ledger, err := p.DB.GetStockLedger(ctx)
+func (p *ProductService) GetStockLedger(ctx context.Context, product_id int) (GetAllStockLedgerResponse, error) {
+	ledger, err := p.DB.GetStockLedger(ctx, product_id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllStockLedgerResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllStockLedgerResponse{}, ErrUnknown
+		}
+	}
+	var resp = GetAllStockLedgerResponse{}
+	for _, i := range ledger.List {
+		resp.List = append(resp.List,
+			GetStockLedgerResponse(i))
+	}
+	return resp, nil
+}
+
+func (p *ProductService) GetAllStockLedger(ctx context.Context) (GetAllStockLedgerResponse, error) {
+	ledger, err := p.DB.GetAllStockLedger(ctx)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
