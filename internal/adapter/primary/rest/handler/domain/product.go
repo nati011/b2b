@@ -109,7 +109,7 @@ func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"stock": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"stock_ledger": resp})
 	} else {
 		resp, err := p.service.GetAllStockLedger(r.Context())
 		if err != nil {
@@ -120,7 +120,7 @@ func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"stock": resp})
+		util.OperationSuccessResponse(w, util.Envelope{"stock_ledger": resp})
 	}
 
 }
