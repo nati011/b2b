@@ -2601,6 +2601,29 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_stock_ledger_entries_by_product_id(
+    p_id INT
+)
+RETURNS TABLE( 
+  s_id INT,
+  s_quantity INT,
+  s_product_id INT,
+  s_stock_operation VARCHAR(255),
+  s_created_on TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT id,
+           quantity,
+           product_id,
+           operation,
+           created_on_date
+    FROM public.s_ledger s
+    WHERE s.product_id = p_id;
+END;
+$$;
+
 -- product attributes ------------------------------------------------
     
     -- writer
