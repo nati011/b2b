@@ -114,7 +114,28 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return responses, nil
 }
 
-func (m *Mock) GetStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
+func (m *Mock) GetStockLedger(ctx context.Context, product_id int) (port.GetStockLedgerResponse, error) {
+	responses := port.GetStockLedgerResponse{}
+	for _, i := range m.stockLedger {
+		if i.product_id == product_id {
+			responses.List = append(responses.List,
+				port.GetStockLedgerBaseResponse{
+					Id:         i.id,
+					Quantity:   i.quantity,
+					Product_id: i.product_id,
+					Operation:  i.operation,
+					CreatedOn:  i.createdOn,
+				},
+			)
+		}
+	}
+	if len(responses.List) == 0 {
+		return responses, port_commons.ErrSysNoRows
+	}
+	return responses, nil
+}
+
+func (m *Mock) GetAllStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
 	responses := port.GetStockLedgerResponse{}
 	for _, i := range m.stockLedger {
 		responses.List = append(responses.List,
