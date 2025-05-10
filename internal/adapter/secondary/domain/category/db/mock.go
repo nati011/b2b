@@ -62,3 +62,19 @@ func (m *Mock) Remove(ctx context.Context, id int) error {
 	m.Categories = resp
 	return nil
 }
+
+func (m *Mock) Update(ctx context.Context, req *port.UpdateRequest) error {
+	resp := []MockCategory{}
+	for _, i := range m.Categories {
+		if i.Id == req.Id {
+			resp = append(resp, MockCategory{
+				Id:   i.Id,
+				Name: req.Name,
+			})
+		} else {
+			resp = append(resp, i)
+		}
+	}
+	m.Categories = resp
+	return nil
+}

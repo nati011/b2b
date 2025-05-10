@@ -21,6 +21,11 @@ type CreateRequest struct {
 	Name string
 }
 
+type UpdateRequest struct {
+	Id   int
+	Name string
+}
+
 type GetResponse struct {
 	Id   int
 	Name string
@@ -33,6 +38,7 @@ type GetAllResponse struct {
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Remove(ctx context.Context, id int) error
+	Update(ctx context.Context, req *UpdateRequest) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 }
@@ -84,6 +90,28 @@ func (c *CategoryService) Remove(ctx context.Context, id int) error {
 		default:
 			return ErrUnknown
 		}
+	}
+	return nil
+}
+
+func (c *CategoryService) Update(ctx context.Context, req *UpdateRequest) error {
+	//validate
+	_, err := c.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+
+	err = c.db.Update(ctx, &port.UpdateRequest{
+		Id:   req.Id,
+		Name: req.Name,
+	})
+	if err != nil {
+		return ErrUnknown
 	}
 	return nil
 }

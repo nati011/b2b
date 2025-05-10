@@ -2400,6 +2400,21 @@ BEGIN
 END;
 $$;
 
+
+CREATE OR REPLACE FUNCTION public.update_category(
+    c_id INT,
+    c_name VARCHAR(255)
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.category
+    SET name = c_name
+    WHERE id = c_id;
+END;
+$$;
+
     -- reader
 CREATE OR REPLACE FUNCTION public.get_category(
     c_id INT
