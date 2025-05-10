@@ -166,7 +166,6 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		DeliveryStatus: DELIVERY_PENDING_STATUS,
 		Total:          itemsTotal,
 	})
-
 	if err != nil {
 		return 0, ErrUnknown
 	}

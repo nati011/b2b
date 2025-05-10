@@ -138,7 +138,6 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		TxRef:     transaction_ref,
 		Status:    transaction.PENDING_STATUS,
 	})
-
 	if err != nil {
 		switch err {
 		case transaction.ErrAmountIsNotSupplied:

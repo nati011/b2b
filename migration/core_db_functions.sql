@@ -3237,7 +3237,6 @@ END;
 $$;
 
 
-
 CREATE OR REPLACE FUNCTION public.get_payment_partner_by_name(
     p_name VARCHAR(255)
 )
@@ -3292,7 +3291,11 @@ DECLARE
     new_id INT;
 BEGIN
     INSERT INTO 
-    public.payment_partners (name, icon, status, base_url,secret)
+    public.payment_partners (name, 
+                            icon, 
+                            status, 
+                            base_url,
+                            secret)
     VALUES (p_name, 
             p_icon, 
             p_status,
@@ -3340,8 +3343,26 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.update_payment_partner_secret(
+    p_id INT,
+    p_base_url VARCHAR(255),
+    p_secret VARCHAR(255)
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.payment_partners
+    SET base_url = p_base_url,
+        secret = p_secret
+    WHERE id = p_id
+      AND is_deleted = FALSE;
+END;
+$$;
+
 -- payment ----------------------------------------
--- writer
+
+    -- writer
 
 CREATE OR REPLACE FUNCTION public.create_payment(
     p_order_id INT,
