@@ -10,6 +10,7 @@ import ConfigurableProducts from "./configurableProduct";
 import ReviewScreen from "./reviewScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product } from "@/app/libs/types";
+import Heading from "@/app/components/breadcrumb";
 
 interface ProductFormData {
     productType: string;
@@ -64,7 +65,16 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
 
     const [currentStep, setCurrentStep] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const pages = [
+        {
+            "title": "Products",
+            "href": "/products"
+        },
+        {
+            "title": "Product Form",
+            "href": "/products/form"
+        },
+    ]
     useEffect(() => {
         if (formData.productType === "simple") {
             setFormData(prev => ({
@@ -191,10 +201,6 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
                 });
             }
 
-            toast("Product created successfully", {
-                description: `Your ${formData.productType} product has been created.`,
-            });
-
             // Reset form
             setFormData({
                 productType: 'simple',
@@ -315,7 +321,8 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
     };
 
     return (
-        <div className="container py-8">
+        <div className="grid grid-cols-1 gap-4">
+            <Heading page={pages} heading="Register Product" subheading="Create and manage products" />
             <Tabs onValueChange={(type) => updateFormData("productType", type)} value={formData.productType} className="bg-transparent">
                 <TabsList className="w-full">
                     <TabsTrigger value="simple">Simple Product</TabsTrigger>
@@ -324,13 +331,6 @@ const ProductWizard: React.FC<ProductWizardProps> = ({
                 <TabsContent value="simple">
                     <Card>
                         <CardHeader>
-                            <div className="">
-                                <h1 className="text-3xl font-bold tracking-tight">Register Product</h1>
-                                <p className="text-muted-foreground">
-                                    Create and manage products
-                                </p>
-                            </div>
-                            <hr className="mb-4" />
                             {/* <div className="space-y-2">
                                 <div className="flex justify-between text-sm mb-1">
                                     <span>Progress</span>

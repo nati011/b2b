@@ -37,6 +37,7 @@ const CategoriesForm: React.FC<CategoriesFormProps> = ({
     const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
 
+
     const filteredCategories = categories.filter(category =>
         category.name.toLowerCase().includes(searchTerm.toLowerCase())
     );

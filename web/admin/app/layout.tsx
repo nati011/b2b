@@ -28,11 +28,11 @@ export default function RootLayout({
       >
         <SessionProvider>
           <Provider>
-            <div className="flex relative">
+            <div className="flex relative bg-slate-50">
               <div className="lg:w-[15%] fixed z-50">
                 <SideBar />
               </div>
-              <div className="bg-white dark:bg-neutral-900 p-4  sm:px-10 lg:ml-[15%] w-full">
+              <div className="dark:bg-neutral-900 p-4  sm:px-10 lg:ml-[15%] w-full min-h-screen">
                 <div className="mb-10">
                   <Topnav />
                 </div>
