@@ -49,7 +49,7 @@ const Index = () => {
             setTimeout(() => {
                 createProduct(productData)
 
-                toast("Product Created", {
+                toast.success("Product Created", {
                     description: `${productData.name} has been created successfully.`
                 });
 

@@ -3,6 +3,7 @@ import axiosIns from "@/app/libs/axios";
 import { Product, Category } from "@/app/libs/types";
 
 interface ProductsStore {
+  success: string;
   products: Product[];
   loading: boolean;
   error: string | null;
@@ -21,9 +22,11 @@ interface ProductsStore {
   createConfigurableProduct: (productData: any) => Promise<void>
   addStock: (stock: number, id: number) => Promise<void>;
   depleteStock: (stock: number, id: number) => Promise<void>;
+  updateProductStatus: (id: number, productStatus: boolean) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
+  success: "",
   products: [],
   loading: false,
   error: null,
@@ -32,6 +35,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
   categories: [],
   categoriesLoading: false,
   categoriesError: null,
+
 
   fetchProducts: async (url?: string) => {
     set({ loading: true, error: null });
@@ -99,6 +103,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
       await axiosIns.delete(`/api/category?id=${id}`);
       await useProductsStore.getState().fetchCategories();
       set({ categoriesLoading: false });
+      await useProductsStore.getState().fetchCategories();
     } catch (error: any) {
       set({ categoriesLoading: false, categoriesError: error.message });
     }
@@ -152,6 +157,21 @@ const useProductsStore = create<ProductsStore>((set) => ({
       });
       await useProductsStore.getState().fetchProducts();
       set({ loading: false });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
+    }
+  },
+  updateProductStatus: async (id: number, productStatus: boolean) => {
+    try {
+      const command = productStatus ? "deactivate" : "activate"
+      const response = await axiosIns.patch(`/api/product/${id}/status?command=${command}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      await useProductsStore.getState().fetchProducts();
+      console.log(response.data)
+      set({ loading: false, success: response.data.message, });
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }

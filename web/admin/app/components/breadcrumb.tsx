@@ -17,12 +17,12 @@ const Heading: React.FC<Props> = ({ page, heading, subheading }) => {
                 {
                     heading && (
                         <div className="flex">
-                            <p className="text-xl font-semibold">{heading}</p>
+                            <p className="text-2xl font-semibold">{heading}</p>
                         </div>
                     )
                 }
                 {subheading && (
-                    <p className="text-sm font-medium text-gray-400">{subheading}</p>
+                    <p className="text-lg font-medium text-gray-700">{subheading}</p>
                 )
                 }
             </div>

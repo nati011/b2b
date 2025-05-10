@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { MdOutlineDashboard, MdOutlineStorefront, MdOutlineSupervisorAccount, MdOutlineRealEstateAgent, MdOutlineAddShoppingCart } from "react-icons/md";
 import { LiaFileInvoiceDollarSolid, LiaCartArrowDownSolid } from "react-icons/lia";
 import { IoIosLogOut } from "react-icons/io";
-import { CiBank, CiMenuFries } from "react-icons/ci";
+import { CiBank, CiMenuFries, CiShoppingBasket } from "react-icons/ci";
 import Link from "next/link";
 import { NavLink } from "@/app/components/navlink";
 import { useRouter } from 'next/navigation';
@@ -11,12 +11,12 @@ import { AiOutlineProduct } from "react-icons/ai";
 import { PiUsersThreeLight } from "react-icons/pi";
 import { CiSettings } from 'react-icons/ci';
 
-// import {
-//   Accordion,
-//   AccordionContent,
-//   AccordionItem,
-//   AccordionTrigger,
-// } from "@/components/ui/accordion"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 
 const SideBar = () => {
@@ -39,6 +39,7 @@ const SideBar = () => {
         href="/"
         className="flex flex-col items-center justify-center w-full font-bold text-lg my-8 sm:mb-4 sm:p-2"
       >
+        <CiShoppingBasket className="text-7xl" />
         <p className="hidden lg:block dark:text-white font-semibold lg:text-2xl">
           Efoyeta Market
         </p>
@@ -50,18 +51,36 @@ const SideBar = () => {
           link={""}
           icon={MdOutlineDashboard}
         />
-        {/* <Accordion type="single" collapsible>
+        <Accordion type="multiple" className='pl-8'>
           <AccordionItem value="Product">
-            <AccordionTrigger>Products</AccordionTrigger>
-            <AccordionContent> */}
-        <NavLink
-          heading={"Product"}
-          link={"products"}
-          icon={AiOutlineProduct}
-        />
-        {/* </AccordionContent>
+            <AccordionTrigger className='font-semibold text-md text-gray-500'>
+              <div className="flex gap-2 items-center">
+                <AiOutlineProduct
+                  className="text-xl sm:text-md text-blue-900"
+                />
+
+                Product
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <NavLink
+                heading={"Product"}
+                link={"products"}
+                icon={AiOutlineProduct}
+              />
+              <NavLink
+                heading={"Register Product"}
+                link={"products/form"}
+                icon={AiOutlineProduct}
+              />
+              <NavLink
+                heading={" Categories"}
+                link={"products/category"}
+                icon={AiOutlineProduct}
+              />
+            </AccordionContent>
           </AccordionItem>
-        </Accordion> */}
+        </Accordion>
         <NavLink
           heading={"Retailer"}
           link={"retailers"}

@@ -35,6 +35,11 @@ import {
 import { CiFilter } from "react-icons/ci";
 import Link from "next/link";
 import { PiSpinner } from "react-icons/pi";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import useProductsStore from "@/app/libs/store/useProductStore";
 
 interface buttonObj {
     name: string;
@@ -48,7 +53,7 @@ interface DataTableProps<TData, TValue> {
     heading?: string;
     subheading?: string;
     search?: string;
-    buttonObj?: buttonObj;
+    buttonObj?: () => void;
     title?: string;
     searchPlaceholder?: string;
     loading?: boolean
@@ -77,6 +82,11 @@ export function DataTable<TData, TValue>({
         React.useState<VisibilityState>({});
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [rowSelection, setRowSelection] = React.useState({});
+    const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+
+    const {
+        createCategory
+    } = useProductsStore()
 
     const table = useReactTable({
         data,
@@ -97,6 +107,27 @@ export function DataTable<TData, TValue>({
         },
     });
 
+    const handleCreateCategory = async (name: string) => {
+        return new Promise<void>((resolve) => {
+            setTimeout(() => {
+                createCategory(name)
+                toast("Category Created", {
+                    description: `${name} has been added to categories.`
+                });
+                resolve();
+            }, 500);
+        });
+    };
+
+    const [newCategoryName, setNewCategoryName] = React.useState("");
+    const handleAddCategory = () => {
+        if (newCategoryName.trim()) {
+            handleCreateCategory(newCategoryName.trim());
+            setNewCategoryName("");
+            setIsAddDialogOpen(false);
+        }
+    };
+
 
     return (
         <div className="w-full bg-white dark:bg-black p-4 rounded-md mt-4 print:hidden">
@@ -114,25 +145,17 @@ export function DataTable<TData, TValue>({
                         className="bg-transparent"
                     />
                 </div>
-                {button && buttonObj?.name && (
-                    <div className="flex gap-2">
-                        <Link href={buttonObj.url} passHref>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-blue-900 bg-slate-100 dark:bg-black hover:text-blue-900 text-blue-900 px-6 py-4 sm:mb-0 mb-2"
-                            >
-                                + {buttonObj.name}
-                            </Button>
-                        </Link>
-
-                    </div>
-                )}
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsAddDialogOpen(true)}
+                        className="border-blue-900 bg-slate-100 dark:bg-black hover:text-blue-900 text-blue-900 px-6 py-4 sm:mb-0 mb-2"
+                    >
+                        <Plus className="w-4 h-4" /> Add Category
+                    </Button>
+                </div>
             </div>
-
-            {!button && title && (
-                <p className="font-semibold text-md my-4">{title}</p>
-            )}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader className="bg-transparent hover:bg-transparent">
@@ -198,6 +221,25 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
+            {/* Add Category Dialog */}
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Category</DialogTitle>
+                    </DialogHeader>
+                    <Input
+                        placeholder="Category Name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        autoFocus
+                    />
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAddCategory}>Add Category</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
                     variant="outline"
