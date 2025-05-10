@@ -1554,18 +1554,16 @@ func (p *Postgres) Dispatch(ctx context.Context, req *port.DispatchRequest) erro
 }
 
 func (p *Postgres) Reserve(ctx context.Context, req *port.ReserveRequest) error {
-	var stock int
 	query := "SELECT * FROM public.reserve_product_stock($1, $2);"
 	productStockArgs := []any{
 		req.Id,
 		req.Amount,
 	}
-	pResult := []any{&stock}
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(productStockArgs, pResult),
+		query_handler.WithSingleRowResultSet(productStockArgs, nil),
 	).DoSingleQuery()
 	if err != nil {
 		return err
@@ -1579,12 +1577,11 @@ func (p *Postgres) Reserve(ctx context.Context, req *port.ReserveRequest) error 
 		STOCK_OPERATION_RESERVE,
 		0,
 	}
-	pULesult := []any{&stock}
 	err = query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
+		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, nil),
 	).DoSingleQuery()
 	if err != nil {
 		switch err {
@@ -1598,18 +1595,16 @@ func (p *Postgres) Reserve(ctx context.Context, req *port.ReserveRequest) error 
 }
 
 func (p *Postgres) FreeReservation(ctx context.Context, req *port.FreeReservedRequest) error {
-	var stock int
 	query := "SELECT * FROM public.free_reserved_product_stock($1, $2);"
 	productStockArgs := []any{
 		req.Id,
 		req.Amount,
 	}
-	pResult := []any{&stock}
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(productStockArgs, pResult),
+		query_handler.WithSingleRowResultSet(productStockArgs, nil),
 	).DoSingleQuery()
 	if err != nil {
 		return err
@@ -1623,12 +1618,11 @@ func (p *Postgres) FreeReservation(ctx context.Context, req *port.FreeReservedRe
 		STOCK_OPERATION_FREE_RESERVATION,
 		0,
 	}
-	pULesult := []any{&stock}
 	err = query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, pULesult),
+		query_handler.WithSingleRowResultSet(productUpdateLedgerArgs, nil),
 	).DoSingleQuery()
 	if err != nil {
 		switch err {

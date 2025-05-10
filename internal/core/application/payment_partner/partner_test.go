@@ -44,7 +44,7 @@ func Test_Create_Payment_Option_happyPath(t *testing.T) {
 		}
 	})
 
-	t.Run("inactive_by_default", func(t *testing.T) {
+	t.Run("active_by_default", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
@@ -64,7 +64,7 @@ func Test_Create_Payment_Option_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to Get err: %v", err)
 		}
-		if resp.Status != INACTIVE_STATUS {
+		if resp.Status != ACTIVE_STATUS {
 			t.Errorf("Expected status: %v Got: %v", INACTIVE_STATUS, resp.Status)
 		}
 	})
@@ -150,6 +150,12 @@ func Test_Activate_Payment_Option_happyPath(t *testing.T) {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 
+	//deactivate
+	err = container.PartnerService.Deactivate(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to activate payment option err: %v", err)
+	}
+
 	//activate
 	err = container.PartnerService.Activate(ctx, id)
 	if err != nil {
@@ -167,16 +173,6 @@ func Test_Activate_Payment_Option_happyPath(t *testing.T) {
 }
 
 func Test_Activate_Payment_Option_unhappyPath(t *testing.T) {
-	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(container.Teardown)
-		ctx := context.Background()
-		err := container.PartnerService.Activate(ctx, 99)
-		wantErr := ErrIdNotFound
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got: %v", wantErr, err)
-		}
-	})
-
 	t.Run("alreadyActive", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
@@ -190,11 +186,6 @@ func Test_Activate_Payment_Option_unhappyPath(t *testing.T) {
 		id, err := container.PartnerService.Create(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
-		}
-
-		err = container.PartnerService.Activate(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to activate payment option err: %v", err)
 		}
 
 		//re-activate
@@ -219,11 +210,6 @@ func Test_Deactivate_Payment_Option_happyPath(t *testing.T) {
 	id, err := container.PartnerService.Create(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
-	}
-
-	err = container.PartnerService.Activate(ctx, id)
-	if err != nil {
-		t.Fatalf("Failed to activate payment option err: %v", err)
 	}
 
 	err = container.PartnerService.Deactivate(ctx, id)
@@ -252,6 +238,11 @@ func Test_Deactivate_Payment_Option_unhappyPath(t *testing.T) {
 		}
 
 		id, err := container.PartnerService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		err = container.PartnerService.Deactivate(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
@@ -329,6 +320,11 @@ func Test_Get_Active_Payment_Options_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
+		err = container.PartnerService.Deactivate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to deactivate err: %v", err)
+		}
+
 		_, err = container.PartnerService.GetActive(ctx)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
@@ -403,6 +399,109 @@ func Test_Get_Payment_Options_ByParam_unhappyPath(t *testing.T) {
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Get_Payment_Options_Secret_happyPath(t *testing.T) {
+	t.Run("get", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			Name:    "test",
+			Icon:    "test",
+			BaseURL: "test",
+			Secret:  "randomSecret",
+		}
+
+		id, err := container.PartnerService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := container.PartnerService.GetPartnerSecret(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if resp.Name != in.Name {
+			t.Errorf("Expected id: %v Got id: %v", resp.Name, in.Name)
+		}
+	})
+}
+
+func Test_Update_Payment_Options_Secret_happyPath(t *testing.T) {
+	t.Run("update", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			Name:    "test",
+			Icon:    "test",
+			BaseURL: "test",
+			Secret:  "randomSecret",
+		}
+
+		id, err := container.PartnerService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		update_in := UpdatePartnerSecret{
+			Id:      id,
+			BaseURL: "new_test",
+			Secret:  "new_randomSecret",
+		}
+		err = container.PartnerService.UpdatePartnerSecret(ctx, UpdatePartnerSecret{
+			Id:      update_in.Id,
+			BaseURL: update_in.BaseURL,
+			Secret:  update_in.Secret,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update partner secret err: %v", err)
+		}
+
+		resp, err := container.PartnerService.GetPartnerSecret(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get partner secret err: %v", err)
+		}
+
+		if resp.BaseURL != update_in.BaseURL {
+			t.Errorf("Expected resp: %v Got: %v", resp.BaseURL, update_in.BaseURL)
+		}
+		if resp.Secret != update_in.Secret {
+			t.Errorf("Expected resp: %v Got: %v", resp.Secret, update_in.Secret)
+		}
+	})
+}
+
+func Test_Update_Payment_Options_Secret_unhappyPath(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		//setup
+		in := &CreateRequest{
+			Name:    "test",
+			Icon:    "test",
+			BaseURL: "test",
+			Secret:  "randomSecret",
+		}
+
+		id, err := container.PartnerService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		update_in := UpdatePartnerSecret{
+			Id:      id,
+			BaseURL: "new_test",
+			Secret:  "new_randomSecret",
+		}
+		err = container.PartnerService.UpdatePartnerSecret(ctx, UpdatePartnerSecret{
+			Id:      999,
+			BaseURL: update_in.BaseURL,
+			Secret:  update_in.Secret,
+		})
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
 }
