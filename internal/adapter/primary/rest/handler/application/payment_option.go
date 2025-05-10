@@ -44,6 +44,11 @@ type GetPaymentOptionByParamRequest struct {
 	Status string `json:"status"`
 }
 
+type UpdatePaymentOptionRequest struct {
+	BaseURL string `json:"base_url"`
+	Secret  string `json:"secret"`
+}
+
 type PaymentPartner struct {
 	service payment_partner.Provider
 }
@@ -62,6 +67,7 @@ func (p *PaymentPartner) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/payment_option/active", p.GetActivePaymentPartnersHandler)
 	mux.HandleFunc("POST /api/v1/payment_option", p.CreatePaymentPartnerHandler)
 	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/status", p.StatusCommandHandler)
+	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/secret", p.UpdateSecretHandler)
 }
 
 func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
@@ -211,7 +217,7 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option activated successfully"})
+			util.OperationSuccessMessageResponse(w, "payment option activated successfully")
 		case DEACTIVATE_PAYMENT_OPTION_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
@@ -224,9 +230,44 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option deactivated successfully"})
+			util.OperationSuccessMessageResponse(w, "payment option deactivated successfully")
 		default:
 			util.RequestErrorResponse(w, ErrUnknownPaymentOptionCommand)
 		}
 	}
+}
+
+func (p *PaymentPartner) UpdateSecretHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+	var requestBody UpdatePaymentOptionRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	err = p.service.UpdatePartnerSecret(r.Context(), payment_partner.UpdatePartnerSecret{
+		Id:      typedParamId,
+		BaseURL: requestBody.BaseURL,
+		Secret:  requestBody.Secret,
+	})
+	if err != nil {
+		switch err {
+		case payment_partner.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessMessageResponse(w, "secret updated successfully")
 }

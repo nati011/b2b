@@ -142,13 +142,13 @@ func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
 		}
 		wantAvailableStock := product.AvailableStock
 
-		order_id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err%v", err)
 		}
 
 		container.OrderService.UpdateDeliveryStatus(ctx, &order.UpdateRequest{
-			Id:             order_id,
+			Id:             order_resp.Id,
 			DeliveryStatus: order.DELIVERY_COMPLETED_STATUS,
 		})
 
@@ -180,13 +180,13 @@ func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
 		}
 		wantAvailableStock := product.AvailableStock
 
-		order_id, err := container.OrderService.Place(ctx, in)
+		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err%v", err)
 		}
 
 		container.OrderService.UpdateStatus(ctx, &order.UpdateRequest{
-			Id:     order_id,
+			Id:     order_resp.Id,
 			Status: order.CANCELED_STATUS,
 		})
 

@@ -866,7 +866,7 @@ func (p *ProductService) Reserve(ctx context.Context, id int, qty int) error {
 		}
 	}
 	//validate if qty is less than or equal to available qty
-	if product.AvailableStock <= qty {
+	if product.AvailableStock < qty {
 		return ErrStockReservationQtyMustBeLessThanOrEqualToAvailableQty
 	}
 
