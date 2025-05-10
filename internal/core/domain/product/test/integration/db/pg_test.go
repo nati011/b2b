@@ -883,4 +883,105 @@ func Test_write(t *testing.T) {
 			t.Fatalf("Expected stock: %v Got: %v", dispachAmount, got.Stock)
 		}
 	})
+
+	t.Run("reserve", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		product_id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		goodsReceivingAmount := 5
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     product_id,
+			Amount: goodsReceivingAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		reservedAmount := 4
+		err = container.ProductService.Reserve(ctx, product_id, reservedAmount)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, product_id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.AvailableStock != goodsReceivingAmount-reservedAmount {
+			t.Fatalf("expected available stock: %v Got: %v", goodsReceivingAmount-reservedAmount, got.AvailableStock)
+		}
+	})
+
+	t.Run("freeReservedStock", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		product_id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		goodsReceivingAmount := 5
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     product_id,
+			Amount: goodsReceivingAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		reservedAmount := 4
+		err = container.ProductService.Reserve(ctx, product_id, reservedAmount)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		err = container.ProductService.FreeReservation(ctx, product_id, reservedAmount)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, product_id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.AvailableStock != goodsReceivingAmount {
+			t.Fatalf("expected available stock: %v Got: %v", goodsReceivingAmount, got.AvailableStock)
+		}
+	})
 }

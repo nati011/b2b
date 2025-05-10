@@ -1216,8 +1216,8 @@ func Test_Reserve_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -1265,8 +1265,8 @@ func Test_Reserve_happyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -1313,8 +1313,8 @@ func Test_Reserve_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -1351,8 +1351,8 @@ func Test_Reserve_unhappyPath(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -1383,20 +1383,184 @@ func Test_Reserve_unhappyPath(t *testing.T) {
 
 func Test_Free_Reservation_happyPath(t *testing.T) {
 	t.Run("add_available_item_upon_reservation", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
 
+		reserved_stock := 50
+		err = container.ProductService.Reserve(ctx, id, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+
+		err = container.ProductService.FreeReservation(ctx, id, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+
+		product, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get product err: %v", err)
+		}
+
+		if product.AvailableStock != inital_stock {
+			t.Errorf("Want availableStock: %v, Got: %v", product.AvailableStock, inital_stock)
+		}
 	})
 
 	t.Run("deduct_reserved_item_upon_reservation", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
 
+		reserved_stock := 50
+		err = container.ProductService.Reserve(ctx, id, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+
+		err = container.ProductService.FreeReservation(ctx, id, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to reserve stock err: %v", err)
+		}
+
+		product, err := container.ProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get product err: %v", err)
+		}
+
+		if product.ReservedStock != 0 {
+			t.Errorf("Want reservedStock: %v, Got: %v", product.AvailableStock, 0)
+		}
 	})
 }
 
 func Test_Free_Reservation_unhappyPath(t *testing.T) {
 	t.Run("id_not_found", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
 
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
+
+		reserved_stock := 50
+		err = container.ProductService.Reserve(ctx, id, reserved_stock)
+		if err != nil {
+			t.Fatalf("Failed to Reserve err: %v", err)
+		}
+
+		err = container.ProductService.FreeReservation(ctx, 9999, reserved_stock)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
 	})
 
 	t.Run("qty_more_than_reservation", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
 
+		id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product err: %v", err)
+		}
+		inital_stock := 100
+		err = container.ProductService.ReceiveGoods(ctx, &GoodsReceivingRequest{
+			Id:     id,
+			Amount: inital_stock,
+		})
+		if err != nil {
+			t.Fatalf("Failed to recieveGoods err: %v", err)
+		}
+
+		err = container.ProductService.FreeReservation(ctx, id, 100000)
+		wantErr := ErrFreeReservationQtyMustBeLessThanOrEqualToReservedQty
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
 	})
 }
