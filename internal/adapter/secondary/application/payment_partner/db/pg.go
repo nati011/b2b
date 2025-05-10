@@ -53,19 +53,18 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	return response, nil
 }
+
 func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSecret, error) {
 	var response port.GetPartnerSecret
 
-	query := "SELECT * FROM public.get_payment_partner_secrets($1);"
+	query := "SELECT * FROM public.get_payment_partner_secret($1);"
 
 	result := []any{
 		&response.Name,
 		&response.BaseURL,
 		&response.Secret,
 	}
-
 	args := []any{&id}
-
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
@@ -81,6 +80,21 @@ func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartne
 	response.Secret = *result[2].(*string)
 
 	return response, nil
+}
+
+func (p *Postgres) UpdatePartnerSecret(ctx context.Context, req port.UpdatePartnerSecret) error {
+	query := "SELECT * FROM public.update_payment_partner_secret($1, $2, $3);"
+	args := []any{&req.Id, req.BaseURL, req.Secret}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {

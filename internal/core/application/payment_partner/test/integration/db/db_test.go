@@ -105,12 +105,6 @@ func Test_Read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-
-		err = container.PartnerService.Activate(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to activate payment option err: %v", err)
-		}
-
 		resp, err := container.PartnerService.GetActive(ctx)
 		if err != nil {
 			t.Fatalf("Failed to get all payment options err: %v", err)
