@@ -26,12 +26,19 @@ type GetPartnerSecret struct {
 	Secret  string
 }
 
+type UpdatePartnerSecret struct {
+	Id      int
+	BaseURL string
+	Secret  string
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
 
 type Reader interface {
 	GetPartnerSecret(context.Context, int) (GetPartnerSecret, error)
+	UpdatePartnerSecret(context.Context, UpdatePartnerSecret) error
 	GetByID(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)

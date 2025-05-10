@@ -73,6 +73,33 @@ func (m *Mock) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSec
 	return port.GetPartnerSecret{}, port_commons.ErrSysNoRows
 }
 
+func (m *Mock) UpdatePartnerSecret(ctx context.Context, req port.UpdatePartnerSecret) error {
+	resp := []MockPartner{}
+	for _, i := range m.resources {
+		if i.Id == req.Id {
+			resp = append(resp, MockPartner{
+				Id:       i.Id,
+				Name:     i.Name,
+				Status:   i.Status,
+				Icon:     i.Icon,
+				base_url: req.BaseURL,
+				Secret:   req.Secret,
+			})
+		} else {
+			resp = append(resp, MockPartner{
+				Id:       i.Id,
+				Name:     i.Name,
+				Status:   i.Status,
+				Icon:     i.Icon,
+				base_url: i.base_url,
+				Secret:   i.Secret,
+			})
+		}
+	}
+	m.resources = resp
+	return nil
+}
+
 func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
