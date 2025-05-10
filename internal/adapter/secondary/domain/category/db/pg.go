@@ -107,3 +107,19 @@ func (p *Postgres) Remove(ctx context.Context, id int) error {
 
 	return nil
 }
+
+func (p *Postgres) Update(ctx context.Context, req *port.UpdateRequest) error {
+	query := "SELECT * FROM public.update_category($1, $2);"
+	args := []any{req.Id, req.Name}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
