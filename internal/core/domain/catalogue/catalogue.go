@@ -131,7 +131,7 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 				Attributes:    resp.Attributes,
 				DistributorId: resp.DistributorId,
 				CategoryId:    resp.CategoryId,
-				Stock:         resp.Stock,
+				Stock:         resp.AvailableStock,
 				IsActive:      resp.IsActive,
 			})
 			for _, key := range j.Attributes {
@@ -191,7 +191,7 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 				Attributes:    i.Attributes,
 				DistributorId: i.DistributorId,
 				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
+				Stock:         i.AvailableStock,
 				IsActive:      i.IsActive,
 			})
 
