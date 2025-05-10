@@ -3,7 +3,6 @@ import useProductsStore from "@/app/libs/store/useProductStore"
 import { useEffect, useState } from "react";
 import Heading from "../components/breadcrumb";
 import { DataTable } from "@/components/ui/datatable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,16 +28,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
+import Link from "next/link";
+import { LiaEdit } from "react-icons/lia";
 
 
 export default function Products() {
   const {
     products,
+    success,
     loading,
     error,
     fetchProducts,
     addStock,
-    depleteStock
+    depleteStock,
+    updateProductStatus
   } = useProductsStore()
 
   const pages = [
@@ -50,8 +53,10 @@ export default function Products() {
 
   const [stockModal, setStockModal] = useState(false)
   const [depleteStockModal, setDepleteStockModal] = useState(false)
+  const [statusModal, setStatusModal] = useState(false)
   const [stockQuantity, setStockQuantity] = useState(0)
   const [productId, setProductId] = useState(0)
+  const [productStatus, setProductStatus] = useState(false)
 
 
   useEffect(() => {
@@ -66,8 +71,8 @@ export default function Products() {
       cell: ({ row }) => {
         const image = row.original.Images[0].ImageUrl
         console.log(image)
-        return <div className="border rounded">
-          <Image src={image} alt="product-image" width={40} height={40} />
+        return <div className="border rounded w-fit">
+          <Image src={image} alt="product-image" width={100} height={100} />
         </div>
       },
     },
@@ -100,8 +105,8 @@ export default function Products() {
       header: () => <div className="text-left">Status</div>,
       cell: ({ row }) => {
         const status = row.getValue("IsActive")
-        return <div className={status ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>
-          {status ? "Inactive" : "Active"}
+        return <div className={!status ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>
+          {status ? "Active" : "Inactive"}
         </div>
       },
     },
@@ -109,33 +114,49 @@ export default function Products() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const item = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => {
-                setProductId(row.original.Id)
-                setStockModal(true)
-              }
-              }>
-                Add Stock
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                setProductId(row.original.Id)
-                setDepleteStockModal(true)
-              }
-              }>
-                Deplete Stock
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Link href={`/products/${row.original.Id}`}>
+              <LiaEdit className="text-gray-700 text-xl" />
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => {
+                  setProductId(row.original.Id)
+                  setStockModal(true)
+                }
+                }>
+                  Add Stock
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  setProductId(row.original.Id)
+                  setDepleteStockModal(true)
+                }
+                }>
+                  Deplete Stock
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => {
+                  setProductId(row.original.Id)
+                  setStatusModal(true)
+                  setProductStatus(row.getValue("IsActive"))
+                }
+                }>
+                  {
+
+                    !row.original.IsActive ? "Activate Product" : "Deactivate Product"
+                  }
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
@@ -150,8 +171,12 @@ export default function Products() {
 
   const handlDepleteStock = () => {
     depleteStock(stockQuantity, productId)
-
   };
+
+
+  const handleStatusUpdate = () => {
+    updateProductStatus(productId, productStatus)
+  }
   return (
     <>
       <Heading page={pages} heading="Products" subheading="List of Registered products" />
@@ -218,6 +243,31 @@ export default function Products() {
               }
             >
               Deplete Stock
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={statusModal}>
+        <AlertDialogTrigger asChild>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update Product Status</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogDescription>Are you sure you want to update the product status?</AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); setStockQuantity(0) }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleStatusUpdate()
+                setStatusModal(false)
+                setProductId(0)
+              }
+              }
+            >
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
