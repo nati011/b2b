@@ -8,6 +8,11 @@ type CreateRequest struct {
 	Name string
 }
 
+type UpdateRequest struct {
+	Id   int
+	Name string
+}
+
 type GetResponse struct {
 	Id   int
 	Name string
@@ -25,6 +30,7 @@ type Reader interface {
 type Writer interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Remove(ctx context.Context, id int) error
+	Update(ctx context.Context, req *UpdateRequest) error
 }
 
 type DB interface {
