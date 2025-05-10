@@ -83,8 +83,13 @@ type UpdateRequest struct {
 	DeliveryStatus string
 }
 
+type OrderPlaceResponse struct {
+	Id          int    `json:"id"`
+	CheckoutUrl string `json:"checkout_url"`
+}
+
 type Provider interface {
-	Place(ctx context.Context, req *PlaceRequest) (int, error)
+	Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error)
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
@@ -133,10 +138,10 @@ func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest
 	return nil
 }
 
-func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error) {
+func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error) {
 	err := o.validate_placement(ctx, req)
 	if err != nil {
-		return 0, err
+		return OrderPlaceResponse{}, err
 	}
 
 	items := make([]port.Item, 0, len(req.Items))
@@ -147,7 +152,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		if err != nil {
 			switch err {
 			default:
-				return 0, ErrUnknown
+				return OrderPlaceResponse{}, ErrUnknown
 			}
 		}
 		items = append(items, port.Item{
@@ -167,17 +172,16 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		Total:          itemsTotal,
 	})
 	if err != nil {
-		return 0, ErrUnknown
+		return OrderPlaceResponse{}, ErrUnknown
 	}
 
-	_, err = o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
+	checkout_resp, err := o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
 		OrderId:          order_id,
 		Amount:           itemsTotal,
 		PaymentPartnerId: req.PaymentPartnerId,
 	})
-
 	if err != nil {
-		return 0, err
+		return OrderPlaceResponse{}, err
 	}
 
 	// create invoice
@@ -187,7 +191,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		if err != nil {
 			switch err {
 			default:
-				return 0, ErrUnknown
+				return OrderPlaceResponse{}, ErrUnknown
 			}
 		}
 		lineItems = append(lineItems, invoice.Item{
@@ -206,14 +210,14 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		TaxAmount: 0, //default
 	}); err != nil {
 		o.Cancel(ctx, order_id)
-		return 0, ErrUnknown
+		return OrderPlaceResponse{}, ErrUnknown
 	}
 
 	//reserve stock
 	for _, i := range req.Items {
 		if err = o.ProductService.Reserve(ctx, i.ProductId, i.Quantity); err != nil {
 			log.Printf("order placement failed due to inability to reserve stock qty: %v for productId: %v", i.Quantity, i.ProductId)
-			return 0, ErrUnknown
+			return OrderPlaceResponse{}, ErrUnknown
 		}
 	}
 
@@ -230,7 +234,10 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	/*
 		send email
 	*/
-	return order_id, nil
+	return OrderPlaceResponse{
+		Id:          order_id,
+		CheckoutUrl: checkout_resp.CheckoutUrl,
+	}, nil
 }
 
 func (o *OrderService) Cancel(ctx context.Context, id int) error {
