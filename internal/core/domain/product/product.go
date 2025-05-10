@@ -249,17 +249,19 @@ func (p *ProductService) Get(ctx context.Context, id int) (GetResponse, error) {
 		images = append(images, image)
 	}
 	response := GetResponse{
-		Id:            resp.Id,
-		Name:          resp.Name,
-		Desc:          resp.Desc,
-		ExternalID:    resp.ExternalID,
-		Images:        images,
-		Price:         resp.Price,
-		Attributes:    resp.Attributes,
-		DistributorId: resp.DistributorId,
-		CategoryId:    resp.CategoryId,
-		Stock:         resp.Stock,
-		IsActive:      resp.IsActive,
+		Id:             resp.Id,
+		Name:           resp.Name,
+		Desc:           resp.Desc,
+		ExternalID:     resp.ExternalID,
+		Images:         images,
+		Price:          resp.Price,
+		Attributes:     resp.Attributes,
+		DistributorId:  resp.DistributorId,
+		CategoryId:     resp.CategoryId,
+		Stock:          resp.Stock,
+		AvailableStock: resp.AvailableStock,
+		ReservedStock:  resp.ReservedStock,
+		IsActive:       resp.IsActive,
 	}
 	return response, nil
 }
@@ -288,17 +290,19 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				images = append(images, image)
 			}
 			response := GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.AvailableStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
 			}
 
 			resp.List = append(resp.List, response)
@@ -376,17 +380,19 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				images = append(images, image)
 			}
 			response := GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.AvailableStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
 			}
 
 			resp.List = append(resp.List, response)
@@ -414,17 +420,19 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				images = append(images, image)
 			}
 			response := GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.AvailableStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
 			}
 
 			resp.List = append(resp.List, response)
@@ -453,17 +461,19 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				images = append(images, image)
 			}
 			response := GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.AvailableStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
 			}
 			resp.List = append(resp.List, response)
 		}
@@ -489,17 +499,19 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				images = append(images, image)
 			}
 			response := GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.AvailableStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
 			}
 			resp.List = append(resp.List, response)
 		}
@@ -525,17 +537,19 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 				images = append(images, image)
 			}
 			response := GetResponse{
-				Id:            i.Id,
-				Name:          i.Name,
-				Desc:          i.Desc,
-				ExternalID:    i.ExternalID,
-				Images:        images,
-				Price:         i.Price,
-				Attributes:    i.Attributes,
-				DistributorId: i.DistributorId,
-				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
-				IsActive:      i.IsActive,
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.AvailableStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
 			}
 			resp.List = append(resp.List, response)
 		}
@@ -569,17 +583,19 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			images = append(images, image)
 		}
 		response := GetResponse{
-			Id:            i.Id,
-			Name:          i.Name,
-			Desc:          i.Desc,
-			ExternalID:    i.ExternalID,
-			Images:        images,
-			Price:         i.Price,
-			Attributes:    i.Attributes,
-			DistributorId: i.DistributorId,
-			CategoryId:    i.CategoryId,
-			Stock:         i.Stock,
-			IsActive:      i.IsActive,
+			Id:             i.Id,
+			Name:           i.Name,
+			Desc:           i.Desc,
+			ExternalID:     i.ExternalID,
+			Images:         images,
+			Price:          i.Price,
+			Attributes:     i.Attributes,
+			DistributorId:  i.DistributorId,
+			CategoryId:     i.CategoryId,
+			Stock:          i.Stock,
+			AvailableStock: i.AvailableStock,
+			ReservedStock:  i.ReservedStock,
+			IsActive:       i.IsActive,
 		}
 		resp_val.List = append(resp_val.List, response)
 	}
