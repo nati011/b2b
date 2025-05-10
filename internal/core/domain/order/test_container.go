@@ -5,18 +5,20 @@ import (
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 type TestContainer struct {
-	OrderService    Provider
-	InvoiceService  invoice.Provider
-	ProductService  product.Provider
-	RetailerService retailer.Provider
-	CheckoutService checkout.Provider
-	PartnerService  partner.Provider
+	OrderService       Provider
+	InvoiceService     invoice.Provider
+	ProductService     product.Provider
+	RetailerService    retailer.Provider
+	DistributorService distributor.Provider
+	CheckoutService    checkout.Provider
+	PartnerService     partner.Provider
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
