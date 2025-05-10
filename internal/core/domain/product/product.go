@@ -884,10 +884,7 @@ func (p *ProductService) FreeReservation(ctx context.Context, id int, qty int) e
 	//validate Id
 	product, err := p.Get(ctx, id)
 	if err != nil {
-		switch err {
-		default:
-			return ErrUnknown
-		}
+		return err
 	}
 	//validate if qty is less than or equal to reserved qty
 	if qty > product.ReservedStock {
