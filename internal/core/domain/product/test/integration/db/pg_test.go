@@ -151,6 +151,50 @@ func Test_read(t *testing.T) {
 		}
 	})
 
+	t.Run("GetAllStockLedger", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		prod_id, err := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     prod_id,
+			Amount: 10,
+		})
+		if err != nil {
+			t.Fatalf("Failed to receive goods")
+		}
+
+		resp, err := container.ProductService.GetAllStockLedger(ctx)
+		if err != nil {
+			t.Errorf("Expected err:%v Got err: %v", nil, err)
+		}
+
+		if resp.List[0].Product_id != prod_id {
+			t.Errorf("expected productId: %v Got: %v", resp.List[0].Product_id, prod_id)
+		}
+
+		if resp.List[0].Operation != "GOODS_RECEIVING" {
+			t.Errorf("expected productId: %v Got: %v", resp.List[0].Product_id, prod_id)
+		}
+
+	})
+
 	t.Run("GetStockLedger", func(t *testing.T) {
 		t.Cleanup(teardown)
 		//setup
@@ -180,7 +224,7 @@ func Test_read(t *testing.T) {
 			t.Fatalf("Failed to receive goods")
 		}
 
-		resp, err := container.ProductService.GetStockLedger(ctx)
+		resp, err := container.ProductService.GetStockLedger(ctx, prod_id)
 		if err != nil {
 			t.Errorf("Expected err:%v Got err: %v", nil, err)
 		}
