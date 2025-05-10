@@ -133,4 +133,34 @@ func Test_Writer(t *testing.T) {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
+
+	t.Run("update", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &category.CreateRequest{
+			Name: "test",
+		}
+		id, err := service.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create category err: %v", err)
+		}
+		update_in := &category.UpdateRequest{
+			Id:   id,
+			Name: "new_test",
+		}
+		err = service.Update(ctx, update_in)
+		if err != nil {
+			t.Fatalf("Failed to remove category err: %v", err)
+		}
+
+		resp, err := service.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get category err: %v", err)
+		}
+		wantName := update_in.Name
+		if resp.Name != wantName {
+			t.Errorf("Expected name: %v Got: %v", wantName, resp.Name)
+		}
+	})
 }
