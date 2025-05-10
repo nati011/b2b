@@ -191,7 +191,7 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 				Attributes:    i.Attributes,
 				DistributorId: i.DistributorId,
 				CategoryId:    i.CategoryId,
-				Stock:         i.Stock,
+				Stock:         i.AvailableStock,
 				IsActive:      i.IsActive,
 			})
 
