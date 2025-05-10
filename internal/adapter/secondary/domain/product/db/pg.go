@@ -24,7 +24,7 @@ func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	}
 }
 
-func (p *Postgres) GetStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
+func (p *Postgres) GetAllStockLedger(ctx context.Context) (port.GetStockLedgerResponse, error) {
 	var response port.GetStockLedgerResponse
 	var responseBase port.GetStockLedgerBaseResponse
 	query := "SELECT * FROM public.get_stock_ledger_entries();"
@@ -40,6 +40,45 @@ func (p *Postgres) GetStockLedger(ctx context.Context) (port.GetStockLedgerRespo
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
 		query_handler.WithMultiRowResultSet(nil, dest),
+	).DoMultiQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return port.GetStockLedgerResponse{}, port_commons.ErrSysNoRows
+		default:
+			return port.GetStockLedgerResponse{}, err
+		}
+	}
+	for _, res := range result {
+		val := port.GetStockLedgerBaseResponse{
+			Id:         int(res[0].(int64)),
+			Quantity:   int(res[1].(int64)),
+			Product_id: int(res[2].(int64)),
+			Operation:  res[3].(string),
+			CreatedOn:  res[4].(time.Time),
+		}
+		response.List = append(response.List, val)
+	}
+	return response, nil
+}
+
+func (p *Postgres) GetStockLedger(ctx context.Context, id int) (port.GetStockLedgerResponse, error) {
+	var response port.GetStockLedgerResponse
+	var responseBase port.GetStockLedgerBaseResponse
+	query := "SELECT * FROM public.get_stock_ledger_entries_by_product_id($1);"
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Quantity,
+		&responseBase.Product_id,
+		&responseBase.Operation,
+		&responseBase.CreatedOn,
+	}
+	args := []any{&id}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		switch err {

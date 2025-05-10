@@ -91,16 +91,38 @@ func (p *Product) Routes(mux *http.ServeMux) {
 }
 
 func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) {
-	resp, err := p.service.GetStockLedger(r.Context())
-	if err != nil {
-		switch err {
-		case product.ErrEmptyGetContent:
-		default:
-			util.ServerErrorResponse(w, err)
+	const ParamId = "product_id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
 			return
 		}
+		resp, err := p.service.GetStockLedger(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"stock": resp})
+	} else {
+		resp, err := p.service.GetAllStockLedger(r.Context())
+		if err != nil {
+			switch err {
+			case product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"stock": resp})
 	}
-	util.OperationSuccessResponse(w, resp)
+
 }
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
@@ -123,7 +145,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
-
 		}
 		resp, err := p.service.Get(r.Context(), typedParamId)
 		if err != nil {
@@ -136,7 +157,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		util.OperationSuccessResponse(w, util.Envelope{"product": resp})
-
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
