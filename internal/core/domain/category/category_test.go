@@ -101,6 +101,53 @@ func Test_remove_category_unhappyPath(t *testing.T) {
 	})
 }
 
+func Test_update_category_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	in := &CreateRequest{
+		Name: "test",
+	}
+	id, err := service.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create category err: %v", err)
+	}
+
+	update_in := &UpdateRequest{
+		Id:   id,
+		Name: "new_test",
+	}
+	err = service.Update(ctx, update_in)
+	if err != nil {
+		t.Fatalf("Failed to remove category err: %v", err)
+	}
+
+	//check
+	resp, err := service.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get category err: %v", err)
+	}
+	if resp.Name != update_in.Name {
+		t.Errorf("Expected name: %v Got: %v", resp.Name, update_in.Name)
+	}
+}
+
+func Test_update_category_unhappyPath(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+
+		update_in := &UpdateRequest{
+			Id:   999,
+			Name: "new_test",
+		}
+		err := service.Update(ctx, update_in)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+}
+
 func Test_get_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
