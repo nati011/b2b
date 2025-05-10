@@ -338,22 +338,37 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 
 	return_response := GetAllResponse{}
 	for _, i := range resp.List {
+		distributors := []int{}
 		items := []Item{}
-		for _, i := range i.Items {
+		for _, j := range i.Items {
 			items = append(items, Item{
-				ProductId: i.ProductId,
-				Quantity:  i.Quantity,
+				ProductId: j.ProductId,
+				Quantity:  j.Quantity,
+			})
+			product, err := o.ProductService.Get(ctx, j.ProductId)
+			if err != nil {
+				log.Fatalf("failed to fetch product %v", j.ProductId)
+				return GetAllResponse{}, ErrUnknown
+			}
+			distributors = append(distributors, product.DistributorId)
+		}
+		order_belongs_to_distributor := false
+		for _, j := range distributors {
+			if j == distributor_id {
+				order_belongs_to_distributor = true
+			}
+		}
+		if order_belongs_to_distributor {
+			return_response.List = append(return_response.List, GetResponse{
+				Id:             i.Id,
+				RetailerId:     i.RetailerId,
+				Items:          items,
+				Total:          float32(i.Total),
+				Status:         i.Status,
+				DeliveryStatus: i.DeliveryStatus,
+				PaymentStatus:  i.PaymentStatus,
 			})
 		}
-		return_response.List = append(return_response.List, GetResponse{
-			Id:             i.Id,
-			RetailerId:     i.RetailerId,
-			Items:          items,
-			Total:          float32(i.Total),
-			Status:         i.Status,
-			DeliveryStatus: i.DeliveryStatus,
-			PaymentStatus:  i.PaymentStatus,
-		})
 	}
 	return return_response, nil
 }

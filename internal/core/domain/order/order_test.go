@@ -13,6 +13,7 @@ import (
 
 var container TestContainer
 var retailer_id int
+var distributor_id int
 var product_id int
 var PaymentPartnerId int
 
@@ -42,6 +43,7 @@ func setup() {
 	if err != nil {
 		panic("failed to create product")
 	}
+	distributor_id = 1
 	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -54,6 +56,7 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributor_id,
 	})
 	if err != nil {
 		panic("failed to create product")
@@ -480,6 +483,35 @@ func Test_Get_By_Retailer_happyPath(t *testing.T) {
 	})
 }
 
+func Test_Get_By_Distributor_happyPath(t *testing.T) {
+	t.Run("getByDistributorId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		_, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		//check
+		got, err := container.OrderService.GetDistributorOrders(ctx, distributor_id)
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantLen := 1
+		if len(got.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+}
+
 func Test_Get_By_Retailer_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
 		t.Cleanup(teardown)
@@ -509,6 +541,18 @@ func Test_Get_By_Retailer_unhappyPath(t *testing.T) {
 		}
 		_, err = container.OrderService.GetRetailerOrders(ctx, 9999)
 		wantErr := ErrRetailerIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Get_By_Distributor_unhappyPath(t *testing.T) {
+	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		_, err := container.OrderService.GetDistributorOrders(ctx, 99999)
+		wantErr := ErrEmptyGetResponse
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err %v", wantErr, err)
 		}
