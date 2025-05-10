@@ -33,7 +33,10 @@ func setup() {
 			BaseURL: "https://api.chapa.co",
 			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		})
-	OrderId, err = testContainer.OrderService.Place(ctx,
+	if err != nil {
+		panic("failed to create payment partner")
+	}
+	order_resp, err := testContainer.OrderService.Place(ctx,
 		&order.PlaceRequest{
 			RetailerId: 1,
 			Items: []order.Item{
@@ -46,6 +49,7 @@ func setup() {
 	if err != nil {
 		panic("failed to create payment partner")
 	}
+	OrderId = order_resp.Id
 }
 
 func Test_Verify_Payment(t *testing.T) {
