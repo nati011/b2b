@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
@@ -50,6 +51,15 @@ type LoginUserRequest struct {
 	Password string `json:"password"`
 }
 
+type ResetCredentialsRequest struct {
+	NewPassword string `json:"password"`
+	ResetToken  string `json:"resetToken"`
+}
+
+type InitClientCredentialsResetRequest struct {
+	Email string `json:"email"`
+}
+
 type JWT struct {
 	AccessToken      string `json:"access_token"`
 	IDToken          string `json:"id_token"`
@@ -67,15 +77,29 @@ type Provider interface {
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
+	ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error
 }
 
 type AuthService struct {
 	authProvider port.Provider
+	// emailProvider email.Provider
 }
 
 func NewAuthService(ap port.Provider) Provider {
 	return &AuthService{authProvider: ap}
+}
 
+func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error {
+	//check if token is valid
+	//check if token has not expired
+	return nil
+}
+
+func (s AuthService) InitClientCredentialsReset(ctx context.Context, req InitClientCredentialsResetRequest) error {
+	//generate token with expiry date(30 mins)
+	//encode token with email address
+	//send email with token(use email templates)
+	return nil
 }
 
 func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
@@ -83,7 +107,6 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 	if err != nil {
 		return RegisterUserResponse{}, err
 	}
-
 	err = validatePasswords(req.Password)
 	if err != nil {
 		return RegisterUserResponse{}, err
@@ -96,6 +119,7 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 	if err != nil {
 		return RegisterUserResponse{}, err
 	}
+
 	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest(req))
 	if err != nil {
 		switch err {
@@ -107,6 +131,17 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 			return RegisterUserResponse{}, ErrUnknown
 		}
 	}
+	//TODO:
+	//Init Client Credentials Reset
+	err = a.InitClientCredentialsReset(ctx, InitClientCredentialsResetRequest{
+		Email: req.Email,
+	})
+	if err != nil {
+		log.Printf("Failed to init client credentials reset")
+		// a.authProvider.DeleteClient(ctx, req)
+		return RegisterUserResponse{}, err
+	}
+
 	return RegisterUserResponse{
 		Id:       resp.Id,
 		Username: resp.Username,
@@ -115,12 +150,10 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 
 func (a *AuthService) DeleteClient(ctx context.Context, userId string) error {
 	err := a.authProvider.DeleteClient(ctx, userId)
-
 	if err != nil {
 		return ErrUnknown
 	}
 	return nil
-
 }
 
 func (a *AuthService) ClientLogin(ctx context.Context, rq LoginUserRequest) (LoginAuthResponse, error) {
