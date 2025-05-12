@@ -38,26 +38,28 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
 
-		defer r.Body.Close()
-		var requestBody auth.LoginUserRequest
-		if err := json.Unmarshal(body, &requestBody); err != nil {
-			util.RequestErrorResponse(w, err)
+	var requestBody auth.LoginUserRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	loginResponse, err := h.service.ClientLogin(r.Context(), requestBody)
+	if err != nil {
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+		default:
+			util.UnauthorizedResponse(w)
 			return
 		}
-
-		loginResponse, err := h.service.ClientLogin(r.Context(), requestBody)
-		if err != nil {
-			switch err {
-			case auth.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-			default:
-				util.UnauthorizedResponse(w)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse.JWT})
 	}
+	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse.JWT})
+
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
