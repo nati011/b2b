@@ -46,30 +46,30 @@ func InitAuth(cfg *config.Config) {
 }
 
 func InitAuthDevelopment(cfg *config.Config) {
-	var err error
-	var keycloakContainer *keycloak.KeycloakContainer
-	ctx := context.Background()
-	keycloakContainer, err = RunContainer(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// var err error
+	// var keycloakContainer *keycloak.KeycloakContainer
+	// ctx := context.Background()
+	// keycloakContainer, err = RunContainer(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
-	if err != nil {
-		panic(err)
-	}
+	// keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	cfg.KeycloakUsername = keycloakAdminClient.Username
-	cfg.KeycloakPassword = keycloakAdminClient.Password
-	cfg.KeycloakRealm = keycloakAdminClient.Realm
-	cfg.KeycloakApplicationRealm = keycloakAdminClient.Realm
-	cfg.KeycloakClientId = keycloakAdminClient.ClientID
-	cfg.KeycloakInstanceURL = keycloakInstanceUrl
+	// cfg.KeycloakUsername = keycloakAdminClient.Username
+	// cfg.KeycloakPassword = keycloakAdminClient.Password
+	// cfg.KeycloakRealm = keycloakAdminClient.Realm
+	// cfg.KeycloakApplicationRealm = keycloakAdminClient.Realm
+	// cfg.KeycloakClientId = keycloakAdminClient.ClientID
+	// cfg.KeycloakInstanceURL = keycloakInstanceUrl
 }
 
 func InitAuthStaging(cfg *config.Config) {
