@@ -64,6 +64,7 @@ func NewChapa() port.Provider {
 func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 	initalization_url := fmt.Sprintf("%v/v1/transaction/initialize", request.PartnerUrl)
 	var response InitatePaymentChapaResponse
+	var logs any
 	payload, err := json.Marshal(request)
 	if err != nil {
 		return "", port.ErrUnknown
@@ -94,7 +95,11 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
 	}
-	log.Printf("Gateway response: %v", res.Body)
+	if err := json.Unmarshal(resBody, &logs); err != nil {
+		log.Printf("Error while checkingout: %v", err.Error())
+		return "", port.ErrUnknown
+	}
+	log.Printf("Gateway response: %v", logs)
 	if err := json.Unmarshal(resBody, &response); err != nil {
 		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
