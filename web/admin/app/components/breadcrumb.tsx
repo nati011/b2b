@@ -17,7 +17,7 @@ const Heading: React.FC<Props> = ({ page, heading, subheading }) => {
                 {
                     heading && (
                         <div className="flex">
-                            <p className="text-2xl font-semibold">{heading}</p>
+                            <p className="text-2xl font-semibold text-black">{heading}</p>
                         </div>
                     )
                 }
@@ -26,14 +26,18 @@ const Heading: React.FC<Props> = ({ page, heading, subheading }) => {
                 )
                 }
             </div>
-            <div className="flex items-center gap-2">
-                <Breadcrumb items={
-                    [{
-                        title: <IoHomeOutline />,
-                        href: "/"
-                    },
-                    ...page
-                    ]} />
+            <div className="flex items-center gap-2 text-cyan-900">
+                <div className="breadcrumb flex items-center text-sm sm:mb-2 my-4 ">
+                    <Link href="/">
+                        <IoHomeOutline />
+                    </Link>
+                    {page.map((p, index) => (
+                        <div key={index}>
+                            <span className="mx-2">/</span>
+                            <Link className='' href={`${p.href}`}>{p.title}</Link>
+                        </div>
+                    ))}
+                </div>
 
             </div>
         </div>
