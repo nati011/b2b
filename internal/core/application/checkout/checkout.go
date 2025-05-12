@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
@@ -96,6 +97,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 
 	paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 	if err != nil {
+		log.Printf("Error while fetching paymentPartnerSecret: %v", err.Error())
 		switch err {
 		case partner.ErrIdNotFound:
 			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
@@ -115,6 +117,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		OrderId:          req.OrderId,
 	})
 	if err != nil {
+		log.Printf("Error while fetching creating payment: %v", err.Error())
 		return CheckoutResponse{}, err
 	}
 
@@ -129,6 +132,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 
 	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)
 	if err != nil {
+		log.Printf("Error while fetching Initiating payment: %v", err.Error())
 		return CheckoutResponse{}, err
 	}
 
@@ -139,6 +143,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		Status:    transaction.PENDING_STATUS,
 	})
 	if err != nil {
+		log.Printf("Error while creating transaction: %v", err.Error())
 		switch err {
 		case transaction.ErrAmountIsNotSupplied:
 			return CheckoutResponse{}, ErrAmountNotSupplied
