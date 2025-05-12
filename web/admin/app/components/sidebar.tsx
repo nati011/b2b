@@ -69,6 +69,11 @@ const SideBar = () => {
                 icon={AiOutlineProduct}
               />
               <NavLink
+                heading={"Configurable Products"}
+                link={"products/configurable"}
+                icon={AiOutlineProduct}
+              />
+              <NavLink
                 heading={"Register Product"}
                 link={"products/form"}
                 icon={AiOutlineProduct}

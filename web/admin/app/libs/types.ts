@@ -50,7 +50,7 @@ export type Product = {
   ExternalID: string;
   Images: Image[];
   Price: number;
-  Attributes: Dictionary<string>;
+  Attributes: Dictionary<string>[];
   DistributorId: number;
   CategoryId: number;
   Stock: number;
@@ -58,6 +58,25 @@ export type Product = {
   ReservedStock: number;
   IsActive: number;
 };
+
+
+export type PriceRange = {
+  min: number
+  max: number
+}
+
+export type ConfigurableProduct = {
+  Id: number;
+  name: string;
+  desc: string;
+  external_id: string;
+  images: Image[];
+  attributes: string[];
+  distributor_id: number;
+  category_id: number;
+  price_range: PriceRange;
+};
+
 export type Category = {
   id: number;
   name: string;
