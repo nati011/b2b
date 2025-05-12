@@ -94,12 +94,12 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
 	}
-
+	log.Printf("Gateway response: %v", resBody)
 	if err := json.Unmarshal(resBody, &response); err != nil {
 		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
 	}
-	log.Printf("Gateway response: %v", resBody)
+
 	switch response.Status {
 	case "success":
 		return response.Data.CheckoutUrl, nil
