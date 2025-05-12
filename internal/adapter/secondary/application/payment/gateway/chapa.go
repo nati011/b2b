@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -89,6 +90,7 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
+		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
 	}
 
