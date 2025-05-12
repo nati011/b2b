@@ -8,9 +8,9 @@ func (t *Template) ValidateName(ctx context.Context, n string) error {
 	}
 	if _, err := t.GetByName(ctx, n); err != nil {
 		switch err {
-		case ErrNameNotFound:
+		case ErrIdNotFound:
 			return nil
-		default:
+		case ErrUnknown:
 			return err
 		}
 	}
