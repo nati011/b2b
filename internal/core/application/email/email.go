@@ -43,10 +43,10 @@ type Provider interface {
 
 type EmailService struct {
 	smtp     smtp.Provider
-	renderer render.Renderer
+	renderer render.Provider
 }
 
-func NewEmailService(ep smtp.Provider, r render.Renderer) *EmailService {
+func NewEmailService(ep smtp.Provider, r render.Provider) *EmailService {
 	return &EmailService{
 		smtp:     ep,
 		renderer: r,
