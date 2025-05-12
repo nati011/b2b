@@ -1,21 +1,8 @@
 "use client"
 
 import * as React from "react"
-import {
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    Command,
-    Frame,
-    GalleryVerticalEnd,
-    Map,
-    PieChart,
-    Settings2,
-    SquareTerminal,
-} from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import {
     SidebarMenu,
@@ -31,6 +18,9 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 import { CiShoppingCart } from "react-icons/ci"
+import { AiOutlineProduct } from "react-icons/ai"
+import { PiUsersThreeLight } from "react-icons/pi"
+import Link from "next/link"
 
 // This is sample data.
 const data = {
@@ -39,127 +29,47 @@ const data = {
         email: "m@example.com",
         avatar: "/avatars/shadcn.jpg",
     },
-    teams: [
-        {
-            name: "Acme Inc",
-            logo: GalleryVerticalEnd,
-            plan: "Enterprise",
-        },
-        {
-            name: "Acme Corp.",
-            logo: AudioWaveform,
-            plan: "Startup",
-        },
-        {
-            name: "Evil Corp.",
-            logo: Command,
-            plan: "Free",
-        },
-    ],
     navMain: [
         {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
+            title: "Product",
+            url: "/products",
+            icon: AiOutlineProduct,
             isActive: true,
             items: [
                 {
-                    title: "History",
-                    url: "#",
+                    title: "Simple Product",
+                    url: "/products",
                 },
                 {
-                    title: "Starred",
-                    url: "#",
+                    title: "Configurable Products",
+                    url: "/products/configurable",
                 },
                 {
-                    title: "Settings",
-                    url: "#",
+                    title: "Product Categories",
+                    url: "/products/category",
                 },
             ],
         },
         {
-            title: "Models",
+            title: "Users",
             url: "#",
-            icon: Bot,
+            icon: PiUsersThreeLight,
             items: [
                 {
-                    title: "Genesis",
-                    url: "#",
+                    title: "Retailers",
+                    url: "/retailers",
                 },
                 {
-                    title: "Explorer",
-                    url: "#",
+                    title: "Distributor",
+                    url: "/distributor",
                 },
                 {
-                    title: "Quantum",
-                    url: "#",
+                    title: "Admin Users",
+                    url: "/admin",
                 },
             ],
-        },
-        {
-            title: "Documentation",
-            url: "#",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "Introduction",
-                    url: "#",
-                },
-                {
-                    title: "Get Started",
-                    url: "#",
-                },
-                {
-                    title: "Tutorials",
-                    url: "#",
-                },
-                {
-                    title: "Changelog",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Settings",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "General",
-                    url: "#",
-                },
-                {
-                    title: "Team",
-                    url: "#",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
-                },
-            ],
-        },
-    ],
-    projects: [
-        {
-            name: "Design Engineering",
-            url: "#",
-            icon: Frame,
-        },
-        {
-            name: "Sales & Marketing",
-            url: "#",
-            icon: PieChart,
-        },
-        {
-            name: "Travel",
-            url: "#",
-            icon: Map,
-        },
-    ],
+        }
+    ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -168,26 +78,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton
-                            size="lg"
-                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                        >
-                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                <CiShoppingCart />
-                            </div>
-                            <div className="grid flex-1 text-left text-lg leading-tight">
-                                <span className="truncate font-semibold">
-                                    Efoyeta Market
-                                </span>
-                            </div>
-                        </SidebarMenuButton>
+                        <Link href="/">
+                            <SidebarMenuButton
+                                size="lg"
+                                className="data-[state=open]:bg-gray-800 text-white-accent data-[state=open]:text-sidebar-accent-foreground"
+                            >
 
+                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gray-800 text-sidebar-primary-foreground">
+                                    <CiShoppingCart className="text-2xl" />
+                                </div>
+                                <div className="grid flex-1 text-left text-lg leading-tight">
+                                    <span className="truncate font-semibold">
+                                        Efoyeta Market
+                                    </span>
+                                </div>
+                            </SidebarMenuButton>
+
+                        </Link>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />

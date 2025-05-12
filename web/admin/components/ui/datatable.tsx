@@ -99,7 +99,7 @@ export function DataTable<TData, TValue>({
 
 
     return (
-        <div className="w-full bg-white dark:bg-black p-4 rounded-md mt-4 print:hidden">
+        <div className="w-full bg-white dark:bg-black p-4 rounded-md mt-4 print:hidden border border-gray-100">
 
             <div className="sm:flex w-full justify-between py-4 gap-2 items-center">
                 <div className={`flex items-center w-full `}>
