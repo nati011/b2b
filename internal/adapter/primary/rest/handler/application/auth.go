@@ -58,7 +58,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"body": loginResponse.JWT})
+	util.OperationSuccessResponse(w, loginResponse.JWT)
 
 }
 

@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"errors"
+	"strings"
 
 	port "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
@@ -11,7 +12,7 @@ var (
 )
 
 func PaymentPartnerFactory(partnerName string) (port.Provider, error) {
-	switch partnerName {
+	switch strings.ToLower(partnerName) {
 	case "talari":
 		return Talari{}, nil
 	case "chapa":
