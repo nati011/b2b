@@ -38,7 +38,8 @@ export default async function RootLayout({
                 <SidebarInset>
                   <main>
                     <Separator orientation="vertical" className="mr-2 h-4" />
-                    <div className="dark:bg-neutral-900 p-4  sm:px-10 ml-[13%] min-h-screen">
+                    <div className=" p-4  sm:px-10 ml-[16%] min-h-screen">
+                      <Topnav />
                       {children}
                       <Toaster />
                     </div>

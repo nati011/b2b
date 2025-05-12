@@ -25,6 +25,7 @@ interface ProductsStore {
   depleteStock: (stock: number, id: number) => Promise<void>;
   updateProductStatus: (id: number, productStatus: boolean) => Promise<void>;
   fetchProductDetail: (id: number) => Promise<void>;
+  editCategory: (id: number, name: string) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -123,6 +124,19 @@ const useProductsStore = create<ProductsStore>((set) => ({
       await useProductsStore.getState().fetchCategories();
     } catch (error: any) {
       set({ categoriesLoading: false, categoriesError: error.message });
+    } 0
+  },
+  editCategory: async (id: number, name: string) => {
+    set({ categoriesLoading: true, categoriesError: null });
+    try {
+      await axiosIns.patch(`/api/category/${id}`, {
+        "name": name
+      });
+      await useProductsStore.getState().fetchCategories();
+      set({ categoriesLoading: false });
+      await useProductsStore.getState().fetchCategories();
+    } catch (error: any) {
+      set({ categoriesLoading: false, categoriesError: error.message });
     }
   },
   createProduct: async (productData: any) => {
@@ -133,10 +147,8 @@ const useProductsStore = create<ProductsStore>((set) => ({
           "Content-Type": "application/json",
         },
       });
-      console.log(productData)
-      console.log(response.data)
       await useProductsStore.getState().fetchProducts();
-      set({ loading: false });
+      set({ loading: false, success: response.data });
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }
