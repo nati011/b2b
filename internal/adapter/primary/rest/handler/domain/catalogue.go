@@ -98,5 +98,5 @@ func (c *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+	util.OperationSuccessResponse(w, resp)
 }
