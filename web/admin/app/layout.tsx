@@ -1,4 +1,4 @@
-"use client"
+import { cookies } from "next/headers"
 import { DM_Sans } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner"
@@ -7,7 +7,10 @@ import "./globals.css";
 import Topnav from "./components/topnav";
 import SessionProvider from "./sessionprovider";
 import { Provider } from "./themeprovider";
-import SideBar from "@/app/components/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { Separator } from "@/components/ui/separator";
+
 
 
 const font = DM_Sans({
@@ -16,11 +19,12 @@ const font = DM_Sans({
 });
 
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies()
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -29,16 +33,18 @@ export default function RootLayout({
         <SessionProvider>
           <Provider>
             <div className="flex relative bg-slate-50">
-              <div className="lg:w-[15%] fixed z-50">
-                <SideBar />
-              </div>
-              <div className="dark:bg-neutral-900 p-4  sm:px-10 lg:ml-[15%] w-full min-h-screen">
-                <div className="mb-10">
-                  <Topnav />
-                </div>
-                {children}
-                <Toaster />
-              </div>
+              <SidebarProvider defaultOpen={true}>
+                <AppSidebar />
+                <SidebarInset>
+                  <main>
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <div className="dark:bg-neutral-900 p-4  sm:px-10 ml-[13%] min-h-screen">
+                      {children}
+                      <Toaster />
+                    </div>
+                  </main>
+                </SidebarInset>
+              </SidebarProvider>
             </div>
           </Provider>
         </SessionProvider>

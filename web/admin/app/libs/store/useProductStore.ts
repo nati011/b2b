@@ -5,6 +5,7 @@ import { Product, Category } from "@/app/libs/types";
 interface ProductsStore {
   success: string;
   products: Product[];
+  product: Product;
   loading: boolean;
   error: string | null;
   next: string | null;
@@ -23,11 +24,27 @@ interface ProductsStore {
   addStock: (stock: number, id: number) => Promise<void>;
   depleteStock: (stock: number, id: number) => Promise<void>;
   updateProductStatus: (id: number, productStatus: boolean) => Promise<void>;
+  fetchProductDetail: (id: number) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
   success: "",
   products: [],
+  product: {
+    Id: 0,
+    Name: "",
+    Desc: "",
+    ExternalID: "",
+    Images: [],
+    Price: 0,
+    Attributes: [],
+    DistributorId: 0,
+    CategoryId: 0,
+    Stock: 0,
+    AvailableStock: 0,
+    ReservedStock: 0,
+    IsActive: 0
+  },
   loading: false,
   error: null,
   next: null,
@@ -175,7 +192,20 @@ const useProductsStore = create<ProductsStore>((set) => ({
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }
-  }
+  },
+  fetchProductDetail: async (id: number) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosIns.get(`/api/product/${id}`);
+      console.log(response.data)
+      set({
+        product: response.data.body,
+        loading: false,
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch products", loading: false });
+    }
+  },
 }));
 
 export default useProductsStore;
