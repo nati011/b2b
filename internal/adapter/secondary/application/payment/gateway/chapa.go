@@ -68,7 +68,7 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 	if err != nil {
 		return "", port.ErrUnknown
 	}
-
+	log.Printf("%v/v1/transaction/initialize", request.PartnerUrl)
 	client := &http.Client{}
 	body := bytes.NewReader(payload)
 	req, err := http.NewRequest("POST", initalization_url, body)
@@ -94,7 +94,7 @@ func (t Chapa) Initiate(request port.InitiateRequest) (string, error) {
 		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
 	}
-	log.Printf("Gateway response: %v", resBody)
+	log.Printf("Gateway response: %v", res.Body)
 	if err := json.Unmarshal(resBody, &response); err != nil {
 		log.Printf("Error while checkingout: %v", err.Error())
 		return "", port.ErrUnknown
