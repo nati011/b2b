@@ -31,7 +31,7 @@ const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
     };
 
     return (
-        <Card className="rounded-sm">
+        <Card className="rounded-sm border-2 border-gray-200 shadow-none">
             <CardContent>
                 <div className="mb-4">
                     <h3 className="text-xl font-bold">Product Images</h3>

@@ -10,6 +10,10 @@ export default function Retailers() {
             "title": "Products",
             "href": "/product"
         },
+        {
+            "title": "Form",
+            "href": "/product/form"
+        }
     ]
 
     return (

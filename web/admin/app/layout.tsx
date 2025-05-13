@@ -32,13 +32,13 @@ export default async function RootLayout({
       >
         <SessionProvider>
           <Provider>
-            <div className="flex relative bg-slate-50">
+            <div className="flex relative">
               <SidebarProvider defaultOpen={true}>
                 <AppSidebar />
                 <SidebarInset>
                   <main>
                     <Separator orientation="vertical" className="mr-2 h-4" />
-                    <div className=" p-4  sm:px-10 ml-[16%] min-h-screen">
+                    <div className=" p-4  sm:px-10 ml-[16%] min-h-screen  bg-slate-50">
                       <Topnav />
                       {children}
                       <Toaster />
