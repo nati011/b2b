@@ -7,6 +7,7 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	"b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/email"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
@@ -164,7 +165,7 @@ func setup() {
 		"",
 	)
 
-	authService = auth.NewAuthService(KeycloakProvider)
+	authService = auth.NewAuthService(KeycloakProvider, email.NewTestContainer().EmailService)
 }
 
 func shutDown() {
