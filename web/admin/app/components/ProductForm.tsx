@@ -24,6 +24,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
     isEdit = false,
     onSuccess,
 }) => {
+    console.log("Initial Data_________")
+    console.log(initialData)
     const [product, setProduct] = useState(initialData || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {
@@ -60,9 +62,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 acc[attr.key] = attr.value;
                 return acc;
             }, {} as Record<string, string>) || {};
-
             const productData = {
                 ...product,
+                Id: product.Id,
                 Name: product.Name || '',
                 ExternalID: product.ExternalID || '',
                 Desc: product.Desc || '',
@@ -72,8 +74,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 CategoryId: product.CategoryId?.map(Number) || []
             };
 
-            if (isEdit && product.Id) {
-
+            if (isEdit) {
                 await updateProduct(productData);
                 toast.success("Product updated successfully!");
             } else {
@@ -99,7 +100,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
         label: c.name,
     }));
 
-    const selectedCategories = product.CategoryId?.map(String) || [];
+    useEffect(() => {
+        if (initialData?.Images) {
+            const images = initialData?.Images.map((i: { ImageUrl: string; }) => { return i.ImageUrl })
+            initialData.Images = images
+        }
+        setProduct(initialData || {})
+    }, [initialData])
 
     return (
         <form onSubmit={handleSubmit}>

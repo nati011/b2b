@@ -18,6 +18,7 @@ const ProductAttributeForm: React.FC<ProductAttributeFormProps> = ({
 }) => {
     const [newKey, setNewKey] = useState("");
     const [newValue, setNewValue] = useState("");
+    console.log(attributes)
 
     const handleAddAttribute = () => {
         if (newKey.trim() && newValue.trim()) {
