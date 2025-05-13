@@ -3402,27 +3402,34 @@ $$;
 
     -- Write
 
-CREATE OR REPLACE PROCEDURE public.insert_template(
-   template_name VARCHAR(255),
-   template_html TEXT
+CREATE OR REPLACE FUNCTION public.create_email_template(
+    template_name VARCHAR(255),
+    template_html TEXT
 )
+RETURNS INT
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    new_id INT;
 BEGIN
-    INSERT INTO public.templates (name, html)
-    VALUES (template_name, template_html);
-    COMMIT;
+    INSERT INTO public.email_templates (name, html)
+    VALUES (template_name, template_html)
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE public.update_template(
-   template_name VARCHAR(255),
+CREATE OR REPLACE FUNCTION public.update_template(
+   id INT,
+   name VARCHAR(255),
    new_html TEXT
 )
+RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE public.templates
+    UPDATE public.email_templates
     SET html = new_html,
         last_modified = CURRENT_TIMESTAMP
     WHERE name = template_name;
@@ -3431,17 +3438,58 @@ END;
 $$;
 
     -- Read
-    
-CREATE OR REPLACE FUNCTION public.get_template(
-   template_name VARCHAR(255)
+CREATE OR REPLACE FUNCTION public.get_all_templates(
+   template_id INT
 )
-RETURNS SETOF public.templates
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              html TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT *
-    FROM public.templates t
+    SELECT t.id, 
+           t.name, 
+           t.html
+    FROM public.email_templates t
+    WHERE t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_template_by_id(
+   template_id INT
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              html TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.name, 
+           t.html
+    FROM public.email_templates t
+    WHERE t.id = template_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.get_template_by_name(
+   template_name VARCHAR(255)
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              html TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.name, 
+           t.html
+    FROM public.email_templates t
     WHERE t.name = template_name
       AND t.is_deleted = FALSE;
 END;
