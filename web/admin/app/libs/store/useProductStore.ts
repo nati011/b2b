@@ -15,7 +15,7 @@ interface ProductsStore {
   categoriesError: string | null;
 
   fetchProducts: (url?: string) => Promise<void>;
-  // createProducts: (ProductsData: Partial<Product>) => Promise<void>;
+  updateProduct: (ProductsData: Partial<Product>) => Promise<void>;
   fetchCategories: () => Promise<void>;
   createCategory: (name: string) => Promise<void>;
   deleteCategory: (id: number) => Promise<void>;
@@ -40,7 +40,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
     Price: 0,
     Attributes: [],
     DistributorId: 0,
-    CategoryId: 0,
+    CategoryId: [],
     Stock: 0,
     AvailableStock: 0,
     ReservedStock: 0,
@@ -69,18 +69,18 @@ const useProductsStore = create<ProductsStore>((set) => ({
     }
   },
 
-  // createProducts: async (ProductsData: Partial<Product>) => {
-  //   set({ loading: true, error: null });
-  //   try {
-  //     const response = await axiosIns.post("/product/", ProductsData);
-  //     set((state) => ({
-  //       products: [...state.products, response.data.detail],
-  //       loading: false,
-  //     }));
-  //   } catch (error) {
-  //     set({ error: "Failed to create product", loading: false });
-  //   }
-  // },
+  updateProduct: async (ProductsData: Partial<Product>) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosIns.post("/product/", ProductsData);
+      set((state) => ({
+        loading: false,
+      }));
+      await useProductsStore.getState().fetchProducts();
+    } catch (error) {
+      set({ error: "Failed to create product", loading: false });
+    }
+  },
 
   fetchCategories: async () => {
     set({ categoriesLoading: true, categoriesError: null });
@@ -119,7 +119,6 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ categoriesLoading: true, categoriesError: null });
     try {
       await axiosIns.delete(`/api/category?id=${id}`);
-      await useProductsStore.getState().fetchCategories();
       set({ categoriesLoading: false });
       await useProductsStore.getState().fetchCategories();
     } catch (error: any) {
@@ -132,7 +131,6 @@ const useProductsStore = create<ProductsStore>((set) => ({
       await axiosIns.patch(`/api/category/${id}`, {
         "name": name
       });
-      await useProductsStore.getState().fetchCategories();
       set({ categoriesLoading: false });
       await useProductsStore.getState().fetchCategories();
     } catch (error: any) {

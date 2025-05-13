@@ -50,9 +50,9 @@ export type Product = {
   ExternalID: string;
   Images: Image[];
   Price: number;
-  Attributes: Dictionary<string>[];
+  Attributes: Record<string, string>[];
   DistributorId: number;
-  CategoryId: number;
+  CategoryId: number[];
   Stock: number;
   AvailableStock: number;
   ReservedStock: number;
