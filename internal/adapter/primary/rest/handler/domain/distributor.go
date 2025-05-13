@@ -57,7 +57,7 @@ type GetDistributorResponse struct {
 }
 
 type GetAllDistributorResponse struct {
-	List []GetDistributorResponse `json:"list"`
+	List []GetDistributorResponse `json:"distributors"`
 }
 
 type GetDistributorByParamRequest struct {
@@ -260,13 +260,12 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Users:       users_resp.List,
 			})
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
+		util.OperationSuccessResponse(w, handler_resp)
 	} else {
 		resp, err := de.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case distributor.ErrEmptyGetContent:
-
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -280,9 +279,10 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			users_resp, err := de.service.GetAllUsers(r.Context(), i.Id)
 			if err != nil {
 				switch err {
-				case distributor.ErrIdNotFound:
+				case distributor.ErrEmptyGetContent:
 				default:
 					util.ServerErrorResponse(w, err)
+					return
 				}
 			}
 
@@ -298,7 +298,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Users:       users_resp.List,
 			})
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
+		util.OperationSuccessResponse(w, handler_resp)
 	}
 }
 

@@ -172,7 +172,7 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+		util.OperationSuccessResponse(w, resp)
 	} else {
 		resp, err := o.service.GetAll(r.Context())
 		if err != nil {
@@ -183,7 +183,7 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+		util.OperationSuccessResponse(w, resp)
 	}
 
 }

@@ -227,7 +227,6 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case retailer.ErrEmptyGetContent:
-
 				util.RequestErrorResponse(w, err)
 				return
 			default:

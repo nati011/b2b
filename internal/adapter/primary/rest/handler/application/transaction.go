@@ -101,7 +101,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			switch err {
 			case transaction.ErrEmptyGetContent:
-				util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+				util.OperationSuccessResponse(w, response)
 				return
 			case transaction.ErrUnknown:
 				util.ServerErrorResponse(w, err)
@@ -114,7 +114,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		for _, i := range resp.List {
 			response.List = append(response.List, GetResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+		util.OperationSuccessResponse(w, response)
 
 	} else {
 		var response GetAllResponse
@@ -122,7 +122,7 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			switch err {
 			case transaction.ErrEmptyGetContent:
-				util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+				util.OperationSuccessResponse(w, response)
 				return
 			case transaction.ErrUnknown:
 				util.ServerErrorResponse(w, err)
@@ -135,6 +135,6 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		for _, i := range resp.List {
 			response.List = append(response.List, GetResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }
