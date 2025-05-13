@@ -2,6 +2,7 @@ package email
 
 import (
 	"errors"
+	"log"
 
 	smtp "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
 	render "b2b.nati011.github.com/internal/core/application/render"
@@ -10,6 +11,7 @@ import (
 type SendRequest struct {
 	To         string
 	Subject    string
+	TemplateId int
 	Args       map[string]string
 	ExternalId string
 }
@@ -43,10 +45,10 @@ type Provider interface {
 
 type EmailService struct {
 	smtp     smtp.Provider
-	renderer render.Renderer
+	renderer render.Provider
 }
 
-func NewEmailService(ep smtp.Provider, r render.Renderer) *EmailService {
+func NewEmailService(ep smtp.Provider, r render.Provider) *EmailService {
 	return &EmailService{
 		smtp:     ep,
 		renderer: r,
@@ -59,10 +61,15 @@ func (e EmailService) Send(r *SendRequest) error {
 		return err
 	}
 
-	renderResponse, err := e.renderer.Create(&render.Request{})
+	renderResponse, err := e.renderer.Create(&render.Request{
+		TemplateId: r.TemplateId,
+		Args:       r.Args,
+	})
 	if err != nil {
+		log.Printf("failed to render email")
 		return err
 	}
+
 	err = validateMailContent(renderResponse.Text)
 	if err != nil {
 		return err
