@@ -29,6 +29,7 @@ type CreateRetailerRequest struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Username  string `json:"username"`
+	Password  string `json:"password"`
 }
 
 type GetRetailerResponse struct {
