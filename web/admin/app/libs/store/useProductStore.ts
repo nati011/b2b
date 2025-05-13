@@ -72,7 +72,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
   updateProduct: async (ProductsData: Partial<Product>) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.post("/product/", ProductsData);
+      const response = await axiosIns.put("/api/product/", ProductsData);
       set((state) => ({
         loading: false,
       }));
@@ -207,9 +207,11 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosIns.get(`/api/product?id=${id}`);
-      console.log(response.data)
+      console.log(response.data.body)
+      // Note: TEMP
+      response.data.body.Attributes = [response.data.body.Attributes]
       set({
-        product: response.data.body.product,
+        product: response.data.body,
         loading: false,
       });
     } catch (error) {
