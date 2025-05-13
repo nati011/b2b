@@ -26,8 +26,8 @@ export type Distributor = {
   id: number;
   name: string;
   tin: string;
-  latitude: string;
-  longitude: string;
+  latitude: GLfloat;
+  longitude: GLfloat;
   general_zone: string;
   region: string;
   woreda: string;
