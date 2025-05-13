@@ -41,6 +41,7 @@ type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	Get(context.Context, int) (GetResponse, error)
+	getByName(ctx context.Context, name string) (GetResponse, error)
 }
 
 type Template struct {
@@ -86,7 +87,7 @@ func (t *Template) Get(ctx context.Context, id int) (GetResponse, error) {
 	return GetResponse(resp), nil
 }
 
-func (t *Template) GetByName(ctx context.Context, name string) (GetResponse, error) {
+func (t *Template) getByName(ctx context.Context, name string) (GetResponse, error) {
 	resp, err := t.db.GetByName(ctx, name)
 	if err != nil {
 		switch err {
