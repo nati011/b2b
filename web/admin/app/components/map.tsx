@@ -22,7 +22,7 @@ const MapEvents = ({ useCurrentLocation, setMarkerPosition, setFormData }: Omit<
             map.on('click', (e: L.LeafletMouseEvent) => {
                 const { lat, lng } = e.latlng
                 setMarkerPosition([lat, lng])
-                setFormData(prev => ({ ...prev, location: [lat, lng] }))
+                setFormData(prev => ({ ...prev, latitude: lat.toString(), longitude: lng.toString() }))
             })
         }
 
