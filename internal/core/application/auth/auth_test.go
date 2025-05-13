@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
+	"b2b.nati011.github.com/internal/core/application/email"
 )
 
 const (
@@ -35,7 +36,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	service = NewAuthService(&mock)
+	service = NewAuthService(&mock, email.NewTestContainer().EmailService)
 }
 
 func Test_CreateClient_happyPath(t *testing.T) {
