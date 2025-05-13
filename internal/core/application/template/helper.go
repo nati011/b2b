@@ -7,7 +7,7 @@ func (t *Template) ValidateName(ctx context.Context, n string) error {
 		return ErrInvalidName
 	}
 
-	_, err := t.getByName(ctx, n)
+	_, err := t.GetByName(ctx, n)
 	if err != ErrNameNotFound {
 		return ErrDuplicateName
 	}

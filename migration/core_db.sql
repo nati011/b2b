@@ -390,7 +390,7 @@ CREATE TABLE IF NOT EXISTS public."email_templates"
 (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
-    html TEXT,
+    html TEXT
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores email templates';
