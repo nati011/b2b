@@ -29,6 +29,7 @@ type CreateUserRequest struct {
 	Username   string    `json:"username"`
 	DOB        time.Time `json:"dob"`
 	ExternalId string    `json:"external_id"`
+	Password   string    `json:"password"`
 }
 
 type GetUserAssignedRoleResponse struct {
