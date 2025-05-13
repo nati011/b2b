@@ -47,6 +47,7 @@ type CreateRequest struct {
 	Username   string
 	DOB        time.Time
 	ExternalId string
+	Password   string
 }
 
 type GetAssignedRoleResponse struct {
@@ -132,6 +133,7 @@ func NewUser(db port.DB, roleService role.Provider, authService auth.Provider) P
 }
 
 func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, error) {
+	var password string
 	//validate input
 	err := create_validateUserInfo(
 		ctx,
@@ -145,15 +147,16 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	if err != nil {
 		return 0, err
 	}
-
-	generated_password, err := generateRandomPassword(10)
-	if err != nil {
-		return 0, ErrUnknown
+	password = req.Password
+	if req.Password == "" {
+		password, err = generateRandomPassword(10)
+		if err != nil {
+			return 0, ErrUnknown
+		}
 	}
-	log.Printf("password generated: %v", generated_password)
 	providerResponse, err := u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
 		Email:       req.Email,
-		Password:    generated_password,
+		Password:    password,
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		PhoneNumber: req.Phone,
