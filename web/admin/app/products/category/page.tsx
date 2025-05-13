@@ -56,20 +56,7 @@ export default function Products() {
   const [productId, setProductId] = useState(0)
   const handleEditCategory = async () => {
     editCategory(productId, newCategoryName)
-    if (success) {
-      return new Promise<void>((resolve) => {
-        setTimeout(() => {
-          toast.success("Category Edited", {
-            description: "The category has been edited successfully.",
-            position: "top-right"
-          });
-
-
-
-          resolve();
-        }, 500);
-      });
-    }
+    setIsEditDialogOpen(false)
   };
 
 
@@ -170,7 +157,7 @@ export default function Products() {
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditCategory}>Add Category</Button>
+            <Button onClick={handleEditCategory}>Edit Category</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
