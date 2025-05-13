@@ -62,14 +62,19 @@ const data = {
             title: "Customers",
             url: "/retailers",
             icon: PiUsersThreeLight,
+        },
+        {
+            title: "Distributors",
+            url: "/distributors",
+            icon: PiUsersThreeLight,
             items: [
                 {
-                    title: "Retailers",
-                    url: "/retailers",
+                    title: "Distributors",
+                    url: "/distributors",
                 },
                 {
-                    title: "Distributor",
-                    url: "/distributor",
+                    title: "Distributor Users",
+                    url: "/distributors/agents",
                 }
             ],
         },

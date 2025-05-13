@@ -65,9 +65,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := rs.service.Get(r.Context(), &resource.GetRequest{
-			Id: typedParamId,
-		})
+		resp, err := rs.service.Get(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case resource.ErrUnknown:
@@ -78,22 +76,27 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, resp)
 	} else {
+		var response GetAllResourceResponse
 		resp, err := rs.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case resource.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, err)
-			default:
+				util.OperationSuccessResponse(w, response)
+				return
+			case resource.ErrUnknown:
 				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
 			}
 		}
-		var response GetAllResourceResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, (GetResourceResponse)(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"resources": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }
 

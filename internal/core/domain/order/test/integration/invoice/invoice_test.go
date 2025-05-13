@@ -31,9 +31,9 @@ func setup() {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "order_retilertest",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	})
@@ -59,19 +59,19 @@ func setup() {
 func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
 	ctx := context.Background()
 	in := &order.PlaceRequest{
-		RetailerId: 1,
+		RetailerId: retailer_id,
 		Items: []order.Item{
 			{
 				ProductId: product_id,
 				Quantity:  19},
 		},
 	}
-	id, err := container.OrderService.Place(ctx, in)
+	order_resp, err := container.OrderService.Place(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to place order err: %v", err)
 	}
 	_, err = container.InvoiceService.GetByParam(ctx, &invoice.GetByParamRequest{
-		OrderId: id,
+		OrderId: order_resp.Id,
 	})
 	if err != nil {
 		t.Fatalf("Failed to get invoice err: %v", err)

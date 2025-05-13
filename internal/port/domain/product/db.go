@@ -2,19 +2,19 @@ package product
 
 import (
 	"context"
-	"errors"
+	"time"
 )
 
-var (
-	ErrSysNoRows  = errors.New("no rows")
-	ErrSysUnknown = errors.New("unknown error")
-)
+type Image struct {
+	ImageUrl string
+	BlurHash string
+}
 
 type CreateRequest struct {
 	Name          string
 	Desc          string
 	ExternalID    string
-	Images        []string
+	Images        []Image
 	Price         float64
 	Attributes    map[string]string
 	DistributorId int
@@ -22,17 +22,31 @@ type CreateRequest struct {
 }
 
 type GetResponse struct {
-	Id            int
-	Name          string
-	Desc          string
-	ExternalID    string
-	Images        []string
-	Price         float64
-	Attributes    map[string]string
-	DistributorId int
-	CategoryId    []int
-	Stock         int
-	IsActive      bool
+	Id             int
+	Name           string
+	Desc           string
+	ExternalID     string
+	Images         []Image
+	Price          float64
+	Attributes     map[string]string
+	DistributorId  int
+	CategoryId     []int
+	Stock          int
+	AvailableStock int
+	ReservedStock  int
+	IsActive       bool
+}
+
+type GetStockLedgerResponse struct {
+	List []GetStockLedgerBaseResponse
+}
+
+type GetStockLedgerBaseResponse struct {
+	Id         int
+	Quantity   int
+	Product_id int
+	Operation  string
+	CreatedOn  time.Time
 }
 
 type GetAllResponse struct {
@@ -82,7 +96,7 @@ type UpdateDescRequest struct {
 
 type UpdateImagesRequest struct {
 	Id     int
-	Images []string
+	Images []Image
 }
 
 type UpdateActiveStatusRequest struct {
@@ -105,6 +119,16 @@ type DispatchRequest struct {
 	Amount int
 }
 
+type ReserveRequest struct {
+	Id     int
+	Amount int
+}
+
+type FreeReservedRequest struct {
+	Id     int
+	Amount int
+}
+
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
@@ -113,6 +137,8 @@ type Reader interface {
 	GetByDistributorId(ctx context.Context, req *GetByDistributorIdRequest) (GetAllResponse, error)
 	GetByCategory(ctx context.Context, req *GetByCategoryRequest) (GetAllResponse, error)
 	GetByPriceRange(ctx context.Context, req *GetByPriceRangeRequest) (GetAllResponse, error)
+	GetStockLedger(ctx context.Context, id int) (GetStockLedgerResponse, error)
+	GetAllStockLedger(ctx context.Context) (GetStockLedgerResponse, error)
 }
 
 type Writer interface {
@@ -126,6 +152,8 @@ type Writer interface {
 	UpdateCategoryId(ctx context.Context, req *UpdateCategoryIdRequest) error
 	GoodsReceiving(ctx context.Context, req *GoodsReceivingRequest) error
 	Dispatch(ctx context.Context, req *DispatchRequest) error
+	Reserve(ctx context.Context, req *ReserveRequest) error
+	FreeReservation(ctx context.Context, req *FreeReservedRequest) error
 }
 
 type DB interface {

@@ -3,8 +3,10 @@ package payment_partner
 import (
 	"context"
 	"errors"
+	"log"
 
 	port "b2b.nati011.github.com/internal/port/application/partner/db"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 const (
@@ -17,6 +19,7 @@ const (
 var (
 	ErrNameIsNotSupplied            = errors.New("oopsy, name is not supplied")
 	ErrIconIsNotSupplied            = errors.New("oopsy, icon is not supplied")
+	ErrSecretIsNotSupplied          = errors.New("oppsy, secret is not supplied")
 	ErrUrlIsNotSupplied             = errors.New("oopsy, init payment url is not supplied")
 	ErrIdNotFound                   = errors.New("oopsy, id not found")
 	ErrPaymentOptionaAlreadyActive  = errors.New("oopsy, payment option is already active")
@@ -26,18 +29,31 @@ var (
 )
 
 type CreateRequest struct {
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
+	Name    string
+	Icon    string
+	Status  string
+	BaseURL string
+	Secret  string
 }
 
 type GetResponse struct {
-	Id               int
-	Name             string
-	Icon             string
-	Status           string
-	Init_payment_url string
+	Id      int
+	Name    string
+	Icon    string
+	Status  string
+	BaseURL string
+}
+
+type GetSecretResponse struct {
+	Name    string
+	BaseURL string
+	Secret  string
+}
+
+type UpdatePartnerSecret struct {
+	Id      int
+	BaseURL string
+	Secret  string
 }
 
 type GetAllResponse struct {
@@ -52,6 +68,8 @@ type GetByParamRequest struct {
 type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	Get(context.Context, int) (GetResponse, error)
+	GetPartnerSecret(context.Context, int) (GetSecretResponse, error)
+	UpdatePartnerSecret(context.Context, UpdatePartnerSecret) error
 	Activate(context.Context, int) error
 	Deactivate(context.Context, int) error
 	GetAll(context.Context) (GetAllResponse, error)
@@ -78,16 +96,22 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	if err != nil {
 		return 0, err
 	}
-	err = validateInitPaymentURL(req.Init_payment_url)
+	err = validateInitPaymentURL(req.BaseURL)
+	if err != nil {
+		return 0, err
+	}
+
+	err = validateSecret(req.Secret)
 	if err != nil {
 		return 0, err
 	}
 
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
-		Name:             req.Name,
-		Icon:             req.Icon,
-		Status:           INACTIVE_STATUS,
-		Init_payment_url: req.Init_payment_url,
+		Name:    req.Name,
+		Icon:    req.Icon,
+		Status:  ACTIVE_STATUS,
+		BaseURL: req.BaseURL,
+		Secret:  req.Secret,
 	})
 	if err != nil {
 		switch err {
@@ -95,6 +119,7 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 			return 0, ErrUnknown
 		}
 	}
+	log.Printf("Created id %v", id)
 	return id, nil
 }
 
@@ -102,13 +127,49 @@ func (p *PartnerService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := p.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
 		}
 	}
 	return GetResponse(resp), nil
+}
+
+func (p *PartnerService) GetPartnerSecret(ctx context.Context, id int) (GetSecretResponse, error) {
+	resp, err := p.DB.GetPartnerSecret(ctx, id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetSecretResponse{}, ErrIdNotFound
+		default:
+			return GetSecretResponse{}, ErrUnknown
+		}
+	}
+	return GetSecretResponse(resp), nil
+}
+
+func (p *PartnerService) UpdatePartnerSecret(ctx context.Context, req UpdatePartnerSecret) error {
+	//validate
+	_, err := p.Get(ctx, req.Id)
+	if err != nil {
+		return err
+	}
+
+	err = p.DB.UpdatePartnerSecret(ctx, port.UpdatePartnerSecret{
+		Id:      req.Id,
+		BaseURL: req.BaseURL,
+		Secret:  req.Secret,
+	})
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return ErrIdNotFound
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
 }
 
 func (p *PartnerService) Activate(ctx context.Context, id int) error {
@@ -167,7 +228,7 @@ func (p *PartnerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := p.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -184,7 +245,7 @@ func (p *PartnerService) GetActive(ctx context.Context) (GetAllResponse, error) 
 	resp, err := p.DB.GetByStatus(ctx, ACTIVE_STATUS)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -203,7 +264,7 @@ func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		resp_name, err := p.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -217,7 +278,7 @@ func (p *PartnerService) GetByParam(ctx context.Context, req *GetByParamRequest)
 		resp_name, err := p.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}

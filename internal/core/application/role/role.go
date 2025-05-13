@@ -3,9 +3,11 @@ package role
 import (
 	"context"
 	"errors"
+	"log"
 
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	port "b2b.nati011.github.com/internal/port/application/role"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 var (
@@ -46,8 +48,14 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type GetResourceResponse struct {
+	Id     int
+	Name   string
+	Action string
+}
+
 type GetAllResourcesResponse struct {
-	List []int
+	List []GetResourceResponse
 }
 
 type AddResourceRequest struct {
@@ -92,10 +100,13 @@ func NewRole(DB port.DB, resource_service resource.Provider) Provider {
 }
 
 func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, error) {
+	log.Printf("Get Request Id %v", req.Id)
 	//either id or name need tobe provided
 	if req.Id == 0 && req.Name == "" {
 		return GetResponse{}, ErrEmptyGetContent
 	}
+
+	log.Printf("Get Request Name %v", req.Name)
 
 	//Get by Id
 	if req.Id != 0 && req.Name == "" {
@@ -120,6 +131,8 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 		resp, err := r.db.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetResponse{}, ErrEmptyGetContent
 			default:
 				return GetResponse{}, ErrUnknown
 			}
@@ -138,6 +151,8 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 		resultByName, err := r.db.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetResponse{}, ErrEmptyGetContent
 			default:
 				return GetResponse{}, ErrUnknown
 			}
@@ -146,6 +161,8 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 		resultById, err := r.db.GetByID(ctx, req.Id)
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetResponse{}, ErrEmptyGetContent
 			default:
 				return GetResponse{}, ErrUnknown
 			}
@@ -250,6 +267,7 @@ func (r *RoleProvider) Update(ctx context.Context, req *UpdateRequest) (int, err
 }
 
 func (r *RoleProvider) Delete(ctx context.Context, id int) error {
+	log.Printf("Deleting id %v", id)
 	// validate Id
 	err := r.validateId(ctx, id)
 	if err != nil {
@@ -279,7 +297,7 @@ func (r *RoleProvider) HasResource(ctx context.Context, req *HasResourceRequest)
 	}
 
 	for _, i := range resp.List {
-		if i == req.ResourceId {
+		if i.Id == req.ResourceId {
 			return true, nil
 		}
 	}
@@ -294,9 +312,7 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 	}
 
 	//check if resource exists
-	_, err = r.resource_service.Get(ctx, &resource.GetRequest{
-		Id: req.ResourceId,
-	})
+	_, err = r.resource_service.Get(ctx, req.ResourceId)
 	if err != nil {
 		switch err {
 		case resource.ErrIdNotFound:
@@ -315,7 +331,7 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 		}
 	}
 	for _, i := range resp.List {
-		if i == req.ResourceId {
+		if i.Id == req.ResourceId {
 			return ErrResourceAlreadyExistsInRole
 		}
 	}
@@ -332,6 +348,7 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 }
 
 func (r *RoleProvider) GetAllResources(ctx context.Context, id int) (GetAllResourcesResponse, error) {
+	var response GetAllResourcesResponse
 	//check if role exists
 	err := r.validateId(ctx, id)
 	if err != nil {
@@ -342,12 +359,19 @@ func (r *RoleProvider) GetAllResources(ctx context.Context, id int) (GetAllResou
 	resp, err := r.db.GetAllResources(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrNoRows:
+		case port_commons.ErrSysNoRows:
 		default:
 			return GetAllResourcesResponse{}, ErrUnknown
 		}
 	}
-	return GetAllResourcesResponse(resp), nil
+	for _, i := range resp.List {
+		response.List = append(response.List, GetResourceResponse{
+			Id:     i.Id,
+			Name:   i.Name,
+			Action: i.Action,
+		})
+	}
+	return response, nil
 }
 
 func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRequest) error {
@@ -358,9 +382,7 @@ func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRe
 	}
 
 	//check if resource exists
-	resResp, err := r.resource_service.Get(ctx, &resource.GetRequest{
-		Id: req.ResourceId,
-	})
+	resResp, err := r.resource_service.Get(ctx, req.ResourceId)
 	if err != nil {
 		switch err {
 		default:
@@ -381,7 +403,7 @@ func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRe
 	}
 	hasResource := false
 	for _, i := range resp.List {
-		if i == req.ResourceId {
+		if i.Id == req.ResourceId {
 			hasResource = true
 		}
 	}

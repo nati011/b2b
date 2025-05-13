@@ -12,6 +12,10 @@ type Config struct {
 	KeycloakClientId         string
 	KeycloakClientSecret     string
 
+	// Base URL
+	BaseUrl     string
+	FrontendUrl string
+
 	//email
 	Email string
 	SMTP  string
@@ -19,4 +23,10 @@ type Config struct {
 	//db
 	FileLocation           string
 	CoreDBConnectionString string
+
+	// payment partner
+	ChapaSecretKey string
+
+	//mobile client version
+	MinMobileClientCompatibleVersion string
 }

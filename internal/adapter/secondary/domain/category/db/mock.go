@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/category"
 )
 
@@ -37,7 +38,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		resp.List = append(resp.List, port.GetResponse(i))
 	}
 	if len(resp.List) == 0 {
-		return resp, port.ErrSysNoRows
+		return resp, port_commons.ErrSysNoRows
 	}
 	return resp, nil
 }
@@ -48,13 +49,29 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			return port.GetResponse(i), nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) Remove(ctx context.Context, id int) error {
 	resp := []MockCategory{}
 	for _, i := range m.Categories {
 		if i.Id != id {
+			resp = append(resp, i)
+		}
+	}
+	m.Categories = resp
+	return nil
+}
+
+func (m *Mock) Update(ctx context.Context, req *port.UpdateRequest) error {
+	resp := []MockCategory{}
+	for _, i := range m.Categories {
+		if i.Id == req.Id {
+			resp = append(resp, MockCategory{
+				Id:   i.Id,
+				Name: req.Name,
+			})
+		} else {
 			resp = append(resp, i)
 		}
 	}

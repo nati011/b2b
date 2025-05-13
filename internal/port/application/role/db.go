@@ -2,12 +2,6 @@ package adapter
 
 import (
 	"context"
-	"errors"
-)
-
-var (
-	ErrSysUnknown = errors.New("unknown error")
-	ErrNoRows     = errors.New("no rows")
 )
 
 type CreateRequest struct {
@@ -31,12 +25,18 @@ type GetResponse struct {
 	Name string
 }
 
+type GetResourceResponse struct {
+	Id     int
+	Action string
+	Name   string
+}
+
 type GetAllResponse struct {
 	List []GetResponse
 }
 
 type GetAllResourcesResponse struct {
-	List []int
+	List []GetResourceResponse
 }
 
 type Reader interface {

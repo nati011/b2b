@@ -2,15 +2,14 @@ package category
 
 import (
 	"context"
-	"errors"
-)
-
-var (
-	ErrSysNoRows  = errors.New("no rows")
-	ErrSysUnknown = errors.New("unknown error")
 )
 
 type CreateRequest struct {
+	Name string
+}
+
+type UpdateRequest struct {
+	Id   int
 	Name string
 }
 
@@ -31,6 +30,7 @@ type Reader interface {
 type Writer interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Remove(ctx context.Context, id int) error
+	Update(ctx context.Context, req *UpdateRequest) error
 }
 
 type DB interface {

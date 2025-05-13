@@ -22,8 +22,13 @@ func errorResponse(w http.ResponseWriter, status int, message interface{}) {
 
 func ServerErrorResponse(w http.ResponseWriter, err error) {
 	logError(err)
+
 	message := "the server encountered a problem and could not process your request"
 	errorResponse(w, http.StatusInternalServerError, message)
+}
+
+func UnauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	errorResponse(w, http.StatusUnauthorized, err.Error())
 }
 
 func RequestErrorResponse(w http.ResponseWriter, err error) {

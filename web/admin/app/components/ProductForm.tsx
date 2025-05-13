@@ -11,7 +11,7 @@ import ProductAttributeForm from "./AttributeForm";
 import ProductImagesForm from "./ProductImageForm";
 import { MultiSelect } from "@/app/components/multiselect";
 import useProductsStore from "@/app/libs/store/useProductStore";
-import { Product } from "@/app/libs/types";
+import useCategoryStore from "@/app/libs/store/useCategories";
 
 interface ProductFormProps {
     initialData?: Partial<any>;
@@ -29,13 +29,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const [product, setProduct] = useState(initialData || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {
-        categories,
-        fetchCategories,
         createProduct,
         updateProduct,
         fetchProductDetail,
     } = useProductsStore();
-
+    const {
+        categories,
+        fetchCategories,
+    } = useCategoryStore()
     useEffect(() => {
         fetchCategories();
         if (isEdit && initialData?.Id) {

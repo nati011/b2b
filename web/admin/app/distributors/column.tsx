@@ -3,11 +3,11 @@ import { Distributor } from '@/app/libs/types';
 
 export const columns: ColumnDef<Distributor>[] = [
     {
-        accessorKey: "Id",
+        accessorKey: "id",
         header: "Id",
     },
     {
-        accessorKey: "Name",
+        accessorKey: "name",
         header: "Name",
     },
     {

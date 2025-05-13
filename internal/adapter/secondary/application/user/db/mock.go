@@ -5,6 +5,7 @@ import (
 	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/user"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 type MockUser struct {
@@ -58,7 +59,7 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 		})
 	}
 	if len(resp) == 0 {
-		return port.GetResponse{}, port.ErrSysNoRows
+		return port.GetResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return resp[0], nil
@@ -81,7 +82,7 @@ func (m *Mock) GetByEmail(ctx context.Context, email string) (port.GetAllRespons
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
@@ -106,7 +107,7 @@ func (m *Mock) GetByPhone(ctx context.Context, phone string) (port.GetAllRespons
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
@@ -131,7 +132,7 @@ func (m *Mock) GetByUsername(ctx context.Context, username string) (port.GetAllR
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
@@ -156,7 +157,7 @@ func (m *Mock) GetByActiveStatus(ctx context.Context, status bool) (port.GetAllR
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
@@ -181,7 +182,7 @@ func (m *Mock) GetByExternalId(ctx context.Context, extId string) (port.GetAllRe
 		}
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
@@ -205,7 +206,7 @@ func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 		})
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetAllResponse{
@@ -223,7 +224,7 @@ func (m *Mock) GetUserProvider(context.Context, int) (port.GetUserProviderRespon
 		})
 	}
 	if len(resp) == 0 {
-		return port.GetUserProviderResponse{}, port.ErrSysNoRows
+		return port.GetUserProviderResponse{}, port_commons.ErrSysNoRows
 	}
 
 	return port.GetUserProviderResponse{
@@ -508,7 +509,7 @@ func (m *Mock) GetAllAssignedRole(ctx context.Context, id int) (port.GetAllAssig
 		})
 	}
 	if len(resp.List) == 0 {
-		return port.GetAllAssignedRoleResponse{}, port.ErrSysNoRows
+		return port.GetAllAssignedRoleResponse{}, port_commons.ErrSysNoRows
 	}
 	return resp, nil
 }
