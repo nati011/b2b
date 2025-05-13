@@ -10,22 +10,15 @@ interface ProductsStore {
   error: string | null;
   next: string | null;
   previous: string | null;
-  categories: Category[];
-  categoriesLoading: boolean;
-  categoriesError: string | null;
 
   fetchProducts: (url?: string) => Promise<void>;
   updateProduct: (ProductsData: Partial<Product>) => Promise<void>;
-  fetchCategories: () => Promise<void>;
-  createCategory: (name: string) => Promise<void>;
-  deleteCategory: (id: number) => Promise<void>;
   createProduct: (productData: any) => Promise<void>;
   createConfigurableProduct: (productData: any) => Promise<void>
   addStock: (stock: number, id: number) => Promise<void>;
   depleteStock: (stock: number, id: number) => Promise<void>;
   updateProductStatus: (id: number, productStatus: boolean) => Promise<void>;
   fetchProductDetail: (id: number) => Promise<void>;
-  editCategory: (id: number, name: string) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -82,69 +75,10 @@ const useProductsStore = create<ProductsStore>((set) => ({
     }
   },
 
-  fetchCategories: async () => {
-    set({ categoriesLoading: true, categoriesError: null });
-    try {
-      const response = await axiosIns.get("/api/category");
-      set({
-        categories: response.data.body.category.categories,
-        categoriesLoading: false,
-      });
-    } catch (error) {
-      set({
-        categoriesError: "Failed to fetch categories",
-        categoriesLoading: false,
-      });
-    }
-  },
-  createCategory: async (name: string) => {
-    set({ categoriesLoading: true, categoriesError: null });
-    try {
-      const response = await axiosIns.post(
-        "/api/category",
-        { name: name },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      await useProductsStore.getState().fetchCategories();
-      set({ categoriesLoading: false });
-    } catch (error: any) {
-      set({ categoriesLoading: false, categoriesError: error.message });
-    }
-  },
-  deleteCategory: async (id: number) => {
-    set({ categoriesLoading: true, categoriesError: null });
-    try {
-      await axiosIns.delete(`/api/category?id=${id}`);
-      set({ categoriesLoading: false });
-      await useProductsStore.getState().fetchCategories();
-    } catch (error: any) {
-      set({ categoriesLoading: false, categoriesError: error.message });
-    } 0
-  },
-  editCategory: async (id: number, name: string) => {
-    set({ categoriesLoading: true, categoriesError: null });
-    try {
-      await axiosIns.patch(`/api/category/${id}`, {
-        "name": name
-      });
-      set({ categoriesLoading: false });
-      await useProductsStore.getState().fetchCategories();
-    } catch (error: any) {
-      set({ categoriesLoading: false, categoriesError: error.message });
-    }
-  },
   createProduct: async (productData: any) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.post("/api/product", productData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axiosIns.post("/api/product", productData);
       await useProductsStore.getState().fetchProducts();
       set({ loading: false, success: response.data });
     } catch (error: any) {

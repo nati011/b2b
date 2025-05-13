@@ -1,8 +1,7 @@
 'use client'
-import useProductsStore from "@/app/libs/store/useProductStore"
+import useResourceStore from "@/app/libs/store/useResourceStore"
 import { useEffect, useState } from "react";
-import Heading from "../../components/breadcrumb";
-import { DataTable } from "./datatable";
+import Heading from "../components/breadcrumb";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,59 +16,62 @@ import {
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { LiaEdit } from "react-icons/lia";
-import { Category } from '@/app/libs/types';
-import { MdDeleteOutline } from "react-icons/md";
+import { Role } from '@/app/libs/types';
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import useCategoryStore from "@/app/libs/store/useCategories";
+import { DataTable } from "@/components/ui/datatable";
+import { Textarea } from "@/components/ui/textarea";
 
 
 
 
-export default function Products() {
+export default function Resource() {
   const {
     success,
     loading,
     error,
-    categories,
-    fetchCategories,
-    editCategory,
-    deleteCategory
-  } = useCategoryStore()
+    resource,
+    fetchResources,
+
+  } = useResourceStore()
 
   const pages = [
     {
-      "title": "Products",
-      "href": "/products"
+      "title": "Resource",
+      "href": "/roles"
     },
     {
-      "title": "Product Categories",
-      "href": "/products/category"
+      "title": "Role Categories",
+      "href": "/roles/role"
     },
   ]
 
   const [deleteModal, setDeleteModal] = useState(false)
+  const [roleId, setRoleId] = useState(0)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState("")
-  const [productId, setProductId] = useState(0)
-  const handleEditCategory = async () => {
-    editCategory(productId, newCategoryName)
+  const [formData, setFormData] = useState<Role>({
+    id: roleId,
+    name: "",
+    desc: ""
+  })
+
+  const handleEditRole = async () => {
+    editRole(formData)
     setIsEditDialogOpen(false)
   };
 
 
-  const handleDeleteCategory = async (id: number) => {
+  const handleDeleteRole = async (id: number) => {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        toast.success("Category Deleted", {
-          description: "The category has been deleted successfully.",
+        toast.success("Role Deleted", {
+          description: "The role has been deleted successfully.",
           position: "top-right"
         });
 
-        deleteCategory(id)
+        deleteRole(id)
 
         resolve();
       }, 500);
@@ -77,11 +79,11 @@ export default function Products() {
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchResource();
   }, []);
 
 
-  const columns: ColumnDef<Category>[] = [
+  const columns: ColumnDef<Role>[] = [
     {
       accessorKey: "id",
       header: "Id",
@@ -91,13 +93,16 @@ export default function Products() {
       header: "Name",
     },
     {
+      accessorKey: "desc",
+      header: "Description",
+    },
+    {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-2">
-            <LiaEdit className="text-gray-700 cursor-pointer" onClick={() => { setProductId(row.original.id); setIsEditDialogOpen(true); setNewCategoryName(row.original.name) }} />
-            <MdDeleteOutline className="text-red-900 cursor-pointer" onClick={() => { setProductId(row.original.id); setDeleteModal(true) }} />
+            <LiaEdit className="text-gray-700 cursor-pointer" onClick={() => { setIsEditDialogOpen(true); setFormData(prev => ({ ...prev, id: row.original.id, name: row.original.name, desc: row.original.desc })) }} />
           </div>
         );
       },
@@ -107,13 +112,13 @@ export default function Products() {
 
   return (
     <>
-      <Heading page={pages} heading="Categories" subheading="List of Registered categories" />
+      <Heading page={pages} heading="Resource" subheading="List of registered roles" />
       <DataTable
         columns={columns}
-        data={categories}
+        data={roles}
         loading={loading}
         search="name"
-        searchPlaceholder="Search categories..."
+        searchPlaceholder="Search roles..."
       />
 
       <AlertDialog open={deleteModal}>
@@ -121,21 +126,21 @@ export default function Products() {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete category</AlertDialogTitle>
+            <AlertDialogTitle>Delete role</AlertDialogTitle>
           </AlertDialogHeader>
-          <AlertDialogDescription>Are you sure you want to delete the category?</AlertDialogDescription>
+          <AlertDialogDescription>Are you sure you want to delete the role?</AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
               setDeleteModal(false)
-              setProductId(0)
+              setRoleId(0)
             }}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction className="bg-red-900"
               onClick={() => {
                 setDeleteModal(false)
-                setProductId(0)
-                handleDeleteCategory(productId)
+                setRoleId(0)
+                handleDeleteRole(roleId)
               }
               }
             >
@@ -148,17 +153,34 @@ export default function Products() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Selected Category</DialogTitle>
+            <DialogTitle>Edit Selected Role</DialogTitle>
           </DialogHeader>
           <Input
-            placeholder="Category Name"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
+            placeholder="Role Name"
+            value={formData.name}
+            onChange={(e) => {
+              setFormData(prev => ({
+                ...prev,
+                name: e.target.value
+              }));
+            }}
+            autoFocus
+          />
+          <Textarea
+
+            placeholder="Role Description"
+            value={formData.desc}
+            onChange={(e) => {
+              setFormData(prev => ({
+                ...prev,
+                desc: e.target.value
+              }));
+            }}
             autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditCategory}>Edit Category</Button>
+            <Button onClick={handleEditRole}>Edit Role</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

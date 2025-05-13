@@ -40,6 +40,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import useProductsStore from "@/app/libs/store/useProductStore";
+import useCategoryStore from "@/app/libs/store/useCategories";
 
 interface buttonObj {
     name: string;
@@ -86,7 +87,7 @@ export function DataTable<TData, TValue>({
 
     const {
         createCategory
-    } = useProductsStore()
+    } = useCategoryStore()
 
     const table = useReactTable({
         data,
