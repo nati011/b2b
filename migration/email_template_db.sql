@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS public.templates
 
 COMMENT ON TABLE public.templates IS 'Stores email templates.';
 
--- Procedures ---------------------------
+-- email_templates ---------------------------
 
--- Writer procedure for inserting templates
+    -- Write
 CREATE OR REPLACE PROCEDURE public.insert_template(
    template_name VARCHAR(255),
    template_html TEXT
@@ -28,7 +28,22 @@ BEGIN
 END;
 $$;
 
--- Reader function for retrieving templates
+CREATE OR REPLACE PROCEDURE public.update_template(
+   template_name VARCHAR(255),
+   new_html TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.templates
+    SET html = new_html,
+        last_modified = CURRENT_TIMESTAMP
+    WHERE name = template_name;
+    COMMIT;
+END;
+$$;
+
+    -- Read
 CREATE OR REPLACE FUNCTION public.get_template(
    template_name VARCHAR(255)
 )
@@ -44,18 +59,3 @@ BEGIN
 END;
 $$;
 
--- Optional: Update procedure for completeness
-CREATE OR REPLACE PROCEDURE public.update_template(
-   template_name VARCHAR(255),
-   new_html TEXT
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE public.templates
-    SET html = new_html,
-        last_modified = CURRENT_TIMESTAMP
-    WHERE name = template_name;
-    COMMIT;
-END;
-$$;

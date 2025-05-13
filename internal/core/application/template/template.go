@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	port "b2b.nati011.github.com/internal/port/application/email-template"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 var (
@@ -41,6 +42,7 @@ type Provider interface {
 	Create(context.Context, *CreateRequest) (int, error)
 	GetAll(context.Context) (GetAllResponse, error)
 	Get(context.Context, int) (GetResponse, error)
+	GetByName(ctx context.Context, name string) (GetResponse, error)
 }
 
 type Template struct {
@@ -77,7 +79,7 @@ func (t *Template) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := t.db.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -90,7 +92,7 @@ func (t *Template) GetByName(ctx context.Context, name string) (GetResponse, err
 	resp, err := t.db.GetByName(ctx, name)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrNameNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -103,7 +105,7 @@ func (t *Template) GetAll(ctx context.Context) (GetAllResponse, error) {
 	rslt, err := t.db.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown

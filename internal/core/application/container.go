@@ -74,7 +74,7 @@ type Container struct {
 	RetailerService            retailer.Provider
 	EmailService               email.Provider
 	PaymentPartnerService      payment_partner.Provider
-	RenderService              render.Renderer
+	RenderService              render.Provider
 	ResourceService            resource.Provider
 	RoleService                role.Provider
 	SmsService                 sms.Provider

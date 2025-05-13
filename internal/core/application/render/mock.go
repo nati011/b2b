@@ -3,7 +3,7 @@ package render
 type Mock struct {
 }
 
-func NewMock() Renderer {
+func NewMock() Provider {
 	return &Mock{}
 }
 

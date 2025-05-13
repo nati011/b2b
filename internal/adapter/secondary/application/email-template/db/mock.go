@@ -4,7 +4,14 @@ import (
 	"context"
 
 	port "b2b.nati011.github.com/internal/port/application/email-template"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
+
+type template struct {
+	Id           int
+	Name         string
+	HtmlTemplate string
+}
 
 type Mock struct {
 	templates []template
@@ -50,7 +57,7 @@ func (m Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			return port.GetResponse(t), nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, error) {
@@ -59,7 +66,7 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetResponse, er
 			return port.GetResponse(t), nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -68,7 +75,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		response.List = append(response.List, port.GetResponse(i))
 	}
 	if len(response.List) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return response, nil
 }
