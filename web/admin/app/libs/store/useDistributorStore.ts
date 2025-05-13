@@ -25,7 +25,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         try {
             const response = await axiosIns.get('/api/distributor');
             set({
-                distributors: response.data.body.distributors.list,
+                distributors: response.data.body.distributors,
                 loading: false
             });
         } catch (error) {

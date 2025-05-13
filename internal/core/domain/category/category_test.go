@@ -22,8 +22,15 @@ func setup() {
 	)
 }
 
+func teardown() {
+	service = NewCategory(
+		db.NewMock(),
+	)
+}
+
 func Test_add_category_happyPath(t *testing.T) {
 	t.Run("add", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
 			Name: "test",
@@ -46,6 +53,7 @@ func Test_add_category_happyPath(t *testing.T) {
 
 func Test_add_category_unhappyPath(t *testing.T) {
 	t.Run("name_mandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &CreateRequest{}
 		_, err := service.Create(ctx, in)
@@ -57,7 +65,7 @@ func Test_add_category_unhappyPath(t *testing.T) {
 }
 
 func Test_remove_category_happyPath(t *testing.T) {
-	//setup
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name: "test",
@@ -83,6 +91,7 @@ func Test_remove_category_happyPath(t *testing.T) {
 
 func Test_remove_category_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		err := service.Remove(ctx, 99)
 		wantErr := ErrIdNotFound
@@ -92,8 +101,55 @@ func Test_remove_category_unhappyPath(t *testing.T) {
 	})
 }
 
+func Test_update_category_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	in := &CreateRequest{
+		Name: "test",
+	}
+	id, err := service.Create(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to create category err: %v", err)
+	}
+
+	update_in := &UpdateRequest{
+		Id:   id,
+		Name: "new_test",
+	}
+	err = service.Update(ctx, update_in)
+	if err != nil {
+		t.Fatalf("Failed to remove category err: %v", err)
+	}
+
+	//check
+	resp, err := service.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get category err: %v", err)
+	}
+	if resp.Name != update_in.Name {
+		t.Errorf("Expected name: %v Got: %v", resp.Name, update_in.Name)
+	}
+}
+
+func Test_update_category_unhappyPath(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+
+		update_in := &UpdateRequest{
+			Id:   999,
+			Name: "new_test",
+		}
+		err := service.Update(ctx, update_in)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+}
+
 func Test_get_happyPath(t *testing.T) {
-	// setup
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &CreateRequest{
 		Name: "test",
@@ -116,6 +172,7 @@ func Test_get_happyPath(t *testing.T) {
 
 func Test_get_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		_, err := service.Get(ctx, 99)
 		wantErr := ErrIdNotFound
@@ -126,8 +183,9 @@ func Test_get_unhappyPath(t *testing.T) {
 }
 
 func Test_get_all_happyPath(t *testing.T) {
-	// setup
+	t.Cleanup(teardown)
 	ctx := context.Background()
+
 	in := &CreateRequest{
 		Name: "test",
 	}
@@ -149,7 +207,7 @@ func Test_get_all_happyPath(t *testing.T) {
 }
 
 func Test_get_all_unhappyPath(t *testing.T) {
-	// setup
+	t.Cleanup(teardown)
 	ctx := context.Background()
 	_, err := service.GetAll(ctx)
 	wantErr := ErrEmptyGetContent

@@ -53,8 +53,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -92,7 +92,7 @@ func Test_read(t *testing.T) {
 		}
 
 		for i, v := range in.Images {
-			if got.Images[i] != v {
+			if got.Images[i].ImageUrl != v {
 				t.Errorf("Expected attr:%v Got: %v", v, got.Images[i])
 			}
 		}
@@ -107,8 +107,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -126,8 +126,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -151,6 +151,94 @@ func Test_read(t *testing.T) {
 		}
 	})
 
+	t.Run("GetAllStockLedger", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		prod_id, err := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     prod_id,
+			Amount: 10,
+		})
+		if err != nil {
+			t.Fatalf("Failed to receive goods")
+		}
+
+		resp, err := container.ProductService.GetAllStockLedger(ctx)
+		if err != nil {
+			t.Errorf("Expected err:%v Got err: %v", nil, err)
+		}
+
+		if resp.List[0].Product_id != prod_id {
+			t.Errorf("expected productId: %v Got: %v", resp.List[0].Product_id, prod_id)
+		}
+
+		if resp.List[0].Operation != "GOODS_RECEIVING" {
+			t.Errorf("expected productId: %v Got: %v", resp.List[0].Product_id, prod_id)
+		}
+
+	})
+
+	t.Run("GetStockLedger", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		prod_id, err := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     prod_id,
+			Amount: 10,
+		})
+		if err != nil {
+			t.Fatalf("Failed to receive goods")
+		}
+
+		resp, err := container.ProductService.GetStockLedger(ctx, prod_id)
+		if err != nil {
+			t.Errorf("Expected err:%v Got err: %v", nil, err)
+		}
+
+		if resp.List[0].Product_id != prod_id {
+			t.Errorf("expected productId: %v Got: %v", resp.List[0].Product_id, prod_id)
+		}
+
+		if resp.List[0].Operation != "GOODS_RECEIVING" {
+			t.Errorf("expected productId: %v Got: %v", resp.List[0].Product_id, prod_id)
+		}
+
+	})
+
 	t.Run("GetByName", func(t *testing.T) {
 		t.Cleanup(teardown)
 		// setup
@@ -160,8 +248,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -195,8 +283,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -230,8 +318,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -266,8 +354,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -303,8 +391,8 @@ func Test_read(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -342,8 +430,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -382,7 +470,7 @@ func Test_write(t *testing.T) {
 		}
 
 		for i, v := range in.Images {
-			if resp.Images[i] != v {
+			if resp.Images[i].ImageUrl != v {
 				t.Errorf("Expected attr:%v Got: %v", v, resp.Images[i])
 			}
 		}
@@ -397,8 +485,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -440,8 +528,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -483,8 +571,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -525,8 +613,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -567,8 +655,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -585,9 +673,9 @@ func Test_write(t *testing.T) {
 		update_in := &product.UpdateRequest{
 			Id: id,
 			Images: []string{
-				"new image",
-				"new image",
-				"new image",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
 			},
 		}
 		_, err = container.ProductService.Update(ctx, update_in)
@@ -614,8 +702,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -666,8 +754,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -712,8 +800,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -754,8 +842,8 @@ func Test_write(t *testing.T) {
 			Desc:       "test",
 			ExternalID: "123",
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 			Price: 100.00,
 			Attributes: map[string]string{
@@ -793,6 +881,107 @@ func Test_write(t *testing.T) {
 
 		if got.Stock != 0 {
 			t.Fatalf("Expected stock: %v Got: %v", dispachAmount, got.Stock)
+		}
+	})
+
+	t.Run("reserve", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		product_id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		goodsReceivingAmount := 5
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     product_id,
+			Amount: goodsReceivingAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		reservedAmount := 4
+		err = container.ProductService.Reserve(ctx, product_id, reservedAmount)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, product_id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.AvailableStock != goodsReceivingAmount-reservedAmount {
+			t.Fatalf("expected available stock: %v Got: %v", goodsReceivingAmount-reservedAmount, got.AvailableStock)
+		}
+	})
+
+	t.Run("freeReservedStock", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		in := &product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		product_id, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		goodsReceivingAmount := 5
+		err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+			Id:     product_id,
+			Amount: goodsReceivingAmount,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		reservedAmount := 4
+		err = container.ProductService.Reserve(ctx, product_id, reservedAmount)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		err = container.ProductService.FreeReservation(ctx, product_id, reservedAmount)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		got, err := container.ProductService.Get(ctx, product_id)
+		if err != nil {
+			t.Fatalf("Failed to Get")
+		}
+
+		if got.AvailableStock != goodsReceivingAmount {
+			t.Fatalf("expected available stock: %v Got: %v", goodsReceivingAmount, got.AvailableStock)
 		}
 	})
 }

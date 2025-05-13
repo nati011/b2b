@@ -29,6 +29,7 @@ type CreateUserRequest struct {
 	Username   string    `json:"username"`
 	DOB        time.Time `json:"dob"`
 	ExternalId string    `json:"external_id"`
+	Password   string    `json:"password"`
 }
 
 type GetUserAssignedRoleResponse struct {
@@ -133,7 +134,6 @@ func (p *UserHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				switch err {
 				case user.ErrIdNotFound:
-
 					util.RequestErrorResponse(w, err)
 					return
 				default:
@@ -289,6 +289,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			switch err {
+			case user.ErrEmptyGetContent:
 			case user.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return

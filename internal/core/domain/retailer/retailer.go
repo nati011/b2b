@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"b2b.nati011.github.com/internal/core/application/user"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/retailer"
 )
 
@@ -15,6 +16,7 @@ var (
 	ErrIdNotFound         = errors.New("oopsy, id not found")
 	ErrEmptyGetContent    = errors.New("oopsy, empty get content")
 	ErrRetailerHasNoUsers = errors.New("oopys, retailer has no users")
+	ErrPhoneMandatory     = errors.New("oopys, phonenumber mandatory")
 )
 
 type CreateRequest struct {
@@ -30,6 +32,7 @@ type CreateRequest struct {
 	Email     string
 	Phone     string
 	Username  string
+	Password  string
 }
 
 type GetResponse struct {
@@ -85,7 +88,14 @@ func NewRetailerService(up user.Provider, db port.DB) Provider {
 
 func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate
-	err := r.validateTin(ctx, req.Tin)
+	if req.Tin != "" {
+		err := r.validateTin(ctx, req.Tin)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	err := validatePhone(req.Phone)
 	if err != nil {
 		return 0, err
 	}
@@ -97,17 +107,14 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		Email:     req.Email,
 		Username:  req.Username,
 		Phone:     req.Phone,
+		Password:  req.Password,
 	})
 	if err != nil {
 		switch err {
-		case user.ErrEmailNotValid,
-			user.ErrPhoneNotValid,
-			user.ErrPhoneOrEmailMandatory,
-			user.ErrFirstNameMandatory:
-
-			return 0, err
-		default:
+		case user.ErrUnknown:
 			return 0, ErrUnknown
+		default:
+			return 0, err
 		}
 	}
 
@@ -137,7 +144,7 @@ func (r *RetailerService) Get(ctx context.Context, id int) (GetResponse, error) 
 	resp, err := r.DB.Get(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -163,7 +170,7 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 		resp_name, err := r.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -177,7 +184,7 @@ func (r *RetailerService) GetByParam(ctx context.Context, req *GetByParamRequest
 		resp_tin, err := r.DB.GetByTin(ctx, req.Tin)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -214,7 +221,8 @@ func (r *RetailerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp_name, err := r.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case ErrIdNotFound:
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
@@ -299,7 +307,7 @@ func (r *RetailerService) GetAllUsers(ctx context.Context, id int) (GetAllUsers,
 	users, err := r.DB.GetAllUserAgents(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllUsers{}, ErrRetailerHasNoUsers
 		default:
 			return GetAllUsers{}, ErrUnknown

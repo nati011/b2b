@@ -13,24 +13,20 @@ import (
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
-type CreateTransactionRequest struct {
-	User_Id    int   `json:"user_id"`
-	Amount     int64 `json:"amount"`
-	Partner_Id int   `json:"partner_id"`
-}
-
 type GetByParamRequest struct {
-	Date       time.Time `json:"date"`
-	Partner_Id int       `json:"partner_id"`
-	User_Id    int       `json:"user_id"`
+	Date      time.Time `json:"date"`
+	PartnerId int       `json:"partner_id"`
+	TxRef     string    `json:"tx_ref"`
+	Status    string    `json:"status"`
 }
 
 type GetResponse struct {
-	Id         int       `json:"id"`
-	User_Id    int       `json:"user_id"`
-	Date       time.Time `json:"date"`
-	Amount     int64     `json:"amount"`
-	Partner_Id int       `json:"partner_id"`
+	Id        int       `json:"id"`
+	Date      time.Time `json:"date"`
+	Amount    float64   `json:"amount"`
+	PartnerId int       `json:"partner_id"`
+	TxRef     string    `json:"tx_ref"`
+	Status    string    `json:"status"`
 }
 
 type GetAllResponse struct {
@@ -57,13 +53,11 @@ func (p *Transaction) Routes(mux *http.ServeMux) {
 func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamPartnerId = "partner_id"
-	const ParamUserId = "user_id"
 	const ParamDate = "date"
 
 	paramValues := r.URL.Query()
 	paramPartnerIdValue := paramValues.Get(ParamPartnerId)
 	paramDateValue := paramValues.Get(ParamDate)
-	paramUserIdValue := paramValues.Get(ParamUserId)
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -84,17 +78,14 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 			}
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"transaction": GetResponse(resp)})
-	} else if paramPartnerIdValue != "" || paramDateValue != "" || paramUserIdValue != "" {
+	} else if paramPartnerIdValue != "" || paramDateValue != "" {
+		var response GetAllResponse
 		typedPartnerId, err := strconv.Atoi(paramPartnerIdValue)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		typedUserId, err := strconv.Atoi(paramUserIdValue)
-		if err != nil {
-			util.RequestErrorResponse(w, err)
-			return
-		}
+
 		parsedDate, err := time.Parse(paramDateValue, "2024-09-19 14:00:00")
 		if err != nil {
 			util.RequestErrorResponse(w, err)
@@ -102,14 +93,16 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		params := &transaction.GetByParamRequest{
-			Partner_Id: typedPartnerId,
-			Date:       parsedDate,
-			User_Id:    typedUserId,
+			PartnerId: typedPartnerId,
+			Date:      parsedDate,
 		}
 
 		resp, err := p.service.GetByParam(r.Context(), params)
 		if err != nil {
 			switch err {
+			case transaction.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, response)
+				return
 			case transaction.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
@@ -118,25 +111,30 @@ func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Requ
 				return
 			}
 		}
-		var response GetAllResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, GetResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+		util.OperationSuccessResponse(w, response)
 
 	} else {
+		var response GetAllResponse
 		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
-			default:
+			case transaction.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, response)
+				return
+			case transaction.ErrUnknown:
 				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		var response GetAllResponse
 		for _, i := range resp.List {
 			response.List = append(response.List, GetResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"transactions": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }

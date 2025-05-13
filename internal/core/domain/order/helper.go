@@ -50,7 +50,7 @@ func (o *OrderService) validate_items(ctx context.Context, items []Item) error {
 			}
 		}
 		//validate provided qty exists
-		if prod_resp.Stock < i.Quantity {
+		if prod_resp.AvailableStock < i.Quantity {
 			return ErrItemMemberProductQuantityNotFound
 		}
 	}

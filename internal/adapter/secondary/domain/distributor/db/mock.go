@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
 
@@ -43,13 +44,15 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Woreda:      req.Woreda,
 	})
 
-	_, err := m.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
+	user_id, err := m.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
 		User_id: req.UserId,
 	})
 	if err != nil {
-		return 0, port.ErrSysUnknown
+		return 0, port_commons.ErrSysUnknown
 	}
-
+	m.userAgents = append(m.userAgents, MockUserAgent{
+		Id: user_id,
+	})
 	return newId, nil
 }
 
@@ -137,7 +140,7 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -155,7 +158,7 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		})
 	}
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: resp,
@@ -180,7 +183,7 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 	}
 
 	if len(resp) == 0 {
-		return port.GetAllResponse{}, port.ErrSysNoRows
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
 	return port.GetAllResponse{
 		List: resp,
@@ -202,7 +205,7 @@ func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, erro
 			}, nil
 		}
 	}
-	return port.GetResponse{}, port.ErrSysNoRows
+	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUserResponse, error) {
@@ -213,7 +216,7 @@ func (m *Mock) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUserRes
 		})
 	}
 	if len(resp.List) == 0 {
-		return port.GetAllUserResponse{}, port.ErrSysNoRows
+		return port.GetAllUserResponse{}, port_commons.ErrSysNoRows
 	}
 	return resp, nil
 }

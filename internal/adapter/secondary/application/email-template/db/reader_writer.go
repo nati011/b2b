@@ -41,8 +41,9 @@ type UpdateResponse struct {
 	Name string
 }
 type template struct {
-	name string
-	html string
+	Id           int
+	Name         string
+	HtmlTemplate string
 }
 
 type Reader interface {

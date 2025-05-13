@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -79,9 +80,11 @@ func Test_write(t *testing.T) {
 
 		//remove
 		err = testContainer.UserService.Remove(ctx, id)
+		log.Printf("Deleting Id %v", id)
 		if err != nil {
 			t.Fatalf("Failed to remove user err: %v", err)
 		}
+		log.Printf("Getting Id %v", id)
 		_, err = testContainer.UserService.Get(ctx, id)
 		wantErr := user.ErrIdNotFound
 		if err != wantErr {
@@ -97,13 +100,12 @@ func Test_read(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "natnael",
-			Email:     "natnaeljemaneh001@gmail.com",
-			Phone:     "+251949184879",
-			Username:  "test",
-			DOB:       parsedTime,
-
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "natnael",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
@@ -147,7 +149,7 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
-		expecetdLen := 1
+		expecetdLen := 2
 		if len(response.List) != expecetdLen {
 			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(response.List))
 		}

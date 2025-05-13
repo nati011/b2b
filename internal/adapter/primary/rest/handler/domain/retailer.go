@@ -29,6 +29,7 @@ type CreateRetailerRequest struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Username  string `json:"username"`
+	Password  string `json:"password"`
 }
 
 type GetRetailerResponse struct {
@@ -226,7 +227,6 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case retailer.ErrEmptyGetContent:
-
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -285,6 +285,7 @@ func (p *Retailer) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestBody.Username = requestBody.Phone
 	id, err := p.service.Create(r.Context(), (*retailer.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {

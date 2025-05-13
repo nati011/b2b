@@ -24,8 +24,8 @@ func setup() {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -52,8 +52,8 @@ func Test_Create_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -87,8 +87,8 @@ func Test_Create_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -124,8 +124,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -151,8 +151,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -172,8 +172,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err = container.ConfigurableProductService.Create(ctx, in_new)
@@ -198,8 +198,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -222,8 +222,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -246,8 +246,8 @@ func Test_Create_unhappyPath(t *testing.T) {
 			},
 			Products: []int{},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -272,7 +272,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -298,8 +298,8 @@ func Test_Avail_happyPath(t *testing.T) {
 			product_id,
 		},
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 	}
 	id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -347,8 +347,8 @@ func Test_Avail_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -384,8 +384,8 @@ func Test_Disable_happyPath(t *testing.T) {
 			product_id,
 		},
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 	}
 	id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -441,8 +441,8 @@ func Test_Disable_unhappyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -474,8 +474,8 @@ func Test_Get_happyPath(t *testing.T) {
 			product_id,
 		},
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 	}
 	id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -536,8 +536,8 @@ func Test_GetByParam_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -573,8 +573,8 @@ func Test_GetByParam_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -626,8 +626,8 @@ func Test_Get_All_happyPath(t *testing.T) {
 			product_id,
 		},
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 	}
 	_, err := container.ConfigurableProductService.Create(ctx, in)
@@ -676,8 +676,8 @@ func Test_Update_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -720,8 +720,8 @@ func Test_Update_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -764,8 +764,8 @@ func Test_Update_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -808,8 +808,8 @@ func Test_Update_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -854,8 +854,8 @@ func Test_Update_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -898,8 +898,8 @@ func Test_Update_happyPath(t *testing.T) {
 				product_id,
 			},
 			Images: []string{
-				"test",
-				"test",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		id, err := container.ConfigurableProductService.Create(ctx, in)
@@ -911,8 +911,8 @@ func Test_Update_happyPath(t *testing.T) {
 		err = container.ConfigurableProductService.Update(ctx, &UpdateRequest{
 			Id: id,
 			Images: []string{
-				"updated",
-				"updated",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
+				"https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png",
 			},
 		})
 		if err != nil {
@@ -923,8 +923,8 @@ func Test_Update_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantImages := "updated"
-		if resp.Images[0] != wantImages && resp.Images[1] != wantImages {
+		wantImages := "https://res.cloudinary.com/ddbdbuuqw/image/upload/v1713311534/kecw097ntniwoiub04sz.png"
+		if resp.Images[0].ImageUrl != wantImages && resp.Images[1].ImageUrl != wantImages {
 			t.Errorf("Expected image: %v Got: %v", wantImages, resp.Images[0])
 		}
 	})

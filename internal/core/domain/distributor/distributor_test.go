@@ -21,7 +21,7 @@ func setup() {
 }
 
 func Test_Create_happyPath(t *testing.T) {
-	t.Cleanup(testContainer.Cleanup)
+	t.Cleanup(testContainer.Teardown)
 	in := CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
@@ -29,9 +29,9 @@ func Test_Create_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
 
 		Email: "test@gmail.com",
 	}
@@ -52,7 +52,7 @@ func Test_Create_happyPath(t *testing.T) {
 
 func Test_Create_unhappyPath(t *testing.T) {
 	t.Run("validate_invalid_Tin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		// tin :has tobe 10 digits
 		in := CreateRequest{
 			Tin:         "111111111",
@@ -61,10 +61,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err := testContainer.DistributorService.Create(ctx, &in)
 		wantErr := ErrInvalidTin
@@ -74,7 +74,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("validate_duplicate_Tin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		//setup
 		_, err := testContainer.DistributorService.Create(ctx, &CreateRequest{
 			Tin:         "1234567891",
@@ -83,10 +83,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -99,10 +99,10 @@ func Test_Create_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		_, err = testContainer.DistributorService.Create(ctx, &in)
 		wantErr := ErrDuplicateTin
@@ -114,7 +114,7 @@ func Test_Create_unhappyPath(t *testing.T) {
 
 func Test_Update_happyPath(t *testing.T) {
 	t.Run("updateName", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		//setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -123,10 +123,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -152,7 +152,7 @@ func Test_Update_happyPath(t *testing.T) {
 	})
 
 	t.Run("updateTin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -161,10 +161,10 @@ func Test_Update_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -193,7 +193,7 @@ func Test_Update_happyPath(t *testing.T) {
 
 func Test_Update_unhappyPath(t *testing.T) {
 	t.Run("idNotFound", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		update_in := UpdateRequest{
 			Id:   99,
 			Name: "test",
@@ -207,7 +207,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("duplicate_Tin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		//setup
 		id, err := testContainer.DistributorService.Create(ctx, &CreateRequest{
 			Tin:         "1234567891",
@@ -216,10 +216,10 @@ func Test_Update_unhappyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		})
 		if err != nil {
 			t.Fatalf("Failed to create %v", err)
@@ -239,7 +239,7 @@ func Test_Update_unhappyPath(t *testing.T) {
 
 func Test_Get_happyPath(t *testing.T) {
 	t.Run("getById", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		//setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -248,10 +248,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -267,7 +267,7 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByName", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -276,10 +276,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -301,7 +301,7 @@ func Test_Get_happyPath(t *testing.T) {
 	})
 
 	t.Run("getByTin", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -310,10 +310,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -334,7 +334,7 @@ func Test_Get_happyPath(t *testing.T) {
 		}
 	})
 	t.Run("getAll", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		// setup
 		in := CreateRequest{
 			Tin:         "1111111111",
@@ -343,10 +343,10 @@ func Test_Get_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -368,7 +368,7 @@ func Test_Get_happyPath(t *testing.T) {
 
 func Test_Get_unhappyPath(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		_, err := testContainer.DistributorService.GetByParam(ctx, &GetByParamRequest{
 			Tin: "test",
 		})
@@ -379,7 +379,7 @@ func Test_Get_unhappyPath(t *testing.T) {
 	})
 
 	t.Run("empty_getAll", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		_, err := testContainer.DistributorService.GetAll(ctx)
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
@@ -391,7 +391,7 @@ func Test_Get_unhappyPath(t *testing.T) {
 func Test_Get_All_Users_happyPath(t *testing.T) {
 	t.Run("getAllUsers", func(t *testing.T) {
 		//setup
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		in := CreateRequest{
 			Tin:         "1111111111",
 			Latitude:    "9.0192° N",
@@ -399,10 +399,10 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 			GeneralZone: "test",
 			Region:      "test",
 			Woreda:      "test",
-
-			FirstName: "test",
-			LastName:  "test",
-			Email:     "test@gmail.com",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "testw@gmail.com",
 		}
 		id, err := testContainer.DistributorService.Create(ctx, &in)
 		if err != nil {
@@ -413,7 +413,6 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get user agents %v", err)
 		}
-
 	})
 }
 
@@ -422,7 +421,7 @@ func Test_Get_All_Users_unhappyPath(t *testing.T) {
 }
 
 func Test_Create_Distributor_user_happyPath(t *testing.T) {
-	t.Cleanup(testContainer.Cleanup)
+	t.Cleanup(testContainer.Teardown)
 	in := CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
@@ -430,10 +429,10 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		GeneralZone: "test",
 		Region:      "test",
 		Woreda:      "test",
-
-		FirstName: "test",
-		LastName:  "test",
-		Email:     "test@gmail.com",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test1@gmail.com",
 	}
 	id, err := testContainer.DistributorService.Create(ctx, &in)
 	if err != nil {
@@ -444,9 +443,10 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		FirstName:      "test_user",
 		LastName:       "test_user",
 		Email:          "test@gmail.com",
+		Username:       "test_user_dist",
 	})
 	if err != nil {
-		t.Fatalf("Failed to create user %v", user_id)
+		t.Fatalf("Failed to create user %v", err)
 	}
 	_, err = testContainer.UserService.Get(ctx, user_id)
 	if err != nil {
@@ -456,7 +456,7 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 
 func Test_Create_Distributor_user_unhappyPath(t *testing.T) {
 	t.Run("distributorNotFound", func(t *testing.T) {
-		t.Cleanup(testContainer.Cleanup)
+		t.Cleanup(testContainer.Teardown)
 		_, err := testContainer.DistributorService.CreateUser(ctx, &CreateUserRequest{
 			Distributor_Id: 99,
 			FirstName:      "test_user",
