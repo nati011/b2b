@@ -6,7 +6,9 @@ import (
 	"log"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/application/email"
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
+	"github.com/golang-jwt/jwt"
 )
 
 var (
@@ -20,6 +22,8 @@ var (
 	ErrPasswordNotSupplied  = errors.New("oopsy, password mandatory")
 	ErrFirstNameNotSupplied = errors.New("oopsy, First Name mandatory")
 	ErrLastNameNotSupplied  = errors.New("oppsy, Last Name mandatory")
+	ErrTokenNotSupplied     = errors.New("oppsy, Token is mandatory")
+	ErrTokenHasExpired      = errors.New("oppsy, Token has expired")
 )
 
 type RegisterUserRequest struct {
@@ -81,24 +85,99 @@ type Provider interface {
 }
 
 type AuthService struct {
-	authProvider port.Provider
-	// emailProvider email.Provider
+	authProvider  port.Provider
+	emailProvider email.Provider
 }
 
-func NewAuthService(ap port.Provider) Provider {
-	return &AuthService{authProvider: ap}
+func NewAuthService(ap port.Provider, em email.Provider) Provider {
+	return &AuthService{authProvider: ap, emailProvider: em}
 }
 
 func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error {
-	//check if token is valid
-	//check if token has not expired
+	// Check if token is provided
+	if req.ResetToken == "" {
+		return ErrTokenNotSupplied
+	}
+
+	claims, err := a.validateToken(req.ResetToken)
+	if err != nil {
+		return err
+	}
+
+	// Check if token has not expired
+	if claims.ExpiresAt < time.Now().Unix() {
+		return ErrTokenHasExpired
+	}
 	return nil
 }
 
+func (a *AuthService) validateToken(tokenString string) (*jwt.StandardClaims, error) {
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte("s3cureR@nd0mK3y1234567890!"), nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	// Extract claims
+	claims, ok := token.Claims.(*jwt.StandardClaims)
+	if !ok {
+		return nil, errors.New("invalid claims")
+	}
+
+	return claims, nil
+}
+
 func (s AuthService) InitClientCredentialsReset(ctx context.Context, req InitClientCredentialsResetRequest) error {
-	//generate token with expiry date(30 mins)
-	//encode token with email address
-	//send email with token(use email templates)
+	// Validate email
+	if req.Email == "" {
+		return errors.New("email is required")
+	}
+
+	// Generate token with expiry date (30 mins)
+	token, err := s.createToken(req.Email)
+	if err != nil {
+		return err
+	}
+
+	// Send email with token
+	err = s.sendResetEmail(req.Email, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s AuthService) createToken(email string) (string, error) {
+	expirationTime := time.Now().Add(30 * time.Minute)
+	claims := &jwt.StandardClaims{
+		Subject:   email,
+		ExpiresAt: expirationTime.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("s3cureR@nd0mK3y1234567890!"))
+}
+
+func (s AuthService) sendResetEmail(emailAdd string, token string) error {
+	err := s.emailProvider.Send(&email.SendRequest{
+		To:         emailAdd,
+		Subject:    "Welcome to EfoytaStore!",
+		TemplateId: 1,
+		Args: map[string]string{
+			"username":   "emailAdd",
+			"reset_link": token,
+		}})
+	if err != nil {
+		return ErrUnknown
+	}
 	return nil
 }
 
@@ -131,8 +210,6 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 			return RegisterUserResponse{}, ErrUnknown
 		}
 	}
-	//TODO:
-	//Init Client Credentials Reset
 	err = a.InitClientCredentialsReset(ctx, InitClientCredentialsResetRequest{
 		Email: req.Email,
 	})
