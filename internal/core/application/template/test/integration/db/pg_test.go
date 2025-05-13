@@ -104,4 +104,25 @@ func Test_read(t *testing.T) {
 			t.Errorf("expected err: %v Got: %v", id, got.Id)
 		}
 	})
+
+	t.Run("getAll", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		_, err := testContainer.TemplateService.Create(ctx, &template.CreateRequest{
+			Name:         "test",
+			HtmlTemplate: "test",
+		})
+		if err != nil {
+			t.Fatalf("failed to create template %v", err)
+		}
+
+		got, err := testContainer.TemplateService.GetAll(ctx)
+		if err != nil {
+			t.Fatalf("failed to get err: %v", err)
+		}
+
+		if len(got.List) != 1 {
+			t.Errorf("expected len: %v Got: %v", len(got.List))
+		}
+	})
 }

@@ -80,7 +80,7 @@ func (e *EmailTemplate) GetEmailTemplateHandler(w http.ResponseWriter, r *http.R
 		if err != nil {
 			switch err {
 			case template.ErrIdNotFound:
-				util.RequestErrorResponse(w, err)
+				util.OperationSuccessResponse(w, util.Envelope{"email_template": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
@@ -93,6 +93,7 @@ func (e *EmailTemplate) GetEmailTemplateHandler(w http.ResponseWriter, r *http.R
 		if err != nil {
 			switch err {
 			case template.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, util.Envelope{"email_template": nil})
 			default:
 				util.ServerErrorResponse(w, err)
 				return
