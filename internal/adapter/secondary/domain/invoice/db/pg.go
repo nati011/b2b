@@ -3,74 +3,98 @@ package invoice
 import (
 	"context"
 	"database/sql"
-	"log"
+	"strconv"
 
+	"b2b.nati011.github.com/config"
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
 type Postgres struct {
-	db *sql.DB
+	db         *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(DB *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		db: DB,
+		db:         DB,
+		Pagination: pagination,
 	}
 }
 
 func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
-
 	query := "SELECT * FROM public.get_invoices_by_id($1);"
-
-	err := p.db.QueryRowContext(ctx, query, id).Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
+	result := []any{
+		&response.Id,
+		&response.Status,
+		&response.ExternalId,
+		&response.OrderId,
+		&response.SubTotal,
+		&response.TaxAmount}
+	args := []any{id}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
+
 	items, err := p.getInvoiceLineItemsByProductId(ctx, response.Id)
 	if err != nil {
 		return port.GetResponse{}, err
 	}
 	response.LineItems = items
 
+	response.Id = *result[0].(*int)
+	response.Status = *result[1].(*string)
+	response.ExternalId = *result[2].(*string)
+	response.OrderId = *result[3].(*int)
+	response.SubTotal = *result[4].(*float64)
+	response.TaxAmount = *result[5].(*float64)
+
 	return response, nil
 }
 
 func (p *Postgres) getInvoiceLineItemsByProductId(ctx context.Context, invoice_Id int) ([]port.Item, error) {
 	var response []port.Item
-
+	var responseBase port.Item
+	var id int
+	var invoiceId int
 	query := "SELECT * FROM public.get_invoice_line_item_by_invoice_id($1);"
-	rows, err := p.db.QueryContext(ctx, query, invoice_Id)
+	dest := []any{
+		&id,
+		&responseBase.ProductName,
+		&responseBase.ProductQuantity,
+		&responseBase.ProductPrice,
+		&responseBase.ProductId,
+		&invoiceId}
+
+	args := []any{invoice_Id}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return []port.Item{}, port.ErrSysNoRows
-		default:
-			return []port.Item{}, port.ErrSysUnknown
-		}
-
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id int
-		var invoiceId int
-		var item port.Item
-		if err := rows.Scan(&id, &item.ProductName, &item.ProductQuantity, &item.ProductPrice, &item.ProductId, &invoiceId); err != nil {
-			log.Printf("unable to scan row: %q", err)
-			return []port.Item{}, err
-		}
-		response = append(response, item)
+		return []port.Item{}, err
 	}
 
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return []port.Item{}, port.ErrSysUnknown
+	//convert
+	for _, res := range result {
+		product_price, _ := strconv.ParseFloat(res[3].(string), 64)
+		responseBase := port.Item{
+			ProductName:     res[1].(string),
+			ProductQuantity: int(res[2].(int64)),
+			ProductPrice:    product_price,
+			ProductId:       int(res[4].(int64)),
+		}
+		response = append(response, responseBase)
 	}
 
 	return response, nil
@@ -78,98 +102,135 @@ func (p *Postgres) getInvoiceLineItemsByProductId(ctx context.Context, invoice_I
 
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_all_invoices();"
-	rows, err := p.db.QueryContext(ctx, query)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
-
+	query := "SELECT * FROM public.get_all_invoices($1, $2);"
+	dest := []any{&responseBase.Id,
+		&responseBase.Status,
+		&responseBase.ExternalId,
+		&responseBase.OrderId,
+		&responseBase.SubTotal,
+		&responseBase.TaxAmount,
 	}
-	defer rows.Close()
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	for rows.Next() {
-		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
-			log.Printf("unable to scan row: %q", err)
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
+		resp := port.GetResponse{
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
+		}
+		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
+		if err != nil {
 			return port.GetAllResponse{}, err
 		}
-		response.List = append(response.List, invoice)
+		resp.LineItems = items
+		response.List = append(response.List, resp)
 	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
 	return response, nil
 }
 
 func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_invoices_by_external_id($1);"
-	rows, err := p.db.QueryContext(ctx, query, extId)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
 
+	dest := []any{&responseBase.Id,
+		&responseBase.Status,
+		&responseBase.ExternalId,
+		&responseBase.OrderId,
+		&responseBase.SubTotal,
+		&responseBase.TaxAmount,
 	}
-	defer rows.Close()
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
-	for rows.Next() {
-		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
-			log.Printf("unable to scan row: %q", err)
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
+		resp := port.GetResponse{
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
+		}
+		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
+		if err != nil {
 			return port.GetAllResponse{}, err
 		}
-		response.List = append(response.List, invoice)
+		resp.LineItems = items
+		response.List = append(response.List, resp)
 	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
 	return response, nil
 }
 
 func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_invoices_by_status($1);"
-	rows, err := p.db.QueryContext(ctx, query, status)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
-		}
+	query := "SELECT * FROM public.get_invoices_by_status($1, $2, $3);"
 
+	dest := []any{&responseBase.Id,
+		&responseBase.Status,
+		&responseBase.ExternalId,
+		&responseBase.OrderId,
+		&responseBase.SubTotal,
+		&responseBase.TaxAmount,
 	}
-	defer rows.Close()
+	args := []any{status, p.Pagination.Limit, p.Pagination.Offset}
 
-	for rows.Next() {
-		var invoice port.GetResponse
-		if err := rows.Scan(&invoice.Id, &invoice.Status, &invoice.ExternalId, &invoice.OrderId, &invoice.SubTotal, &invoice.TaxAmount); err != nil {
-			log.Printf("unable to scan row: %q", err)
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		sub_total, _ := strconv.ParseFloat(res[4].(string), 64)
+		tax_amount, _ := strconv.ParseFloat(res[5].(string), 64)
+		resp := port.GetResponse{
+			Id:         int(res[0].(int64)),
+			ExternalId: res[1].(string),
+			Status:     res[2].(string),
+			OrderId:    int(res[3].(int64)),
+			SubTotal:   sub_total,
+			TaxAmount:  tax_amount,
+		}
+		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
+		if err != nil {
 			return port.GetAllResponse{}, err
 		}
-		response.List = append(response.List, invoice)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
+		resp.LineItems = items
+		response.List = append(response.List, resp)
 	}
 
 	return response, nil
@@ -179,16 +240,36 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 	var response port.GetResponse
 
 	query := "SELECT * FROM public.get_invoices_by_order_id($1);"
-
-	err := p.db.QueryRowContext(ctx, query, orderId).Scan(&response.Id, &response.Status, &response.ExternalId, &response.OrderId, &response.SubTotal, &response.TaxAmount)
+	result := []any{
+		&response.Id,
+		&response.Status,
+		&response.ExternalId,
+		&response.OrderId,
+		&response.SubTotal,
+		&response.TaxAmount}
+	args := []any{&orderId}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
+
+	items, err := p.getInvoiceLineItemsByProductId(ctx, response.Id)
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+	response.LineItems = items
+
+	response.Id = *result[0].(*int)
+	response.Status = *result[1].(*string)
+	response.ExternalId = *result[2].(*string)
+	response.OrderId = *result[3].(*int)
+	response.SubTotal = *result[4].(*float64)
+	response.TaxAmount = *result[5].(*float64)
 
 	return response, nil
 }
@@ -198,41 +279,22 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	var invoiceId int
 	query := "SELECT * FROM public.create_invoice($1, $2, $3, $4, $5);"
 
-	err := p.db.QueryRowContext(ctx, query,
+	result := []any{&invoiceId}
+	args := []any{
 		req.Status,
 		req.ExternalId,
 		req.OrderId,
 		req.Subtotal,
-		req.TaxAmount,
-	).Scan(&invoiceId)
+		req.TaxAmount}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
-	}
-
-	// invoice line items
-	for _, i := range req.LineItems {
-		query = "SELECT * FROM public.create_invoice_line_item($1, $2, $3, $4, $5);"
-
-		_, err = p.db.QueryContext(ctx, query,
-			i.ProductName,
-			i.ProductQuantity,
-			i.ProductPrice,
-			i.ProductId,
-			invoiceId,
-		)
-		if err != nil {
-			switch err {
-			case sql.ErrNoRows:
-				return 0, port.ErrSysNoRows
-			default:
-				return 0, port.ErrSysUnknown
-			}
-		}
+		return 0, err
 	}
 
 	return invoiceId, nil
@@ -242,32 +304,43 @@ func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExterna
 	var resourceId int
 	query := "SELECT * FROM public.update_invoice_externalId($1, $2);"
 
-	err := p.db.QueryRowContext(ctx, query, req.Id, req.ExternalId).Scan(&resourceId)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+	result := []any{&resourceId}
+	args := []any{
+		req.Id,
+		req.ExternalId,
 	}
 
-	return nil
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func (p *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateStatusRequest) error {
 	var resourceId int
 	query := "SELECT * FROM public.update_invoice_status($1, $2);"
 
-	err := p.db.QueryRowContext(ctx, query, req.Id, req.Status).Scan(&resourceId)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.ErrSysNoRows
-		default:
-			return port.ErrSysUnknown
-		}
+	result := []any{&resourceId}
+	args := []any{
+		req.Id,
+		req.Status,
 	}
 
-	return nil
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+
+	return err
 }

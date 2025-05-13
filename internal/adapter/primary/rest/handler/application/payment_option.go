@@ -20,18 +20,19 @@ var (
 )
 
 type CreatePaymentPartnerRequest struct {
-	Name             string `json:"name"`
-	Icon             string `json:"icon"`
-	Status           string `json:"status"`
-	Init_payment_url string `json:"init_payment_url"`
+	Name    string `json:"name"`
+	Icon    string `json:"icon"`
+	Status  string `json:"status"`
+	BaseURL string `json:"base_url"`
+	Secret  string `json:"secret"`
 }
 
 type GetPaymentPartnerResponse struct {
-	Id               int    `json:"id"`
-	Name             string `json:"name"`
-	Icon             string `json:"icon"`
-	Status           string `json:"status"`
-	Init_payment_url string `json:"init_payment_url"`
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	Icon    string `json:"icon"`
+	Status  string `json:"status"`
+	BaseURL string `json:"base_url"`
 }
 
 type GetAllPaymentPartnerResponse struct {
@@ -41,6 +42,11 @@ type GetAllPaymentPartnerResponse struct {
 type GetPaymentOptionByParamRequest struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`
+}
+
+type UpdatePaymentOptionRequest struct {
+	BaseURL string `json:"base_url"`
+	Secret  string `json:"secret"`
 }
 
 type PaymentPartner struct {
@@ -61,6 +67,7 @@ func (p *PaymentPartner) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/payment_option/active", p.GetActivePaymentPartnersHandler)
 	mux.HandleFunc("POST /api/v1/payment_option", p.CreatePaymentPartnerHandler)
 	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/status", p.StatusCommandHandler)
+	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/secret", p.UpdateSecretHandler)
 }
 
 func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +91,8 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		if err != nil {
 			switch err {
 			case payment_partner.ErrIdNotFound:
+				util.RequestErrorResponse(w, err)
+				return
 			default:
 				util.ServerErrorResponse(w, err)
 				return
@@ -91,6 +100,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"payment_option": GetPaymentPartnerResponse(resp)})
 	} else if paramNameValue != "" || paramStatusValue != "" {
+		var response GetAllPaymentPartnerResponse
 		params := &payment_partner.GetByParamRequest{
 			Name:   paramNameValue,
 			Status: paramStatusValue,
@@ -102,20 +112,24 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 			case payment_partner.ErrUnknown:
 				util.ServerErrorResponse(w, err)
 				return
+			case payment_partner.ErrEmptyGetContent:
+				util.OperationSuccessResponse(w, response)
+				return
 			default:
 				util.RequestErrorResponse(w, err)
 				return
 			}
 		}
-		var response GetAllPaymentPartnerResponse
+
 		for _, i := range resp.List {
 			response.List = append(response.List, GetPaymentPartnerResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
+		util.OperationSuccessResponse(w, response)
 	} else {
 		resp, err := p.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
+			case payment_partner.ErrEmptyGetContent:
 			default:
 				util.ServerErrorResponse(w, err)
 				return
@@ -125,7 +139,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 		for _, i := range resp.List {
 			response.List = append(response.List, GetPaymentPartnerResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }
 
@@ -133,8 +147,11 @@ func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, 
 	resp, err := p.service.GetActive(r.Context())
 	if err != nil {
 		switch err {
-		default:
+		case payment_partner.ErrUnknown:
 			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
 			return
 		}
 	}
@@ -200,7 +217,7 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option activated successfully"})
+			util.OperationSuccessMessageResponse(w, "payment option activated successfully")
 		case DEACTIVATE_PAYMENT_OPTION_COMMAND:
 			err = p.service.Deactivate(r.Context(), typedParamId)
 			if err != nil {
@@ -213,9 +230,44 @@ func (p *PaymentPartner) StatusCommandHandler(w http.ResponseWriter, r *http.Req
 					return
 				}
 			}
-			util.OperationSuccessResponse(w, util.Envelope{"detail": "payment option deactivated successfully"})
+			util.OperationSuccessMessageResponse(w, "payment option deactivated successfully")
 		default:
 			util.RequestErrorResponse(w, ErrUnknownPaymentOptionCommand)
 		}
 	}
+}
+
+func (p *PaymentPartner) UpdateSecretHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+	var requestBody UpdatePaymentOptionRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	err = p.service.UpdatePartnerSecret(r.Context(), payment_partner.UpdatePartnerSecret{
+		Id:      typedParamId,
+		BaseURL: requestBody.BaseURL,
+		Secret:  requestBody.Secret,
+	})
+	if err != nil {
+		switch err {
+		case payment_partner.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessMessageResponse(w, "secret updated successfully")
 }

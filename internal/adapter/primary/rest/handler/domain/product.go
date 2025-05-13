@@ -30,36 +30,9 @@ type CreateProductRequest struct {
 	CategoryId    []int             `json:"category_id"`
 }
 
-type ProductResponse struct {
-	Id            int               `json:"id"`
-	Name          string            `json:"name"`
-	Desc          string            `json:"desc"`
-	Price         float64           `json:"price"`
-	Stock         int               `json:"stock"`
-	ExternalID    string            `json:"external_id"`
-	Attributes    map[string]string `json:"attributes"`
-	Images        []string          `json:"images"`
-	DistributorId int               `json:"distributor_id"`
-	CategoryId    []int             `json:"categories"`
-	IsActive      bool              `json:"is_active"`
-}
-
 type ConfigurableAttributesResponse struct {
 	ProductId      int    `json:"product_id"`
 	AttributeValue string `json:"attribute_value"`
-}
-
-type GetProductResponse struct {
-	Name                   string                                      `json:"name"`
-	Desc                   string                                      `json:"desc"`
-	IsActive               bool                                        `json:"is_active"`
-	Images                 []string                                    `json:"images"`
-	ConfigurableAttributes map[string][]ConfigurableAttributesResponse `json:"configurable_attributes"`
-	Configurables          []ProductResponse                           `json:"configurables"`
-}
-
-type GetAllProductResponse struct {
-	List []GetProductResponse `json:"products"`
 }
 
 type GetProductByParamRequest struct {
@@ -110,12 +83,47 @@ func (r *Product) Init(applicationServices *application_core.Container, domainSe
 
 func (p *Product) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/product", p.GetHandler)
+	mux.HandleFunc("GET /api/v1/stock_ledger", p.GetStockLedgerHandler)
 	mux.HandleFunc("POST /api/v1/product", p.CreateHandler)
 	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
 	mux.HandleFunc("PATCH /api/v1/product/{id}/status", p.StatusHandler)
 	mux.HandleFunc("PATCH /api/v1/product/{id}/stock", p.StockHandler)
 }
 
+func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "product_id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		resp, err := p.service.GetStockLedger(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"stock_ledger": resp})
+	} else {
+		resp, err := p.service.GetAllStockLedger(r.Context())
+		if err != nil {
+			switch err {
+			case product.ErrEmptyGetContent:
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"stock_ledger": resp})
+	}
+
+}
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "id"
 	const ParamName = "name"
@@ -137,7 +145,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
-
 		}
 		resp, err := p.service.Get(r.Context(), typedParamId)
 		if err != nil {
@@ -148,8 +155,8 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"product": resp})
 
+		util.OperationSuccessResponse(w, resp)
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
@@ -219,7 +226,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+		util.OperationSuccessResponse(w, resp)
 	}
 }
 

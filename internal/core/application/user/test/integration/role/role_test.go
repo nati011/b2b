@@ -61,13 +61,13 @@ func setup() {
 	}
 
 	// ddl
-	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db.sql")
+	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db.sql")
 	if err != nil {
 		log.Fatalf("Error running ddl migration: %v", err)
 	}
 
 	// functions
-	err = runMigration(db, "/home/natanel/personal/b2b_clean/b2b/migration/core_db_functions.sql")
+	err = runMigration(db, "/home/ruth/Documents/work/nonkifiya/b2b_proj/b2b/migration/core_db_functions.sql")
 	if err != nil {
 		log.Fatalf("Error running stored func migration: %v", err)
 	}
@@ -152,7 +152,8 @@ func Test_assignRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FirstName: "natnael jemaneh asefa",
+		FirstName: "Natnael",
+		LastName:  "Jemaneh",
 		Email:     "natnaeljemaneh001@gmail.com",
 		Phone:     "+251949184879",
 		Username:  "test",
@@ -188,10 +189,11 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh007@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "test07",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -202,7 +204,7 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 		}
 
 		//assign
-		err = testContainer.UserService.AssignRole(ctx, user_id, rand.Int())
+		err = testContainer.UserService.AssignRole(ctx, user_id, int(rand.Int31()))
 		expectedErr := user.ErrRoleDoesNotExist
 		if err != expectedErr {
 			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
@@ -215,10 +217,11 @@ func Test_assignRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh0009@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "testAssign",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -259,10 +262,11 @@ func Test_removeAssignedRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FirstName: "natnael jemaneh asefa",
-		Email:     "natnaeljemaneh001@gmail.com",
+		FirstName: "Natnael",
+		LastName:  "Jemaneh",
+		Email:     "natnaeljemaneh0001@gmail.com",
 		Phone:     "+251949184879",
-		Username:  "test",
+		Username:  "demo",
 		DOB:       parsedTime,
 
 		ExternalId: "123",
@@ -301,10 +305,11 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh0011@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "testRole",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -337,10 +342,11 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh5001@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "demoAssigned",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -352,7 +358,7 @@ func Test_removeAssignedRole_unhappyPath(t *testing.T) {
 
 		//remove
 		expectedErr := user.ErrRoleDoesNotExist
-		err = testContainer.UserService.RemoveAssignedRole(ctx, user_id, rand.Int())
+		err = testContainer.UserService.RemoveAssignedRole(ctx, user_id, int(rand.Int31()))
 		if err != expectedErr {
 			t.Errorf("Expected err: %v Got err: %v", expectedErr, err)
 		}
@@ -366,10 +372,11 @@ func Test_getAllRole_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FirstName: "natnael jemaneh asefa",
-		Email:     "natnaeljemaneh001@gmail.com",
+		FirstName: "Natnael",
+		LastName:  "Jemaneh",
+		Email:     "natnaeljemaneh101@gmail.com",
 		Phone:     "+251949184879",
-		Username:  "test",
+		Username:  "testRoleHappyPath",
 		DOB:       parsedTime,
 
 		ExternalId: "123",
@@ -412,10 +419,11 @@ func Test_getAllRole_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh0901@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "testAllUnhappy",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -454,10 +462,11 @@ func Test_has_role_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh000@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "test001",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -498,10 +507,11 @@ func Test_has_role_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh002@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "test2",
 			DOB:       parsedTime,
 
 			ExternalId: "123",
@@ -539,10 +549,11 @@ func Test_has_role_unhappyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := user.CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			Email:     "natnaeljemaneh001@gmail.com",
+			FirstName: "Natnael",
+			LastName:  "Jemaneh",
+			Email:     "natnaeljemaneh9001@gmail.com",
 			Phone:     "+251949184879",
-			Username:  "test",
+			Username:  "testRoleUnhappy",
 			DOB:       parsedTime,
 
 			ExternalId: "123",

@@ -3,18 +3,21 @@ package db
 import (
 	"context"
 	"database/sql"
-	"log"
 
+	"b2b.nati011.github.com/config"
+	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/application/partner/db"
 )
 
 type Postgres struct {
-	Pool *sql.DB
+	Pool       *sql.DB
+	Pagination *config.Pagination
 }
 
-func NewPostgres(DB *sql.DB) port.DB {
+func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 	return &Postgres{
-		Pool: DB,
+		Pool:       DB,
+		Pagination: pagination,
 	}
 }
 
@@ -23,156 +26,211 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_payment_partner_by_id($1);"
 
-	err := p.Pool.QueryRowContext(ctx, query, id).Scan(
+	result := []any{
 		&response.Id,
 		&response.Name,
 		&response.Icon,
 		&response.Status,
-		&response.Init_payment_url)
+		&response.BaseURL}
+
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetResponse{}, port.ErrSysUnknown
-		}
+		return port.GetResponse{}, err
 	}
+
+	response.Id = *result[0].(*int)
+	response.Name = *result[1].(*string)
+	response.Icon = *result[2].(*string)
+	response.Status = *result[3].(*string)
+	response.BaseURL = *result[4].(*string)
 
 	return response, nil
 }
 
+func (p *Postgres) GetPartnerSecret(ctx context.Context, id int) (port.GetPartnerSecret, error) {
+	var response port.GetPartnerSecret
+
+	query := "SELECT * FROM public.get_payment_partner_secret($1);"
+
+	result := []any{
+		&response.Name,
+		&response.BaseURL,
+		&response.Secret,
+	}
+	args := []any{&id}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return port.GetPartnerSecret{}, err
+	}
+
+	response.Name = *result[0].(*string)
+	response.BaseURL = *result[1].(*string)
+	response.Secret = *result[2].(*string)
+
+	return response, nil
+}
+
+func (p *Postgres) UpdatePartnerSecret(ctx context.Context, req port.UpdatePartnerSecret) error {
+	query := "SELECT * FROM public.update_payment_partner_secret($1, $2, $3);"
+	args := []any{&req.Id, req.BaseURL, req.Secret}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_all_payment_partners();"
-	rows, err := p.Pool.QueryContext(ctx, query)
+	query := "SELECT * FROM public.get_all_payment_partners($1,$2);"
+
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Icon,
+		&responseBase.Status,
+		&responseBase.BaseURL,
+	}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:      int(res[0].(int64)),
+			Name:    res[1].(string),
+			Icon:    res[2].(string),
+			Status:  res[3].(string),
+			BaseURL: res[4].(string),
 		}
-
+		response.List = append(response.List, responseBase)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var partner port.GetResponse
-		if err := rows.Scan(
-			&partner.Id,
-			&partner.Name,
-			&partner.Icon,
-			&partner.Status,
-			&partner.Init_payment_url); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, partner)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
 	return response, nil
 }
 
 func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_payment_partner_by_status($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, status)
+
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Icon,
+		&responseBase.Status,
+		&responseBase.BaseURL,
+	}
+	args := []any{&status}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:      int(res[0].(int64)),
+			Name:    res[1].(string),
+			Icon:    res[2].(string),
+			Status:  res[3].(string),
+			BaseURL: res[4].(string),
 		}
-
+		response.List = append(response.List, responseBase)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var partner port.GetResponse
-		if err := rows.Scan(
-			&partner.Id,
-			&partner.Name,
-			&partner.Icon,
-			&partner.Status,
-			&partner.Init_payment_url); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, partner)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
 	return response, nil
 }
 
 func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
+	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_payment_partner_by_name($1);"
-	rows, err := p.Pool.QueryContext(ctx, query, name)
+
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Icon,
+		&responseBase.Status,
+		&responseBase.BaseURL,
+	}
+	args := []any{name}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return port.GetAllResponse{}, port.ErrSysNoRows
-		default:
-			return port.GetAllResponse{}, port.ErrSysUnknown
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:      int(res[0].(int64)),
+			Name:    res[1].(string),
+			Icon:    res[2].(string),
+			Status:  res[3].(string),
+			BaseURL: res[4].(string),
 		}
-
+		response.List = append(response.List, responseBase)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var partner port.GetResponse
-		if err := rows.Scan(
-			&partner.Id,
-			&partner.Name,
-			&partner.Icon,
-			&partner.Status,
-			&partner.Init_payment_url); err != nil {
-
-			log.Printf("unable to scan row: %q", err)
-			return port.GetAllResponse{}, err
-		}
-		response.List = append(response.List, partner)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Printf("error occurred during rows iteration: %q", err)
-		return port.GetAllResponse{}, port.ErrSysUnknown
-	}
-
 	return response, nil
 }
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var partner_id int
-	query := "SELECT * FROM public.create_payment_partner($1, $2, $3, $4);"
+	query := "SELECT * FROM public.create_payment_partner($1, $2, $3, $4, $5);"
 
-	err := p.Pool.QueryRowContext(ctx, query, req.Name, req.Icon, req.Status, req.Init_payment_url).Scan(
-		&partner_id)
+	result := []any{&partner_id}
+	args := []any{
+		req.Name,
+		req.Icon,
+		req.Status,
+		req.BaseURL,
+		req.Secret}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
-
 	return partner_id, nil
 }
 
@@ -180,16 +238,18 @@ func (p *Postgres) UpdateStatus(ctx context.Context, id int, status string) (int
 	var partner_id int
 	query := "SELECT * FROM public.update_payment_partner_status($1, $2);"
 
-	_, err := p.Pool.QueryContext(ctx, query, id, status)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
-	}
+	result := []any{&partner_id}
+	args := []any{id, status}
 
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return 0, err
+	}
 	return partner_id, nil
 }
 
@@ -197,14 +257,17 @@ func (p *Postgres) UpdateName(ctx context.Context, id int, name string) (int, er
 	var partner_id int
 	query := "SELECT * FROM public.update_payment_partner_name($1, $2);"
 
-	_, err := p.Pool.QueryContext(ctx, query, id, name)
+	result := []any{&partner_id}
+	args := []any{id, name}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return 0, port.ErrSysNoRows
-		default:
-			return 0, port.ErrSysUnknown
-		}
+		return 0, err
 	}
 
 	return partner_id, nil

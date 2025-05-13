@@ -35,10 +35,18 @@ func main() {
 	//db
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
+
+	//min mobile client compatible version
+	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Environment (development|staging|production)")
+
+	// BaseUrl and frontendUrl
+	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
+
 	flag.Parse()
 	validateFlags(cfg)
 
-	db_pool := InitDB(cfg.CoreDBConnectionString, cfg.FileLocation)
+	db_pool := InitDB(&cfg)
 
 	//for testing purposes
 	InitAuth(&cfg)
@@ -54,17 +62,22 @@ func main() {
 		cfg.KeycloakRealm,
 		cfg.KeycloakApplicationRealm,
 		cfg.KeycloakClientId,
+		cfg.KeycloakClientSecret,
 		cfg.Email,
 		cfg.SMTP,
-		cfg.KeycloakClientSecret)
+		cfg.MinMobileClientCompatibleVersion,
+		cfg.BaseUrl,
+		cfg.FrontendUrl,
+	)
 
-	domain_container := domain_core.NewContainer(*application_constainer, db_pool)
+	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)
 
 	loggingingMiddleware := util.NewLoggingMiddleware()
-	handler := loggingingMiddleware.Log(mux)
+	paginationMiddleware := util.NewPaginationMiddleware(*config.NewPaginationBuilder())
+	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Handler:      handler,
@@ -72,7 +85,7 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	log.Printf("Ahoy! running %s on %s ...", cfg.Env, srv.Addr)
+	log.Printf("Ahoy! server running %s on %s ...", cfg.Env, srv.Addr)
 
 	err := srv.ListenAndServe()
 	if err != nil {

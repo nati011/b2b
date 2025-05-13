@@ -57,7 +57,7 @@ type GetDistributorResponse struct {
 }
 
 type GetAllDistributorResponse struct {
-	List []GetDistributorResponse `json:"list"`
+	List []GetDistributorResponse `json:"distributors"`
 }
 
 type GetDistributorByParamRequest struct {
@@ -89,8 +89,8 @@ func (d *Distributor) Init(applicationServices *application_core.Container, doma
 }
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
-	distributorHandler := http.HandlerFunc(d.GetDistributorHandler)
-	mux.Handle("GET /api/v1/distributor", d.middleware.Authenticate(distributorHandler))
+
+	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
 	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
 	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
 
@@ -152,7 +152,7 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		Distributor_Id: typedParamId,
 		FirstName:      requestBody.FirstName,
 		LastName:       requestBody.LastName,
-		Username:       requestBody.Username,
+		Username:       requestBody.Phone,
 		Email:          requestBody.Email,
 		Phone:          requestBody.Phone,
 	})
@@ -260,13 +260,12 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Users:       users_resp.List,
 			})
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
+		util.OperationSuccessResponse(w, handler_resp)
 	} else {
 		resp, err := de.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case distributor.ErrEmptyGetContent:
-
 				util.RequestErrorResponse(w, err)
 				return
 			default:
@@ -280,9 +279,10 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 			users_resp, err := de.service.GetAllUsers(r.Context(), i.Id)
 			if err != nil {
 				switch err {
-				case distributor.ErrIdNotFound:
+				case distributor.ErrEmptyGetContent:
 				default:
 					util.ServerErrorResponse(w, err)
+					return
 				}
 			}
 
@@ -298,7 +298,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Users:       users_resp.List,
 			})
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"distributors": handler_resp})
+		util.OperationSuccessResponse(w, handler_resp)
 	}
 }
 
@@ -311,10 +311,13 @@ func (de *Distributor) CreateDistributorHandler(w http.ResponseWriter, r *http.R
 	defer r.Body.Close()
 
 	var requestBody CreateDistributorRequest
+
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return
 	}
+
+	requestBody.Username = requestBody.Phone
 	id, err := de.service.Create(r.Context(), (*distributor.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
@@ -354,4 +357,5 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"distributor": id})
+
 }

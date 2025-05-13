@@ -7,20 +7,21 @@ import (
 )
 
 var (
-	ErrPortMissing                     = errors.New("oopsy, port mandatory")
-	ErrEnvMissing                      = errors.New("oopsy, env mandatory")
-	ErrKeycloakInstanceUrlMissing      = errors.New("oopsy, keycloak instance url mandatory")
-	ErrKeycloakUsernameMissing         = errors.New("oopsy, keycloak username mandatory")
-	ErrKeycloakPasswordMissing         = errors.New("oopsy, keycloak password mandatory")
-	ErrKeycloakRealmMissing            = errors.New("oopsy, keycloak realm mandatory")
-	ErrKeycloakApplicationRealmMissing = errors.New("oopsy, keycloak application realm mandatory")
-	ErrKeycloakClientSecretMissing     = errors.New("oopsy, keycloak client secret mandatory")
-	ErrKeycloakClientIdMissing         = errors.New("oopsy, keycloak clientId missing")
-	ErrKeycloakClientSecretMandtory    = errors.New("oopsy, keycloak secret missing")
-	ErrEmailMissing                    = errors.New("oopsy, email missing")
-	ErrSMTPMissing                     = errors.New("oopsy, smtp missing")
-	ErrCoreDBConnectionStringMissing   = errors.New("oopsy, core db conn string missing")
-	ErrEmailDBConnectionStringMissing  = errors.New("oopsy, email db conn string missing")
+	ErrPortMissing                               = errors.New("oopsy, port mandatory")
+	ErrEnvMissing                                = errors.New("oopsy, env mandatory")
+	ErrKeycloakInstanceUrlMissing                = errors.New("oopsy, keycloak instance url mandatory")
+	ErrKeycloakUsernameMissing                   = errors.New("oopsy, keycloak username mandatory")
+	ErrKeycloakPasswordMissing                   = errors.New("oopsy, keycloak password mandatory")
+	ErrKeycloakRealmMissing                      = errors.New("oopsy, keycloak realm mandatory")
+	ErrKeycloakApplicationRealmMissing           = errors.New("oopsy, keycloak application realm mandatory")
+	ErrKeycloakClientSecretMissing               = errors.New("oopsy, keycloak client secret mandatory")
+	ErrKeycloakClientIdMissing                   = errors.New("oopsy, keycloak clientId missing")
+	ErrKeycloakClientSecretMandtory              = errors.New("oopsy, keycloak secret missing")
+	ErrEmailMissing                              = errors.New("oopsy, email missing")
+	ErrSMTPMissing                               = errors.New("oopsy, smtp missing")
+	ErrCoreDBConnectionStringMissing             = errors.New("oopsy, core db conn string missing")
+	ErrEmailDBConnectionStringMissing            = errors.New("oopsy, email db conn string missing")
+	ErrMinMobileClientCompatibleVersionMandatory = errors.New("oopsy, min mobile client version string missing")
 )
 
 func validateFlags(cfg config.Config) {
@@ -56,6 +57,9 @@ func validateFlags(cfg config.Config) {
 	}
 	if cfg.KeycloakClientSecret == "" {
 		panic(ErrKeycloakClientSecretMandtory)
+	}
+	if cfg.MinMobileClientCompatibleVersion == "" {
+		panic(ErrMinMobileClientCompatibleVersionMandatory)
 	}
 }
 

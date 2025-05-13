@@ -3,10 +3,13 @@ package order
 import (
 	"context"
 	"errors"
+	"log"
 
+	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/order"
 )
 
@@ -21,13 +24,26 @@ var (
 	ErrAlreadyCanceled                    = errors.New("oopsy, order already canceled")
 	ErrItemMemberProductNotFound          = errors.New("oopsy, product not found")
 	ErrItemMemberProductQuantityNotFound  = errors.New("oopsy, product quantity not found")
-	ErrTargetStatusIdentical              = errors.New("oopsy, new status same as old status")
 )
 
+// order status
 const (
-	CANCELD_STATUS   = "CANCELED"
+	CANCELED_STATUS  = "CANCELED"
 	PENDING_STATUS   = "PENDING"
 	COMPLETED_STATUS = "COMPLETED"
+)
+
+// payment
+const (
+	PAYMENT_PENDING_STATUS  = "PENDING"
+	PAYMENT_ACCEPTED_STATUS = "ACCEPTED"
+)
+
+// delivery
+const (
+	DELIVERY_PENDING_STATUS    = "PENDING"
+	DELIVERY_DISPATCHED_STATUS = "DISPATCHED"
+	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
 )
 
 type Item struct {
@@ -36,16 +52,19 @@ type Item struct {
 }
 
 type PlaceRequest struct {
-	RetailerId int
-	Items      []Item
+	RetailerId       int
+	Items            []Item
+	PaymentPartnerId int
 }
 
 type GetResponse struct {
-	Id         int
-	RetailerId int
-	Items      []Item
-	Total      float32
-	Status     string
+	Id             int
+	RetailerId     int
+	Items          []Item
+	Total          float32
+	Status         string
+	DeliveryStatus string
+	PaymentStatus  string
 }
 
 type GetAllResponse struct {
@@ -58,17 +77,28 @@ type GetByParamRequest struct {
 }
 
 type UpdateRequest struct {
-	Id     int
-	Status string
+	Id             int
+	Status         string
+	PaymentStatus  string
+	DeliveryStatus string
+}
+
+type OrderPlaceResponse struct {
+	Id          int    `json:"id"`
+	CheckoutUrl string `json:"checkout_url"`
 }
 
 type Provider interface {
-	Place(ctx context.Context, req *PlaceRequest) (int, error)
+	Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error)
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
-	UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error)
+	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
+	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
+	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
 }
 
 type OrderService struct {
@@ -76,19 +106,24 @@ type OrderService struct {
 	InvoiceService  invoice.Provider
 	ProductService  product.Provider
 	RetailerService retailer.Provider
+	PaymentService  checkout.Provider
 }
 
 func NewOrderService(
 	db port.DB,
 	is invoice.Provider,
 	ps product.Provider,
-	rs retailer.Provider) Provider {
+	rs retailer.Provider,
+	pays checkout.Provider,
+
+) Provider {
 
 	return &OrderService{
 		DB:              db,
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
+		PaymentService:  pays,
 	}
 }
 
@@ -103,10 +138,10 @@ func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest
 	return nil
 }
 
-func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error) {
+func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error) {
 	err := o.validate_placement(ctx, req)
 	if err != nil {
-		return 0, err
+		return OrderPlaceResponse{}, err
 	}
 
 	items := make([]port.Item, 0, len(req.Items))
@@ -117,7 +152,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		if err != nil {
 			switch err {
 			default:
-				return 0, ErrUnknown
+				return OrderPlaceResponse{}, ErrUnknown
 			}
 		}
 		items = append(items, port.Item{
@@ -129,13 +164,24 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	}
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
-		RetailerId: req.RetailerId,
-		Items:      items,
-		Status:     PENDING_STATUS,
-		Total:      itemsTotal,
+		RetailerId:     req.RetailerId,
+		Items:          items,
+		Status:         PENDING_STATUS,
+		PaymentStatus:  PAYMENT_PENDING_STATUS,
+		DeliveryStatus: DELIVERY_PENDING_STATUS,
+		Total:          itemsTotal,
 	})
 	if err != nil {
-		return 0, ErrUnknown
+		return OrderPlaceResponse{}, ErrUnknown
+	}
+
+	checkout_resp, err := o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
+		OrderId:          order_id,
+		Amount:           itemsTotal,
+		PaymentPartnerId: req.PaymentPartnerId,
+	})
+	if err != nil {
+		return OrderPlaceResponse{}, err
 	}
 
 	// create invoice
@@ -145,7 +191,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		if err != nil {
 			switch err {
 			default:
-				return 0, ErrUnknown
+				return OrderPlaceResponse{}, ErrUnknown
 			}
 		}
 		lineItems = append(lineItems, invoice.Item{
@@ -164,16 +210,20 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 		TaxAmount: 0, //default
 	}); err != nil {
 		o.Cancel(ctx, order_id)
-		return 0, ErrUnknown
+		return OrderPlaceResponse{}, ErrUnknown
 	}
 
-	//TODO
-	/*
-		reserve stock
-	*/
+	//reserve stock
+	for _, i := range req.Items {
+		if err = o.ProductService.Reserve(ctx, i.ProductId, i.Quantity); err != nil {
+			log.Printf("order placement failed due to inability to reserve stock qty: %v for productId: %v", i.Quantity, i.ProductId)
+			return OrderPlaceResponse{}, ErrUnknown
+		}
+	}
 
-	// o.InvoiceService.Cancel(ctxm order_id)
+	// o.InvoiceService.Cancel(ctx, order_id)
 	// o.Cancel(ctx, order_id)
+	// o.ReserveStpc
 
 	//TODO
 	/*
@@ -184,7 +234,10 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (int, error
 	/*
 		send email
 	*/
-	return order_id, nil
+	return OrderPlaceResponse{
+		Id:          order_id,
+		CheckoutUrl: checkout_resp.CheckoutUrl,
+	}, nil
 }
 
 func (o *OrderService) Cancel(ctx context.Context, id int) error {
@@ -192,7 +245,7 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	got, err := o.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return ErrIdNotFound
 		default:
 			return ErrUnknown
@@ -200,13 +253,13 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	}
 
 	//check if already given status
-	if got.Status == CANCELD_STATUS {
+	if got.Status == CANCELED_STATUS {
 		return ErrAlreadyCanceled
 	}
 
 	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
 		Id:     id,
-		Status: CANCELD_STATUS,
+		Status: CANCELED_STATUS,
 	})
 	if err != nil {
 		switch err {
@@ -221,7 +274,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := o.DB.GetByID(ctx, id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrIdNotFound
 		default:
 			return GetResponse{}, ErrUnknown
@@ -235,10 +288,13 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		})
 	}
 	return GetResponse{
-		Id:         resp.Id,
-		RetailerId: resp.RetailerId,
-		Items:      items,
-		Status:     resp.Status,
+		Id:             resp.Id,
+		RetailerId:     resp.RetailerId,
+		Total:          float32(resp.Total),
+		Items:          items,
+		Status:         resp.Status,
+		DeliveryStatus: resp.DeliveryStatus,
+		PaymentStatus:  resp.PaymentStatus,
 	}, nil
 }
 
@@ -246,7 +302,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := o.DB.GetAll(ctx)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
+		case port_commons.ErrSysNoRows:
 			return GetAllResponse{}, ErrEmptyGetResponse
 		default:
 			return GetAllResponse{}, ErrUnknown
@@ -263,10 +319,98 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
-			Id:         i.Id,
-			RetailerId: i.RetailerId,
-			Items:      items,
-			Status:     i.Status,
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
+		})
+	}
+	return return_response, nil
+}
+
+func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id int) (GetAllResponse, error) {
+	resp, err := o.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetResponse
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	return_response := GetAllResponse{}
+	for _, i := range resp.List {
+		distributors := []int{}
+		items := []Item{}
+		for _, j := range i.Items {
+			items = append(items, Item{
+				ProductId: j.ProductId,
+				Quantity:  j.Quantity,
+			})
+			product, err := o.ProductService.Get(ctx, j.ProductId)
+			if err != nil {
+				log.Fatalf("failed to fetch product %v", j.ProductId)
+				return GetAllResponse{}, ErrUnknown
+			}
+			distributors = append(distributors, product.DistributorId)
+		}
+		order_belongs_to_distributor := false
+		for _, j := range distributors {
+			if j == distributor_id {
+				order_belongs_to_distributor = true
+			}
+		}
+		if order_belongs_to_distributor {
+			return_response.List = append(return_response.List, GetResponse{
+				Id:             i.Id,
+				RetailerId:     i.RetailerId,
+				Items:          items,
+				Total:          float32(i.Total),
+				Status:         i.Status,
+				DeliveryStatus: i.DeliveryStatus,
+				PaymentStatus:  i.PaymentStatus,
+			})
+		}
+	}
+	return return_response, nil
+}
+
+func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (GetAllResponse, error) {
+	if err := o.validate_retailerId(ctx, retailer_id); err != nil {
+		return GetAllResponse{}, err
+	}
+
+	resp, err := o.DB.GetByRetailerID(ctx, retailer_id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetResponse
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	return_response := GetAllResponse{}
+	for _, i := range resp.List {
+		items := []Item{}
+		for _, i := range i.Items {
+			items = append(items, Item{
+				ProductId: i.ProductId,
+				Quantity:  i.Quantity,
+			})
+		}
+		return_response.List = append(return_response.List, GetResponse{
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
 		})
 	}
 	return return_response, nil
@@ -278,7 +422,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 		resp, err := o.DB.GetByRetailerID(ctx, req.RetailerId)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
@@ -300,10 +444,13 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Total:          float32(i.Total),
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -313,7 +460,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 		resp, err := o.DB.GetByStatus(ctx, req.Status)
 		if err != nil {
 			switch err {
-			case port.ErrSysNoRows:
+			case port_commons.ErrSysNoRows:
 				return GetAllResponse{}, ErrEmptyGetResponse
 			default:
 				return GetAllResponse{}, ErrUnknown
@@ -336,10 +483,13 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			}
 			if !alreadyPresent {
 				return_response.List = append(return_response.List, GetResponse{
-					Id:         i.Id,
-					RetailerId: i.RetailerId,
-					Items:      items,
-					Status:     i.Status,
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					Items:          items,
+					Total:          float32(i.Total),
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
 				})
 			}
 		}
@@ -351,20 +501,16 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 	return return_response, nil
 }
 
-func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (GetAllResponse, error) {
-	return_response := GetAllResponse{}
+func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error) {
 	//validate
 	resp, err := o.Get(ctx, req.Id)
 	if err != nil {
 		switch err {
-		case port.ErrSysNoRows:
-			return return_response, ErrIdNotFound
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
 		default:
-			return return_response, ErrUnknown
+			return 0, ErrUnknown
 		}
-	}
-	if req.Status == resp.Status {
-		return return_response, ErrTargetStatusIdentical
 	}
 
 	//update
@@ -375,10 +521,85 @@ func (o *OrderService) UpdateStatus(ctx context.Context, req *UpdateRequest) (Ge
 	if err != nil {
 		switch err {
 		default:
-			return return_response, ErrUnknown
+			return 0, ErrUnknown
 		}
 	}
 
-	// deplete stock if order status is COMPELETED
-	return return_response, nil
+	switch req.Status {
+	case CANCELED_STATUS:
+		//free reserved stock
+		for _, item := range resp.Items {
+			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
+			if err != nil {
+				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
+			}
+		}
+	}
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
+		Id:            req.Id,
+		PaymentStatus: req.PaymentStatus,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error) {
+	//validate
+	resp, err := o.Get(ctx, req.Id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	//update
+	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
+		Id:             req.Id,
+		DeliveryStatus: req.DeliveryStatus,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	switch req.DeliveryStatus {
+	case DELIVERY_COMPLETED_STATUS:
+		//free reserved stock
+		for _, item := range resp.Items {
+			err = o.ProductService.FreeReservation(ctx, item.ProductId, item.Quantity)
+			if err != nil {
+				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
+			}
+		}
+	}
+
+	return resp.Id, nil
 }

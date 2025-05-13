@@ -32,9 +32,9 @@ const useResourceStore = create<ResourceStore>((set) => ({
     fetchResources: async () => {
         set({ resourceLoading: true, resourceError: null });
         try {
-            const response = await axiosIns.get("/api/role");
+            const response = await axiosIns.get("/api/resource");
             set({
-                resource: response.data.body.resource,
+                resource: response.data.body.resources,
                 resourceLoading: false,
             });
         } catch (error) {
@@ -48,7 +48,7 @@ const useResourceStore = create<ResourceStore>((set) => ({
         set({ resourceLoading: true, resourceError: null });
         try {
             const response = await axiosIns.post(
-                "/api/role",
+                "/api/resource",
                 data,
             );
             await useResourceStore.getState().fetchResources();
@@ -60,7 +60,7 @@ const useResourceStore = create<ResourceStore>((set) => ({
     deleteResource: async (id: number) => {
         set({ resourceLoading: true, resourceError: null });
         try {
-            await axiosIns.delete(`/api/role?id=${id}`);
+            await axiosIns.delete(`/api/resource?id=${id}`);
             set({ resourceLoading: false });
             await useResourceStore.getState().fetchResources();
         } catch (error: any) {
@@ -71,7 +71,7 @@ const useResourceStore = create<ResourceStore>((set) => ({
         set({ resourceLoading: true, resourceError: null });
         try {
             console.log(data)
-            await axiosIns.put(`/api/role`, data);
+            await axiosIns.put(`/api/resource`, data);
             set({ resourceLoading: false });
             await useResourceStore.getState().fetchResources();
         } catch (error: any) {

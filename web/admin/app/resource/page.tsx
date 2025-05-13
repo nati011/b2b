@@ -17,61 +17,61 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
 import { LiaEdit } from "react-icons/lia";
-import { Role } from '@/app/libs/types';
+import { Resource } from '@/app/libs/types';
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/datatable";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 
 
 
-export default function Resource() {
+export default function ResourceList() {
   const {
     success,
     loading,
     error,
     resource,
     fetchResources,
+    editResource,
+    deleteResource
 
   } = useResourceStore()
 
   const pages = [
     {
       "title": "Resource",
-      "href": "/roles"
-    },
-    {
-      "title": "Role Categories",
-      "href": "/roles/role"
-    },
+      "href": "/resources"
+    }
   ]
 
   const [deleteModal, setDeleteModal] = useState(false)
-  const [roleId, setRoleId] = useState(0)
+  const [resourceId, setResourceId] = useState(0)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [formData, setFormData] = useState<Role>({
-    id: roleId,
+  const [formData, setFormData] = useState<Resource>({
+    id: resourceId,
     name: "",
-    desc: ""
+    action: ""
   })
 
-  const handleEditRole = async () => {
-    editRole(formData)
+  const handleEditResource = async () => {
+    editResource(formData)
     setIsEditDialogOpen(false)
   };
 
 
-  const handleDeleteRole = async (id: number) => {
+  const handleDeleteResource = async (id: number) => {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        toast.success("Role Deleted", {
-          description: "The role has been deleted successfully.",
+        toast.success("Resource Deleted", {
+          description: "The resource has been deleted successfully.",
           position: "top-right"
         });
 
-        deleteRole(id)
+        deleteResource(id)
 
         resolve();
       }, 500);
@@ -79,11 +79,11 @@ export default function Resource() {
   };
 
   useEffect(() => {
-    fetchResource();
+    fetchResources();
   }, []);
 
 
-  const columns: ColumnDef<Role>[] = [
+  const columns: ColumnDef<Resource>[] = [
     {
       accessorKey: "id",
       header: "Id",
@@ -93,8 +93,8 @@ export default function Resource() {
       header: "Name",
     },
     {
-      accessorKey: "desc",
-      header: "Description",
+      accessorKey: "action",
+      header: "Action",
     },
     {
       id: "actions",
@@ -102,7 +102,7 @@ export default function Resource() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-2">
-            <LiaEdit className="text-gray-700 cursor-pointer" onClick={() => { setIsEditDialogOpen(true); setFormData(prev => ({ ...prev, id: row.original.id, name: row.original.name, desc: row.original.desc })) }} />
+            <LiaEdit className="text-gray-700 cursor-pointer" onClick={() => { setIsEditDialogOpen(true); setFormData(prev => ({ ...prev, id: row.original.id, name: row.original.name, action: row.original.action })) }} />
           </div>
         );
       },
@@ -112,13 +112,13 @@ export default function Resource() {
 
   return (
     <>
-      <Heading page={pages} heading="Resource" subheading="List of registered roles" />
+      <Heading page={pages} heading="Resource" subheading="List of registered resources" />
       <DataTable
         columns={columns}
-        data={roles}
+        data={resource}
         loading={loading}
         search="name"
-        searchPlaceholder="Search roles..."
+        searchPlaceholder="Search resources..."
       />
 
       <AlertDialog open={deleteModal}>
@@ -126,21 +126,21 @@ export default function Resource() {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete role</AlertDialogTitle>
+            <AlertDialogTitle>Delete resource</AlertDialogTitle>
           </AlertDialogHeader>
-          <AlertDialogDescription>Are you sure you want to delete the role?</AlertDialogDescription>
+          <AlertDialogDescription>Are you sure you want to delete the resource?</AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
               setDeleteModal(false)
-              setRoleId(0)
+              setResourceId(0)
             }}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction className="bg-red-900"
               onClick={() => {
                 setDeleteModal(false)
-                setRoleId(0)
-                handleDeleteRole(roleId)
+                setResourceId(0)
+                handleDeleteResource(resourceId)
               }
               }
             >
@@ -153,34 +153,47 @@ export default function Resource() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Selected Role</DialogTitle>
+            <DialogTitle>Edit Selected Resource</DialogTitle>
           </DialogHeader>
-          <Input
-            placeholder="Role Name"
-            value={formData.name}
-            onChange={(e) => {
-              setFormData(prev => ({
-                ...prev,
-                name: e.target.value
-              }));
-            }}
-            autoFocus
-          />
-          <Textarea
+          <Separator orientation="horizontal" />
+          <div className="grid gap-2">
+            <Label className="font-semibold">
+              Resource Name
+            </Label>
+            <Input
+              placeholder="Resource Name"
+              value={formData.name}
+              onChange={(e) => {
+                setFormData(prev => ({
+                  ...prev,
+                  name: e.target.value
+                }));
+              }}
+              autoFocus
+            />
+          </div>
 
-            placeholder="Role Description"
-            value={formData.desc}
-            onChange={(e) => {
-              setFormData(prev => ({
-                ...prev,
-                desc: e.target.value
-              }));
-            }}
-            autoFocus
-          />
+          <div className="grid gap-2">
+            <Label className="font-semibold">
+              Resource Description
+            </Label>
+            <Textarea
+
+              placeholder="Resource Description"
+              value={formData.action}
+              onChange={(e) => {
+                setFormData(prev => ({
+                  ...prev,
+                  action: e.target.value
+                }));
+              }}
+              autoFocus
+            />
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditRole}>Edit Role</Button>
+            <Button onClick={handleEditResource}>Edit Resource</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
