@@ -1,34 +1,42 @@
 "use client"
 
 import * as React from "react"
-
-import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
-import {
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
-} from "@/components/ui/sidebar"
+
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroup,
     SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
-import { CiShoppingCart } from "react-icons/ci"
+
 import { AiOutlineProduct } from "react-icons/ai"
 import { PiUsersThreeLight } from "react-icons/pi"
+import { GoGear } from "react-icons/go"
+import { CiShoppingCart } from "react-icons/ci"
 import Link from "next/link"
 
-// This is sample data.
 const data = {
     user: {
         name: "shadcn",
         email: "m@example.com",
         avatar: "/avatars/shadcn.jpg",
     },
+    singular: [
+        {
+            title: "Admin Users",
+            url: "/admin",
+            icon: PiUsersThreeLight,
+        }
+    ],
     navMain: [
         {
             title: "Product",
@@ -51,8 +59,8 @@ const data = {
             ],
         },
         {
-            title: "Users",
-            url: "#",
+            title: "Customers",
+            url: "/retailers",
             icon: PiUsersThreeLight,
             items: [
                 {
@@ -62,11 +70,49 @@ const data = {
                 {
                     title: "Distributor",
                     url: "/distributor",
+                }
+            ],
+        },
+        {
+            title: "Order",
+            url: "/Order",
+            icon: PiUsersThreeLight,
+            items: [
+                {
+                    title: "Order List",
+                    url: "/order",
                 },
                 {
-                    title: "Admin Users",
-                    url: "/admin",
+                    title: "Transactions",
+                    url: "/transactions",
                 },
+                {
+                    title: "Invoice",
+                    url: "/invoice",
+                }
+            ],
+        },
+        {
+            title: "Configurations",
+            url: "/settings",
+            icon: GoGear,
+            items: [
+                {
+                    title: "Role",
+                    url: "/role",
+                },
+                {
+                    title: "Resource",
+                    url: "/resource",
+                },
+                {
+                    title: "Email",
+                    url: "/email",
+                },
+                {
+                    title: "Payment Options",
+                    url: "/paymentOptions",
+                }
             ],
         }
     ]
@@ -74,7 +120,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
-        <Sidebar collapsible="icon" {...props}>
+        <Sidebar {...props}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -99,7 +145,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
+                <SidebarGroup>
+                    <SidebarMenu>
+                        {data.navMain.map((item) => (
+                            <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton tooltip={item.title} className="hover:text-white">
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </SidebarMenuButton>
+                                {item.items?.length ? (
+                                    <SidebarMenuSub>
+                                        {item.items.map((item) => (
+                                            <SidebarMenuSubItem key={item.title}>
+                                                <SidebarMenuSubButton asChild>
+                                                    <a href={item.url}>{item.title}</a>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        ))}
+                                    </SidebarMenuSub>
+                                ) : null}
+                            </SidebarMenuItem>
+                        ))}
+                    </SidebarMenu>
+                </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
