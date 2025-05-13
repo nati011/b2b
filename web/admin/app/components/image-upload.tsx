@@ -1,47 +1,42 @@
-'use client'
-import { useState, useCallback, useEffect } from "react";
 
-import Image from "next/image";
-
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import { TbPhotoPlus } from "react-icons/tb";
-
-import { Progress, Button } from "antd";
-
-import axios from "axios";
-
-
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { X, Upload, Loader } from "lucide-react";
+import { toast } from "sonner";
 
 interface ImageUploadProps {
   onChange: (value: string[]) => void;
   value?: string[];
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value = [] }) => {
   const [previews, setPreviews] = useState<string[]>([]);
   const [values, setValues] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [isUploading, setIsUploading] = useState(false);
 
   const api_key = "AmdeORpwsw7AJGbbjfwAYgPk1yQ";
   const cloud_name = "dnqkrebrb";
 
-  const removeImage = (index: number) => () => {
-    setPreviews((prevPreviews) => prevPreviews.filter((_, i) => i !== index));
-    setValues((prevValues) => prevValues.filter((_, i) => i !== index));
-    onChange(values.filter((_, i) => i !== index));
-  };
+  const removeImage = (index: number) => {
+    const newPreviews = [...previews];
+    const newValues = [...values];
+    newPreviews.splice(index, 1);
+    newValues.splice(index, 1);
 
+    setPreviews(newPreviews);
+    setValues(newValues);
+    onChange(newValues);
+  };
 
   useEffect(() => {
     if (value) {
       setPreviews(value);
       setValues(value);
-    } else {
-      setPreviews([]);
-      setValues([]);
     }
-  }, [value, onChange]);
-
+  }, [value]);
 
   const uploadImage = async (file: File) => {
     const formData = new FormData();
@@ -50,23 +45,36 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
     formData.append("api_key", api_key);
 
     try {
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        formData,
-        {
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / (progressEvent.total || 1)
-            );
-            setUploadProgress(prev => ({
-              ...prev,
-              [file.name]: progress
-            }));
-          },
+      const xhr = new XMLHttpRequest();
+
+      xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`);
+
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded * 100) / event.total);
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: progress
+          }));
         }
-      );
-      console.log(response.data)
-      return response.data.secure_url
+      });
+
+      return new Promise<string>((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.secure_url);
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = () => {
+          reject(new Error("Network error during upload"));
+        };
+
+        xhr.send(formData);
+      });
     } catch (error) {
       console.error("Error uploading image:", error);
       throw error;
@@ -75,20 +83,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
-      if (acceptedFiles.length > 0) {
-        try {
-          const uploadPromises = acceptedFiles.map(file => uploadImage(file));
-          const uploadedImages = await Promise.all(uploadPromises);
+      if (acceptedFiles.length === 0) return;
 
-          const newValues = [...values, ...uploadedImages];
-          setValues(newValues);
-          setPreviews(newValues);
-          onChange(newValues);
-          setUploadProgress({});
-        } catch (error) {
-          console.error("Error uploading images:", error);
-          setUploadProgress({});
-        }
+      setIsUploading(true);
+      try {
+        const uploadPromises = acceptedFiles.map(file => uploadImage(file));
+        toast("Uploading images...");
+
+        const uploadedImages = await Promise.all(uploadPromises);
+
+        const newValues = [...values, ...uploadedImages];
+        setValues(newValues);
+        setPreviews(newValues);
+        onChange(newValues);
+        toast.success("Images uploaded successfully!");
+      } catch (error) {
+        console.error("Error uploading images:", error);
+        toast.error("Failed to upload some images");
+      } finally {
+        setUploadProgress({});
+        setIsUploading(false);
       }
     },
     [values, onChange]
@@ -103,72 +117,82 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value }) => {
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="space-y-4">
       <div
-        className="
-         relative
-         cursor-pointer
-         hover:opacity-70
-         transition
-         border-dashed
-         border-2
-         p-10
-         border-neutral-300
-         flex
-         flex-col
-         justify-center
-         items-center
-         gap-4
-         text-neutral-600
-         rounded-lg
-        "
         {...getRootProps()}
+        className={`
+          relative
+          cursor-pointer
+          transition
+          border-dashed
+          border-2
+          p-6
+          border-input
+          flex
+          flex-col
+          justify-center
+          items-center
+          gap-4
+          text-muted-foreground
+          rounded-md
+          ${isDragActive ? 'bg-muted/50' : ''}
+          ${isUploading ? 'opacity-50 pointer-events-none' : 'hover:bg-muted/50'}
+        `}
       >
         <input {...getInputProps()} />
         <div className="flex flex-col items-center text-center">
-          <TbPhotoPlus className="w-8 h-8 text-neutral-400" />
-          {isDragActive ? (
-            <p>Drop the files here ...</p>
+          {isUploading ? (
+            <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
           ) : (
-            <p>Drag and drop images here, or click to select</p>
+            <Upload className="h-8 w-8 text-muted-foreground" />
           )}
+          <h3 className="mt-2 text-sm font-semibold">
+            {isDragActive ? "Drop images here" : "Drag & drop images here"}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            or click to browse
+          </p>
         </div>
       </div>
 
       {Object.keys(uploadProgress).length > 0 && (
-        <div className="w-full space-y-2">
+        <div className="w-full space-y-3">
           {Object.entries(uploadProgress).map(([filename, progress]) => (
             <div key={filename} className="w-full">
-              <div className="text-sm text-neutral-500 mb-1">{filename}</div>
-              <Progress percent={progress} />
+              <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                <span className="truncate max-w-[80%]">{filename}</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
             </div>
           ))}
         </div>
       )}
 
-      {previews.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+      {/* {previews.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {previews.map((preview, index) => (
-            <div key={index} className="relative border rounded-lg p-4">
-              <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-                <Image
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  fill
-                  className="object-cover"
-
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between">
-
-                <Button type="primary" danger onClick={removeImage(index)}>
-                  Delete
-                </Button>
-              </div>
+            <div key={index} className="group relative aspect-square rounded-md border bg-muted">
+              <img
+                src={preview}
+                alt={`Preview ${index + 1}`}
+                className="h-full w-full rounded-md object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder.svg";
+                }}
+              />
+              <Button
+                size="icon"
+                variant="destructive"
+                className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition"
+                onClick={() => removeImage(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
