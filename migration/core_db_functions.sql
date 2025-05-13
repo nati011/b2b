@@ -3438,9 +3438,7 @@ END;
 $$;
 
     -- Read
-CREATE OR REPLACE FUNCTION public.get_all_templates(
-   template_id INT
-)
+CREATE OR REPLACE FUNCTION public.get_all_templates()
 RETURNS TABLE(id int,
               name VARCHAR(255),
               html TEXT)
