@@ -76,7 +76,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.WriteJSON(w, util.Envelope{"resource": resp}, http.StatusAccepted)
+		util.OperationSuccessResponse(w, resp)
 	} else {
 		var response GetAllResourceResponse
 		resp, err := rs.service.GetAll(r.Context())
@@ -96,7 +96,7 @@ func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {
 		for _, i := range resp.List {
 			response.List = append(response.List, (GetResourceResponse)(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"resources": response})
+		util.OperationSuccessResponse(w, response)
 	}
 }
 
