@@ -1,7 +1,3 @@
-interface Dictionary<T> {
-  [Key: string]: T;
-}
-
 export type UserAccount = {
   id: number;
   first_name: string;
@@ -125,3 +121,16 @@ export type Profile = {
   username: string
   dob: string
 }
+
+
+export type Role = {
+  id: number;
+  name: string;
+  desc: string;
+};
+
+export type Resource = {
+  id: number;
+  name: string;
+  action: string;
+};
