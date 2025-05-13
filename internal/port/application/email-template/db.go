@@ -2,12 +2,6 @@ package email
 
 import (
 	"context"
-	"errors"
-)
-
-var (
-	ErrSysNoRows  = errors.New("duplicate name")
-	ErrSysUnknown = errors.New("unknown")
 )
 
 type CreateRequest struct {
