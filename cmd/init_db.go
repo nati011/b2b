@@ -41,9 +41,19 @@ func InitDB(cfg *config.Config) *sql.DB {
 }
 
 func InitDBDevelopment(db *sql.DB, file_location string, cfg *config.Config) {
-	// ddl
-	err := runMigration(db, file_location+`/core_db.sql`)
+	// Create a migrations table if it doesn't exist
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS migrations (
+		id SERIAL PRIMARY KEY,
+		name TEXT NOT NULL UNIQUE,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`)
+	if err != nil {
+		log.Fatalf("Error creating migrations table: %v", err)
+	}
 
+	// ddl
+	err = runMigration(db, file_location+`/core_db.sql`)
 	if err != nil {
 		log.Fatalf("Error running ddl migration: %v", err)
 	}
@@ -54,11 +64,29 @@ func InitDBDevelopment(db *sql.DB, file_location string, cfg *config.Config) {
 		log.Fatalf("Error running function migration: %v", err)
 	}
 
-	// seed
-	err = runMigration(db, file_location+"/core_init_migration_script.sql")
-	if err != nil {
-		log.Fatalf("Error running seed migration: %v", err)
+	// Check if the seed migration has already been applied
+	if !migrationExists(db, "core_init_migration_script.sql") {
+		// seed
+		err = runMigration(db, file_location+"/core_init_migration_script.sql")
+		if err != nil {
+			log.Fatalf("Error running seed migration: %v", err)
+		}
+
+		// Record the migration
+		_, err = db.Exec("INSERT INTO migrations (name) VALUES ($1)", "core_init_migration_script.sql")
+		if err != nil {
+			log.Fatalf("Error recording seed migration: %v", err)
+		}
 	}
+}
+
+func migrationExists(db *sql.DB, migrationName string) bool {
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM migrations WHERE name=$1)", migrationName).Scan(&exists)
+	if err != nil {
+		log.Fatalf("Error checking migration existence: %v", err)
+	}
+	return exists
 }
 
 func InitDBStaging(db *sql.DB, file_location string, cfg *config.Config) {
