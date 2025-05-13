@@ -3397,3 +3397,52 @@ BEGIN
     RETURN new_id;
 END;
 $$;
+
+-- email_templates ---------------------------
+
+    -- Write
+
+CREATE OR REPLACE PROCEDURE public.insert_template(
+   template_name VARCHAR(255),
+   template_html TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO public.templates (name, html)
+    VALUES (template_name, template_html);
+    COMMIT;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE public.update_template(
+   template_name VARCHAR(255),
+   new_html TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.templates
+    SET html = new_html,
+        last_modified = CURRENT_TIMESTAMP
+    WHERE name = template_name;
+    COMMIT;
+END;
+$$;
+
+    -- Read
+    
+CREATE OR REPLACE FUNCTION public.get_template(
+   template_name VARCHAR(255)
+)
+RETURNS SETOF public.templates
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT *
+    FROM public.templates t
+    WHERE t.name = template_name
+      AND t.is_deleted = FALSE;
+END;
+$$;
