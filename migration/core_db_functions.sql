@@ -3397,3 +3397,98 @@ BEGIN
     RETURN new_id;
 END;
 $$;
+
+-- email_templates ---------------------------
+
+    -- Write
+
+CREATE OR REPLACE FUNCTION public.create_email_template(
+    template_name VARCHAR(255),
+    template_html TEXT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_id INT;
+BEGIN
+    INSERT INTO public.email_templates (name, html)
+    VALUES (template_name, template_html)
+    RETURNING id INTO new_id;
+
+    RETURN new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_template(
+   id INT,
+   name VARCHAR(255),
+   new_html TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.email_templates
+    SET html = new_html,
+        last_modified = CURRENT_TIMESTAMP
+    WHERE name = template_name;
+    COMMIT;
+END;
+$$;
+
+    -- Read
+CREATE OR REPLACE FUNCTION public.get_all_templates()
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              html TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.name, 
+           t.html
+    FROM public.email_templates t
+    WHERE t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_template_by_id(
+   template_id INT
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              html TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.name, 
+           t.html
+    FROM public.email_templates t
+    WHERE t.id = template_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.get_template_by_name(
+   template_name VARCHAR(255)
+)
+RETURNS TABLE(id int,
+              name VARCHAR(255),
+              html TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.name, 
+           t.html
+    FROM public.email_templates t
+    WHERE t.name = template_name
+      AND t.is_deleted = FALSE;
+END;
+$$;
