@@ -104,7 +104,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     return (
         <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-                <Card className="rounded-sm">
+                <Card className="rounded-sm border-2 border-gray-200 shadow-none">
                     <CardContent className="">
                         <div className="mb-4">
                             <h3 className="text-xl font-bold">

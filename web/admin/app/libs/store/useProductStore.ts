@@ -206,10 +206,10 @@ const useProductsStore = create<ProductsStore>((set) => ({
   fetchProductDetail: async (id: number) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get(`/api/product/${id}`);
+      const response = await axiosIns.get(`/api/product?id=${id}`);
       console.log(response.data)
       set({
-        product: response.data.body,
+        product: response.data.body.product,
         loading: false,
       });
     } catch (error) {

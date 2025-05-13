@@ -48,7 +48,7 @@ const ProductAttributeForm: React.FC<ProductAttributeFormProps> = ({
     };
 
     return (
-        <Card className="rounded-sm">
+        <Card className="rounded-sm border-2 border-gray-200 shadow-none">
             <CardContent>
                 <div className="mb-4">
                     <h3 className="text-xl font-bold">Product Attributes</h3>
@@ -98,7 +98,6 @@ const ProductAttributeForm: React.FC<ProductAttributeFormProps> = ({
                                         placeholder="Attribute name"
                                         value={newKey}
                                         onChange={(e) => setNewKey(e.target.value)}
-                                        required
                                     />
                                 </div>
                                 <div>
@@ -106,7 +105,6 @@ const ProductAttributeForm: React.FC<ProductAttributeFormProps> = ({
                                         placeholder="Attribute value"
                                         value={newValue}
                                         onChange={(e) => setNewValue(e.target.value)}
-                                        required
                                     />
                                 </div>
                             </div>
