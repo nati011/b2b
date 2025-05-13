@@ -49,10 +49,6 @@ func (s RenderService) Create(r *Request) (Response, error) {
 			return Response{}, ErrSysUnknown
 		}
 	}
-	emptyResp := template.GetResponse{}
-	if queryResp == emptyResp {
-		return Response{}, ErrSysTemplateNotFound
-	}
 
 	var buf bytes.Buffer
 	t, err := templ.New(queryResp.Name).Parse(queryResp.HtmlTemplate)
