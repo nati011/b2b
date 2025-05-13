@@ -156,7 +156,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		util.OperationSuccessResponse(w, util.Envelope{"product": resp})
+		util.OperationSuccessResponse(w, resp)
 	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
 		var typedCategoryId int
 		var err error
