@@ -58,6 +58,7 @@ func Setup() *sql.DB {
 	if err != nil {
 		panic(err)
 	}
+
 	err = runMigration(db, script)
 	if err != nil {
 		log.Fatalf("Error running stored func migration: %v", err)
