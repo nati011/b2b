@@ -116,7 +116,8 @@ func (a *AuthService) validateToken(tokenString string) (*jwt.StandardClaims, er
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
+			log.Print("unexpected signing method")
+			return nil, ErrUnknown
 		}
 		return []byte("s3cureR@nd0mK3y1234567890!"), nil
 	})
