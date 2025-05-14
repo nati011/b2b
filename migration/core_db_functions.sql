@@ -3006,7 +3006,7 @@ CREATE OR REPLACE FUNCTION public.record_transaction(
 RETURNS INT
 LANGUAGE plpgsql
 AS $$
-DECLAREorder
+DECLARE
     new_id INT;
 BEGIN
     INSERT INTO public.transactions ( amount,
