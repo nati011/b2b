@@ -155,7 +155,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			Username:    req.Username,
 		})
 		if err != nil {
-			return 0, err
+			log.Printf("%v", err)
+			return 0, ErrUnknown
 		}
 	} else {
 		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, auth.RegisterUserRequest{
@@ -167,7 +168,8 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			Username:    req.Username,
 		})
 		if err != nil {
-			return 0, err
+			log.Printf("%v", err)
+			return 0, ErrUnknown
 		}
 	}
 
@@ -181,6 +183,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		ExternalId: req.ExternalId,
 	})
 	if err != nil {
+		log.Printf("%v", err)
 		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
