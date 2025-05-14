@@ -2864,7 +2864,8 @@ RETURNS TABLE(id INT,
               status VARCHAR(255),
               total DECIMAL(2,12),
               delivery_status VARCHAR(255),
-              payment_status VARCHAR(255))
+              payment_status VARCHAR(255),
+              created_date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2874,7 +2875,8 @@ BEGIN
            o.status, 
            o.total,
            o.payment_status,
-           o.delivery_status
+           o.delivery_status,
+           o.created_date
     FROM public.orders o
     WHERE o.retailer_id = o_retailer_id
       AND o.is_deleted = FALSE;
@@ -2915,7 +2917,9 @@ RETURNS TABLE(id INT,
               status VARCHAR(255),
               total DECIMAL(2,12),
               delivery_status VARCHAR(255),
-              payment_status VARCHAR(255))
+              payment_status VARCHAR(255),
+              created_date TIMESTAMP
+              )
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2925,7 +2929,8 @@ BEGIN
            o.status, 
            o.total,
            o.payment_status,
-           o.delivery_status
+           o.delivery_status,
+           o.created_date
     FROM public.orders o
     WHERE o.is_deleted = FALSE
     LIMIT t_limit
@@ -2968,17 +2973,22 @@ CREATE OR REPLACE FUNCTION public.get_order_items_by_order_id(
 )
 RETURNS TABLE(o_order_id INT,
               o_product_id INT,
+              name TIMESTAMP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
               o_quantity INT,
-              o_price DECIMAL(12,2))
+              o_price DECIMAL(12,2)
+              )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT oi.order_id, 
-           oi.product_id, 
-           oi.quantity, 
-           oi.price
-    FROM public.o_items oi
+            oi.product_id, 
+            p.name,
+            oi.quantity, 
+            oi.price
+        FROM public.o_items oi
+        JOIN public.products p
+        ON p.id=oi.product_id
     WHERE oi.order_id = oi_order_id
       AND oi.is_deleted = FALSE;
 END;
@@ -2996,7 +3006,7 @@ CREATE OR REPLACE FUNCTION public.record_transaction(
 RETURNS INT
 LANGUAGE plpgsql
 AS $$
-DECLARE
+DECLAREorder
     new_id INT;
 BEGIN
     INSERT INTO public.transactions ( amount,
