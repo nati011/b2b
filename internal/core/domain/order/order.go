@@ -48,8 +48,9 @@ const (
 )
 
 type Item struct {
-	ProductId int
-	Quantity  int
+	ProductId   int
+	ProductName string
+	Quantity    int
 }
 
 type PlaceRequest struct {
@@ -402,8 +403,9 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 		items := []Item{}
 		for _, i := range i.Items {
 			items = append(items, Item{
-				ProductId: i.ProductId,
-				Quantity:  i.Quantity,
+				ProductId:   i.ProductId,
+				ProductName: i.ProductName,
+				Quantity:    i.Quantity,
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
