@@ -72,9 +72,10 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	for _, s := range allOrderItems.Items {
 		response.Items = append(response.Items, port.Item{
-			ProductId: s.ProductId,
-			Quantity:  s.Quantity,
-			Price:     s.Price,
+			ProductId:   s.ProductId,
+			ProductName: s.ProductName,
+			Quantity:    s.Quantity,
+			Price:       s.Price,
 		})
 	}
 
