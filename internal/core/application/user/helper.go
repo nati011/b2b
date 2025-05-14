@@ -46,6 +46,20 @@ func create_validateEmailAndPhone(email string, phone string) error {
 	return nil
 }
 
+func create_validateEmail(email string) error {
+	//empty name
+	if email == "" {
+		return ErrEmailNotFound
+	}
+	if email != "" {
+		var emailPattern = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+		if !emailPattern.MatchString(email) { // Use 'email' instead of 'phone'
+			return ErrEmailNotValid
+		}
+	}
+	return nil
+}
+
 func create_validateUsername(username string) error {
 	return nil
 }
@@ -73,6 +87,10 @@ func create_validateUserInfo(
 		return err
 	}
 	err = create_validateEmailAndPhone(Email, Phone)
+	if err != nil {
+		return err
+	}
+	err = create_validateEmail(Email)
 	if err != nil {
 		return err
 	}
