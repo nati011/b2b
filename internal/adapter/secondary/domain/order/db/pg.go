@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"time"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -131,6 +132,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
+		&responseBase.CreatedAt,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -153,6 +155,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 			Total:          v,
 			PaymentStatus:  res[4].(string),
 			DeliveryStatus: res[5].(string),
+			CreatedAt:      res[6].(time.Time),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
@@ -233,7 +236,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var responseBase port.GetResponse
 
 	query := "SELECT * FROM public.get_all_orders($1,$2);"
-	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	args := []any{10, 0}
 
 	dest := []any{
 		&responseBase.Id,
@@ -242,6 +245,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
+		&responseBase.CreatedAt,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -263,6 +267,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Total:          v,
 			PaymentStatus:  res[4].(string),
 			DeliveryStatus: res[5].(string),
+			CreatedAt:      res[6].(time.Time),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
