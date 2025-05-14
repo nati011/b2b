@@ -47,6 +47,7 @@ func Test_create_default_admin_user_upon_retailer_registration(t *testing.T) {
 		FirstName:   "test",
 		LastName:    "test",
 		Email:       "test@gmail.com",
+		Phone:       "+251949184879",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -80,6 +81,7 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 		FirstName:   "test",
 		LastName:    "test",
 		Email:       "test@gmail.com",
+		Phone:       "+251949184879",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
@@ -107,6 +109,7 @@ func Test_Get_All_Users_unhappyPath(t *testing.T) {
 		FirstName:   "test",
 		LastName:    "test",
 		Email:       "test@gmail.com",
+		Phone:       "+251949184879",
 	}
 	id, err := testContainer.RetailerService.Create(ctx, &in)
 	if err != nil {
