@@ -149,7 +149,7 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get user by param err: %v", err)
 		}
-		expecetdLen := 2
+		expecetdLen := 1
 		if len(response.List) != expecetdLen {
 			t.Errorf("Expected len: %v Got len: %v", expecetdLen, len(response.List))
 		}

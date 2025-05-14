@@ -175,6 +175,7 @@ func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *h
 		util.RequestErrorResponse(w, err)
 		return
 	}
+
 	id, err := p.service.Create(r.Context(), (*payment_partner.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {

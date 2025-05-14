@@ -111,7 +111,7 @@ func Test_Get_happyPath(t *testing.T) {
 }
 
 func Test_Get_unhappyPath(t *testing.T) {
-	t.Run("notFound", func(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		_, err := container.TemplateService.Get(ctx, 99)
@@ -120,6 +120,16 @@ func Test_Get_unhappyPath(t *testing.T) {
 			t.Errorf("expected err: %v got err: %v", wantErr, err)
 		}
 	})
+
+	// t.Run("nameNotFound", func(t *testing.T) {
+	// 	t.Cleanup(container.Teardown)
+	// 	ctx := context.Background()
+	// 	_, err := container.TemplateService.getByName(ctx, "non_existing")
+	// 	wantErr := ErrNameNotFound
+	// 	if err != wantErr {
+	// 		t.Errorf("expected err: %v got err: %v", wantErr, err)
+	// 	}
+	// })
 }
 
 func Test_Get_All_happyPath(t *testing.T) {

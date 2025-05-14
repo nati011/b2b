@@ -124,6 +124,20 @@ func (k KeycloakProvider) DeleteClient(ctx context.Context, userId string) error
 	return nil
 }
 
+func (k KeycloakProvider) ResetPassword(ctx context.Context, userId, new_password string) error {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
+	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
+	if err != nil {
+		log.Printf("Something wrong with the credentials or URL: %v", err)
+		return port.ErrSysUnknown
+	}
+	err = client.SetPassword(ctx, token.AccessToken, userId, k.KeycloakRealm, new_password, false)
+	if err != nil {
+		return port.ErrSysUnknown
+	}
+	return nil
+}
+
 func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
