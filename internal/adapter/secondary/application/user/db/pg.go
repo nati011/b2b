@@ -268,8 +268,8 @@ func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserPro
 	}
 	for _, res := range result {
 		response.List = append(response.List, port.UserProvider{
-			UserId:     *res[0].(*int),
-			ProviderId: *res[1].(*string),
+			UserId:     int(res[0].(int64)),
+			ProviderId: res[1].(string),
 		})
 	}
 
