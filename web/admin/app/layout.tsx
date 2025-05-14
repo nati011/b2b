@@ -35,16 +35,13 @@ export default async function RootLayout({
             <div className="flex relative">
               <SidebarProvider defaultOpen={true}>
                 <AppSidebar />
-                <SidebarInset>
-                  <main>
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-                    <div className=" p-4  sm:px-10 ml-[16%] min-h-screen  bg-slate-50">
-                      <Topnav />
-                      {children}
-                      <Toaster />
-                    </div>
-                  </main>
-                </SidebarInset>
+                <Separator orientation="vertical" className="h-4" />
+                <div className=" p-4 w-full bg-slate-50/50">
+                  <Topnav />
+                  {children}
+                  <Toaster />
+                </div>
+
               </SidebarProvider>
             </div>
           </Provider>

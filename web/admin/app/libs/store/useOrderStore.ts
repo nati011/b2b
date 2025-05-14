@@ -4,6 +4,7 @@ import { Order } from '@/app/libs/types';
 
 interface OrdersStore {
     orders: Order[];
+    transactions: []
     loading: boolean;
     error: string | null;
     next: string | null;
@@ -11,10 +12,12 @@ interface OrdersStore {
 
     fetchOrders: (url?: string) => Promise<void>;
     createOrders: (OrdersData: Partial<Order>) => Promise<void>;
+    fetchTransactions: (url?: string) => Promise<void>
 }
 
 const useOrdersStore = create<OrdersStore>((set) => ({
     orders: [],
+    transactions: [],
     loading: false,
     error: null,
     next: null,
@@ -45,7 +48,18 @@ const useOrdersStore = create<OrdersStore>((set) => ({
             set({ error: 'Failed to create order', loading: false });
         }
     },
-
+    fetchTransactions: async (url?: string) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await axiosIns.get('/api/order');
+            set({
+                orders: response.data.body.Orders,
+                loading: false
+            });
+        } catch (error) {
+            set({ error: 'Failed to fetch order', loading: false });
+        }
+    },
 }));
 
 export default useOrdersStore;
