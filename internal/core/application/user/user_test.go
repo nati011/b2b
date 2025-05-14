@@ -36,6 +36,7 @@ func Test_create_happyPath(t *testing.T) {
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
@@ -59,6 +60,7 @@ func Test_create_happyPath(t *testing.T) {
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
@@ -80,13 +82,13 @@ func Test_create_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName:  "natnael asefa",
 			LastName:   "natnael asefa",
 			Email:      "natnaeljemaneh001@gmail.com",
 			Phone:      "+251949184879",
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != ErrFirstNameMandatory {
@@ -103,6 +105,7 @@ func Test_create_unhappyPath(t *testing.T) {
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
 		wantErr := ErrPhoneOrEmailMandatory
@@ -121,9 +124,10 @@ func Test_create_unhappyPath(t *testing.T) {
 			DOB:        parsedTime,
 			Phone:      "+251949184879",
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in_only_email)
-		wantErr := ErrPhoneOrEmailMandatory
+		wantErr := ErrEmailNotFound
 		if err != wantErr {
 			t.Errorf("Expected Err: %v Got: %v", wantErr, err)
 		}
@@ -140,6 +144,7 @@ func Test_create_unhappyPath(t *testing.T) {
 			DOB:        parsedTime,
 			Phone:      "011",
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
 		wantErr := ErrPhoneNotValid
@@ -159,6 +164,7 @@ func Test_create_unhappyPath(t *testing.T) {
 			DOB:        parsedTime,
 			Email:      "natnaeljemaneh001gmail.com",
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
 		wantErr := ErrEmailNotValid
@@ -175,13 +181,13 @@ func Test_getAll_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "jemaneh",
-			Email:     "natnaeljemaneh001@gmail.com",
-			Phone:     "+251949184879",
-			Username:  "test",
-			DOB:       parsedTime,
-
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			Password:   "test",
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
@@ -215,6 +221,7 @@ func Test_get_happyPath(t *testing.T) {
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		id, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
@@ -275,6 +282,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
@@ -300,13 +308,13 @@ func Test_getByParam_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "jemaneh",
-			Email:     "natnaeljemaneh001@gmail.com",
-			Phone:     phone_number,
-			Username:  "test",
-			DOB:       parsedTime,
-
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      phone_number,
+			Username:   "test",
+			DOB:        parsedTime,
+			Password:   "test",
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
@@ -333,13 +341,13 @@ func Test_getByParam_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "jemaneh",
-			Email:     "natnaeljemaneh001@gmail.com",
-			Phone:     "+251949184879",
-			Username:  username,
-			DOB:       parsedTime,
-
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   username,
+			DOB:        parsedTime,
+			Password:   "test",
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
@@ -366,13 +374,13 @@ func Test_getByParam_happyPath(t *testing.T) {
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 		in := CreateRequest{
-			FirstName: "natnael jemaneh asefa",
-			LastName:  "jemaneh",
-			Email:     "natnaeljemaneh001@gmail.com",
-			Phone:     "+251949184879",
-			Username:  "test",
-			DOB:       parsedTime,
-
+			FirstName:  "natnael jemaneh asefa",
+			LastName:   "jemaneh",
+			Email:      "natnaeljemaneh001@gmail.com",
+			Phone:      "+251949184879",
+			Username:   "test",
+			DOB:        parsedTime,
+			Password:   "test",
 			ExternalId: "123",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
@@ -405,6 +413,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			Username:   "test",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err := testContainer.UserService.Create(ctx, &in)
 		if err != nil {
@@ -420,6 +429,7 @@ func Test_getByParam_happyPath(t *testing.T) {
 			Username:   "test22",
 			DOB:        parsedTime,
 			ExternalId: "123",
+			Password:   "test",
 		}
 		_, err = testContainer.UserService.Create(ctx, in_new)
 		if err != nil {
@@ -471,6 +481,7 @@ func Test_activate_happyPath(t *testing.T) {
 		Username:   "test",
 		DOB:        parsedTime,
 		ExternalId: "123",
+		Password:   "test",
 	}
 	id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
@@ -494,13 +505,13 @@ func Test_activate_unhappyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FirstName: "natnael jemaneh asefa",
-		LastName:  "jemaneh",
-		Email:     "natnaeljemaneh001@gmail.com",
-		Phone:     "+251949184879",
-		Username:  "test",
-		DOB:       parsedTime,
-
+		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		Password:   "test",
 		ExternalId: "123",
 	}
 	id, err := testContainer.UserService.Create(ctx, &in)
@@ -537,6 +548,7 @@ func Test_deactivate_happyPath(t *testing.T) {
 		Username:   "test",
 		DOB:        parsedTime,
 		ExternalId: "123",
+		Password:   "test",
 	}
 	id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
@@ -555,13 +567,13 @@ func Test_deactivate_unhappyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FirstName: "natnael jemaneh asefa",
-		LastName:  "jemaneh",
-		Email:     "natnaeljemaneh001@gmail.com",
-		Phone:     "+251949184879",
-		Username:  "test",
-		DOB:       parsedTime,
-
+		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		Password:   "test",
 		ExternalId: "123",
 	}
 	id, err := testContainer.UserService.Create(ctx, &in)
@@ -586,13 +598,13 @@ func Test_isActive_happyPath(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := CreateRequest{
-		FirstName: "natnael jemaneh asefa",
-		LastName:  "jemaneh",
-		Email:     "natnaeljemaneh001@gmail.com",
-		Phone:     "+251949184879",
-		Username:  "test",
-		DOB:       parsedTime,
-
+		FirstName:  "natnael jemaneh asefa",
+		LastName:   "jemaneh",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		Password:   "test",
 		ExternalId: "123",
 	}
 	user_id, err := testContainer.UserService.Create(ctx, &in)
@@ -643,6 +655,7 @@ func Test_update_user_happyPath(t *testing.T) {
 		Username:   "test",
 		DOB:        parsedTime,
 		ExternalId: "123",
+		Password:   "test",
 	}
 	user_id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
@@ -717,6 +730,7 @@ func Test_remove_user_happyPath(t *testing.T) {
 		Username:   "test",
 		DOB:        parsedTime,
 		ExternalId: "123",
+		Password:   "test",
 	}
 	user_id, err := testContainer.UserService.Create(ctx, &in)
 	if err != nil {
