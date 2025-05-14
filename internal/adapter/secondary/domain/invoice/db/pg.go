@@ -7,6 +7,7 @@ import (
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
 
@@ -45,7 +46,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 
 	items, err := p.getInvoiceLineItemsByProductId(ctx, response.Id)
 	if err != nil {
-		return port.GetResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetResponse{}, err
+		}
 	}
 	response.LineItems = items
 
@@ -136,7 +141,12 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+
 		}
 		resp.LineItems = items
 		response.List = append(response.List, resp)
@@ -157,7 +167,7 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		&responseBase.SubTotal,
 		&responseBase.TaxAmount,
 	}
-	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	args := []any{extId}
 
 	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -181,7 +191,11 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 		resp.LineItems = items
 		response.List = append(response.List, resp)
@@ -227,7 +241,11 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		}
 		items, err := p.getInvoiceLineItemsByProductId(ctx, resp.Id)
 		if err != nil {
-			return port.GetAllResponse{}, err
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
 		}
 		resp.LineItems = items
 		response.List = append(response.List, resp)
@@ -260,7 +278,11 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 
 	items, err := p.getInvoiceLineItemsByProductId(ctx, response.Id)
 	if err != nil {
-		return port.GetResponse{}, err
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetResponse{}, err
+		}
 	}
 	response.LineItems = items
 
@@ -296,8 +318,33 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 	if err != nil {
 		return 0, err
 	}
-
+	p.createInvoiceLineItems(ctx, invoiceId, req.LineItems)
 	return invoiceId, nil
+}
+
+func (p *Postgres) createInvoiceLineItems(ctx context.Context, invoiceId int, lineItems []port.Item) error {
+	query := "SELECT * FROM public.create_invoice_line_item($1, $2, $3, $4, $5);"
+
+	for _, lineItem := range lineItems {
+		args := []any{
+			lineItem.ProductName,
+			lineItem.ProductQuantity,
+			lineItem.ProductPrice,
+			lineItem.ProductId,
+			invoiceId}
+
+		err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.db),
+			query_handler.WithQuery(query),
+			query_handler.WithSingleRowResultSet(args, nil),
+		).DoSingleQuery()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (p *Postgres) UpdateExternalId(ctx context.Context, req *port.UpdateExternalIdRequest) error {
