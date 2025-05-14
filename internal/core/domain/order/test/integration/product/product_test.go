@@ -29,7 +29,8 @@ func teardown() {
 func setup() {
 	ctx := context.Background()
 	container = order.NewPackageIntegrationTestContainer()
-	retailerId, _ = container.RetailerService.Create(ctx, &retailer.CreateRequest{
+	var err error
+	retailerId, err = container.RetailerService.Create(ctx, &retailer.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
 		Longitude:   "38.7525° E",
@@ -40,30 +41,40 @@ func setup() {
 		FirstName:   "test",
 		LastName:    "test",
 		Email:       "test@gmail.com",
+		Phone:       "+251949184879",
 	})
-	productId, _ = container.ProductService.Create(ctx, &product.CreateRequest{
+	if err != nil {
+		panic(err)
+	}
+	productId, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
 			"test": "test",
 		},
 	})
+	if err != nil {
+		panic(err)
+	}
 	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     productId,
 		Amount: 20,
 	})
-	paymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+	paymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
 		Name:    "chapa",
 		Icon:    "etst",
 		BaseURL: "https://api.chapa.co",
 		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Test_validate_Item_exists_upon_order_creation(t *testing.T) {
@@ -93,7 +104,7 @@ func Test_Reserve_Stock_Upon_order_creation(t *testing.T) {
 		ctx := context.Background()
 		orderQty := 1
 		in := &order.PlaceRequest{
-			RetailerId: productId,
+			RetailerId: retailerId,
 			Items: []order.Item{
 				{
 					ProductId: productId,
@@ -128,7 +139,7 @@ func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
 		ctx := context.Background()
 		orderQty := 1
 		in := &order.PlaceRequest{
-			RetailerId: productId,
+			RetailerId: retailerId,
 			Items: []order.Item{
 				{
 					ProductId: productId,
@@ -166,7 +177,7 @@ func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
 		ctx := context.Background()
 		orderQty := 1
 		in := &order.PlaceRequest{
-			RetailerId: productId,
+			RetailerId: retailerId,
 			Items: []order.Item{
 				{
 					ProductId: productId,
@@ -205,7 +216,7 @@ func Test_Check_Stock_Availability_before_order_creation(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &order.PlaceRequest{
-			RetailerId: productId,
+			RetailerId: retailerId,
 			Items: []order.Item{
 				{
 					ProductId: productId,

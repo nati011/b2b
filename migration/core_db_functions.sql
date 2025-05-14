@@ -1572,10 +1572,10 @@ BEGIN
             i_qty, 
             i_price, 
             i_product_id, 
-            i_invoice_id) 
-    RETURNING id INTO new_id;
+            i_invoice_id)
+    RETURNING id INTO new_id;  -- Assuming 'id' is the primary key column
 
-    RETURN new_id;
+    RETURN new_id;  -- Return the new ID
 END;
 $$;
     
@@ -1601,8 +1601,7 @@ BEGIN
            i.invoice_id
     FROM public.invoice_line_items i
     WHERE i.invoice_id = i_invoice_id
-      AND i.is_deleted = FALSE
-    LIMIT 1;
+      AND i.is_deleted = FALSE;
 END;
 $$;
 
