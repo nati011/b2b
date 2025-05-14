@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"time"
 )
 
 type Item struct {
@@ -26,6 +27,7 @@ type GetResponse struct {
 	Status         string
 	PaymentStatus  string
 	DeliveryStatus string
+	CreatedAt      time.Time
 }
 
 type GetAllResponse struct {
