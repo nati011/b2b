@@ -20,7 +20,6 @@ const Map = dynamic(
 
 export default function DistributorsForm() {
   const {
-    distributors,
     loading,
     error,
     createDistributors

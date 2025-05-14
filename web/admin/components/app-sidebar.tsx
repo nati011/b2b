@@ -66,17 +66,7 @@ const data = {
         {
             title: "Distributors",
             url: "/distributors",
-            icon: PiUsersThreeLight,
-            items: [
-                {
-                    title: "Distributors",
-                    url: "/distributors",
-                },
-                {
-                    title: "Distributor Users",
-                    url: "/distributors/agents",
-                }
-            ],
+            icon: PiUsersThreeLight
         },
         {
             title: "Order",
@@ -84,7 +74,7 @@ const data = {
             icon: PiUsersThreeLight,
             items: [
                 {
-                    title: "Order List",
+                    title: "Orders",
                     url: "/order",
                 },
                 {
@@ -105,18 +95,6 @@ const data = {
                 {
                     title: "Role",
                     url: "/role",
-                },
-                {
-                    title: "Resource",
-                    url: "/resource",
-                },
-                {
-                    title: "Email",
-                    url: "/email",
-                },
-                {
-                    title: "Payment Options",
-                    url: "/paymentOptions",
                 }
             ],
         }

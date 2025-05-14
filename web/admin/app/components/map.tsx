@@ -31,8 +31,10 @@ const MapEvents = ({ useCurrentLocation, setMarkerPosition, setFormData }: Omit<
         }
     }, [map, useCurrentLocation])
 
+
     return null
 }
+
 
 const Map = ({ markerPosition, useCurrentLocation, setMarkerPosition, setFormData }: MapProps) => {
     let DefaultIcon = L.icon({
@@ -46,7 +48,7 @@ const Map = ({ markerPosition, useCurrentLocation, setMarkerPosition, setFormDat
     return (
         <MapContainer
             center={markerPosition}
-            zoom={13}
+            zoom={10}
             className="h-full w-full"
         >
             <TileLayer

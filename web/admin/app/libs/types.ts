@@ -26,12 +26,12 @@ export type Distributor = {
   id: number;
   name: string;
   tin: string;
-  latitude: GLfloat;
-  longitude: GLfloat;
+  latitude: string;
+  longitude: string;
   general_zone: string;
   region: string;
   woreda: string;
-  user: UserAccount;
+  user: number[];
 };
 
 export type Image = {

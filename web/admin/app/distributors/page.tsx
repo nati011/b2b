@@ -57,7 +57,7 @@ export default function Distributors() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-2 text-gray-900">
-            <Link href={`/distributor/${row.original.id}`}>
+            <Link href={`/distributors/detail/${row.original.id}`}>
               <GoEye />
             </Link>
           </div>
