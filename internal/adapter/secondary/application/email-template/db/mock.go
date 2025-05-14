@@ -14,9 +14,12 @@ type template struct {
 }
 
 type Mock struct {
+type Mock struct {
 	templates []template
 }
 
+func NewMock() port.DB {
+	return &Mock{
 func NewMock() port.DB {
 	return &Mock{
 		templates: []template{},
@@ -25,12 +28,18 @@ func NewMock() port.DB {
 
 func (m *Mock) Create(ctx context.Context, r *port.CreateRequest) (int, error) {
 	newId := len(m.templates) + 1
+func (m *Mock) Create(ctx context.Context, r *port.CreateRequest) (int, error) {
+	newId := len(m.templates) + 1
 	m.templates = append(m.templates, template{
+		Id:           newId,
+		Name:         r.Name,
+		HtmlTemplate: r.HtmlTemplate,
 		Id:           newId,
 		Name:         r.Name,
 		HtmlTemplate: r.HtmlTemplate,
 	})
 
+	return newId, nil
 	return newId, nil
 }
 
@@ -45,8 +54,21 @@ func (m *Mock) Update(ctx context.Context, r *port.UpdateRequest) error {
 			})
 		} else {
 			updatedTemplates = append(updatedTemplates, template(t))
+func (m *Mock) Update(ctx context.Context, r *port.UpdateRequest) error {
+	updatedTemplates := []template{}
+	for _, t := range m.templates {
+		if t.Id == r.Id {
+			updatedTemplates = append(updatedTemplates, template{
+				Id:           r.Id,
+				Name:         r.Name,
+				HtmlTemplate: r.HtmlTemplate,
+			})
+		} else {
+			updatedTemplates = append(updatedTemplates, template(t))
 		}
 	}
+	m.templates = updatedTemplates
+	return nil
 	m.templates = updatedTemplates
 	return nil
 }
