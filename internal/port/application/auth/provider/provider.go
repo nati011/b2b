@@ -61,4 +61,5 @@ type Provider interface {
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
+	ResetPassword(ctx context.Context, userId, new_password string) error
 }
