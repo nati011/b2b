@@ -49,7 +49,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 		LastName:  VALID_LastName,
 		Email:     VALID_EMAIL_A,
 	}
-	_, err := service.CreateNewClient(ctx, in)
+	_, err := service.CreateNewClientWithPassword(ctx, in)
 	if err != nil {
 		t.Errorf("Failed to create err: %v", err)
 	}
@@ -65,7 +65,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName: VALID_FirstName,
 			LastName:  VALID_LastName,
 		}
-		_, err := service.CreateNewClient(ctx, in)
+		_, err := service.CreateNewClientWithPassword(ctx, in)
 		wantErr := ErrEmailNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -81,7 +81,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName: VALID_FirstName,
 			LastName:  VALID_LastName,
 		}
-		_, err := service.CreateNewClient(ctx, in)
+		_, err := service.CreateNewClientWithPassword(ctx, in)
 		wantErr := ErrPasswordNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -97,7 +97,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Password: VALID_PASSWORD,
 			LastName: VALID_LastName,
 		}
-		_, err := service.CreateNewClient(ctx, in)
+		_, err := service.CreateNewClientWithPassword(ctx, in)
 		wantErr := ErrFirstNameNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
