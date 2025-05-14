@@ -24,7 +24,7 @@ type Response struct {
 	Text string
 }
 
-type Renderer interface {
+type Provider interface {
 	Create(*Request) (Response, error)
 }
 
@@ -32,7 +32,7 @@ type RenderService struct {
 	TemplateService template.Provider
 }
 
-func NewRenderService(tp template.Provider) Renderer {
+func NewRenderService(tp template.Provider) Provider {
 	return &RenderService{
 		TemplateService: tp,
 	}
@@ -42,15 +42,12 @@ func (s RenderService) Create(r *Request) (Response, error) {
 	ctx := context.Background()
 	queryResp, err := s.TemplateService.Get(ctx, r.TemplateId)
 	if err != nil {
-		// switch err {
-		// case template.ErrSysUnknown:
-		// 	return Response{}, ErrSysUnknown
-		// }
-		return Response{}, ErrSysUnknown
-	}
-	emptyResp := template.GetResponse{}
-	if queryResp == emptyResp {
-		return Response{}, ErrSysTemplateNotFound
+		switch err {
+		case template.ErrIdNotFound:
+			return Response{}, ErrSysTemplateNotFound
+		default:
+			return Response{}, ErrSysUnknown
+		}
 	}
 
 	var buf bytes.Buffer
