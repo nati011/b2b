@@ -133,8 +133,7 @@ func NewUser(db port.DB, roleService role.Provider, authService auth.Provider) P
 }
 
 func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	var password string
-	//validate input
+	var providerResponse auth.RegisterUserResponse
 	err := create_validateUserInfo(
 		ctx,
 		req.FirstName,
@@ -147,26 +146,31 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	if err != nil {
 		return 0, err
 	}
-	password = req.Password
 	if req.Password == "" {
-		password, err = generateRandomPassword(10)
+		providerResponse, err = u.auth_service.CreateNewClientWithOutPassword(ctx, auth.RegisterUserWithoutPasswordRequest{
+			Email:       req.Email,
+			FirstName:   req.FirstName,
+			LastName:    req.LastName,
+			PhoneNumber: req.Phone,
+			Username:    req.Username,
+		})
 		if err != nil {
-			return 0, ErrUnknown
+			return 0, err
+		}
+	} else {
+		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, auth.RegisterUserRequest{
+			Email:       req.Email,
+			Password:    req.Password,
+			FirstName:   req.FirstName,
+			LastName:    req.LastName,
+			PhoneNumber: req.Phone,
+			Username:    req.Username,
+		})
+		if err != nil {
+			return 0, err
 		}
 	}
-	providerResponse, err := u.auth_service.CreateNewClient(ctx, auth.RegisterUserRequest{
-		Email:       req.Email,
-		Password:    password,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		PhoneNumber: req.Phone,
-		Username:    req.Username,
-	})
-	if err != nil {
-		return 0, err
-	}
 
-	//create user
 	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
 		FirstName:  req.FirstName,
 		LastName:   req.LastName,
