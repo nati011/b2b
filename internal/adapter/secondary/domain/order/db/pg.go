@@ -12,10 +12,11 @@ import (
 )
 
 type GetOrderItem struct {
-	Id        int
-	ProductId int
-	Quantity  int
-	Price     float64
+	Id          int
+	ProductId   int
+	ProductName string
+	Quantity    int
+	Price       float64
 }
 
 type GetAllOrderItems struct {
@@ -90,6 +91,7 @@ func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrd
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.ProductId,
+		&responseBase.ProductName,
 		&responseBase.Quantity,
 		&responseBase.Price,
 	}
@@ -106,12 +108,13 @@ func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrd
 	}
 
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		v, _ := strconv.ParseFloat(res[4].(string), 64)
 		response.Items = append(response.Items, GetOrderItem{
-			Id:        int(res[0].(int64)),
-			ProductId: int(res[1].(int64)),
-			Quantity:  int(res[2].(int64)),
-			Price:     v,
+			Id:          int(res[0].(int64)),
+			ProductId:   int(res[1].(int64)),
+			ProductName: res[2].(string),
+			Quantity:    int(res[3].(int64)),
+			Price:       v,
 		})
 	}
 
@@ -164,9 +167,10 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 
 		for _, s := range allOrderItems.Items {
 			val.Items = append(val.Items, port.Item{
-				ProductId: s.ProductId,
-				Quantity:  s.Quantity,
-				Price:     s.Price,
+				ProductId:   s.ProductId,
+				ProductName: s.ProductName,
+				Quantity:    s.Quantity,
+				Price:       s.Price,
 			})
 		}
 

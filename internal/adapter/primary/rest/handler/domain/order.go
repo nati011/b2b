@@ -17,8 +17,9 @@ import (
 )
 
 type OrderItem struct {
-	ProductId int `json:"id"`
-	Quantity  int `json:"quantity"`
+	ProductId   int    `json:"id"`
+	ProductName string `json:"name"`
+	Quantity    int    `json:"quantity"`
 }
 
 type PlaceOrderRequest struct {
