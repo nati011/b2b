@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
@@ -65,6 +66,7 @@ type GetResponse struct {
 	Status         string
 	DeliveryStatus string
 	PaymentStatus  string
+	CreatedAt      time.Time
 }
 
 type GetAllResponse struct {
@@ -326,6 +328,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			Status:         i.Status,
 			DeliveryStatus: i.DeliveryStatus,
 			PaymentStatus:  i.PaymentStatus,
+			CreatedAt:      i.CreatedAt,
 		})
 	}
 	return return_response, nil
