@@ -89,3 +89,30 @@ func (m *MockAuthProvider) ClientLogin(ctx context.Context, req port.LoginUserRe
 
 	return port.LoginAuthResponse{}, nil
 }
+
+func (k *MockAuthProvider) ResetPassword(ctx context.Context, userId, new_password string) error {
+	updated := []MockClient{}
+	for _, i := range k.clients {
+		if i.userId == userId {
+			updated = append(updated, MockClient{
+				userId:    i.userId,
+				firstName: i.firstName,
+				lastName:  i.lastName,
+				email:     i.email,
+				username:  i.username,
+				password:  new_password,
+			})
+		} else {
+			updated = append(updated, MockClient{
+				userId:    i.userId,
+				firstName: i.firstName,
+				lastName:  i.lastName,
+				email:     i.email,
+				username:  i.username,
+				password:  i.password,
+			})
+		}
+	}
+	k.clients = updated
+	return nil
+}
