@@ -286,8 +286,9 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	items := []Item{}
 	for _, i := range resp.Items {
 		items = append(items, Item{
-			ProductId: i.ProductId,
-			Quantity:  i.Quantity,
+			ProductId:   i.ProductId,
+			ProductName: i.ProductName,
+			Quantity:    i.Quantity,
 		})
 	}
 	return GetResponse{
