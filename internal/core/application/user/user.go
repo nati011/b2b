@@ -493,7 +493,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 	})
 	if err != nil {
 		switch err {
-		case role.ErrEmptyGetContent:
+		case role.ErrIdNotFound:
 			return ErrRoleDoesNotExist
 		default:
 			return ErrUnknown
@@ -583,7 +583,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 	})
 	if err != nil {
 		switch err {
-		case role.ErrEmptyGetContent:
+		case role.ErrIdNotFound:
 			return ErrRoleDoesNotExist
 		default:
 			return ErrUnknown
@@ -640,7 +640,7 @@ func (u *UserService) HasRole(ctx context.Context, id int, role_id int) (bool, e
 	})
 	if err != nil {
 		switch err {
-		case role.ErrEmptyGetContent:
+		case role.ErrIdNotFound:
 			return false, ErrRoleDoesNotExist
 		default:
 			return false, nil
