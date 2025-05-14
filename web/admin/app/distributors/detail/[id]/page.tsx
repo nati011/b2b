@@ -77,7 +77,7 @@ export default function DistributorsForm() {
     return (
         <div className="grid grid-cols-1 gap-4">
             <Heading page={pages} heading="Distributors Details" subheading={`Detail information for ${formData.first_name} ${formData.last_name}`} />
-            <Tabs defaultValue="business" className="w-full">
+            <Tabs value="business" className="w-full">
                 <TabsList className="w-full">
                     <TabsTrigger value="business">Business Information</TabsTrigger>
                     <TabsTrigger value="profile">Profile Information</TabsTrigger>
@@ -103,7 +103,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="FirstName"
                                                 name="FirstName"
-                                                value={distributorUser.first_name}
+                                                defaultValue={distributorUser.first_name}
                                             />
                                         </div>
                                         <div className="grid gap-2">
@@ -111,7 +111,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="LastName"
                                                 name="LastName"
-                                                value={distributorUser.last_name}
+                                                defaultValue={distributorUser.last_name}
                                                 required
                                             />
                                         </div>
@@ -121,7 +121,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="Email"
                                                 name="Email"
-                                                value={distributorUser.email}
+                                                defaultValue={distributorUser.email}
                                                 type="email"
                                                 placeholder="abebe.kebede@example.com"
                                                 required
@@ -133,7 +133,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="phone"
                                                 name="phone"
-                                                value={distributorUser.phone}
+                                                defaultValue={distributorUser.phone}
                                             />
                                         </div>
                                     </div>
@@ -162,7 +162,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="Name"
                                                 name="Name"
-                                                value={distributor.name}
+                                                defaultValue={distributor.name}
                                                 placeholder="Business Name"
                                             />
                                         </div>
@@ -171,7 +171,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="Tin"
                                                 name="Tin"
-                                                value={distributor.tin}
+                                                defaultValue={distributor.tin}
 
                                             />
                                         </div>
@@ -180,7 +180,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="General Zone"
                                                 name="General Zone"
-                                                value={distributor.general_zone}
+                                                defaultValue={distributor.general_zone}
                                             />
                                         </div>
 
@@ -189,7 +189,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="Region"
                                                 name="Region"
-                                                value={distributor.region}
+                                                defaultValue={distributor.region}
 
                                             />
                                         </div>
@@ -199,7 +199,7 @@ export default function DistributorsForm() {
                                             <Input
                                                 id="Woreda"
                                                 name="Woreda"
-                                                value={distributor.woreda}
+                                                defaultValue={distributor.woreda}
 
                                             />
                                         </div>
