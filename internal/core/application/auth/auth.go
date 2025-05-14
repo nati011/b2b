@@ -2,8 +2,10 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"log"
+	"math/big"
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/email"
@@ -30,6 +32,16 @@ var (
 type RegisterUserRequest struct {
 	Email       string    `json:"email"`
 	Password    string    `json:"password"`
+	BirthDate   time.Time `json:"birth_date"`
+	PhoneNumber string    `json:"phone_number"`
+	ExternalId  string    `json:"external_id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Username    string    `json:"username"`
+}
+
+type RegisterUserWithoutPasswordRequest struct {
+	Email       string    `json:"email"`
 	BirthDate   time.Time `json:"birth_date"`
 	PhoneNumber string    `json:"phone_number"`
 	ExternalId  string    `json:"external_id"`
@@ -79,7 +91,8 @@ type JWT struct {
 }
 
 type Provider interface {
-	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
+	CreateNewClientWithPassword(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
+	CreateNewClientWithOutPassword(ctx context.Context, req RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
@@ -110,12 +123,14 @@ func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCrede
 			return ErrTokenHasExpired
 		}
 	} else {
-		return errors.New("expiration claim not found")
+		log.Print("expiration claim not found")
+		return ErrUnknown
 	}
 
 	userId, ok := claims["userId"].(string)
 	if !ok {
-		return errors.New("invalid user ID claim")
+		log.Print("invalid user ID claim")
+		return ErrUnknown
 	}
 
 	// Reset password
@@ -208,7 +223,7 @@ func (s AuthService) sendResetEmail(token, recepientEmail string) error {
 	return nil
 }
 
-func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
+func (a *AuthService) CreateNewClientWithPassword(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
 	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
 		return RegisterUserResponse{}, err
@@ -251,6 +266,77 @@ func (a *AuthService) CreateNewClient(ctx context.Context, req RegisterUserReque
 		Id:       resp.Id,
 		Username: resp.Username,
 	}, nil
+}
+
+func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error) {
+	err := validateName(req.FirstName, req.LastName)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
+	err = validateEmail(req.Email)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
+	err = validateUsername(req.Username)
+	if err != nil {
+		return RegisterUserResponse{}, err
+	}
+
+	genPassword, err := generateRandomPassword(10)
+	if err != nil {
+		log.Print("failed to generate password")
+		return RegisterUserResponse{}, ErrUnknown
+	}
+
+	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest{
+		Email:       req.Email,
+		Password:    genPassword,
+		BirthDate:   req.BirthDate,
+		PhoneNumber: req.PhoneNumber,
+		ExternalId:  req.ExternalId,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Username:    req.Username,
+	})
+	if err != nil {
+		switch err {
+		case port.ErrSysUsernameTaken:
+			return RegisterUserResponse{}, ErrUsernameTaken
+		case port.ErrSysEmailTaken:
+			return RegisterUserResponse{}, ErrEmailTaken
+		default:
+			return RegisterUserResponse{}, ErrUnknown
+		}
+	}
+	err = a.InitClientCredentialsReset(ctx, InitClientCredentialsResetRequest{
+		UserId: resp.Id,
+		Email:  req.Email,
+	})
+	if err != nil {
+		log.Printf("Failed to init client credentials reset")
+		// a.authProvider.DeleteClient(ctx, req)
+		return RegisterUserResponse{}, err
+	}
+
+	return RegisterUserResponse{
+		Id:       resp.Id,
+		Username: resp.Username,
+	}, nil
+}
+
+func generateRandomPassword(length int) (string, error) {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
+	password := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		randIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			return "", err
+		}
+		password[i] = charset[randIndex.Int64()]
+	}
+
+	return string(password), nil
 }
 
 func (a *AuthService) DeleteClient(ctx context.Context, userId string) error {
