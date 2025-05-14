@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -14,6 +15,7 @@ import (
 var container order.TestContainer
 var retailer_id int
 var product_id int
+var payment_partner_id int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -24,7 +26,8 @@ func TestMain(m *testing.M) {
 func setup() {
 	container = order.NewPackageIntegrationTestContainer()
 	ctx := context.Background()
-	retailer_id, _ = container.RetailerService.Create(ctx, &retailer.CreateRequest{
+	var err error
+	retailer_id, err = container.RetailerService.Create(ctx, &retailer.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
 		Longitude:   "38.7525° E",
@@ -34,26 +37,46 @@ func setup() {
 		Username:    "order_retilertest",
 		FirstName:   "test",
 		LastName:    "test",
-
-		Email: "test@gmail.com",
+		Phone:       "+251949184879",
+		Email:       "test@gmail.com",
 	})
-	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
+	if err != nil {
+		panic(err)
+	}
+	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
 			"test": "test",
 		},
 	})
-	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+	if err != nil {
+		panic(err)
+	}
+
+	err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     product_id,
 		Amount: 100,
 	})
+	if err != nil {
+		panic(err)
+	}
+
+	payment_partner_id, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:    "chapa",
+		Icon:    "etst",
+		BaseURL: "https://api.chapa.co",
+		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
@@ -65,6 +88,7 @@ func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
 				ProductId: product_id,
 				Quantity:  19},
 		},
+		PaymentPartnerId: payment_partner_id,
 	}
 	order_resp, err := container.OrderService.Place(ctx, in)
 	if err != nil {

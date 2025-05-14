@@ -18,6 +18,10 @@ type AuthHandler struct {
 	middleware util.AuthMiddleware
 }
 
+type ResetPasswordRequest struct {
+	NewPassword string `json:"password"`
+}
+
 func InitAuth() {
 	handler.Register(new(AuthHandler))
 }
@@ -29,11 +33,12 @@ func (a *AuthHandler) Init(services *application_core.Container, domainService *
 }
 
 func (a *AuthHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/auth/login", a.Login)
-	mux.HandleFunc("POST /api/v1/auth/refresh", a.RefreshToken)
+	mux.HandleFunc("POST /api/v1/auth/login", a.LoginHandler)
+	mux.HandleFunc("POST /api/v1/auth/refresh", a.RefreshTokenHandler)
+	mux.HandleFunc("POST /api/v1/auth/reset/{token}", a.ResetCredentialsHandler)
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -62,7 +67,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var req auth.RefreshTokenRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -78,4 +83,33 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
+}
+
+func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody ResetPasswordRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	restToken, err := util.GetStringPathParam(r, 5)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	err = h.service.ResetClientCredentials(r.Context(), auth.ResetCredentialsRequest{
+		NewPassword: requestBody.NewPassword,
+		ResetToken:  restToken,
+	})
+	if err != nil {
+		util.ServerErrorResponse(w, err)
+		return
+	}
+	util.OperationSuccessMessageResponse(w, "password reset successfuly")
 }

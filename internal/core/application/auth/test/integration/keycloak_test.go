@@ -7,6 +7,7 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	"b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/email"
 
 	keycloak "github.com/stillya/testcontainers-keycloak"
 )
@@ -46,7 +47,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 		Email:     VALID_EMAIL_A,
 	}
 
-	_, err := authService.CreateNewClient(ctx, in)
+	_, err := authService.CreateNewClientWithPassword(ctx, in)
 	if err != nil {
 		t.Fatalf("Failed to create client err: %v", err)
 	}
@@ -67,7 +68,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:     VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateNewClient(ctx, in_a)
+		_, err := authService.CreateNewClientWithPassword(ctx, in_a)
 		if err != nil {
 			t.Fatalf("Failed to create client err: %v", err)
 		}
@@ -80,7 +81,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:     VALID_EMAIL_B,
 		}
 
-		_, err = authService.CreateNewClient(ctx, in_b)
+		_, err = authService.CreateNewClientWithPassword(ctx, in_b)
 		wantErr := auth.ErrUsernameTaken
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
@@ -101,7 +102,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:     VALID_EMAIL_A,
 		}
 
-		authService.CreateNewClient(ctx, ua)
+		authService.CreateNewClientWithPassword(ctx, ua)
 		ub := auth.RegisterUserRequest{
 			FirstName: VALID_FIRST_NAME,
 			LastName:  VALID_LAST_NAME,
@@ -110,7 +111,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Email:     VALID_EMAIL_A,
 		}
 
-		_, err := authService.CreateNewClient(ctx, ub)
+		_, err := authService.CreateNewClientWithPassword(ctx, ub)
 		wantErr := auth.ErrEmailTaken
 		if err != wantErr {
 			t.Errorf("Expected err: %v, Got: %v", wantErr, err)
@@ -164,7 +165,7 @@ func setup() {
 		"",
 	)
 
-	authService = auth.NewAuthService(KeycloakProvider)
+	authService = auth.NewAuthService(KeycloakProvider, email.NewTestContainer().EmailService)
 }
 
 func shutDown() {
