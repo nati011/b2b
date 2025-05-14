@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	test_container "b2b.nati011.github.com/internal/core/domain/order/test"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -17,6 +18,7 @@ var container test_container.TestContainer
 var db *sql.DB
 var retailer_id int
 var product_id int
+var payment_partner_id int
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -40,8 +42,8 @@ func setup() {
 		Username:    "ordeR_retailer",
 		FirstName:   "test",
 		LastName:    "test",
-
-		Email: "test@gmail.com",
+		Phone:       "+251949184879",
+		Email:       "test@gmail.com",
 	})
 
 	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
@@ -49,8 +51,8 @@ func setup() {
 		Desc:       "test",
 		ExternalID: "123",
 		Images: []string{
-			"test",
-			"test",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
 		Price: 100.00,
 		Attributes: map[string]string{
@@ -60,6 +62,13 @@ func setup() {
 	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     product_id,
 		Amount: 100,
+	})
+
+	payment_partner_id, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:    "chapa",
+		Icon:    "etst",
+		BaseURL: "https://api.chapa.co",
+		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 	})
 }
 
@@ -89,6 +98,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -117,6 +127,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -146,6 +157,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -183,6 +195,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -212,6 +225,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -238,6 +252,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -275,6 +290,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -312,6 +328,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {

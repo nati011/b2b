@@ -228,7 +228,7 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResourceResponse{
-			Id: *res[0].(*int),
+			Id: int(res[0].(int64)),
 		}
 		response.List = append(response.List, responseBase)
 	}
