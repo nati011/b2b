@@ -186,7 +186,7 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		&responseBase.GeneralZone,
 		&responseBase.Region,
 		&responseBase.Woreda}
-	args := []any{r.Pagination.Limit, r.Pagination.Offset}
+	args := []any{name, r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),

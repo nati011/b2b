@@ -113,17 +113,18 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 		resp, err := r.db.GetByID(ctx, req.Id)
 		if err != nil {
 			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetResponse{}, ErrIdNotFound
 			default:
 				return GetResponse{}, ErrUnknown
 			}
+
 		}
-		if resp.Id == req.Id {
-			return GetResponse{
-				Id:   resp.Id,
-				Desc: resp.Desc,
-				Name: resp.Name,
-			}, nil
-		}
+		return GetResponse{
+			Id:   resp.Id,
+			Desc: resp.Desc,
+			Name: resp.Name,
+		}, nil
 	}
 
 	//Get by Name
@@ -137,13 +138,11 @@ func (r *RoleProvider) Get(ctx context.Context, req *GetRequest) (GetResponse, e
 				return GetResponse{}, ErrUnknown
 			}
 		}
-		if resp.Name == req.Name {
-			return GetResponse{
-				Id:   resp.Id,
-				Desc: resp.Desc,
-				Name: resp.Name,
-			}, nil
-		}
+		return GetResponse{
+			Id:   resp.Id,
+			Desc: resp.Desc,
+			Name: resp.Name,
+		}, nil
 	}
 
 	//Get by Name and Id

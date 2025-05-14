@@ -36,6 +36,10 @@ func Test_DisallowVerificationIfPaymentProviderIsInactive(t *testing.T) {
 	if err != nil {
 		panic("failed to create order partner")
 	}
+	err = testContainer.PartnerService.Deactivate(ctx, PaymentPartnerId)
+	if err != nil {
+		panic("failed to deactivate payment partner")
+	}
 	_, err = testContainer.PaymementVerificationService.Verify(ctx, PaymentPartnerId, "txRef")
 	wantErr := payment_verification.ErrPaymentPartnerNotSupported
 	if err != wantErr {
@@ -54,11 +58,6 @@ func Test_AllowVerificationIfPaymentProviderIsActive(t *testing.T) {
 		})
 	if err != nil {
 		t.Fatalf("Failed to create payment partner: %v", err)
-	}
-	//activate
-	err = testContainer.PartnerService.Activate(ctx, PaymentPartnerId)
-	if err != nil {
-		t.Fatalf("Failed to activate payment partner: %v", err)
 	}
 	_, err = testContainer.PaymementVerificationService.Verify(ctx, PaymentPartnerId, "txRef")
 	if err != nil {

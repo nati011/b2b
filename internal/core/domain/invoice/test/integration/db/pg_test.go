@@ -208,7 +208,10 @@ func Test_write(t *testing.T) {
 			SubTotal:   1,
 			TaxAmount:  1,
 			LineItems: []invoice.Item{
-				{1, "1", 1, 1},
+				{ProductId: 1,
+					ProductName:     "1",
+					ProductQuantity: 1,
+					ProductPrice:    1},
 			},
 		}
 		id, err := invoiceService.Create(ctx, in)
