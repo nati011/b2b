@@ -160,9 +160,10 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 			}
 		}
 		items = append(items, port.Item{
-			ProductId: i.ProductId,
-			Quantity:  i.Quantity,
-			Price:     prod_resp.Price,
+			ProductId:   i.ProductId,
+			Quantity:    i.Quantity,
+			Price:       prod_resp.Price,
+			ProductName: i.ProductName,
 		})
 		itemsTotal += prod_resp.Price * float64(i.Quantity)
 	}
@@ -320,8 +321,9 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		items := []Item{}
 		for _, i := range i.Items {
 			items = append(items, Item{
-				ProductId: i.ProductId,
-				Quantity:  i.Quantity,
+				ProductId:   i.ProductId,
+				Quantity:    i.Quantity,
+				ProductName: i.ProductName,
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
@@ -443,8 +445,9 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			items := []Item{}
 			for _, i := range i.Items {
 				items = append(items, Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:   i.ProductId,
+					Quantity:    i.Quantity,
+					ProductName: i.ProductName,
 				})
 			}
 			alreadyPresent := false
@@ -483,8 +486,9 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 			items := []Item{}
 			for _, i := range i.Items {
 				items = append(items, Item{
-					ProductId: i.ProductId,
-					Quantity:  i.Quantity,
+					ProductId:   i.ProductId,
+					Quantity:    i.Quantity,
+					ProductName: i.ProductName,
 				})
 			}
 			alreadyPresent := false
