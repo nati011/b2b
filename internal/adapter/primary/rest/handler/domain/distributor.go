@@ -150,12 +150,12 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	id, err := de.service.CreateUser(r.Context(), &distributor.CreateUserRequest{
-		Distributor_Id: typedParamId,
-		FirstName:      requestBody.FirstName,
-		LastName:       requestBody.LastName,
-		Username:       requestBody.Phone,
-		Email:          requestBody.Email,
-		Phone:          requestBody.Phone,
+		DistributorId: typedParamId,
+		FirstName:     requestBody.FirstName,
+		LastName:      requestBody.LastName,
+		Username:      requestBody.Phone,
+		Email:         requestBody.Email,
+		Phone:         requestBody.Phone,
 	})
 	if err != nil {
 		switch err {
