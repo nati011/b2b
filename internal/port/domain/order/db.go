@@ -23,6 +23,7 @@ type CreateRequest struct {
 type GetResponse struct {
 	Id             int
 	RetailerId     int
+	RetailerName   string
 	Items          []Item
 	Total          float64
 	Status         string

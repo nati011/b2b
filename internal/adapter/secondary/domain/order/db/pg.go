@@ -42,6 +42,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	result := []any{
 		&response.Id,
 		&response.RetailerId,
+		&response.RetailerName,
 		&response.Status,
 		&response.Total,
 		&response.PaymentStatus,
@@ -60,10 +61,11 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	response.Id = *result[0].(*int)
 	response.RetailerId = *result[1].(*int)
-	response.Status = *result[2].(*string)
-	response.Total = *result[3].(*float64)
-	response.PaymentStatus = *result[4].(*string)
-	response.DeliveryStatus = *result[5].(*string)
+	response.RetailerName = *result[2].(*string)
+	response.Status = *result[3].(*string)
+	response.Total = *result[4].(*float64)
+	response.PaymentStatus = *result[5].(*string)
+	response.DeliveryStatus = *result[6].(*string)
 
 	allOrderItems, err := p.GetAllOrderItems(ctx, response.Id)
 	if err != nil {
@@ -132,6 +134,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
+		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
@@ -155,11 +158,12 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			RetailerId:     int(res[1].(int64)),
-			Status:         res[2].(string),
+			RetailerName:   res[2].(string),
+			Status:         res[3].(string),
 			Total:          v,
-			PaymentStatus:  res[4].(string),
-			DeliveryStatus: res[5].(string),
-			CreatedAt:      res[6].(time.Time),
+			PaymentStatus:  res[5].(string),
+			DeliveryStatus: res[6].(string),
+			CreatedAt:      res[7].(time.Time),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
@@ -190,6 +194,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
+		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
@@ -212,10 +217,11 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			RetailerId:     int(res[1].(int64)),
-			Status:         res[2].(string),
+			RetailerName:   res[2].(string),
+			Status:         res[3].(string),
 			Total:          v,
-			PaymentStatus:  res[4].(string),
-			DeliveryStatus: res[5].(string),
+			PaymentStatus:  res[5].(string),
+			DeliveryStatus: res[6].(string),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
@@ -246,6 +252,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
+		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
@@ -268,11 +275,12 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			RetailerId:     int(res[1].(int64)),
-			Status:         res[2].(string),
+			RetailerName:   res[2].(string),
+			Status:         res[3].(string),
 			Total:          v,
-			PaymentStatus:  res[4].(string),
-			DeliveryStatus: res[5].(string),
-			CreatedAt:      res[6].(time.Time),
+			PaymentStatus:  res[5].(string),
+			DeliveryStatus: res[6].(string),
+			CreatedAt:      res[7].(time.Time),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
