@@ -99,40 +99,7 @@ export function DataTable<TData, TValue>({
 
 
     return (
-        <div className="w-full bg-white dark:bg-black p-4 rounded-md mt-4 print:hidden border border-gray-100">
-
-            <div className="sm:flex w-full justify-between py-4 gap-2 items-center">
-                <div className={`flex items-center w-full `}>
-                    <Input
-                        placeholder={searchPlaceholder}
-                        value={
-                            (table.getColumn(`${search}`)?.getFilterValue() as string) ?? ""
-                        }
-                        onChange={(event) =>
-                            table.getColumn(`${search}`)?.setFilterValue(event.target.value)
-                        }
-                        className="bg-transparent"
-                    />
-                </div>
-                {button && buttonObj?.name && (
-                    <div className="flex gap-2">
-                        <Link href={buttonObj.url} passHref>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-blue-900 bg-slate-100 dark:bg-black hover:text-blue-900 text-blue-900 px-6 py-4 sm:mb-0 mb-2"
-                            >
-                                + {buttonObj.name}
-                            </Button>
-                        </Link>
-
-                    </div>
-                )}
-            </div>
-
-            {!button && title && (
-                <p className="font-semibold text-md my-4">{title}</p>
-            )}
+        <>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader className="bg-transparent hover:bg-transparent">
@@ -198,26 +165,6 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchProperties ? previous && fetchProperties(previous) : table.previousPage()}
-                    disabled={loading}
-                    className="bg-transparent font-medium"
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchProperties ? (next && fetchProperties(next)) : table.nextPage()}
-                    disabled={loading}
-                    className="bg-transparent font-medium"
-                >
-                    Next
-                </Button>
-            </div>
-        </div>
+        </>
     );
 }

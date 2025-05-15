@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
-import { Product, Category } from "@/app/libs/types";
+import { Product, ConfigurableProduct } from "@/app/libs/types";
 
 interface ProductsStore {
   success: string;
   products: Product[];
+  configurable_products: ConfigurableProduct[];
+  configurable_product: ConfigurableProduct;
   product: Product;
   loading: boolean;
   error: string | null;
@@ -12,6 +14,7 @@ interface ProductsStore {
   previous: string | null;
 
   fetchProducts: (url?: string) => Promise<void>;
+  fetchConfigurableProducts: (url?: string) => Promise<void>;
   updateProduct: (ProductsData: Partial<Product>) => Promise<void>;
   createProduct: (productData: any) => Promise<void>;
   createConfigurableProduct: (productData: any) => Promise<void>
@@ -19,6 +22,8 @@ interface ProductsStore {
   depleteStock: (stock: number, id: number) => Promise<void>;
   updateProductStatus: (id: number, productStatus: boolean) => Promise<void>;
   fetchProductDetail: (id: number) => Promise<void>;
+  fetchConfigurableProductDetail: (id: number) => Promise<void>;
+  updateConfigurableProductStatus: (id: number, productStatus: boolean) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -39,6 +44,23 @@ const useProductsStore = create<ProductsStore>((set) => ({
     ReservedStock: 0,
     IsActive: 0
   },
+  configurable_product: {
+    Id: 0,
+    Name: "",
+    Desc: "",
+    ExternalId: "",
+    Images: [],
+    Attributes: [],
+    DistributorId: 0,
+    CategoryId: 0,
+    PriceRange: {
+      min: 0,
+      max: 0
+    },
+    IsAvailable: false,
+    Products: []
+  },
+  configurable_products: [],
   loading: false,
   error: null,
   next: null,
@@ -55,6 +77,19 @@ const useProductsStore = create<ProductsStore>((set) => ({
       console.log(response.data)
       set({
         products: response.data.body.List,
+        loading: false,
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch products", loading: false });
+    }
+  },
+  fetchConfigurableProducts: async (url?: string) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosIns.get("/api/configurable_product");
+      console.log(response.data)
+      set({
+        configurable_products: response.data.body.configurable_products.List,
         loading: false,
       });
     } catch (error) {
@@ -94,6 +129,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
         },
       });
       await useProductsStore.getState().fetchProducts();
+      if (response.status = 200) {
+        window.location.href = '/products/configurable'
+      }
       set({ loading: false });
     } catch (error: any) {
       set({ loading: false, error: error.message });
@@ -141,6 +179,18 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosIns.get(`/api/product?id=${id}`);
+      set({
+        product: response.data.body.configurable_products.List,
+        loading: false,
+      });
+    } catch (error) {
+      set({ error: "Failed to fetch products", loading: false });
+    }
+  },
+  fetchConfigurableProductDetail: async (id: number) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosIns.get(`/api/configurable_product?id=${id}`);
       console.log(response.data.body)
       // Note: TEMP
       response.data.body.Attributes = [response.data.body.Attributes]
@@ -150,6 +200,17 @@ const useProductsStore = create<ProductsStore>((set) => ({
       });
     } catch (error) {
       set({ error: "Failed to fetch products", loading: false });
+    }
+  },
+  updateConfigurableProductStatus: async (id: number, productStatus: boolean) => {
+    try {
+      const command = productStatus ? "deactivate" : "activate"
+      const response = await axiosIns.patch(`/api/configurable_product/${id}/status?command=${command}`);
+      await useProductsStore.getState().fetchConfigurableProducts();
+      console.log(response.data)
+      set({ loading: false, success: response.data.message, });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
     }
   },
 }));

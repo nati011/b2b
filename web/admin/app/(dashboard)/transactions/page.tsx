@@ -12,7 +12,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 import useOrdersStore from "@/app/libs/store/useOrderStore";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { Transaction } from "@/app/libs/types";
@@ -38,17 +38,7 @@ export default function Transactions() {
             "href": "/transactions/role"
         },
     ]
-
-    const [deleteModal, setDeleteModal] = useState(false)
-    const [roleId, setRoleId] = useState(0)
     const [confirmTransactionOpen, setConfirmTransactionOpen] = useState(false)
-
-    const handleEditRole = async () => {
-        setConfirmTransactionOpen(false)
-    };
-
-
-
     useEffect(() => {
         fetchTransactions();
     }, []);
@@ -133,10 +123,10 @@ export default function Transactions() {
     return (
         <>
             <Heading page={pages} heading="Transactions" subheading="List of registered transactions" />
-            <DataTable
+            <DataTableLayout
                 columns={columns}
                 data={transactions}
-                search="name"
+                search="tx_ref"
                 searchPlaceholder="Search transactions..."
             />
             <Dialog open={confirmTransactionOpen} onOpenChange={setConfirmTransactionOpen}>
@@ -150,7 +140,7 @@ export default function Transactions() {
                     </p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setConfirmTransactionOpen(false)}>Cancel</Button>
-                        <Button onClick={() => setConfirmTransactionOpen(false)}>Edit Role</Button>
+                        <Button onClick={() => setConfirmTransactionOpen(false)}>Confirm</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

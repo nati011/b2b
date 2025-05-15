@@ -7,9 +7,9 @@ import { MdAddShoppingCart } from "react-icons/md";
 import dynamic from 'next/dynamic'
 import Orders from "./orders/page";
 import { useEffect } from "react";
-import useOrdersStore from "./libs/store/useOrderStore";
+import useOrdersStore from "../libs/store/useOrderStore";
 import { columns } from "./orders/column";
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 // import TableLayout from "@/components/table";
 // import { column, data } from "./data";
 
@@ -167,7 +167,7 @@ export default function Home() {
         </Col>
       </Row>
       <Row>
-        <DataTable
+        <DataTableLayout
           columns={columns}
           data={orders}
           loading={loading}

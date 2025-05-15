@@ -23,7 +23,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { Textarea } from "@/components/ui/textarea";
 
 
@@ -116,7 +116,7 @@ export default function Roles() {
   return (
     <>
       <Heading page={pages} heading="Roles" subheading="List of registered roles" />
-      <DataTable
+      <DataTableLayout
         columns={columns}
         data={roles}
         loading={loading}

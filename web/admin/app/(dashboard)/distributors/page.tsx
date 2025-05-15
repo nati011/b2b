@@ -2,7 +2,7 @@
 import useDistributorsStore from "@/app/libs/store/useDistributorStore"
 import { useEffect } from "react";
 import Heading from "../../components/breadcrumb";
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { ColumnDef } from "@tanstack/react-table";
 import { Distributor } from '@/app/libs/types';
 import Link from "next/link";
@@ -70,7 +70,7 @@ export default function Distributors() {
   return (
     <>
       <Heading page={pages} heading="Distributors" subheading="List of Registered Distributors" />
-      <DataTable
+      <DataTableLayout
         columns={columns}
         data={distributors}
         loading={loading}

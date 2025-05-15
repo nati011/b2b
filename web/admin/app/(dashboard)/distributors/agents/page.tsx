@@ -1,5 +1,5 @@
 'use client'
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { columns } from "@/app/(dashboard)/distributors/agents/column"
 import useDistributorsStore from "@/app/libs/store/useDistributorStore"
 import { useEffect } from "react";
@@ -28,7 +28,7 @@ export default function Distributors() {
   return (
     <>
       <Heading page={pages} heading="Distributor Agents" subheading="List of Registered Distributor Agents" />
-      <DataTable
+      <DataTableLayout
         columns={columns}
         data={distributors}
         loading={loading}

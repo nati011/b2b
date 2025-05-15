@@ -47,7 +47,7 @@ interface buttonObj {
     url: string;
 }
 
-interface DataTableProps<TData, TValue> {
+interface DataTableLayoutProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
     button?: boolean;
@@ -63,7 +63,7 @@ interface DataTableProps<TData, TValue> {
     fetchProperties?: (url?: string) => void;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTableLayout<TData, TValue>({
     columns,
     data,
     button,
@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({
     previous,
     next,
     fetchProperties
-}: DataTableProps<TData, TValue>) {
+}: DataTableLayoutProps<TData, TValue>) {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
     );
