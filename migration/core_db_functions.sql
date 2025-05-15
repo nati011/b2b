@@ -2864,8 +2864,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_id(
 )
 RETURNS TABLE(id INT, 
               retailer_id INT,
+              retailer_name VARCHAR(255), 
               status VARCHAR(255),
-              total DECIMAL(2,12),
+              total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255))
 LANGUAGE plpgsql
@@ -2874,11 +2875,14 @@ BEGIN
     RETURN QUERY
     SELECT o.id, 
            o.retailer_id, 
+           r.name,
            o.status, 
            o.total,
            o.payment_status,
            o.delivery_status
     FROM public.orders o
+    JOIN public.retailer_business_info r
+    ON r.retailer_id = o.retailer_id
     WHERE o.id = o_order_id
       AND o.is_deleted = FALSE
     LIMIT 1;
@@ -2890,8 +2894,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
 )
 RETURNS TABLE(id INT, 
               retailer_id INT,
+              retailer_name VARCHAR(255),
               status VARCHAR(255),
-              total DECIMAL(2,12),
+              total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
               created_date TIMESTAMP)
@@ -2900,13 +2905,16 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT o.id, 
-           o.retailer_id, 
+           o.retailer_id,
+           r.name,
            o.status, 
            o.total,
            o.payment_status,
            o.delivery_status,
            o.created_date
     FROM public.orders o
+    JOIN public.retailer_business_info r
+    ON r.retailer_id = o.retailer_id
     WHERE o.retailer_id = o_retailer_id
       AND o.is_deleted = FALSE;
 END;
@@ -2917,8 +2925,9 @@ CREATE OR REPLACE FUNCTION public.get_orders_by_status(
 )
 RETURNS TABLE(id INT, 
               retailer_id INT,
+              retailer_name VARCHAR(255),
               status VARCHAR(255),
-              total DECIMAL(2,12),
+              total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255))
 LANGUAGE plpgsql
@@ -2926,12 +2935,15 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT o.id, 
-           o.retailer_id, 
+           o.retailer_id,
+           r.name,
            o.status, 
            o.total,
            o.payment_status,
            o.delivery_status
     FROM public.orders o
+    JOIN public.retailer_business_info r
+    ON r.retailer_id = o.retailer_id
     WHERE o.status = o_status
       AND o.is_deleted = FALSE;
 END;
@@ -2943,24 +2955,27 @@ CREATE OR REPLACE FUNCTION public.get_all_orders(
 )
 RETURNS TABLE(id INT, 
               retailer_id INT,
+              retailer_name VARCHAR(255),
               status VARCHAR(255),
-              total DECIMAL(2,12),
+              total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
-              created_date TIMESTAMP
-              )
+              created_date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT o.id, 
-           o.retailer_id, 
+           o.retailer_id,
+           r.name,
            o.status, 
            o.total,
            o.payment_status,
            o.delivery_status,
            o.created_date
     FROM public.orders o
+    JOIN public.retailer_business_info r
+    ON r.retailer_id = o.retailer_id
     WHERE o.is_deleted = FALSE
     LIMIT t_limit
     OFFSET t_offset;
