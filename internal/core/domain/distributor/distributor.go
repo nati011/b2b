@@ -261,7 +261,7 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequ
 		resp_name, err := d.DB.GetByName(ctx, req.Name)
 		if err != nil {
 			switch err {
-			case ErrIdNotFound:
+			case port_commons.ErrSysNoRows:
 			default:
 				return GetAllResponse{}, ErrUnknown
 			}
