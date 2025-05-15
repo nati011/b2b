@@ -33,6 +33,7 @@ export type Distributor = {
   region: string;
   woreda: string;
   user: number[];
+  is_active: boolean;
 };
 
 export type Image = {
