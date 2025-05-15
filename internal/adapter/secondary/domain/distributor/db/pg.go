@@ -70,7 +70,8 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.Longitude,
 		&response.GeneralZone,
 		&response.Region,
-		&response.Woreda}
+		&response.Woreda,
+		&response.IsActive}
 
 	args := []any{&id}
 
@@ -129,6 +130,38 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 	return nil
 }
 
+func (r *Postgres) Activate(ctx context.Context, id int) error {
+	query := "SELECT * FROM public.activate_distributors($1);"
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Postgres) Dectivate(ctx context.Context, id int) error {
+	query := "SELECT * FROM public.deactivate_distributors($1);"
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
@@ -141,7 +174,8 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Longitude,
 		&responseBase.GeneralZone,
 		&responseBase.Region,
-		&responseBase.Woreda}
+		&responseBase.Woreda,
+		&responseBase.IsActive}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -185,7 +219,8 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		&responseBase.Longitude,
 		&responseBase.GeneralZone,
 		&responseBase.Region,
-		&responseBase.Woreda}
+		&responseBase.Woreda,
+		&responseBase.IsActive}
 	args := []any{name, r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -227,7 +262,8 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		&response.Longitude,
 		&response.GeneralZone,
 		&response.Region,
-		&response.Woreda}
+		&response.Woreda,
+		&response.IsActive}
 
 	args := []any{&tin}
 
