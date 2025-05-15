@@ -949,7 +949,7 @@ RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
 BEGIN
-    UPDATE public.distributor_business_info
+    UPDATE public.distributors
     SET is_active = TRUE
     WHERE id = d_id;
 END;
@@ -962,7 +962,7 @@ RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
 BEGIN
-    UPDATE public.distributor_business_info
+    UPDATE public.distributors
     SET is_active = FALSE
     WHERE id = d_id;
 END;
