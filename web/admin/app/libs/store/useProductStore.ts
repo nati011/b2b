@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
-import { Product, ConfigurableProduct } from "@/app/libs/types";
+import { Product, ConfigurableProduct, ProductForm } from "@/app/libs/types";
 
 interface ProductsStore {
   success: string;
@@ -15,7 +15,7 @@ interface ProductsStore {
 
   fetchProducts: (url?: string) => Promise<void>;
   fetchConfigurableProducts: (url?: string) => Promise<void>;
-  updateProduct: (ProductsData: Partial<Product>) => Promise<void>;
+  updateProduct: (ProductsData: Partial<ProductForm>) => Promise<void>;
   createProduct: (productData: any) => Promise<void>;
   createConfigurableProduct: (productData: any) => Promise<void>
   addStock: (stock: number, id: number) => Promise<void>;
@@ -97,7 +97,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
     }
   },
 
-  updateProduct: async (ProductsData: Partial<Product>) => {
+  updateProduct: async (ProductsData: Partial<ProductForm>) => {
     set({ loading: true, error: null });
     try {
       const response = await axiosIns.put("/api/product/", ProductsData);
@@ -179,8 +179,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosIns.get(`/api/product?id=${id}`);
+      response.data.body.Attributes = [response.data.body.Attributes]
       set({
-        product: response.data.body.configurable_products.List,
+        product: response.data.body,
         loading: false,
       });
     } catch (error) {

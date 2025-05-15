@@ -144,11 +144,8 @@ const useConfigurableProductStore = create<ProductsStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await axiosIns.get(`/api/configurable_product?id=${id}`);
-            console.log(response.data.body)
-            // Note: TEMP
-            response.data.body.Attributes = [response.data.body.Attributes]
             set({
-                product: response.data.body,
+                product: response.data.body.configurable_product,
                 loading: false,
             });
         } catch (error) {
