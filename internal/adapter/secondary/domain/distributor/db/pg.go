@@ -70,7 +70,8 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.Longitude,
 		&response.GeneralZone,
 		&response.Region,
-		&response.Woreda}
+		&response.Woreda,
+		&response.IsActive}
 
 	args := []any{&id}
 
@@ -173,7 +174,8 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Longitude,
 		&responseBase.GeneralZone,
 		&responseBase.Region,
-		&responseBase.Woreda}
+		&responseBase.Woreda,
+		&responseBase.IsActive}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -217,7 +219,8 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		&responseBase.Longitude,
 		&responseBase.GeneralZone,
 		&responseBase.Region,
-		&responseBase.Woreda}
+		&responseBase.Woreda,
+		&responseBase.IsActive}
 	args := []any{name, r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -259,7 +262,8 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		&response.Longitude,
 		&response.GeneralZone,
 		&response.Region,
-		&response.Woreda}
+		&response.Woreda,
+		&response.IsActive}
 
 	args := []any{&tin}
 
