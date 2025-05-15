@@ -563,8 +563,8 @@ func Test_write(t *testing.T) {
 		err = container.ConfigurableProductService.Update(ctx, &configurable_product.UpdateRequest{
 			Id: id,
 			Images: []string{
-				"updated",
-				"updated",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		})
 		if err != nil {
@@ -575,7 +575,7 @@ func Test_write(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
 		}
-		wantImages := "updated"
+		wantImages := "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80"
 		if resp.Images[0].ImageUrl != wantImages && resp.Images[1].ImageUrl != wantImages {
 			t.Errorf("Expected image: %v Got: %v", wantImages, resp.Images[0])
 		}
