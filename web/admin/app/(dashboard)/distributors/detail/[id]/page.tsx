@@ -51,6 +51,7 @@ export default function DistributorsForm() {
     const [markerPosition, setMarkerPosition] = useState<[number, number]>([8.9934609, 38.7714897])
     const [comment, setComment] = useState("")
     const [confirmApprovalOpen, setConfirmApprovalOpen] = useState(false)
+    const [deactivateDialogOpen, setDectivateDialog] = useState(false)
     const pages = [
         {
             "title": "Distributor",
@@ -233,11 +234,22 @@ export default function DistributorsForm() {
                     </Card>
                 </TabsContent>
             </Tabs>
-            <div className="flex items-center justify-end space-x-4">
-                <Button type="submit" onClick={() => setConfirmApprovalOpen(true)}>
-                    Approve Distributor
-                </Button>
-            </div>
+            {
+                !distributor.is_active ? (
+                    <div className="flex items-center justify-end space-x-4">
+                        <Button type="submit" onClick={() => setConfirmApprovalOpen(true)}>
+                            Approve Distributor
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-end space-x-4">
+                        <Button type="submit" onClick={() => setDectivateDialog(true)}>
+                            Deactivate Distributor
+                        </Button>
+                    </div>
+                )
+            }
+
             <Dialog open={confirmApprovalOpen} onOpenChange={setConfirmApprovalOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -258,6 +270,22 @@ export default function DistributorsForm() {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setConfirmApprovalOpen(false)}>Cancel</Button>
                         <Button onClick={() => setConfirmApprovalOpen(false)}>Confirm</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={deactivateDialogOpen} onOpenChange={setDectivateDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Approval</DialogTitle>
+                    </DialogHeader>
+                    <Separator />
+                    <p>
+                        Are you sure you want to deactivate this distributor?
+                    </p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDectivateDialog(false)}>Cancel</Button>
+                        <Button onClick={() => setDectivateDialog(false)}>Confirm</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
