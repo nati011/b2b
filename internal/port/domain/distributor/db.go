@@ -34,6 +34,7 @@ type GetResponse struct {
 	GeneralZone string
 	Region      string
 	Woreda      string
+	IsActive    bool
 }
 
 type GetAllResponse struct {
@@ -66,6 +67,8 @@ type Writer interface {
 	CreateDistributorUser(ctx context.Context, req *CreateUserAgentRequest) (int, error)
 	UpdateName(ctx context.Context, req *UpdateNameRequest) error
 	UpdateTin(ctx context.Context, tin *UpdateTinRequest) error
+	Activate(ctx context.Context, id int) error
+	Dectivate(ctx context.Context, id int) error
 }
 
 type DB interface {

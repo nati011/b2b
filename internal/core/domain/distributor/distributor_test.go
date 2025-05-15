@@ -470,3 +470,148 @@ func Test_Create_Distributor_user_unhappyPath(t *testing.T) {
 	})
 
 }
+
+func Test_Activate_happyPath(t *testing.T) {
+	t.Run("inactiveByDefault", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test1@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := testContainer.DistributorService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantActiveStatus := false
+		if resp.IsActive != wantActiveStatus {
+			t.Errorf("Expected status: %v Got: %v", wantActiveStatus, resp.IsActive)
+		}
+	})
+
+}
+
+func Test_Activate_unhappyPath(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		err := testContainer.DistributorService.Activate(ctx, 9999)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+
+	t.Run("alreadyActive", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test1@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		err = testContainer.DistributorService.Activate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to activate err: %v", err)
+		}
+
+		err = testContainer.DistributorService.Activate(ctx, id)
+		wantErr := ErrDistributorAlreadyActive
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_Dectivate_happyPath(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
+	in := CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test1@gmail.com",
+	}
+	id, err := testContainer.DistributorService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+
+	err = testContainer.DistributorService.Activate(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to activate err: %v", err)
+	}
+	err = testContainer.DistributorService.Dectivate(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to activate err: %v", err)
+	}
+	resp, err := testContainer.DistributorService.Get(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get err: %v", err)
+	}
+	wantActiveStatus := false
+	if resp.IsActive != wantActiveStatus {
+		t.Errorf("Expected status: %v Got: %v", wantActiveStatus, resp.IsActive)
+	}
+}
+
+func Test_Dectivate_unhappyPath(t *testing.T) {
+	t.Run("idNotFound", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		err := testContainer.DistributorService.Dectivate(ctx, 9999)
+		wantErr := ErrIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+
+	t.Run("alreadyInactive", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test1@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		err = testContainer.DistributorService.Dectivate(ctx, id)
+		wantErr := ErrDistributorAlreadyInactive
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
+}
