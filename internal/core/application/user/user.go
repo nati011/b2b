@@ -154,8 +154,25 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			Username:    req.Username,
 		})
 		if err != nil {
-			log.Printf("%v", err)
-			return 0, ErrUnknown
+			log.Printf("failed to create auth client %v", err)
+			switch err {
+			case auth.ErrUsernameTaken:
+				return 0, ErrUserNameTaken
+			case auth.ErrEmailTaken:
+				return 0, ErrEmailTaken
+			case auth.ErrEmailNotSupplied:
+				return 0, ErrEmailNotFound
+			case auth.ErrUsernameNotSupplied:
+				return 0, ErrUsernameNotFound
+			case auth.ErrInvalidEmail:
+				return 0, ErrEmailNotValid
+			case auth.ErrFirstNameNotSupplied:
+				return 0, ErrFirstNameMandatory
+			case auth.ErrLastNameNotSupplied:
+				return 0, ErrLastNameMandatory
+			default:
+				return 0, ErrUnknown
+			}
 		}
 	} else {
 		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, auth.RegisterUserRequest{
@@ -167,8 +184,25 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			Username:    req.Username,
 		})
 		if err != nil {
-			log.Printf("%v", err)
-			return 0, ErrUnknown
+			log.Printf("failed to create auth client %v", err)
+			switch err {
+			case auth.ErrUsernameTaken:
+				return 0, ErrUserNameTaken
+			case auth.ErrEmailTaken:
+				return 0, ErrEmailTaken
+			case auth.ErrEmailNotSupplied:
+				return 0, ErrEmailNotFound
+			case auth.ErrUsernameNotSupplied:
+				return 0, ErrUsernameNotFound
+			case auth.ErrInvalidEmail:
+				return 0, ErrEmailNotValid
+			case auth.ErrFirstNameNotSupplied:
+				return 0, ErrFirstNameMandatory
+			case auth.ErrLastNameNotSupplied:
+				return 0, ErrLastNameMandatory
+			default:
+				return 0, ErrUnknown
+			}
 		}
 	}
 
