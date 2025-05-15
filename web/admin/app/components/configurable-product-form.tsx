@@ -16,11 +16,13 @@ import { ConfigurableProduct, ConfigurableProductForm } from "../libs/types";
 interface ProductFormProps {
     initialData?: Partial<ConfigurableProduct>;
     isEdit?: boolean;
+    loading?: boolean;
     onSuccess?: () => void;
 }
 
 const ConfigurableProductFormComponent: React.FC<ProductFormProps> = ({
     initialData,
+    loading = false,
     isEdit = false,
     onSuccess,
 }) => {
@@ -91,20 +93,20 @@ const ConfigurableProductFormComponent: React.FC<ProductFormProps> = ({
         label: c.Name,
     }));
 
-    // useEffect(() => {
-    //     const p: ConfigurableProductForm = {
-    //         Id: initialData?.Id || 0,
-    //         Name: initialData?.Name || "",
-    //         Desc: initialData?.Desc || "",
-    //         ExternalId: initialData?.Desc || "",
-    //         Images: initialData?.Images?.map((i: { ImageUrl: string; }) => { return i.ImageUrl }) || [],
-    //         Attributes: initialData?.Attributes || [],
-    //         DistributorId: initialData?.DistributorId || 0,
-    //         IsAvailable: false,
-    //         Products: initialData?.Products || []
-    //     }
-    //     setProduct(p)
-    // }, [initialData])
+    useEffect(() => {
+        if (!loading) {
+            const p: ConfigurableProductForm = {
+                id: initialData?.Id || 0,
+                name: initialData?.Name || "",
+                desc: initialData?.Desc || "",
+                external_id: initialData?.Desc || "",
+                images: initialData?.Images?.map((i: { ImageUrl: string; }) => { return i.ImageUrl }) || [],
+                attribute_keys: initialData?.Attributes || [],
+                products: initialData?.Products || []
+            }
+            setProduct(p)
+        }
+    }, [initialData, loading])
 
     useEffect(() => {
         fetchProducts()

@@ -27,6 +27,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LiaEdit } from "react-icons/lia";
 import { Badge } from "@/components/ui/badge";
+import { RxCaretSort } from "react-icons/rx";
 
 type statusProduct = {
   Id: number;
@@ -67,6 +68,10 @@ export default function Products() {
 
   const columns: ColumnDef<ConfigurableProduct>[] = [
     {
+      accessorKey: "Id",
+      header: "Id",
+    },
+    {
       accessorKey: "Images",
       header: "",
       cell: ({ row }) => {
@@ -78,12 +83,18 @@ export default function Products() {
       },
     },
     {
-      accessorKey: "Id",
-      header: "Id",
-    },
-    {
       accessorKey: "Name",
-      header: "Name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name
+            <RxCaretSort className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      }
     },
     {
       accessorKey: " Attributes",
@@ -102,7 +113,17 @@ export default function Products() {
     },
     {
       accessorKey: "IsAvailable",
-      header: () => <div className="text-left">Status</div>,
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Status
+            <RxCaretSort className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
       cell: ({ row }) => {
         const status = row.getValue("IsAvailable")
         return <div className={!status ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>

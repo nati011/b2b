@@ -57,6 +57,18 @@ export type Product = {
 };
 
 
+
+export type ProductForm = {
+  Id: number
+  Name: string
+  ExternalID: string
+  Price: GLfloat
+  Attributes: any[];
+  Desc: string
+  Images: string[]
+  CategoryId: number[]
+}
+
 export type PriceRange = {
   min: number
   max: number
