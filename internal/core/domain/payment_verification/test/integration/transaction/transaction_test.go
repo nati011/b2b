@@ -41,9 +41,8 @@ func setup() {
 	}
 }
 
-func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
+func Test_VerifyTransaction(t *testing.T) {
 	ctx := context.Background()
-	//init transaction
 	checkout_response, err := testContainer.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
@@ -53,7 +52,28 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 		t.Errorf("Failed to checkout err: %v", err)
 	}
 
-	resp, err := testContainer.PaymentVerificationService.Verify(ctx, PaymentPartnerId, "test")
+	resp, err := testContainer.PaymentVerificationService.Verify(ctx, PaymentPartnerId, checkout_response.TransactionRef)
+	if err != nil {
+		t.Fatalf("Failed to verify err: %v", err)
+	}
+	wantIsValidStatus := false
+	if resp != wantIsValidStatus {
+		t.Fatalf("Expected status: %v Got: %v", wantIsValidStatus, resp)
+	}
+}
+
+func Test_StatusChangeUponSuccessfulVerification(t *testing.T) {
+	ctx := context.Background()
+	checkout_response, err := testContainer.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
+		PaymentPartnerId: PaymentPartnerId,
+		OrderId:          1,
+		Amount:           100,
+	})
+	if err != nil {
+		t.Errorf("Failed to checkout err: %v", err)
+	}
+
+	resp, err := testContainer.PaymentVerificationService.Verify(ctx, PaymentPartnerId, checkout_response.TransactionRef)
 	if err != nil {
 		t.Fatalf("Failed to verify err: %v", err)
 	}
@@ -62,7 +82,7 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 		t.Fatalf("Expected status: %v Got: %v", wantIsValidStatus, resp)
 	}
 
-	//check if transaction has been created and status has been set to uploaded
+	//check if transaction has been created and status has been set to COMPLETED
 	resp_get, err := testContainer.TransactionService.GetByParam(ctx, &transaction.GetByParamRequest{
 		TxRef: checkout_response.TransactionRef,
 	})
@@ -71,6 +91,6 @@ func Test_CreateTransactionUponPaymentVerification(t *testing.T) {
 	}
 	wantStatus := transaction.COMPLETED_STATUS
 	if resp_get.List[0].Status != wantStatus {
-		t.Errorf("expected status: %v, got: %v", resp_get.List[0].Status, wantStatus)
+		t.Errorf("expected status: %v, got: %v", wantStatus, resp_get.List[0].Status)
 	}
 }

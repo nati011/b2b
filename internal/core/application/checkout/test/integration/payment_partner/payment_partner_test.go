@@ -36,6 +36,12 @@ func Test_DisallowCheckOutIfPaymentProviderIsInactive(t *testing.T) {
 	if err != nil {
 		panic("failed to create order partner")
 	}
+
+	//activate
+	err = testContainer.PartnerService.Deactivate(ctx, PaymentPartnerId)
+	if err != nil {
+		t.Fatalf("Failed to activate payment partner: %v", err)
+	}
 	_, err = testContainer.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
@@ -59,11 +65,7 @@ func Test_AllowCheckOutIfPaymentProviderIsActive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create payment partner: %v", err)
 	}
-	//activate
-	err = testContainer.PartnerService.Activate(ctx, PaymentPartnerId)
-	if err != nil {
-		t.Fatalf("Failed to activate payment partner: %v", err)
-	}
+
 	_, err = testContainer.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
