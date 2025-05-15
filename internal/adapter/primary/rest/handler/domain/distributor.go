@@ -53,6 +53,7 @@ type GetDistributorResponse struct {
 	GeneralZone string `json:"general_zone"`
 	Region      string `json:"region"`
 	Woreda      string `json:"woreda"`
+	IsActive    bool   `json:"is_active"`
 	Users       []int  `json:"user"`
 }
 
@@ -218,6 +219,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				GeneralZone: resp.GeneralZone,
 				Region:      resp.Region,
 				Woreda:      resp.Woreda,
+				IsActive:    resp.IsActive,
 				Users:       users_resp.List,
 			}})
 		}
@@ -258,6 +260,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
+				IsActive:    i.IsActive,
 				Users:       users_resp.List,
 			})
 		}
@@ -296,6 +299,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				GeneralZone: i.GeneralZone,
 				Region:      i.Region,
 				Woreda:      i.Woreda,
+				IsActive:    i.IsActive,
 				Users:       users_resp.List,
 			})
 		}
