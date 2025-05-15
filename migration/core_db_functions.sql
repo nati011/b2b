@@ -980,7 +980,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -988,7 +989,7 @@ AS $$
         RETURN QUERY
 
         SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1013,7 +1014,8 @@ RETURNS TABLE (
     long VARCHAR(255),
     generalZone VARCHAR(255),
     region VARCHAR(255),
-    woreda VARCHAR(255)
+    woreda VARCHAR(255),
+    is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1021,7 +1023,7 @@ BEGIN
     RETURN QUERY
 
     SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-           db_loc.general_zone, db_loc.region, db_loc.woreda
+           db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
     FROM public.distributors d
     JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1045,7 +1047,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1053,7 +1056,7 @@ AS $$
         RETURN QUERY
 
        SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1076,7 +1079,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1084,7 +1088,7 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id

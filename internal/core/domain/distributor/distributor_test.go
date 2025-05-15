@@ -490,10 +490,6 @@ func Test_Activate_happyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create err: %v", err)
 		}
-		err = testContainer.DistributorService.Activate(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to activate err: %v", err)
-		}
 		resp, err := testContainer.DistributorService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)
@@ -564,6 +560,11 @@ func Test_Dectivate_happyPath(t *testing.T) {
 	id, err := testContainer.DistributorService.Create(ctx, &in)
 	if err != nil {
 		t.Fatalf("Failed to create err: %v", err)
+	}
+
+	err = testContainer.DistributorService.Activate(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to activate err: %v", err)
 	}
 	err = testContainer.DistributorService.Dectivate(ctx, id)
 	if err != nil {
