@@ -130,7 +130,7 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 }
 
 func (r *Postgres) Activate(ctx context.Context, id int) error {
-	query := "SELECT * FROM public.activate_distributor($1);"
+	query := "SELECT * FROM public.activate_distributors($1);"
 	args := []any{&id}
 
 	err := query_handler.NewQuery(
@@ -146,7 +146,7 @@ func (r *Postgres) Activate(ctx context.Context, id int) error {
 }
 
 func (r *Postgres) Dectivate(ctx context.Context, id int) error {
-	query := "SELECT * FROM public.deactivate_distributor($1);"
+	query := "SELECT * FROM public.deactivate_distributors($1);"
 	args := []any{&id}
 
 	err := query_handler.NewQuery(
