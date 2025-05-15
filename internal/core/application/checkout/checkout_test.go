@@ -38,11 +38,13 @@ func setup() {
 func Test_Checkout(t *testing.T) {
 	t.Run("paymentPartnerNotSupplied", func(t *testing.T) {
 		t.Cleanup(testContainer.TearDown)
+		setup()
 		ctx := context.Background()
-		in := &CheckoutRequest{
+
+		_, err := testContainer.CheckoutService.Checkout(ctx, &CheckoutRequest{
 			OrderId: 1,
-		}
-		_, err := testContainer.CheckoutService.Checkout(ctx, in)
+			Amount:  100,
+		})
 		wantErr := ErrPaymentPartnerNotSupported
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
@@ -50,8 +52,9 @@ func Test_Checkout(t *testing.T) {
 	})
 
 	t.Run("checkoutHappyPath", func(t *testing.T) {
-		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
+		t.Cleanup(testContainer.TearDown)
+		setup()
 		in := &CheckoutRequest{
 			OrderId:          1,
 			Amount:           400,
@@ -66,8 +69,9 @@ func Test_Checkout(t *testing.T) {
 	})
 
 	t.Run("amountNotSupplied", func(t *testing.T) {
-		t.Cleanup(testContainer.TearDown)
 		ctx := context.Background()
+		t.Cleanup(testContainer.TearDown)
+		setup()
 		in := &CheckoutRequest{
 			PaymentPartnerId: PaymentPartnerId,
 		}
