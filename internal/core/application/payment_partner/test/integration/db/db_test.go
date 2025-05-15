@@ -217,12 +217,6 @@ func Test_Write(t *testing.T) {
 			t.Fatalf("Failed to create err: %v", err)
 		}
 
-		//activate
-		err = container.PartnerService.Activate(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to activate payment option err: %v", err)
-		}
-
 		got, err := container.PartnerService.Get(ctx, id)
 		if err != nil {
 			t.Fatalf("Failed to get err: %v", err)

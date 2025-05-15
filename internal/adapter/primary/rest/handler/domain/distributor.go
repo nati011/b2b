@@ -96,6 +96,7 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /api/v1/distributor/{id}/user", d.CreateUserHandler)
 	mux.HandleFunc("GET /api/v1/distributor/{id}/user", d.GetUserHandler)
+	mux.HandleFunc("PATCH /api/v1/distributor/{id}/status", d.StatusHandler)
 }
 
 func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -358,4 +359,48 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"distributor": id})
 
+}
+
+func (d *Distributor) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamCommand = "command"
+	paramValues := r.URL.Query()
+	paramCommandValue := paramValues.Get(ParamCommand)
+
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		switch paramCommandValue {
+		case ACTIVATE_COMMAND:
+			err = d.service.Activate(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case distributor.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "distributor successfully activated"})
+		case DEACTIVATE_COMMAND:
+			err = d.service.Dectivate(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case distributor.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "distributor successfully deactivated"})
+		default:
+			util.RequestErrorResponse(w, ErrUnknownProductCommand)
+		}
+	}
 }
