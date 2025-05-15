@@ -2,20 +2,9 @@
 import useProductsStore from "@/app/libs/store/useProductStore"
 import { useEffect, useState } from "react";
 import Heading from "@/app/components/breadcrumb";
-import { DataTable } from "@/components/ui/datatable";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { ColumnDef } from "@tanstack/react-table";
-import { Product } from "@/app/libs/types";
+import { ConfigurableProduct, Product } from "@/app/libs/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,24 +13,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
 import { LiaEdit } from "react-icons/lia";
+import { Badge } from "@/components/ui/badge";
 
+type statusProduct = {
+  Id: number;
+  Name: string
+  Status: boolean
+}
 
 export default function Products() {
   const {
-    products,
+    configurable_products,
     success,
     loading,
     error,
-    fetchProducts,
-    addStock,
-    depleteStock,
-    updateProductStatus
+    fetchConfigurableProducts,
+    updateConfigurableProductStatus
   } = useProductsStore()
 
   const pages = [
@@ -51,20 +51,21 @@ export default function Products() {
     },
   ]
 
-  const [stockModal, setStockModal] = useState(false)
-  const [depleteStockModal, setDepleteStockModal] = useState(false)
   const [statusModal, setStatusModal] = useState(false)
-  const [stockQuantity, setStockQuantity] = useState(0)
-  const [productId, setProductId] = useState(0)
-  const [productStatus, setProductStatus] = useState(false)
+  const [statusProduct, setStatusProduct] = useState<statusProduct>()
+  const handleActivateProduct = () => {
+    updateConfigurableProductStatus(statusProduct!.Id, statusProduct!.Status)
+    setStatusModal(false)
+  }
+
 
 
   useEffect(() => {
-    fetchProducts();
+    fetchConfigurableProducts();
   }, []);
 
 
-  const columns: ColumnDef<Product>[] = [
+  const columns: ColumnDef<ConfigurableProduct>[] = [
     {
       accessorKey: "Images",
       header: "",
@@ -85,28 +86,27 @@ export default function Products() {
       header: "Name",
     },
     {
-      accessorKey: "Price",
-      header: "Price",
+      accessorKey: " Attributes",
+      header: "Attributes",
+      cell: ({ row }) => {
+        return (
+          <div className="flex gap-2">
+            {row.original.Attributes.map((a, index) => (
+              <Badge key={index} variant={"outline"} className="border-blue-900 text-blue-950">
+                {a}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
     {
-      accessorKey: "AvailableStock",
-      header: "Available Stock",
-    },
-    {
-      accessorKey: "ReservedStock",
-      header: "Reserved Stock",
-    },
-    {
-      accessorKey: "Stock",
-      header: "Stock",
-    },
-    {
-      accessorKey: "IsActive",
+      accessorKey: "IsAvailable",
       header: () => <div className="text-left">Status</div>,
       cell: ({ row }) => {
-        const status = row.getValue("IsActive")
+        const status = row.getValue("IsAvailable")
         return <div className={!status ? "border border-amber-500 py-1 mx-auto rounded-md text-amber-500 font-medium text-center text-xs" : "border border-emerald-500  py-1 mx-auto rounded-md  text-emerald-500 font-medium text-center text-xs"}>
-          {status ? "Active" : "Inactive"}
+          {status ? "Available" : "Unavailable"}
         </div>
       },
     },
@@ -116,7 +116,7 @@ export default function Products() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-2">
-            <Link href={`/products/${row.original.Id}`}>
+            <Link href={`/products/configurable/${row.original.Id}`}>
               <LiaEdit className="text-gray-700 text-xl" />
             </Link>
             <DropdownMenu>
@@ -129,29 +129,13 @@ export default function Products() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => {
-                  setProductId(row.original.Id)
-                  setStockModal(true)
-                }
-                }>
-                  Add Stock
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  setProductId(row.original.Id)
-                  setDepleteStockModal(true)
-                }
-                }>
-                  Deplete Stock
-                </DropdownMenuItem>
-
-                <DropdownMenuItem onClick={() => {
-                  setProductId(row.original.Id)
+                  setStatusProduct({ Id: row.original.Id, Name: row.original.Name, Status: row.original.IsAvailable })
                   setStatusModal(true)
-                  setProductStatus(row.getValue("IsActive"))
                 }
                 }>
                   {
 
-                    !row.original.IsActive ? "Activate Product" : "Deactivate Product"
+                    !row.original.IsAvailable ? "Activate Product" : "Deactivate Product"
                   }
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -162,116 +146,39 @@ export default function Products() {
     },
 
   ];
-
-  const handleAddStock = () => {
-    console.log(stockQuantity, productId)
-    addStock(stockQuantity, productId)
-  };
-
-
-  const handlDepleteStock = () => {
-    depleteStock(stockQuantity, productId)
-  };
-
-
-  const handleStatusUpdate = () => {
-    updateProductStatus(productId, productStatus)
-  }
   return (
     <>
-      <Heading page={pages} heading="Products" subheading="List of Registered products" />
-      <DataTable
+      <Heading page={pages} heading="Configurable Products" subheading="List of Registered cofigurable products" />
+      <DataTableLayout
         columns={columns}
-        data={products}
+        data={configurable_products}
         loading={loading}
         button={true}
-        buttonObj={{ name: "Register Products", url: "/products/form" }}
+        buttonObj={{ name: "Register Products", url: "/products/configurable/form" }}
         search="Name"
         searchPlaceholder="Search products..."
       />
-      <AlertDialog open={stockModal}>
+      <AlertDialog open={statusModal} onOpenChange={setStatusModal}>
         <AlertDialogTrigger asChild>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Add Stock</AlertDialogTitle>
+            <AlertDialogTitle>Activate Product</AlertDialogTitle>
           </AlertDialogHeader>
-          <Input
-            placeholder="Quantity"
-            value={stockQuantity}
-            onChange={(e) => setStockQuantity(parseFloat(e.target.value))}
-            autoFocus
-          />
+          <p>
+            Are you sure you want to activate <strong>{statusProduct?.Name}</strong>?
+          </p>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setStockModal(false); setStockQuantity(0) }}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                handleAddStock();
-                setStockModal(false)
+            <Button variant="outline" onClick={() => setStatusModal(false)}>Cancel</Button>
+            <Button onClick={handleActivateProduct}>
+              {
+                statusProduct?.Status ? "Deactivate" : "Activate"
               }
-              }
-            >
-              Add Stock
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <AlertDialog open={depleteStockModal}>
-        <AlertDialogTrigger asChild>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Deplete Stock</AlertDialogTitle>
-          </AlertDialogHeader>
-          <Input
-            placeholder="Quantity"
-            value={stockQuantity}
-            onChange={(e) => setStockQuantity(parseFloat(e.target.value))}
-            autoFocus
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); setStockQuantity(0) }}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                handlDepleteStock();
-                setDepleteStockModal(false)
-              }
-              }
-            >
-              Deplete Stock
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={statusModal}>
-        <AlertDialogTrigger asChild>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Update Product Status</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogDescription>Are you sure you want to update the product status?</AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); setStockQuantity(0) }}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                handleStatusUpdate()
-                setStatusModal(false)
-                setProductId(0)
-              }
-              }
-            >
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </>
   );
 }

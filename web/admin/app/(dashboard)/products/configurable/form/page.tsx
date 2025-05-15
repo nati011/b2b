@@ -1,7 +1,7 @@
 'use client'
 
 import Heading from "@/app/components/breadcrumb";
-import ProductForm from "@/app/components/ProductForm";
+import ConfigurableProductFormComponent from "@/app/components/configurable-product-form";
 
 export default function Retailers() {
 
@@ -18,8 +18,8 @@ export default function Retailers() {
 
     return (
         <>
-            <Heading page={pages} heading="Product" subheading="Add a new Product" />
-            <ProductForm />
+            <Heading page={pages} heading="Configurable Product" subheading="Add a new configurable product" />
+            <ConfigurableProductFormComponent />
         </>
     );
 }
