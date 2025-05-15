@@ -942,6 +942,32 @@ AS $$
     END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.activate_distributors(
+    d_id INT
+) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    UPDATE public.distributors
+    SET is_active = TRUE
+    WHERE id = d_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.deactivate_distributors(
+    d_id INT
+) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    UPDATE public.distributors
+    SET is_active = FALSE
+    WHERE id = d_id;
+END;
+$$;
+
     -- readers
 create or replace function public.get_distributor_by_id (
     d_distributor_id INT
@@ -954,7 +980,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -962,7 +989,7 @@ AS $$
         RETURN QUERY
 
         SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -987,7 +1014,8 @@ RETURNS TABLE (
     long VARCHAR(255),
     generalZone VARCHAR(255),
     region VARCHAR(255),
-    woreda VARCHAR(255)
+    woreda VARCHAR(255),
+    is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -995,7 +1023,7 @@ BEGIN
     RETURN QUERY
 
     SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-           db_loc.general_zone, db_loc.region, db_loc.woreda
+           db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
     FROM public.distributors d
     JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1019,7 +1047,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1027,7 +1056,7 @@ AS $$
         RETURN QUERY
 
        SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1050,7 +1079,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  is_active BOOLEAN
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1058,7 +1088,7 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -2972,7 +3002,7 @@ CREATE OR REPLACE FUNCTION public.get_order_items_by_order_id(
 )
 RETURNS TABLE(o_order_id INT,
               o_product_id INT,
-              name VARCHAR(255)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+              name VARCHAR(255),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
               o_quantity INT,
               o_price DECIMAL(12,2)
               )
