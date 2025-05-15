@@ -942,6 +942,32 @@ AS $$
     END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.activate_distributors(
+    d_id INT
+) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    UPDATE public.distributor_business_info
+    SET is_active = TRUE
+    WHERE id = d_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.deactivate_distributors(
+    d_id INT
+) 
+RETURNS VOID 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    UPDATE public.distributor_business_info
+    SET is_active = FALSE
+    WHERE id = d_id;
+END;
+$$;
+
     -- readers
 create or replace function public.get_distributor_by_id (
     d_distributor_id INT
@@ -2972,7 +2998,7 @@ CREATE OR REPLACE FUNCTION public.get_order_items_by_order_id(
 )
 RETURNS TABLE(o_order_id INT,
               o_product_id INT,
-              name VARCHAR(255)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+              name VARCHAR(255),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
               o_quantity INT,
               o_price DECIMAL(12,2)
               )

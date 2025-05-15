@@ -129,6 +129,38 @@ func (r *Postgres) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) er
 	return nil
 }
 
+func (r *Postgres) Activate(ctx context.Context, id int) error {
+	query := "SELECT * FROM public.activate_distributor($1);"
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Postgres) Dectivate(ctx context.Context, id int) error {
+	query := "SELECT * FROM public.deactivate_distributor($1);"
+	args := []any{&id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
