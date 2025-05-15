@@ -688,8 +688,8 @@ func Test_Update_happyPath(t *testing.T) {
 			Price:      200,
 			Desc:       "updated",
 			Images: []string{
-				"updated",
-				"updated",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			},
 		}
 		_, err = container.ProductService.Update(ctx, update_in)
