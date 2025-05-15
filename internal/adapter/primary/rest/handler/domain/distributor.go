@@ -190,7 +190,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			switch err {
 			case distributor.ErrIdNotFound:
-				util.OperationSuccessResponse(w, util.Envelope{"retailer": nil})
+				util.OperationSuccessResponse(w, util.Envelope{"distributor": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
@@ -229,7 +229,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			switch err {
 			case distributor.ErrEmptyGetContent:
-				util.OperationSuccessResponse(w, util.Envelope{"retailer": nil})
+				util.OperationSuccessResponse(w, util.Envelope{"distributor": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
@@ -267,7 +267,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			switch err {
 			case distributor.ErrEmptyGetContent:
-				util.OperationSuccessResponse(w, util.Envelope{"retailer": nil})
+				util.OperationSuccessResponse(w, util.Envelope{"distributor": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
