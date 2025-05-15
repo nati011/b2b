@@ -339,4 +339,81 @@ func Test_Write(t *testing.T) {
 			t.Errorf("Expected Tin: %v Got:%v", update_in.Tin, resp.Tin)
 		}
 	})
+
+	t.Run("activate", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := distributor.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		err = testContainer.DistributorService.Activate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to activate err: %v", err)
+		}
+
+		// check
+		resp, err := testContainer.DistributorService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		if resp.IsActive != true {
+			t.Errorf("Expected isActive: %v Got:%v", true, resp.IsActive)
+		}
+	})
+
+	t.Run("deactivate", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := distributor.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		err = testContainer.DistributorService.Activate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to activate err: %v", err)
+		}
+
+		err = testContainer.DistributorService.Dectivate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to activate err: %v", err)
+		}
+
+		// check
+		resp, err := testContainer.DistributorService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		if resp.IsActive != false {
+			t.Errorf("Expected isActive: %v Got:%v", false, resp.IsActive)
+		}
+	})
 }
