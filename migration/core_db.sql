@@ -91,7 +91,8 @@ COMMENT ON TABLE public."retailer_users" IS 'stores retailer agents(always on th
 
 CREATE TABLE IF NOT EXISTS public."distributors"
 (
-  id SERIAL PRIMARY KEY
+  id SERIAL PRIMARY KEY,
+  is_active BOOLEAN DEFAULT FALSE
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."distributors" IS 'stores distributor specific information(not user)';

@@ -3,6 +3,7 @@ package distributor
 import (
 	"context"
 	"errors"
+	"log"
 
 	"b2b.nati011.github.com/internal/core/application/user"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
@@ -10,11 +11,13 @@ import (
 )
 
 var (
-	ErrUnknown         = errors.New("oopsy, unknown error")
-	ErrInvalidTin      = errors.New("oopsy, tin invalid")
-	ErrDuplicateTin    = errors.New("oopsy, tin already in use")
-	ErrIdNotFound      = errors.New("oopsy, id not found")
-	ErrEmptyGetContent = errors.New("oopsy, empty get content")
+	ErrUnknown                    = errors.New("oopsy, unknown error")
+	ErrInvalidTin                 = errors.New("oopsy, tin invalid")
+	ErrDuplicateTin               = errors.New("oopsy, tin already in use")
+	ErrIdNotFound                 = errors.New("oopsy, id not found")
+	ErrEmptyGetContent            = errors.New("oopsy, empty get content")
+	ErrDistributorAlreadyInactive = errors.New("oopsy, distributor already inactive")
+	ErrDistributorAlreadyActive   = errors.New("oopsy, distributor already active")
 )
 
 type CreateRequest struct {
@@ -41,6 +44,7 @@ type GetResponse struct {
 	GeneralZone string
 	Region      string
 	Woreda      string
+	IsActive    bool
 }
 
 type GetAllResponse struct {
@@ -79,6 +83,8 @@ type Provider interface {
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
 	CreateUser(ctx context.Context, req *CreateUserRequest) (int, error)
+	Activate(ctx context.Context, id int) error
+	Dectivate(ctx context.Context, id int) error
 }
 
 type DistributorService struct {
@@ -91,6 +97,52 @@ func NewDistributorService(up user.Provider, db port.DB) Provider {
 		UserService: up,
 		DB:          db,
 	}
+}
+
+func (d *DistributorService) Activate(ctx context.Context, id int) error {
+	resp, err := d.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+
+	if resp.IsActive {
+		return ErrDistributorAlreadyActive
+	}
+
+	err = d.DB.Activate(ctx, id)
+	if err != nil {
+		log.Printf("failed to activate distributor id:%v", id)
+		return ErrUnknown
+	}
+	return nil
+}
+
+func (d *DistributorService) Dectivate(ctx context.Context, id int) error {
+	resp, err := d.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+
+	if !resp.IsActive {
+		return ErrDistributorAlreadyInactive
+	}
+
+	err = d.DB.Dectivate(ctx, id)
+	if err != nil {
+		log.Printf("failed to deactivate distributor id:%v", id)
+		return ErrUnknown
+	}
+	return nil
 }
 
 func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequest) (int, error) {
@@ -199,6 +251,7 @@ func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, erro
 		GeneralZone: resp.GeneralZone,
 		Region:      resp.Region,
 		Woreda:      resp.Woreda,
+		IsActive:    resp.IsActive,
 	}, nil
 }
 func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
