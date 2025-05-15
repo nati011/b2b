@@ -62,6 +62,7 @@ type PlaceRequest struct {
 type GetResponse struct {
 	Id             int
 	RetailerId     int
+	RetailerName   string
 	Items          []Item
 	Total          float32
 	Status         string
@@ -294,6 +295,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	return GetResponse{
 		Id:             resp.Id,
 		RetailerId:     resp.RetailerId,
+		RetailerName:   resp.RetailerName,
 		Total:          float32(resp.Total),
 		Items:          items,
 		Status:         resp.Status,
@@ -325,6 +327,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		return_response.List = append(return_response.List, GetResponse{
 			Id:             i.Id,
 			RetailerId:     i.RetailerId,
+			RetailerName:   i.RetailerName,
 			Items:          items,
 			Total:          float32(i.Total),
 			Status:         i.Status,
@@ -373,6 +376,7 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 			return_response.List = append(return_response.List, GetResponse{
 				Id:             i.Id,
 				RetailerId:     i.RetailerId,
+				RetailerName:   i.RetailerName,
 				Items:          items,
 				Total:          float32(i.Total),
 				Status:         i.Status,
@@ -412,6 +416,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 		return_response.List = append(return_response.List, GetResponse{
 			Id:             i.Id,
 			RetailerId:     i.RetailerId,
+			RetailerName:   i.RetailerName,
 			Items:          items,
 			Total:          float32(i.Total),
 			Status:         i.Status,
@@ -452,6 +457,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 				return_response.List = append(return_response.List, GetResponse{
 					Id:             i.Id,
 					RetailerId:     i.RetailerId,
+					RetailerName:   i.RetailerName,
 					Items:          items,
 					Total:          float32(i.Total),
 					Status:         i.Status,
@@ -491,6 +497,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 				return_response.List = append(return_response.List, GetResponse{
 					Id:             i.Id,
 					RetailerId:     i.RetailerId,
+					RetailerName:   i.RetailerName,
 					Items:          items,
 					Total:          float32(i.Total),
 					Status:         i.Status,
