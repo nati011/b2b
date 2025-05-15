@@ -25,6 +25,7 @@ var (
 	ErrAlreadyCanceled                    = errors.New("oopsy, order already canceled")
 	ErrItemMemberProductNotFound          = errors.New("oopsy, product not found")
 	ErrItemMemberProductQuantityNotFound  = errors.New("oopsy, product quantity not found")
+	ErrDuplicateOrderNotAllowed           = errors.New("oopsy, duplicate order not allowed")
 )
 
 // order status
@@ -142,16 +143,45 @@ func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest
 	return nil
 }
 
+// order cannot placed if retailer has ongoing order
+func (o *OrderService) checkOrderDuplicacyEligibility(ctx context.Context, retailerId int) (bool, error) {
+	// check if there is an incomplete(PENDING, ...) order with the same retailer
+	retailer_orders, err := o.GetRetailerOrders(ctx, retailerId)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetResponse:
+		default:
+			return false, ErrUnknown
+		}
+	}
+
+	var isEligible bool = true
+	for _, o := range retailer_orders.List {
+		if o.Status == PENDING_STATUS {
+			isEligible = false
+			break
+		}
+	}
+	return isEligible, nil
+}
+
 func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error) {
 	err := o.validate_placement(ctx, req)
 	if err != nil {
 		return OrderPlaceResponse{}, err
 	}
 
+	isEligible, err := o.checkOrderDuplicacyEligibility(ctx, req.RetailerId)
+	if err != nil {
+		return OrderPlaceResponse{}, ErrUnknown
+	}
+	if !isEligible {
+		return OrderPlaceResponse{}, ErrDuplicateOrderNotAllowed
+	}
+
 	items := make([]port.Item, 0, len(req.Items))
 	var itemsTotal float64
 	for _, i := range req.Items {
-		//fetch price from product
 		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
 		if err != nil {
 			switch err {
