@@ -133,10 +133,11 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case retailer.ErrIdNotFound:
-				util.RequestErrorResponse(w, err)
+				util.OperationSuccessResponse(w, util.Envelope{"retailer": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
+				return
 			}
 		}
 		// get all users
@@ -146,6 +147,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			case retailer.ErrIdNotFound:
 			default:
 				util.ServerErrorResponse(w, err)
+				return
 			}
 		}
 		// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
@@ -156,6 +158,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 			case user.ErrIdNotFound:
 			default:
 				util.ServerErrorResponse(w, err)
+				return
 			}
 		}
 
@@ -180,8 +183,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case retailer.ErrEmptyGetContent:
-
-				util.RequestErrorResponse(w, err)
+				util.OperationSuccessResponse(w, util.Envelope{"retailer": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
@@ -197,6 +199,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				case retailer.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, err)
+					return
 				}
 			}
 			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
@@ -207,6 +210,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				case user.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, err)
+					return
 				}
 			}
 			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
@@ -227,7 +231,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch err {
 			case retailer.ErrEmptyGetContent:
-				util.RequestErrorResponse(w, err)
+				util.OperationSuccessResponse(w, util.Envelope{"retailer": nil})
 				return
 			default:
 				util.ServerErrorResponse(w, err)
@@ -243,6 +247,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				case retailer.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, err)
+					return
 				}
 			}
 			// ASSUMPTION: retailer has one user ERGO users_resp.List[0]
@@ -253,6 +258,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				case user.ErrIdNotFound:
 				default:
 					util.ServerErrorResponse(w, err)
+					return
 				}
 			}
 			handler_resp.List = append(handler_resp.List, GetRetailerResponse{
