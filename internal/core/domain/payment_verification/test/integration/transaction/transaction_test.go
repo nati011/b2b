@@ -73,6 +73,8 @@ func Test_StatusChangeUponSuccessfulVerification(t *testing.T) {
 		t.Errorf("Failed to checkout err: %v", err)
 	}
 
+	testContainer.PaymentVerificationService.Callback(ctx, PaymentPartnerId, checkout_response.TransactionRef)
+
 	resp, err := testContainer.PaymentVerificationService.Verify(ctx, PaymentPartnerId, checkout_response.TransactionRef)
 	if err != nil {
 		t.Fatalf("Failed to verify err: %v", err)
