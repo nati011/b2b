@@ -144,7 +144,7 @@ func (t Chapa) Verify(request port.VerificationRequest) (bool, error) {
 		return false, port.ErrUnknown
 	}
 
-	switch response.Status {
+	switch response.Data.Status {
 	case "success":
 		return true, nil
 	default:
