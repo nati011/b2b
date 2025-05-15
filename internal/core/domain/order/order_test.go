@@ -140,6 +140,30 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		}
 	})
 
+	t.Run("duplicateOrderNotAllowed", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: PaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		_, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		_, err = container.OrderService.Place(ctx, in)
+		wantErr := ErrDuplicateOrderNotAllowed
+		if wantErr != err {
+			t.Errorf("Expected err: %v, Want err: %v", wantErr, err)
+		}
+	})
+
 }
 
 func Test_Place_Order_unhappyPath(t *testing.T) {
