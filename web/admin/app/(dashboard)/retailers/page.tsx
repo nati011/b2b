@@ -3,7 +3,7 @@ import { columns } from "@/app/(dashboard)/retailers/column"
 import useRetailersStore from "@/app/libs/store/useRetailerStore"
 import { useEffect } from "react";
 import Heading from "../../components/breadcrumb";
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 
 export default function Retailers() {
   const {
@@ -26,7 +26,7 @@ export default function Retailers() {
   return (
     <>
       <Heading page={pages} heading="Retailers" subheading="List of Registered Retailers" />
-      <DataTable
+      <DataTableLayout
         columns={columns}
         data={retailers}
         loading={loading}

@@ -2,7 +2,7 @@
 import useProductsStore from "@/app/libs/store/useProductStore"
 import { useEffect, useState } from "react";
 import Heading from "../../../components/breadcrumb";
-import { DataTable } from "./datatable";
+import { DataTableLayout } from "./DataTableLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,7 +108,7 @@ export default function Products() {
   return (
     <>
       <Heading page={pages} heading="Categories" subheading="List of Registered categories" />
-      <DataTable
+      <DataTableLayout
         columns={columns}
         data={categories}
         loading={loading}

@@ -17,6 +17,7 @@ interface MapProps {
 const MapEvents = ({ useCurrentLocation, setMarkerPosition, setFormData }: Omit<MapProps, 'markerPosition'>) => {
     const map = useMap()
 
+
     useEffect(() => {
         if (!useCurrentLocation) {
             map.on('click', (e: L.LeafletMouseEvent) => {
@@ -48,8 +49,8 @@ const Map = ({ markerPosition, useCurrentLocation, setMarkerPosition, setFormDat
     return (
         <MapContainer
             center={markerPosition}
-            zoom={10}
-            className="h-full w-full"
+            zoom={13}
+            className="h-full w-full map"
         >
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

@@ -11,7 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useParams } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 const Map = dynamic(
     () => import('@/app/components/map'),
@@ -46,6 +49,8 @@ export default function DistributorsForm() {
 
     })
     const [markerPosition, setMarkerPosition] = useState<[number, number]>([8.9934609, 38.7714897])
+    const [comment, setComment] = useState("")
+    const [confirmApprovalOpen, setConfirmApprovalOpen] = useState(false)
     const pages = [
         {
             "title": "Distributor",
@@ -62,22 +67,26 @@ export default function DistributorsForm() {
         fetchDistributorUser(distributor.user[0])
     }, [])
     useEffect(() => {
-        console.log([distributor])
-        console.log([distributor.latitude, distributor.longitude])
+        if (distributor.user[0] != 0) {
+            console.log([distributor])
+            console.log([distributor.latitude, distributor.longitude])
 
-        fetchDistributorUser(distributor.user[0])
-        setMarkerPosition([parseFloat(distributor.latitude), parseFloat(distributor.longitude)])
+            fetchDistributorUser(distributor.user[0])
+            const lat = distributor.latitude || "8.9934609"
+            const long = distributor.longitude || "38.7714897"
+            setMarkerPosition([parseFloat(lat), parseFloat(long)])
+        }
     }, [distributor])
 
 
-    function handleSubmit(): void {
-        throw new Error("Function not implemented.");
-    }
+    // function handleSubmit(): void {
+    //     throw new Error("Function not implemented.");
+    // }
 
     return (
         <div className="grid grid-cols-1 gap-4">
             <Heading page={pages} heading="Distributors Details" subheading={`Detail information for ${formData.first_name} ${formData.last_name}`} />
-            <Tabs value="business" className="w-full">
+            <Tabs defaultValue="business" className="w-full">
                 <TabsList className="w-full">
                     <TabsTrigger value="business">Business Information</TabsTrigger>
                     <TabsTrigger value="profile">Profile Information</TabsTrigger>
@@ -225,10 +234,33 @@ export default function DistributorsForm() {
                 </TabsContent>
             </Tabs>
             <div className="flex items-center justify-end space-x-4">
-                <Button type="submit" onClick={handleSubmit}>
+                <Button type="submit" onClick={() => setConfirmApprovalOpen(true)}>
                     Approve Distributor
                 </Button>
             </div>
+            <Dialog open={confirmApprovalOpen} onOpenChange={setConfirmApprovalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Approval</DialogTitle>
+                    </DialogHeader>
+                    <Separator />
+                    <div className="grid gap-2">
+                        <Label htmlFor="Comment">Comment</Label>
+                        <Textarea
+                            id="Comment"
+                            name="Comment"
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Enter remark"
+                            rows={5}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmApprovalOpen(false)}>Cancel</Button>
+                        <Button onClick={() => setConfirmApprovalOpen(false)}>Confirm</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

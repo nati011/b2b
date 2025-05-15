@@ -3,7 +3,7 @@ import { columns } from "@/app/(dashboard)/orders/column"
 import useOrdersStore from "@/app/libs/store/useOrderStore"
 import { useEffect } from "react";
 import Heading from "../../components/breadcrumb";
-import { DataTable } from "@/components/ui/datatable";
+import { DataTableLayout } from "@/components/ui/datatablelayout";
 
 export default function Orders() {
   const {
@@ -26,7 +26,7 @@ export default function Orders() {
   return (
     <>
       <Heading page={pages} heading="Orders" subheading="List of Registered Orders" />
-      <DataTable
+      <DataTableLayout
         columns={columns}
         data={orders}
         loading={loading}
