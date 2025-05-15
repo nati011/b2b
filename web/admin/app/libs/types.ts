@@ -134,3 +134,12 @@ export type Resource = {
   name: string;
   action: string;
 };
+
+export type Transaction = {
+  id: number
+  date: string
+  amount: GLfloat
+  partner_id: number
+  tx_ref: string
+  status: string
+}
