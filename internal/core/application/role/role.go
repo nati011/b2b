@@ -290,6 +290,7 @@ func (r *RoleProvider) HasResource(ctx context.Context, req *HasResourceRequest)
 	resp, err := r.db.GetAllResources(ctx, req.RoleId)
 	if err != nil {
 		switch err {
+		case port_commons.ErrSysNoRows:
 		default:
 			return false, ErrUnknown
 		}
@@ -325,6 +326,7 @@ func (r *RoleProvider) AddResource(ctx context.Context, req *AddResourceRequest)
 	resp, err := r.db.GetAllResources(ctx, req.RoleId)
 	if err != nil {
 		switch err {
+		case port_commons.ErrSysNoRows:
 		default:
 			return ErrUnknown
 		}
@@ -381,21 +383,22 @@ func (r *RoleProvider) RemoveResource(ctx context.Context, req *RemoveResourceRe
 	}
 
 	//check if resource exists
-	resResp, err := r.resource_service.Get(ctx, req.ResourceId)
+	_, err = r.resource_service.Get(ctx, req.ResourceId)
 	if err != nil {
 		switch err {
+		case port_commons.ErrSysNoRows:
+			return ErrResourceNotFound
 		default:
 			return ErrUnknown
 		}
-	}
-	if resResp.Id == 0 {
-		return ErrResourceNotFound
 	}
 
 	//check if resource exists in role
 	resp, err := r.db.GetAllResources(ctx, req.RoleId)
 	if err != nil {
 		switch err {
+		case port_commons.ErrSysNoRows:
+			return ErrResourceNotFoundInRole
 		default:
 			return ErrUnknown
 		}
