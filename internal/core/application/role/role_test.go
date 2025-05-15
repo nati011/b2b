@@ -293,24 +293,14 @@ func Test_getRole_unhappyPath(t *testing.T) {
 	t.Run("getById_notfound", func(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
-
-		// Get by Id
-		in := GetRequest{
+		_, err := container.RoleService.Get(ctx, &GetRequest{
 			Id: rand.Int(),
-		}
-		wantErr := ErrEmptyGetContent
-		got, err := container.RoleService.Get(ctx, &in)
+		})
+		wantErr := ErrIdNotFound
 		if err != wantErr {
-			switch err {
-			case wantErr:
-			default:
-				t.Errorf("Expected err: %v Got err %v", wantErr, err)
-			}
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
 
-		}
-		if got.Id != 0 {
-			t.Errorf("Failed, non existing resource found")
-		}
 	})
 
 	t.Run("getByName", func(t *testing.T) {
