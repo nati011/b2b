@@ -361,6 +361,11 @@ func (de *Distributor) UpdateDistributorHandler(w http.ResponseWriter, r *http.R
 
 }
 
+const (
+	ACTIVATE_DISTRIBUTOR_COMMAND   = "activate"
+	DEACTIVATE_DISTRIBUTOR_COMMAND = "deactivate"
+)
+
 func (d *Distributor) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamCommand = "command"
 	paramValues := r.URL.Query()
@@ -373,7 +378,7 @@ func (d *Distributor) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		switch paramCommandValue {
-		case ACTIVATE_COMMAND:
+		case ACTIVATE_DISTRIBUTOR_COMMAND:
 			err = d.service.Activate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
@@ -386,7 +391,7 @@ func (d *Distributor) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"detail": "distributor successfully activated"})
-		case DEACTIVATE_COMMAND:
+		case DEACTIVATE_DISTRIBUTOR_COMMAND:
 			err = d.service.Dectivate(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
