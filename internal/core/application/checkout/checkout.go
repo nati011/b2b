@@ -82,6 +82,9 @@ func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentR
 }
 
 func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error) {
+	if req.Amount == 0 {
+		return CheckoutResponse{}, ErrAmountNotSupplied
+	}
 	paymentPartner, err := p.paymentPartner.Get(ctx, req.PaymentPartnerId)
 	if err != nil {
 		switch err {
