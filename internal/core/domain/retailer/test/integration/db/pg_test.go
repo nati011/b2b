@@ -51,6 +51,7 @@ func Test_Read(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -82,6 +83,7 @@ func Test_Read(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -115,6 +117,7 @@ func Test_Read(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -150,6 +153,7 @@ func Test_Read(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -185,6 +189,7 @@ func Test_Read(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -213,8 +218,8 @@ func Test_Write(t *testing.T) {
 			Username:    "retailer_user",
 			FirstName:   "test",
 			LastName:    "test",
-
-			Email: "test@gmail.com",
+			Phone:       "+251949184879",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -245,8 +250,8 @@ func Test_Write(t *testing.T) {
 			Username:    "retailer_user",
 			FirstName:   "test",
 			LastName:    "test",
-
-			Email: "test@gmail.com",
+			Phone:       "+251949184879",
+			Email:       "test@gmail.com",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -275,6 +280,7 @@ func Test_Write(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
@@ -314,6 +320,7 @@ func Test_Write(t *testing.T) {
 			FirstName:   "test",
 			LastName:    "test",
 			Email:       "test@gmail.com",
+			Phone:       "+251949184879",
 		}
 		id, err := testContainer.RetailerService.Create(ctx, &in)
 		if err != nil {
