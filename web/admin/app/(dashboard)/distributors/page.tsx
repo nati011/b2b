@@ -54,7 +54,7 @@ export default function Distributors() {
     {
       id: "actions",
       enableHiding: false,
-      cell: ({ row }) => {
+      cell: ({ row }: any) => {
         return (
           <div className="flex items-center gap-2 text-gray-900">
             <Link href={`/distributors/detail/${row.original.id}`}>
