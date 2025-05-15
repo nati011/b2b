@@ -17,6 +17,7 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	testContainer = NewTestContainer()
+	distributorId = 1
 }
 
 func teardown() {
