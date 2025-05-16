@@ -17,8 +17,9 @@ type Config struct {
 	FrontendUrl string
 
 	//email
-	Email string
-	SMTP  string
+	Email         string
+	SMTP          string
+	EmailPassword string
 
 	//db
 	FileLocation           string
