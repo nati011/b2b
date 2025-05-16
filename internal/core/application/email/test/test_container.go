@@ -5,6 +5,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/email"
 	render "b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/template"
+	port "b2b.nati011.github.com/internal/port/application/email"
 )
 
 type TestContainer struct {
@@ -13,7 +14,7 @@ type TestContainer struct {
 	TemplateService template.Provider
 }
 
-func NewIntegrationTestContainer(ep smtp.Provider) *TestContainer {
+func NewIntegrationTestContainer(ep port.Provider) *TestContainer {
 	container := &TestContainer{}
 	container.TemplateService = template.NewTestContainer().TemplateService
 	container.RendererService = render.NewRenderService(container.TemplateService)

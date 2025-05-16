@@ -90,6 +90,7 @@ type Container struct {
 func NewContainer(
 	//database
 	db *sql.DB,
+
 	//auth
 	keycloakInstanceURL string,
 	keycloakUsername string,
@@ -100,6 +101,8 @@ func NewContainer(
 	keycloakClientSecret string,
 	email_address,
 	smtp_port string,
+	email_password string,
+
 	//mobile client version
 	MinMobileClientCompatibleVersion string,
 	//baseurl
@@ -115,7 +118,7 @@ func NewContainer(
 	//ORDER ORDER!!
 	container.InitTemplateService()
 	container.InitRenderService()
-	container.InitEmailService(email_address, smtp_port)
+	container.InitEmailService(email_address, smtp_port, email_password)
 	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
 	container.InitUserService()
 	container.InitPaymentPartnerService()
@@ -143,8 +146,8 @@ func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername
 	)
 }
 
-func (m *Container) InitEmailService(email_address, smtp_port string) {
-	m.EmailService = email.NewEmailService(email_provider_adapter.NewInbucket(email_address, smtp_port), m.RenderService)
+func (m *Container) InitEmailService(email_address, smtp_port, email_password string) {
+	m.EmailService = email.NewEmailService(email_provider_adapter.NewGmail(email_address, smtp_port, email_password), m.RenderService)
 }
 
 func (m *Container) InitPaymentPartnerService() {

@@ -51,7 +51,7 @@ func main() {
 	//for testing purposes
 	InitAuth(&cfg)
 
-	// InitEmail(cfg.Email, cfg.SMTP)
+	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
 
 	application_constainer := application_core.NewContainer(
@@ -65,6 +65,7 @@ func main() {
 		cfg.KeycloakClientSecret,
 		cfg.Email,
 		cfg.SMTP,
+		cfg.EmailPassword,
 		cfg.MinMobileClientCompatibleVersion,
 		cfg.BaseUrl,
 		cfg.FrontendUrl,
