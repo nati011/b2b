@@ -1154,15 +1154,23 @@ CREATE OR REPLACE FUNCTION public.approve_distributor_review (
 RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
-BEGIN   
-    INSERT INTO public.distributor_reviews(distributor_id,
-                                           verdict,
-                                           comment,
-                                           reviewed_by)
-    VALUES(d_distributor_id,
-           TRUE,
-           d_comment,
-           d_reviewed_by);
+BEGIN
+    IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
+        UPDATE public.distributor_reviews
+        SET verdict = TRUE,
+            comment = d_comment,
+            reviewed_by = d_reviewed_by
+        WHERE distributor_id = d_distributor_id;
+    ELSE
+        INSERT INTO public.distributor_reviews(distributor_id,
+                                               verdict,
+                                               comment,
+                                               reviewed_by)
+        VALUES(d_distributor_id,
+               TRUE,
+               d_comment,
+               d_reviewed_by);
+    END IF;
 END;
 $$;
 
@@ -1174,15 +1182,23 @@ CREATE OR REPLACE FUNCTION public.reject_distributor_review (
 RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
-BEGIN   
-    INSERT INTO public.distributor_reviews(distributor_id,
-                                           verdict,
-                                           comment,
-                                           reviewed_by)
-    VALUES(d_distributor_id,
-           FALSE,
-           d_comment,
-           d_reviewed_by);
+BEGIN
+    IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
+        UPDATE public.distributor_reviews
+        SET verdict = FALSE,
+            comment = d_comment,
+            reviewed_by = d_reviewed_by
+        WHERE distributor_id = d_distributor_id;
+    ELSE
+        INSERT INTO public.distributor_reviews(distributor_id,
+                                               verdict,
+                                               comment,
+                                               reviewed_by)
+        VALUES(d_distributor_id,
+               FALSE,
+               d_comment,
+               d_reviewed_by);
+    END IF;
 END;
 $$;
 
