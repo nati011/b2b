@@ -18,7 +18,6 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	application_handler.InitMobileClient()
 	application_handler.InitEmailTemplate()
 	application_handler.InitEmail()
-
 	application_handler.InitResource()
 	application_handler.InitUser()
 	application_handler.InitTransaction()
@@ -32,6 +31,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	domain_handler.InitOrder()
 	domain_handler.InitPayment()
 	domain_handler.InitConfigurableProduct()
+	domain_handler.InitInvoice()
 
 	for _, h := range handler.GetHandlers() {
 		if err := h.Init(applicationServices, domainServices); err != nil {
