@@ -388,8 +388,9 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 		items := []Item{}
 		for _, j := range i.Items {
 			items = append(items, Item{
-				ProductId: j.ProductId,
-				Quantity:  j.Quantity,
+				ProductId:   j.ProductId,
+				Quantity:    j.Quantity,
+				ProductName: j.ProductName,
 			})
 			product, err := o.ProductService.Get(ctx, j.ProductId)
 			if err != nil {
