@@ -21,7 +21,7 @@ import {
 import { AiOutlineProduct } from "react-icons/ai"
 import { PiUsersThreeLight } from "react-icons/pi"
 import { GoGear } from "react-icons/go"
-import { CiShoppingCart } from "react-icons/ci"
+import Image from "next/image"
 import Link from "next/link"
 
 const data = {
@@ -80,10 +80,6 @@ const data = {
                 {
                     title: "Transactions",
                     url: "/transactions",
-                },
-                {
-                    title: "Invoice",
-                    url: "/invoice",
                 }
             ],
         },
@@ -114,11 +110,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             >
 
                                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gray-800 text-sidebar-primary-foreground">
-                                    <CiShoppingCart className="text-2xl" />
+                                    <Image src='/logo.png' width={150} height={100} alt="logo" />
                                 </div>
                                 <div className="grid flex-1 text-left text-lg leading-tight">
                                     <span className="truncate font-semibold">
-                                        Efoyeta Market
+                                        Efoyeta Store
                                     </span>
                                 </div>
                             </SidebarMenuButton>
@@ -132,9 +128,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenu>
                         {data.navMain.map((item) => (
                             <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton tooltip={item.title} className="hover:text-white">
+                                <SidebarMenuButton tooltip={item.title}>
                                     {item.icon && <item.icon />}
-                                    <span>{item.title}</span>
+                                    <a href={item.url}>{item.title}</a>
                                 </SidebarMenuButton>
                                 {item.items?.length ? (
                                     <SidebarMenuSub>
