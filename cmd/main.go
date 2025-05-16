@@ -51,7 +51,7 @@ func main() {
 	//for testing purposes
 	InitAuth(&cfg)
 
-	// InitEmail(cfg.Email, cfg.SMTP)
+	smtp_server := InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
 
 	application_constainer := application_core.NewContainer(
