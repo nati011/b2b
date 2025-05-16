@@ -97,6 +97,7 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/distributor/{id}/user", d.CreateUserHandler)
 	mux.HandleFunc("GET /api/v1/distributor/{id}/user", d.GetUserHandler)
 	mux.HandleFunc("PATCH /api/v1/distributor/{id}/status", d.StatusHandler)
+	mux.HandleFunc("PATCH /api/v1/distributor/{id}/onboarding_review", d.OnboardingApprovalHandler)
 }
 
 func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -404,6 +405,57 @@ func (d *Distributor) StatusHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			util.OperationSuccessResponse(w, util.Envelope{"detail": "distributor successfully deactivated"})
+		default:
+			util.RequestErrorResponse(w, ErrUnknownProductCommand)
+		}
+	}
+}
+
+const (
+	APPROVE_DISTRIBUTOR_COMMAND = "approve"
+	REJECT_DISTRIBUTOR_COMMAND  = "reject"
+)
+
+func (d *Distributor) OnboardingApprovalHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamCommand = "command"
+	const ParamComment = "comment"
+	paramValues := r.URL.Query()
+	paramCommandValue := paramValues.Get(ParamCommand)
+	paramCommentValue := paramValues.Get(ParamComment)
+
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		switch paramCommandValue {
+		case APPROVE_DISTRIBUTOR_COMMAND:
+			err = d.service.ApproveOnboardingRequest(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case distributor.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "distributor successfully approved"})
+		case REJECT_DISTRIBUTOR_COMMAND:
+			err = d.service.RejectOnboardingRequest(r.Context(), typedParamId, paramCommentValue)
+			if err != nil {
+				switch err {
+				case distributor.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+			util.OperationSuccessResponse(w, util.Envelope{"detail": "distributor successfully rejected"})
 		default:
 			util.RequestErrorResponse(w, ErrUnknownProductCommand)
 		}
