@@ -1,7 +1,9 @@
 package domain
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
@@ -34,10 +36,11 @@ func (p *Payment) Init(applicationServices *application_core.Container, domainSe
 }
 
 func (p *Payment) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackHandler)
+	mux.HandleFunc("GET /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackGETHandler)
+	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}", p.CallbackPOSTHandler)
 }
 
-func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Payment) CallbackGETHandler(w http.ResponseWriter, r *http.Request) {
 	typedParamGatewayId, err := util.GetPathParam(r, 5)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
@@ -49,4 +52,29 @@ func (p *Payment) CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.service.Callback(r.Context(), typedParamGatewayId, typedParamTxRef)
+}
+
+type CallbackPOSTHandlerBody struct {
+	TxRef string `json:"tx_ref"`
+}
+
+func (p *Payment) CallbackPOSTHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamGatewayId, err := util.GetPathParam(r, 5)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody CallbackPOSTHandlerBody
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	p.service.Callback(r.Context(), typedParamGatewayId, requestBody.TxRef)
 }
