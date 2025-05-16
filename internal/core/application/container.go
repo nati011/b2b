@@ -90,6 +90,7 @@ type Container struct {
 func NewContainer(
 	//database
 	db *sql.DB,
+
 	//auth
 	keycloakInstanceURL string,
 	keycloakUsername string,
@@ -101,6 +102,7 @@ func NewContainer(
 	email_address,
 	smtp_port string,
 	email_password string,
+
 	//mobile client version
 	MinMobileClientCompatibleVersion string,
 	//baseurl
