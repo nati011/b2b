@@ -1,5 +1,5 @@
 package main
 
-func InitEmail(email, smtp string) {
+func InitEmail(email, smtp, password string) {
 	//ping
 }
