@@ -7,19 +7,19 @@ import (
 	port "b2b.nati011.github.com/internal/port/application/email"
 )
 
-type Inbucket struct {
+type Gmail struct {
 	sender   string
 	smtpPort string
 }
 
-func NewInbucket(sender string, smtpPort string) port.Provider {
-	return &Inbucket{
+func NewGmail(sender string, smtpPort string) port.Provider {
+	return &Gmail{
 		sender:   sender,
 		smtpPort: smtpPort,
 	}
 }
 
-func (m Inbucket) Send(r port.Request) error {
+func (m Gmail) Send(r port.Request) error {
 
 	c, err := smtp.Dial(m.smtpPort)
 	if err != nil {
