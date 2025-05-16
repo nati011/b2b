@@ -133,6 +133,7 @@ export type Item = {
 export type Order = {
   Id: number;
   RetailerId: number;
+  RetailerName: string;
   Items: Item[]
   Total: number
   Status: string

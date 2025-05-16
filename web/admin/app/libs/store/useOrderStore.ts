@@ -24,6 +24,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     order: {
         Id: 0,
         RetailerId: 0,
+        RetailerName: "",
         Items: [],
         Total: 0,
         Status: '',
@@ -99,11 +100,12 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchInvoice: async (order_id?: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/order/invoice?order_id=${order_id}`);
+            const response = await axiosIns.get(`/api/invoice?order_id=${order_id}`);
             set({
-                invoice: response.data.body.invoice,
+                invoice: response.data.body.invoice.List[0],
                 loading: false
             });
+            console.log(response.data)
         } catch (error) {
             set({ error: 'Failed to fetch transactions', loading: false });
         }

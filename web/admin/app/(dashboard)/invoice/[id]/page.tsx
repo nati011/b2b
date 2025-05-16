@@ -37,9 +37,9 @@ export default function InvoiceDetail({ params: { locale } }) {
 
     ];
 
-    // useEffect(() => {
-    //     fetchInvoice(parseInt(routeParam.id))
-    // },[])
+    useEffect(() => {
+        fetchInvoice(parseInt(routeParam.id))
+    }, [])
 
     return (
         <div className="h-screen">
@@ -83,7 +83,7 @@ export default function InvoiceDetail({ params: { locale } }) {
                                     <span className="dark:text-white">Date Issued:</span>
                                 </div>
                                 <div className="font-light sm:text-md text-sm text-neutral-700 ml-2">
-                                    <span className="dark:text-white">{invoice.Created_Date}</span>
+                                    <span className="dark:text-white">{new Date(invoice.Created_Date).toDateString()}</span>
                                 </div>
                             </div>
                         </div>
