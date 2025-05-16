@@ -4,8 +4,9 @@ import (
 	"errors"
 	"log"
 
-	smtp "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
 	render "b2b.nati011.github.com/internal/core/application/render"
+	port "b2b.nati011.github.com/internal/port/application/email"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 type SendRequest struct {
@@ -44,11 +45,11 @@ type Provider interface {
 }
 
 type EmailService struct {
-	smtp     smtp.Provider
+	smtp     port.Provider
 	renderer render.Provider
 }
 
-func NewEmailService(ep smtp.Provider, r render.Provider) *EmailService {
+func NewEmailService(ep port.Provider, r render.Provider) *EmailService {
 	return &EmailService{
 		smtp:     ep,
 		renderer: r,
@@ -76,7 +77,7 @@ func (e EmailService) Send(r *SendRequest) error {
 	}
 
 	err = e.smtp.Send(
-		smtp.Request{
+		port.Request{
 			To:      r.To,
 			Subject: r.Subject,
 			Text:    renderResponse.Text,
@@ -84,7 +85,7 @@ func (e EmailService) Send(r *SendRequest) error {
 	)
 	if err != nil {
 		switch err {
-		case smtp.ErrSysUnknown:
+		case port_commons.ErrSysUnknown:
 			return err
 		default:
 			return ErrUnknown
