@@ -2,7 +2,7 @@
 import useProductsStore from "@/app/libs/store/useProductStore"
 import { useEffect, useState } from "react";
 import Heading from "../../../components/breadcrumb";
-import { DataTableLayout } from "./DataTableLayout";
+import { DataTableLayout } from "./datatable";
 import {
   AlertDialog,
   AlertDialogAction,
