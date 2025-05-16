@@ -26,17 +26,19 @@ const useConfigurableProductStore = create<ProductsStore>((set) => ({
     configurableProducts: [],
     product: {
         Id: 0,
-        name: "",
-        desc: "",
-        external_id: "",
-        images: [],
-        attributes: [],
-        distributor_id: 0,
-        category_id: 0,
-        price_range: {
+        Name: "",
+        Desc: "",
+        ExternalId: "",
+        Images: [],
+        Attributes: [],
+        DistributorId: 0,
+        CategoryId: 0,
+        PriceRange: {
             min: 0,
             max: 0
-        }
+        },
+        IsAvailable: false,
+        Products: []
     },
     loading: false,
     error: null,
@@ -142,11 +144,8 @@ const useConfigurableProductStore = create<ProductsStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await axiosIns.get(`/api/configurable_product?id=${id}`);
-            console.log(response.data.body)
-            // Note: TEMP
-            response.data.body.Attributes = [response.data.body.Attributes]
             set({
-                product: response.data.body,
+                product: response.data.body.configurable_product,
                 loading: false,
             });
         } catch (error) {
