@@ -439,11 +439,11 @@ func Test_Create_Distributor_user_happyPath(t *testing.T) {
 		t.Fatalf("Failed to create err: %v", err)
 	}
 	user_id, err := testContainer.DistributorService.CreateUser(ctx, &CreateUserRequest{
-		Distributor_Id: id,
-		FirstName:      "test_user",
-		LastName:       "test_user",
-		Email:          "test@gmail.com",
-		Username:       "test_user_dist",
+		DistributorId: id,
+		FirstName:     "test_user",
+		LastName:      "test_user",
+		Email:         "test@gmail.com",
+		Username:      "test_user_dist",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create user %v", err)
@@ -458,10 +458,10 @@ func Test_Create_Distributor_user_unhappyPath(t *testing.T) {
 	t.Run("distributorNotFound", func(t *testing.T) {
 		t.Cleanup(testContainer.Teardown)
 		_, err := testContainer.DistributorService.CreateUser(ctx, &CreateUserRequest{
-			Distributor_Id: 99,
-			FirstName:      "test_user",
-			LastName:       "test_user",
-			Email:          "test@gmail.com",
+			DistributorId: 99,
+			FirstName:     "test_user",
+			LastName:      "test_user",
+			Email:         "test@gmail.com",
 		})
 		WantErr := ErrIdNotFound
 		if err != WantErr {

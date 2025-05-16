@@ -262,6 +262,7 @@ func (m *Mock) Activate(ctx context.Context, id int) error {
 	m.distributors = distributors
 	return nil
 }
+
 func (m *Mock) Dectivate(ctx context.Context, id int) error {
 	distributors := []MockDistributor{}
 	for _, i := range m.distributors {
