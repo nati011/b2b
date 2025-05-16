@@ -36,10 +36,6 @@ var (
 	ErrUnknown                 = errors.New("oopsy, unknown error")
 )
 
-const (
-	SUCCESS_MESSAGE = "Ahoy, mail received!"
-)
-
 type Provider interface {
 	Send(*SendRequest) error
 }
