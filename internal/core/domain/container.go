@@ -8,6 +8,7 @@ import (
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
+	distributor_approval_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor_approval/db"
 	invoice_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
@@ -17,6 +18,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
+	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
@@ -47,6 +49,9 @@ import (
 // │
 // ├── ProductService
 // │   └── OrderService
+// │
+// ├── DistributorService
+// │   └── DistributorApprovalService
 
 type Container struct {
 	db                         *sql.DB
@@ -61,6 +66,7 @@ type Container struct {
 	Pagination                 config.Pagination
 	CatalogueService           catalogue.Provider
 	PaymentVerificationService payment_verification.Provider
+	DistributorApprovalService distributorApproval.Provider
 }
 
 func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
@@ -78,6 +84,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitConfigrableProductService()
 	container.InitInvoiceService()
 	container.InitRetailerService()
+	container.InitDistributorApprovalService()
 	container.InitDistributorService()
 	container.InitOrderService()
 	container.InitCatalogueService()
@@ -112,7 +119,11 @@ func (m *Container) InitInvoiceService() {
 }
 
 func (m *Container) InitDistributorService() {
-	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
+	m.DistributorService = distributor.NewDistributorService(m.ApplicationServices.UserService, distributor_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination), m.DistributorApprovalService)
+}
+
+func (m *Container) InitDistributorApprovalService() {
+	m.DistributorApprovalService = distributorApproval.NewDistributorApprovalService(distributor_approval_db_port.NewPostgres(m.db))
 }
 
 func (m *Container) InitRetailerService() {

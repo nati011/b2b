@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"b2b.nati011.github.com/internal/core/application/user"
+	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
@@ -67,12 +68,12 @@ type GetAllUsers struct {
 }
 
 type CreateUserRequest struct {
-	Distributor_Id int
-	FirstName      string
-	LastName       string
-	Username       string
-	Email          string
-	Phone          string
+	DistributorId int
+	FirstName     string
+	LastName      string
+	Username      string
+	Email         string
+	Phone         string
 }
 
 type Provider interface {
@@ -85,68 +86,26 @@ type Provider interface {
 	CreateUser(ctx context.Context, req *CreateUserRequest) (int, error)
 	Activate(ctx context.Context, id int) error
 	Dectivate(ctx context.Context, id int) error
+	ApproveOnboardingRequest(ctx context.Context, distributorId int) error
+	RejectOnboardingRequest(ctx context.Context, distributorId int, comment string) error
 }
 
 type DistributorService struct {
-	DB          port.DB
-	UserService user.Provider
+	DB                         port.DB
+	UserService                user.Provider
+	DistributorApprovalService distributorApproval.Provider
 }
 
-func NewDistributorService(up user.Provider, db port.DB) Provider {
+func NewDistributorService(up user.Provider, db port.DB, dap distributorApproval.Provider) Provider {
 	return &DistributorService{
-		UserService: up,
-		DB:          db,
+		UserService:                up,
+		DB:                         db,
+		DistributorApprovalService: dap,
 	}
-}
-
-func (d *DistributorService) Activate(ctx context.Context, id int) error {
-	resp, err := d.Get(ctx, id)
-	if err != nil {
-		switch err {
-		case ErrIdNotFound:
-			return err
-		default:
-			return ErrUnknown
-		}
-	}
-
-	if resp.IsActive {
-		return ErrDistributorAlreadyActive
-	}
-
-	err = d.DB.Activate(ctx, id)
-	if err != nil {
-		log.Printf("failed to activate distributor id:%v", id)
-		return ErrUnknown
-	}
-	return nil
-}
-
-func (d *DistributorService) Dectivate(ctx context.Context, id int) error {
-	resp, err := d.Get(ctx, id)
-	if err != nil {
-		switch err {
-		case ErrIdNotFound:
-			return err
-		default:
-			return ErrUnknown
-		}
-	}
-
-	if !resp.IsActive {
-		return ErrDistributorAlreadyInactive
-	}
-
-	err = d.DB.Dectivate(ctx, id)
-	if err != nil {
-		log.Printf("failed to deactivate distributor id:%v", id)
-		return ErrUnknown
-	}
-	return nil
 }
 
 func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequest) (int, error) {
-	err := d.validateDistributor(ctx, req.Distributor_Id)
+	err := d.validateDistributor(ctx, req.DistributorId)
 	if err != nil {
 		return 0, err
 	}
@@ -175,7 +134,7 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 
 	id, err := d.DB.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
 		User_id:        user_id,
-		Distributor_Id: req.Distributor_Id,
+		Distributor_Id: req.DistributorId,
 	})
 	if err != nil {
 		switch err {
@@ -388,9 +347,9 @@ func (d *DistributorService) Update(ctx context.Context, req *UpdateRequest) (in
 			}
 		}
 	}
-
 	return req.Id, nil
 }
+
 func (d *DistributorService) GetAllUsers(ctx context.Context, id int) (GetAllUsers, error) {
 	var response_ids = []int{}
 	users, err := d.DB.GetAllUserAgents(ctx, id)
@@ -408,4 +367,83 @@ func (d *DistributorService) GetAllUsers(ctx context.Context, id int) (GetAllUse
 	return GetAllUsers{
 		List: response_ids,
 	}, nil
+}
+
+func (d *DistributorService) Activate(ctx context.Context, id int) error {
+	resp, err := d.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+
+	if resp.IsActive {
+		return ErrDistributorAlreadyActive
+	}
+
+	err = d.DB.Activate(ctx, id)
+	if err != nil {
+		log.Printf("failed to activate distributor id:%v", id)
+		return ErrUnknown
+	}
+	return nil
+}
+
+func (d *DistributorService) Dectivate(ctx context.Context, id int) error {
+	resp, err := d.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case ErrIdNotFound:
+			return err
+		default:
+			return ErrUnknown
+		}
+	}
+
+	if !resp.IsActive {
+		return ErrDistributorAlreadyInactive
+	}
+
+	err = d.DB.Dectivate(ctx, id)
+	if err != nil {
+		log.Printf("failed to deactivate distributor id:%v", id)
+		return ErrUnknown
+	}
+	return nil
+}
+
+func (d *DistributorService) ApproveOnboardingRequest(ctx context.Context, distributorId int) error {
+	err := d.DistributorApprovalService.Approve(ctx, &distributorApproval.ApprovalRequest{
+		DistributorId: distributorId,
+	})
+	if err != nil {
+		switch err {
+		case ErrUnknown:
+			log.Print("failed to approve distributor")
+			return ErrUnknown
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *DistributorService) RejectOnboardingRequest(ctx context.Context, distributorId int, comment string) error {
+	err := d.DistributorApprovalService.Reject(ctx, &distributorApproval.RejectionRequest{
+		DistributorId: distributorId,
+		Comment:       comment,
+	})
+	if err != nil {
+		switch err {
+		case ErrUnknown:
+			log.Print("failed to reject distributor")
+			return ErrUnknown
+		default:
+			return err
+		}
+	}
+	return nil
 }

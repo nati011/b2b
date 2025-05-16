@@ -107,6 +107,18 @@ CREATE TABLE IF NOT EXISTS public."distributor_users"
 
 COMMENT ON TABLE public."distributor_users" IS 'stores distributor agents(always on the supply end of the application';
 
+CREATE TABLE IF NOT EXISTS public."distributor_reviews"
+(
+  distributor_id INT PRIMARY KEY,
+	verdict BOOLEAN,
+  comment VARCHAR(255),
+  reviewed_by VARCHAR(255)
+  -- FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,
+	-- FOREIGN KEY (distributor_id) REFERENCES public."distributors"(id) ON DELETE CASCADE
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."distributor_users" IS 'stores distributor approval detail';
+
 CREATE TABLE IF NOT EXISTS public."admins"
 (
 	id SERIAL PRIMARY KEY

@@ -7,11 +7,13 @@ import (
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
+	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
 )
 
 type TestContainer struct {
-	UserService        user.Provider
-	DistributorService distributor.Provider
+	UserService                user.Provider
+	DistributorService         distributor.Provider
+	DistributorApprovalService distributorApproval.Provider
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
@@ -20,7 +22,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.DistributorService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db, &config.Pagination{
 		Limit:  10,
 		Offset: 0,
-	}))
+	}), container.DistributorApprovalService)
 
 	return container
 }
@@ -30,5 +32,5 @@ func (t *TestContainer) Teardown(db *sql.DB) {
 	t.DistributorService = distributor.NewDistributorService(t.UserService, db_adapter.NewPostgres(db, &config.Pagination{
 		Limit:  10,
 		Offset: 0,
-	}))
+	}), t.DistributorApprovalService)
 }
