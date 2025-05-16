@@ -186,7 +186,7 @@ func (m *Container) InitUserService() {
 }
 
 func (m *Container) InitPagination() {
-	m.Pagination = *config.NewPaginationBuilder().Build()
+	m.Pagination = *config.DefaultPaginationBuilder().Build()
 }
 
 func (m *Container) InitCheckoutService(baseUrl, frontendUrl string) {
