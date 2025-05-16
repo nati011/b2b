@@ -3,6 +3,8 @@ package email
 import (
 	"log"
 	"net/smtp"
+
+	port "b2b.nati011.github.com/internal/port/application/email"
 )
 
 type Inbucket struct {
@@ -10,14 +12,14 @@ type Inbucket struct {
 	smtpPort string
 }
 
-func NewInbucket(sender string, smtpPort string) Provider {
+func NewInbucket(sender string, smtpPort string) port.Provider {
 	return &Inbucket{
 		sender:   sender,
 		smtpPort: smtpPort,
 	}
 }
 
-func (m Inbucket) Send(r Request) error {
+func (m Inbucket) Send(r port.Request) error {
 
 	c, err := smtp.Dial(m.smtpPort)
 	if err != nil {
