@@ -1143,6 +1143,70 @@ END;
 $$;
 
 
+-- distributor reveiw ---------------------------------
+
+    -- writer
+CREATE OR REPLACE FUNCTION public.approve_distributor_review (
+    d_distributor_id INT,
+    d_comment VARCHAR(255),
+    d_reviewed_by VARCHAR(255)
+) 
+RETURNS VOID
+LANGUAGE plpgsql 
+AS $$
+BEGIN   
+    INSERT INTO public.distributor_reviews(distributor_id,
+                                           verdict,
+                                           comment,
+                                           reviewed_by)
+    VALUES(d_distributor_id,
+           TRUE,
+           d_comment,
+           d_reviewed_by);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.reject_distributor_review (
+    d_distributor_id INT,
+    d_comment VARCHAR(255),
+    d_reviewed_by VARCHAR(255)
+) 
+RETURNS VOID
+LANGUAGE plpgsql 
+AS $$
+BEGIN   
+    INSERT INTO public.distributor_reviews(distributor_id,
+                                           verdict,
+                                           comment,
+                                           reviewed_by)
+    VALUES(d_distributor_id,
+           FALSE,
+           d_comment,
+           d_reviewed_by);
+END;
+$$;
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_approval_status_by_distributor_id (
+    d_id INT
+) 
+RETURNS BOOLEAN
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    approval_status BOOLEAN;
+BEGIN   
+    SELECT verdict
+    INTO approval_status
+    FROM public.distributor_reviews dr
+    WHERE dr.distributor_id = d_id
+    AND dr.is_deleted = FALSE
+    LIMIT 1;
+
+    RETURN approval_status;
+END;
+$$;
+
 -- Retailer ----------------------------------------
     
     -- writers
