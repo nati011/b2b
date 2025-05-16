@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_approval"
 )
 
@@ -19,7 +20,7 @@ func NewPostgres(DB *sql.DB) port.DB {
 }
 
 func (m *Postgres) GetApprovalStatus(ctx context.Context, distributorId int) (bool, error) {
-	var isApproved bool
+	var isApproved any
 	query := "SELECT * FROM public.get_approval_status_by_distributor_id($1);"
 	result := []any{&isApproved}
 
@@ -34,7 +35,11 @@ func (m *Postgres) GetApprovalStatus(ctx context.Context, distributorId int) (bo
 	if err != nil {
 		return false, err
 	}
-	return true, nil
+	if approved, ok := isApproved.(bool); ok {
+		return approved, nil
+	} else {
+		return false, port_commons.ErrSysNoRows
+	}
 }
 
 func (m *Postgres) GetReviewReport(ctx context.Context, distributorId int) (port.GetAuditReportResponse, error) {
@@ -42,7 +47,7 @@ func (m *Postgres) GetReviewReport(ctx context.Context, distributorId int) (port
 }
 
 func (m *Postgres) Approve(ctx context.Context, req port.ApprovalRequest) error {
-	query := "SELECT * FROM public.approve_distributor_review($1, $2, $3, $4, $5, $6, $7);"
+	query := "SELECT * FROM public.approve_distributor_review($1, $2, $3);"
 
 	args := []any{
 		req.DistributorId,
@@ -61,7 +66,7 @@ func (m *Postgres) Approve(ctx context.Context, req port.ApprovalRequest) error 
 }
 
 func (m *Postgres) Reject(ctx context.Context, req port.RejectRequest) error {
-	query := "SELECT * FROM public.reject_distributor_review($1, $2, $3, $4, $5, $6, $7);"
+	query := "SELECT * FROM public.reject_distributor_review($1, $2, $3);"
 
 	args := []any{
 		req.DistributorId,

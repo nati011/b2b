@@ -63,9 +63,8 @@ func Test_Write(t *testing.T) {
 	t.Run("approve", func(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
-		err := testContainer.DistributorApprovalService.Reject(ctx, &distributorApproval.RejectionRequest{
+		err := testContainer.DistributorApprovalService.Approve(ctx, &distributorApproval.ApprovalRequest{
 			DistributorId: distributorId,
-			Comment:       "test",
 		})
 		if err != nil {
 			t.Fatalf("failed to approve distributor: %v", err)

@@ -75,7 +75,7 @@ func (d *DistributorApprovalService) Reject(ctx context.Context, req *RejectionR
 			return ErrUnknown
 		}
 	} else {
-		if !isApproved {
+		if !isApproved && err != port_commons.ErrSysNoRows {
 			return ErrAlreadyRejected
 		}
 	}
