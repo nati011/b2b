@@ -277,7 +277,7 @@ func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req Re
 		log.Print("failed to generate password")
 		return RegisterUserResponse{}, ErrUnknown
 	}
-
+	log.Printf("generated password: %v", genPassword)
 	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest{
 		Email:       req.Email,
 		Password:    genPassword,
@@ -298,10 +298,10 @@ func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req Re
 			return RegisterUserResponse{}, ErrUnknown
 		}
 	}
-	err = a.InitClientCredentialsReset(ctx, InitClientCredentialsResetRequest{
-		UserId: resp.Id,
-		Email:  req.Email,
-	})
+	// err = a.InitClientCredentialsReset(ctx, InitClientCredentialsResetRequest{
+	// 	UserId: resp.Id,
+	// 	Email:  req.Email,
+	// })
 	if err != nil {
 		log.Printf("Failed to init client credentials reset")
 		// a.authProvider.DeleteClient(ctx, req)
