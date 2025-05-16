@@ -16,7 +16,7 @@ func NewPaginationBuilder() *PaginationBuilder {
 func DefaultPaginationBuilder() *PaginationBuilder {
 	return &PaginationBuilder{
 		pagination: &Pagination{
-			Limit:  10,
+			Limit:  100,
 			Offset: 0,
 		},
 	}
