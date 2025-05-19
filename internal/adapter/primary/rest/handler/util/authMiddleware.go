@@ -35,7 +35,7 @@ func NewAuthMiddleware(
 	}
 }
 
-func (am *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
+func (am *AuthMiddleware) Authenticate(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
