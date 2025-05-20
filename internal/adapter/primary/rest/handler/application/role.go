@@ -64,7 +64,8 @@ var (
 )
 
 type Role struct {
-	service role.Provider
+	authMiddleware util.AuthMiddleware
+	service        role.Provider
 }
 
 func InitRole() {
@@ -76,12 +77,26 @@ func (r *Role) Init(authMiddleWare *util.AuthMiddleware, applicationServices *ap
 	return nil
 }
 
-func (r *Role) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/role", r.GetHandler)
-	mux.HandleFunc("GET /api/v1/role/resource", r.GetAllResourcesHandler)
-	mux.HandleFunc("POST /api/v1/role", r.CreateHandler)
-	mux.HandleFunc("PATCH /api/v1/role/{id}", r.CommandHandler)
-	mux.HandleFunc("PUT /api/v1/role", r.UpdateHandler)
+func (ro *Role) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.GetHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/role/resource", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.GetAllResourcesHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.CreateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/role/{id}", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.CommandHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PUT /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.UpdateHandler)).ServeHTTP(w, r)
+	})
 }
 
 const (
