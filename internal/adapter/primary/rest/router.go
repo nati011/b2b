@@ -7,7 +7,6 @@ import (
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
 
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -34,10 +33,8 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	domain_handler.InitConfigurableProduct()
 	domain_handler.InitInvoice()
 
-	authMiddleWare := util.NewAuthMiddleware(applicationServices.AuthService)
-
 	for _, h := range handler.GetHandlers() {
-		if err := h.Init(authMiddleWare, applicationServices, domainServices); err != nil {
+		if err := h.Init(applicationServices.AuthMiddleware, applicationServices, domainServices); err != nil {
 			return err
 		}
 		h.Routes(mux)

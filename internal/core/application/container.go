@@ -141,9 +141,8 @@ func (m *Container) InitMobileClientService(minMobileClientCompatibleVersion str
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
 	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
 		m.EmailService)
-	m.AuthMiddleware = util.NewAuthMiddleware(
-		keycloakInstanceURL, keycloakClientId, keycloakClientSecret, keycloakRealm, keycloakPassword,
-	)
+
+	m.AuthMiddleware = util.NewAuthMiddleware(m.AuthService)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port, email_password string) {
