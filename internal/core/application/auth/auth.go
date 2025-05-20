@@ -123,8 +123,12 @@ func (a *AuthService) DecodeToken(ctx context.Context, token string) (DecodeResu
 }
 
 func (a *AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
-	// result, err := a.authProvider.RetrospectToken(ctx, token)
-	return RetrospectionResult{}, nil
+	result, err := a.authProvider.RetrospectToken(ctx, token)
+	if err != nil {
+		return RetrospectionResult{}, ErrUnknown
+	}
+
+	return RetrospectionResult{Active: *result.Active}, nil
 }
 
 func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error {
