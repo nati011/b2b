@@ -25,6 +25,10 @@ func (p *Mock) GetByTransactionRef(ctx context.Context, name string) (port.GetRe
 	return port.GetResponse{}, nil
 }
 
+func (p *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetAllResponse, error) {
+	return port.GetAllResponse{}, nil
+}
+
 func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return port.GetAllResponse{}, nil
 }
