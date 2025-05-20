@@ -27,6 +27,7 @@ type Reader interface {
 	GetByID(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByTransactionRef(ctx context.Context, txRef string) (GetResponse, error)
+	GetByOrderId(ctx context.Context, orderId int) (GetAllResponse, error)
 }
 
 type Writer interface {

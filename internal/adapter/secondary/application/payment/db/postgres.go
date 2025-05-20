@@ -44,6 +44,10 @@ func (p *Postgres) GetByTransactionRef(ctx context.Context, name string) (port.G
 	return port.GetResponse{}, nil
 }
 
+func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetAllResponse, error) {
+	return port.GetAllResponse{}, nil
+}
+
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return port.GetAllResponse{}, nil
 }
