@@ -34,20 +34,24 @@ type GetAllResponse struct {
 }
 
 type Transaction struct {
-	service transaction.Provider
+	authMiddleware util.AuthMiddleware
+	service        transaction.Provider
 }
 
 func InitTransaction() {
 	handler.Register(new(Transaction))
 }
 
-func (r *Transaction) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = applicationServices.TransactionService
+func (t *Transaction) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	t.authMiddleware = *applicationServices.AuthMiddleware
+	t.service = applicationServices.TransactionService
 	return nil
 }
 
 func (p *Transaction) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/transaction", p.GetTransactionsHandler)
+	mux.HandleFunc("GET /api/v1/transaction", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.GetTransactionsHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (p *Transaction) GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
