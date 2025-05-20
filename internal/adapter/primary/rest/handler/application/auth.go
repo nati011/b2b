@@ -14,8 +14,8 @@ import (
 )
 
 type AuthHandler struct {
-	service    auth.Provider
-	middleware util.AuthMiddleware
+	authMiddleware util.AuthMiddleware
+	service        auth.Provider
 }
 
 type ResetPasswordRequest struct {
@@ -26,20 +26,25 @@ func InitAuth() {
 	handler.Register(new(AuthHandler))
 }
 
-func (a *AuthHandler) Init(services *application_core.Container, domainService *domain_core.Container) error {
+func (a *AuthHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.AuthService
-	a.middleware = *services.AuthMiddleware
+	a.authMiddleware = *services.AuthMiddleware
 	return nil
 }
 
 func (a *AuthHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/auth/login", a.LoginHandler)
-	mux.HandleFunc("POST /api/v1/auth/refresh", a.RefreshTokenHandler)
-	mux.HandleFunc("POST /api/v1/auth/reset/{token}", a.ResetCredentialsHandler)
+	mux.HandleFunc("POST /api/v1/auth/login", func(w http.ResponseWriter, r *http.Request) {
+		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.LoginHandler)).ServeHTTP(w, r)
+	})
+	mux.HandleFunc("POST /api/v1/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
+		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.RefreshTokenHandler)).ServeHTTP(w, r)
+	})
+	mux.HandleFunc("POST /api/v1/auth/reset/{token}", func(w http.ResponseWriter, r *http.Request) {
+		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.ResetCredentialsHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
@@ -111,5 +116,5 @@ func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Req
 		util.ServerErrorResponse(w, err)
 		return
 	}
-	util.OperationSuccessMessageResponse(w, "password reset successfuly")
+	util.OperationSuccessMessageResponse(w, "password reset successfully")
 }

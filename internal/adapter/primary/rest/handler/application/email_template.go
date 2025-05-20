@@ -19,21 +19,27 @@ type CreateEmailTemplateRequest struct {
 }
 
 type EmailTemplate struct {
-	Service template.Provider
+	authMiddleware util.AuthMiddleware
+	Service        template.Provider
 }
 
 func InitEmailTemplate() {
 	handler.Register(new(EmailTemplate))
 }
 
-func (e *EmailTemplate) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (e *EmailTemplate) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	e.authMiddleware = *applicationServices.AuthMiddleware
 	e.Service = applicationServices.TemplateService
 	return nil
 }
 
 func (e *EmailTemplate) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/email_template", e.CreateEmailTemplateHandler)
-	mux.HandleFunc("GET /api/v1/email_template", e.GetEmailTemplateHandler)
+	mux.HandleFunc("POST /api/v1/email_template", func(w http.ResponseWriter, r *http.Request) {
+		e.authMiddleware.RequireAuthentication(http.HandlerFunc(e.CreateEmailTemplateHandler)).ServeHTTP(w, r)
+	})
+	mux.HandleFunc("GET /api/v1/email_template", func(w http.ResponseWriter, r *http.Request) {
+		e.authMiddleware.RequireAuthentication(http.HandlerFunc(e.GetEmailTemplateHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (e *EmailTemplate) CreateEmailTemplateHandler(w http.ResponseWriter, r *http.Request) {
