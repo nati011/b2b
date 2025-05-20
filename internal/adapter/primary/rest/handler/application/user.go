@@ -77,7 +77,8 @@ type GetAllUserResponse struct {
 }
 
 type UserHandler struct {
-	service user.Provider
+	authMiddleware util.AuthMiddleware
+	service        user.Provider
 }
 
 func InitUser() {
@@ -86,16 +87,30 @@ func InitUser() {
 
 func (a *UserHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.UserService
+	a.authMiddleware = *services.AuthMiddleware
 	return nil
 }
 
-func (a *UserHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/user", a.GetUser)
-	mux.HandleFunc("POST /api/v1/user", a.CreateUser)
-	mux.HandleFunc("PATCH /api/v1/user", a.UpdateProfile)
+func (u *UserHandler) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.GetUser)).ServeHTTP(w, r)
+	})
 
-	mux.HandleFunc("PATCH /api/v1/user/{id}/status", a.StatusHandler)
-	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", a.RoleHandler)
+	mux.HandleFunc("POST /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.CreateUser)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.UpdateProfile)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/user/{id}/status", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.StatusHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
+	})
 }
 
 const (
