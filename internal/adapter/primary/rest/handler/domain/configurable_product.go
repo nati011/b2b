@@ -70,23 +70,36 @@ type UpdateConfigurableProductRequest struct {
 }
 
 type ConfigurableProduct struct {
-	service configurable_product.Provider
+	authMiddleware util.AuthMiddleware
+	service        configurable_product.Provider
 }
 
 func InitConfigurableProduct() {
 	handler.Register(new(ConfigurableProduct))
 }
 
-func (r *ConfigurableProduct) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = domainService.ConfigurableProductService
+func (c *ConfigurableProduct) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	c.service = domainService.ConfigurableProductService
+	c.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
-func (p *ConfigurableProduct) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/configurable_product", p.GetConfigurableProductsHandler)
-	mux.HandleFunc("POST /api/v1/configurable_product", p.CreateConfigurableProductHandler)
-	mux.HandleFunc("PUT /api/v1/configurable_product", p.UpdateHandler)
-	mux.HandleFunc("PATCH /api/v1/configurable_product/{id}/status", p.StatusCommandHandler)
+func (cp *ConfigurableProduct) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/configurable_product", func(w http.ResponseWriter, r *http.Request) {
+		cp.authMiddleware.RequireNoAuthentication(http.HandlerFunc(cp.GetConfigurableProductsHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/configurable_product", func(w http.ResponseWriter, r *http.Request) {
+		cp.authMiddleware.RequireAuthentication(http.HandlerFunc(cp.CreateConfigurableProductHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PUT /api/v1/configurable_product", func(w http.ResponseWriter, r *http.Request) {
+		cp.authMiddleware.RequireAuthentication(http.HandlerFunc(cp.UpdateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/configurable_product/{id}/status", func(w http.ResponseWriter, r *http.Request) {
+		cp.authMiddleware.RequireAuthentication(http.HandlerFunc(cp.StatusCommandHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (cp *ConfigurableProduct) GetConfigurableProductsHandler(w http.ResponseWriter, r *http.Request) {
