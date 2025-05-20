@@ -54,20 +54,36 @@ func InitOrder() {
 }
 
 type Order struct {
-	service order.Provider
+	authMiddleware util.AuthMiddleware
+	service        order.Provider
 }
 
-func (r *Order) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = domainService.OrderService
+func (o *Order) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	o.service = domainService.OrderService
+	o.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (o *Order) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/order", o.GetHandler)
-	mux.HandleFunc("POST /api/v1/order", o.PostHandler)
-	mux.HandleFunc("PATCH /api/v1/order", o.CommandHandler)
-	mux.HandleFunc("GET /api/v1/orders/retailer", o.GetRetailerOrders)
-	mux.HandleFunc("GET /api/v1/orders/distributor", o.GetDistributorOrders)
+	mux.HandleFunc("GET /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.PostHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.CommandHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/orders/retailer", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetRetailerOrders)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/orders/distributor", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetDistributorOrders)).ServeHTTP(w, r)
+	})
 }
 
 func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
