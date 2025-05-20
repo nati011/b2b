@@ -50,7 +50,8 @@ type UpdatePaymentOptionRequest struct {
 }
 
 type PaymentPartner struct {
-	service payment_partner.Provider
+	authMiddleware util.AuthMiddleware
+	service        payment_partner.Provider
 }
 
 func InitPaymentPartner() {
@@ -59,15 +60,30 @@ func InitPaymentPartner() {
 
 func (r *PaymentPartner) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.PaymentPartnerService
+	r.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (p *PaymentPartner) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/payment_option", p.GetPaymentPartnersHandler)
-	mux.HandleFunc("GET /api/v1/payment_option/active", p.GetActivePaymentPartnersHandler)
-	mux.HandleFunc("POST /api/v1/payment_option", p.CreatePaymentPartnerHandler)
-	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/status", p.StatusCommandHandler)
-	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/secret", p.UpdateSecretHandler)
+	mux.HandleFunc("GET /api/v1/payment_option", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.GetPaymentPartnersHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/payment_option/active", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.GetActivePaymentPartnersHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/payment_option", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.CreatePaymentPartnerHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/status", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.StatusCommandHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/payment_option/{id}/secret", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.UpdateSecretHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *http.Request) {
