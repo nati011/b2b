@@ -74,7 +74,8 @@ func main() {
 	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
 	mux := http.NewServeMux()
-	InitREST(mux, db_pool, application_constainer, domain_container)
+	authMiddleWare := util.NewAuthMiddleware(cfg.KeycloakInstanceURL, cfg.KeycloakClientId, cfg.KeycloakClientSecret, cfg.KeycloakApplicationRealm, cfg.KeycloakPassword)
+	InitREST(authMiddleWare, mux, db_pool, application_constainer, domain_container)
 
 	loggingingMiddleware := util.NewLoggingMiddleware()
 	paginationMiddleware := util.NewPaginationMiddleware(*config.NewPaginationBuilder())
