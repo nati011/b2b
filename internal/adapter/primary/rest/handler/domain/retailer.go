@@ -60,6 +60,7 @@ type UpdateRetailerRequest struct {
 }
 
 type Retailer struct {
+	auth        util.AuthMiddleware
 	service     retailer.Provider
 	userService user.Provider
 }
@@ -68,7 +69,7 @@ func InitRetailer() {
 	handler.Register(new(Retailer))
 }
 
-func (r *Retailer) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (r *Retailer) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	r.service = domainServices.RetailerService
 	r.userService = applicationServices.UserService
 	return nil

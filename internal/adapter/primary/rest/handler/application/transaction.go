@@ -41,7 +41,7 @@ func InitTransaction() {
 	handler.Register(new(Transaction))
 }
 
-func (r *Transaction) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Transaction) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.TransactionService
 	return nil
 }

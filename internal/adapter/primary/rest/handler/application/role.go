@@ -71,7 +71,7 @@ func InitRole() {
 	handler.Register(new(Role))
 }
 
-func (r *Role) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Role) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ApplicationServices.RoleService
 	return nil
 }

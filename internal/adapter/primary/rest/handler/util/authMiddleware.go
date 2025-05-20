@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strings"
 
@@ -35,22 +34,22 @@ func NewAuthMiddleware(
 	}
 }
 
-func (am *AuthMiddleware) Authenticate(next http.Handler) http.HandlerFunc {
+func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
+		if strings.TrimSpace(authHeader) == "" {
 			UnauthorizedResponse(w)
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "Bearer" {
 			UnauthorizedResponse(w)
 			return
 		}
 
 		token := parts[1]
-		if token == "" {
+		if strings.TrimSpace(token) == "" {
 			UnauthorizedResponse(w)
 			return
 		}
@@ -84,9 +83,16 @@ func (am *AuthMiddleware) Authenticate(next http.Handler) http.HandlerFunc {
 			UnauthorizedResponse(w)
 			return
 		}
-
-		log.Print(claims)
 		ctx := context.WithValue(r.Context(), "claims", claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (am *AuthMiddleware) RequireNoAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Middleware logic (e.g., check if the user is already authenticated)
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
 	})
 }

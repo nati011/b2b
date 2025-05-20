@@ -82,7 +82,7 @@ func InitDistributor() {
 	handler.Register(new(Distributor))
 }
 
-func (d *Distributor) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (d *Distributor) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	d.service = domainServices.DistributorService
 	d.userService = applicationServices.UserService
 	d.middleware = *applicationServices.AuthMiddleware

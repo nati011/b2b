@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -15,7 +16,7 @@ func InitHealth() {
 	handler.Register(new(HealthHandler))
 }
 
-func (d *HealthHandler) Init(services *application_core.Container, domainService *domain_core.Container) error {
+func (d *HealthHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
 	return nil
 }
 
