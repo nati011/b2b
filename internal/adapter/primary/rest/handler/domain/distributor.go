@@ -73,9 +73,9 @@ type UpdateDistributorRequest struct {
 }
 
 type Distributor struct {
-	service     distributor.Provider
-	userService user.Provider
-	middleware  util.AuthMiddleware
+	service        distributor.Provider
+	userService    user.Provider
+	authMiddleware util.AuthMiddleware
 }
 
 func InitDistributor() {
@@ -85,20 +85,38 @@ func InitDistributor() {
 func (d *Distributor) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	d.service = domainServices.DistributorService
 	d.userService = applicationServices.UserService
-	d.middleware = *applicationServices.AuthMiddleware
+	d.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.GetDistributorHandler)).ServeHTTP(w, r)
+	})
 
-	mux.HandleFunc("GET /api/v1/distributor", d.GetDistributorHandler)
-	mux.HandleFunc("POST /api/v1/distributor", d.CreateDistributorHandler)
-	mux.HandleFunc("PUT /api/v1/distributor", d.UpdateDistributorHandler)
+	mux.HandleFunc("POST /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateDistributorHandler)).ServeHTTP(w, r)
+	})
 
-	mux.HandleFunc("POST /api/v1/distributor/{id}/user", d.CreateUserHandler)
-	mux.HandleFunc("GET /api/v1/distributor/{id}/user", d.GetUserHandler)
-	mux.HandleFunc("PATCH /api/v1/distributor/{id}/status", d.StatusHandler)
-	mux.HandleFunc("PATCH /api/v1/distributor/{id}/onboarding_review", d.OnboardingApprovalHandler)
+	mux.HandleFunc("PUT /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.UpdateDistributorHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateUserHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.GetUserHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/distributor/{id}/status", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.StatusHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/distributor/{id}/onboarding_review", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.OnboardingApprovalHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
