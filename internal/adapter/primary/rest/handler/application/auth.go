@@ -34,9 +34,8 @@ func (a *AuthHandler) Init(authMiddleWare *util.AuthMiddleware, services *applic
 }
 
 func (a *AuthHandler) Routes(mux *http.ServeMux) {
-
 	mux.HandleFunc("POST /api/v1/auth/login", func(w http.ResponseWriter, r *http.Request) {
-		a.auth.RequireNoAuthentication(http.HandlerFunc(a.LoginHandler)).ServeHTTP(w, r)
+		a.auth.RequireAuthentication(http.HandlerFunc(a.LoginHandler)).ServeHTTP(w, r)
 	})
 	mux.HandleFunc("POST /api/v1/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
 		a.auth.RequireNoAuthentication(http.HandlerFunc(a.RefreshTokenHandler)).ServeHTTP(w, r)
@@ -47,7 +46,6 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
@@ -119,5 +117,5 @@ func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Req
 		util.ServerErrorResponse(w, err)
 		return
 	}
-	util.OperationSuccessMessageResponse(w, "password reset successfuly")
+	util.OperationSuccessMessageResponse(w, "password reset successfully")
 }

@@ -12,7 +12,7 @@ import (
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
-func BuildRouter(authMiddleWare *util.AuthMiddleware, mux *http.ServeMux, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	application_handler.InitAuth()
 	application_handler.InitHealth()
 	application_handler.InitPaymentPartner()
@@ -34,8 +34,10 @@ func BuildRouter(authMiddleWare *util.AuthMiddleware, mux *http.ServeMux, applic
 	domain_handler.InitConfigurableProduct()
 	domain_handler.InitInvoice()
 
+	authMiddleWare := util.NewAuthMiddleware(applicationServices.AuthService)
+
 	for _, h := range handler.GetHandlers() {
-		if err := h.Init(applicationServices, domainServices); err != nil {
+		if err := h.Init(authMiddleWare, applicationServices, domainServices); err != nil {
 			return err
 		}
 		h.Routes(mux)
