@@ -12,13 +12,21 @@ type AuthMiddleware struct {
 	auth auth.Provider
 }
 
+type Option func(*AuthMiddleware)
+
 func NewAuthMiddleware(auth_service auth.Provider) *AuthMiddleware {
 	return &AuthMiddleware{
 		auth: auth_service,
 	}
 }
 
-func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.Handler {
+func WithRole(roles []string) Option {
+	return func(a *AuthMiddleware) {
+
+	}
+}
+
+func (am *AuthMiddleware) RequireAuthentication(next http.Handler, options ...Option) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if strings.TrimSpace(authHeader) == "" {
