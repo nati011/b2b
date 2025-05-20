@@ -12,7 +12,8 @@ import (
 )
 
 type Invoice struct {
-	Service invoice.Provider
+	authMiddleware util.AuthMiddleware
+	Service        invoice.Provider
 }
 
 func InitInvoice() {
@@ -21,11 +22,14 @@ func InitInvoice() {
 
 func (i *Invoice) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	i.Service = domainService.InvoiceService
+	i.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (i *Invoice) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/invoice", i.GetHandler)
+	mux.HandleFunc("GET /api/v1/invoice", func(w http.ResponseWriter, r *http.Request) {
+		i.authMiddleware.RequireAuthentication(http.HandlerFunc(i.GetHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (i *Invoice) GetHandler(w http.ResponseWriter, r *http.Request) {

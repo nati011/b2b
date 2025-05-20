@@ -91,31 +91,31 @@ func (d *Distributor) Init(authMiddleWare *util.AuthMiddleware, applicationServi
 
 func (d *Distributor) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.GetDistributorHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetDistributorHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateDistributorHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateDistributorHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PUT /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.UpdateDistributorHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.UpdateDistributorHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateUserHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateUserHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.GetUserHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetUserHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PATCH /api/v1/distributor/{id}/status", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.StatusHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.StatusHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PATCH /api/v1/distributor/{id}/onboarding_review", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.OnboardingApprovalHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.OnboardingApprovalHandler)).ServeHTTP(w, r)
 	})
 }
 
