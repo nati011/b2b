@@ -42,5 +42,5 @@ func NotFoundResponse(w http.ResponseWriter) {
 }
 
 func UnauthorizedResponse(w http.ResponseWriter) {
-	errorResponse(w, http.StatusUnauthorized, nil)
+	errorResponse(w, http.StatusUnauthorized, "unauthorized")
 }

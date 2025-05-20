@@ -7,11 +7,12 @@ import (
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
 
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
-func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func BuildRouter(authMiddleWare *util.AuthMiddleware, mux *http.ServeMux, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	application_handler.InitAuth()
 	application_handler.InitHealth()
 	application_handler.InitPaymentPartner()

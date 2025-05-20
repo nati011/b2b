@@ -77,7 +77,7 @@ func InitConfigurableProduct() {
 	handler.Register(new(ConfigurableProduct))
 }
 
-func (r *ConfigurableProduct) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *ConfigurableProduct) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ConfigurableProductService
 	return nil
 }

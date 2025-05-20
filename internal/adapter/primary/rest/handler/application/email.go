@@ -29,7 +29,7 @@ func InitEmail() {
 	handler.Register(new(Email))
 }
 
-func (e *Email) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (e *Email) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	e.Service = applicationServices.EmailService
 	return nil
 }

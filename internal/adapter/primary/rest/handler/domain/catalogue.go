@@ -80,7 +80,7 @@ func InitCatalogue() {
 	handler.Register(new(Catalogue))
 }
 
-func (c *Catalogue) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (c *Catalogue) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	c.service = domainService.CatalogueService
 	return nil
 }

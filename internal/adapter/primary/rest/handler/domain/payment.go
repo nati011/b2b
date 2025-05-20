@@ -30,7 +30,7 @@ func InitPayment() {
 	handler.Register(new(Payment))
 }
 
-func (p *Payment) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (p *Payment) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.PaymentVerificationService
 	return nil
 }

@@ -57,7 +57,7 @@ type Order struct {
 	service order.Provider
 }
 
-func (r *Order) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Order) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.OrderService
 	return nil
 }
