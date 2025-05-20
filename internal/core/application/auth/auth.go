@@ -90,6 +90,12 @@ type JWT struct {
 	Scope            string `json:"scope"`
 }
 
+type RetrospectionResult struct {
+}
+
+type DecodeResult struct {
+}
+
 type Provider interface {
 	CreateNewClientWithPassword(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
 	CreateNewClientWithOutPassword(ctx context.Context, req RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error)
@@ -97,6 +103,8 @@ type Provider interface {
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
 	ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error
+	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
+	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
 }
 
 type AuthService struct {
@@ -106,6 +114,15 @@ type AuthService struct {
 
 func NewAuthService(ap port.Provider, em email.Provider) Provider {
 	return &AuthService{authProvider: ap, emailProvider: em}
+}
+
+func (a *AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
+
+	return DecodeResult{}, nil
+}
+
+func (a *AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
+	return RetrospectionResult{}, nil
 }
 
 func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error {

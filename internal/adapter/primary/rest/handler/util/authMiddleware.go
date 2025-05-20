@@ -5,36 +5,20 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Nerzal/gocloak/v13"
+	"b2b.nati011.github.com/internal/core/application/auth"
 )
 
 type AuthMiddleware struct {
-	client       *gocloak.GoCloak
-	BaseURL      string
-	ClientID     string
-	ClientSecret string
-	Realm        string
-	Password     string
+	auth auth.Provider
 }
 
-func NewAuthMiddleware(
-	BaseURL string,
-	ClientID string,
-	ClientSecret string,
-	Realm string,
-	Password string,
-) *AuthMiddleware {
+func NewAuthMiddleware(auth_service auth.Provider) *AuthMiddleware {
 	return &AuthMiddleware{
-		client:       gocloak.NewClient(BaseURL),
-		BaseURL:      BaseURL,
-		ClientID:     ClientID,
-		ClientSecret: ClientSecret,
-		Realm:        Realm,
-		Password:     Password,
+		auth: auth_service,
 	}
 }
 
-func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.HandlerFunc {
+func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if strings.TrimSpace(authHeader) == "" {
@@ -43,7 +27,7 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.HandlerF
 		}
 
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "Bearer" {
+		if len(parts) != 2 || parts[0] != "Bearer" {
 			UnauthorizedResponse(w)
 			return
 		}
@@ -54,13 +38,7 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.HandlerF
 			return
 		}
 
-		result, err := am.client.RetrospectToken(
-			r.Context(),
-			token,
-			am.ClientID,
-			am.ClientSecret,
-			am.Realm,
-		)
+		result, err := am.auth.RetrospectToken(r.Context(), token)
 		if err != nil {
 			UnauthorizedResponse(w)
 			return
@@ -71,11 +49,9 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.HandlerF
 			return
 		}
 
-		decodedToken, _, err := am.client.DecodeAccessToken(
+		decodedToken, err := am.auth.DecodeToken(
 			r.Context(),
-			token,
-			am.Realm,
-		)
+			token)
 
 		claims := decodedToken.Claims
 
@@ -90,9 +66,6 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.HandlerF
 
 func (am *AuthMiddleware) RequireNoAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Middleware logic (e.g., check if the user is already authenticated)
-
-		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
 }
