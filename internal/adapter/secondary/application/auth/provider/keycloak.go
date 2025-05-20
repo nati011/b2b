@@ -56,6 +56,45 @@ func NewKeycloakProvider(
 	}
 }
 
+func (k KeycloakProvider) RetrospectToken(ctx context.Context, token string) (port.RetrospectionResult, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
+	result, err := client.RetrospectToken(
+		ctx,
+		token,
+		k.KeycloakClientId,
+		k.KeycloakClientSecret,
+		k.KeycloakRealm,
+	)
+
+	return port.RetrospectionResult{
+		Exp:      result.Exp,
+		Nbf:      result.Nbf,
+		Iat:      result.Iat,
+		Active:   result.Active,
+		AuthTime: result.AuthTime,
+		Jti:      result.Jti,
+		Type:     result.Type,
+	}, err
+}
+
+func (k KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.DecodedResult, error) {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
+	decodedToken, _, err := client.DecodeAccessToken(
+		ctx,
+		token,
+		k.KeycloakApplicationRealm,
+	)
+	if err != nil {
+		log.Printf("failed to decode token: %v", err)
+		return port.DecodedResult{}, port.ErrSysUnknown
+	}
+	return port.DecodedResult{
+		Raw:       decodedToken.Raw,
+		Header:    decodedToken.Header,
+		Signature: decodedToken.Signature,
+		Valid:     decodedToken.Valid}, nil
+}
+
 func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
