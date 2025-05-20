@@ -22,7 +22,8 @@ type SendEmailRequest struct {
 }
 
 type Email struct {
-	Service email.Provider
+	authMiddleware util.AuthMiddleware
+	Service        email.Provider
 }
 
 func InitEmail() {
@@ -30,12 +31,15 @@ func InitEmail() {
 }
 
 func (e *Email) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	e.authMiddleware = *applicationServices.AuthMiddleware
 	e.Service = applicationServices.EmailService
 	return nil
 }
 
 func (e *Email) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/email", e.SendEmailHandler)
+	mux.HandleFunc("POST /api/v1/email", func(w http.ResponseWriter, r *http.Request) {
+		e.authMiddleware.RequireAuthentication(http.HandlerFunc(e.SendEmailHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (e *Email) SendEmailHandler(w http.ResponseWriter, r *http.Request) {
