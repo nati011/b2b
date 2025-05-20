@@ -91,9 +91,11 @@ type JWT struct {
 }
 
 type RetrospectionResult struct {
+	Active bool
 }
 
 type DecodeResult struct {
+	Claims string
 }
 
 type Provider interface {

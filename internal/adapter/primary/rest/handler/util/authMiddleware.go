@@ -44,7 +44,7 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler) http.Handler 
 			return
 		}
 
-		if !*result.Active {
+		if !result.Active {
 			UnauthorizedResponse(w)
 			return
 		}
