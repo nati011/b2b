@@ -69,25 +69,44 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	service product.Provider
+	authMiddleware util.AuthMiddleware
+	service        product.Provider
 }
 
 func InitProduct() {
 	handler.Register(new(Product))
 }
 
-func (r *Product) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = domainService.ProductService
+func (p *Product) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	p.service = domainService.ProductService
+	p.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (p *Product) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/product", p.GetHandler)
-	mux.HandleFunc("GET /api/v1/stock_ledger", p.GetStockLedgerHandler)
-	mux.HandleFunc("POST /api/v1/product", p.CreateHandler)
-	mux.HandleFunc("PUT /api/v1/product", p.UpdateHandler)
-	mux.HandleFunc("PATCH /api/v1/product/{id}/status", p.StatusHandler)
-	mux.HandleFunc("PATCH /api/v1/product/{id}/stock", p.StockHandler)
+	mux.HandleFunc("GET /api/v1/product", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.GetHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/stock_ledger", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.GetStockLedgerHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/product", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.CreateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PUT /api/v1/product", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.UpdateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/product/{id}/status", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.StatusHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/product/{id}/stock", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.StockHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) {

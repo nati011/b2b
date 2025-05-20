@@ -18,7 +18,7 @@ func InitMobileClient() {
 	handler.Register(new(MobileClientHandler))
 }
 
-func (m *MobileClientHandler) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (m *MobileClientHandler) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	m.service = applicationServices.MobileClient
 	return nil
 }
