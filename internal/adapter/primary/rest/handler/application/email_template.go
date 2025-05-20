@@ -26,7 +26,7 @@ func InitEmailTemplate() {
 	handler.Register(new(EmailTemplate))
 }
 
-func (e *EmailTemplate) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (e *EmailTemplate) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	e.Service = applicationServices.TemplateService
 	return nil
 }

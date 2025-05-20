@@ -57,7 +57,7 @@ func InitPaymentPartner() {
 	handler.Register(new(PaymentPartner))
 }
 
-func (r *PaymentPartner) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *PaymentPartner) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.PaymentPartnerService
 	return nil
 }

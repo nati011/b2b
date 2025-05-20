@@ -42,7 +42,7 @@ func InitResource() {
 	handler.Register(new(Resource))
 }
 
-func (r *Resource) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Resource) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.ResourceService
 	return nil
 }

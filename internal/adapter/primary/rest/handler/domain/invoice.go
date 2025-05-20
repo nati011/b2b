@@ -19,7 +19,7 @@ func InitInvoice() {
 	handler.Register(new(Invoice))
 }
 
-func (i *Invoice) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (i *Invoice) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	i.Service = domainService.InvoiceService
 	return nil
 }

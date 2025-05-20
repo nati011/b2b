@@ -84,7 +84,7 @@ func InitUser() {
 	handler.Register(new(UserHandler))
 }
 
-func (a *UserHandler) Init(services *application_core.Container, domainService *domain_core.Container) error {
+func (a *UserHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.UserService
 	return nil
 }
