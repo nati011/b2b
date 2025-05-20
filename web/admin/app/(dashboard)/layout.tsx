@@ -26,28 +26,21 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies()
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${font} antialiased`}
-      >
-        <SessionProvider>
-          <Provider>
-            <div className="flex relative">
-              <SidebarProvider defaultOpen={true}>
-                <AppSidebar />
-                <Separator orientation="vertical" className="h-4" />
-                <div className=" p-4 w-full bg-slate-50/50">
-                  <Topnav />
-                  {children}
-                  <Toaster />
-                </div>
-
-              </SidebarProvider>
+    <SessionProvider>
+      <Provider>
+        <div className="flex relative">
+          <SidebarProvider defaultOpen={true}>
+            <AppSidebar />
+            <Separator orientation="vertical" className="h-4" />
+            <div className=" p-4 w-full bg-slate-50/50">
+              <Topnav />
+              {children}
             </div>
-          </Provider>
-        </SessionProvider>
-      </body>
-    </html>
+
+          </SidebarProvider>
+        </div>
+      </Provider>
+    </SessionProvider>
 
   );
 }

@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import error from "@/public/404.svg"
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,13 +13,11 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="w-screen h-screen items-center flex justify-center align-middle">
+      <div className="grid grid-cols-1 gap-4 w-full align-middle justify-center place-items-center">
+        <img src="/404.svg" alt="404" className="max-w-lg" />
+        <a href={"/"} className="w-fit border-2 border-blue-900 text-blue-900 text-center rounded-md font-semibold px-10 py-2 hover:bg-blue-900/[5%]" >Back to home</a>
+
       </div>
     </div>
   );

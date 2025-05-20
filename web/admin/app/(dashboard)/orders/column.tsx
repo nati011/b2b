@@ -19,14 +19,14 @@ export const columns: ColumnDef<Order>[] = [
 
     {
         accessorKey: "RetailerName",
-        header: "Retailer Name",
+        header: "Retailer   Name",
     },
     {
         accessorKey: "Status",
         header: "Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'COMPLETED'
-            return <div className={!status ? "font-semibold py-1 rounded-md text-amber-500 text-center text-xs w-fit flex" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
+            const status = row.getValue("Status") == 'COMPLETED'
+            return <div className={!status ? "border border-amber-500  py-1 rounded-md  text-amber-500 text-center text-xs" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
                 {row.original.Status}
             </div>
         },
@@ -35,8 +35,8 @@ export const columns: ColumnDef<Order>[] = [
         accessorKey: "DeliveryStatus",
         header: "Delivery Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'COMPLETED'
-            return <p className={!status ? "font-semibold py-1 rounded-md text-amber-500 text-center text-xs w-fit flex" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
+            const status = row.getValue("DeliveryStatus") == 'COMPLETED'
+            return <p className={!status ? "border border-amber-500  py-1 rounded-md  text-amber-500 text-center text-xs" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
                 {row.original.DeliveryStatus}
             </p>
         },
@@ -46,8 +46,8 @@ export const columns: ColumnDef<Order>[] = [
         accessorKey: "PaymentStatus",
         header: "Payment Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'COMPLETED'
-            return <div className={!status ? "font-semibold py-1 rounded-md text-amber-500 text-center text-xs w-fit flex" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
+            const status = row.getValue("PaymentStatus") == 'ACCEPTED'
+            return <div className={!status ? "border border-amber-500  py-1 rounded-md  text-amber-500 text-center text-xs" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
                 {row.original.PaymentStatus}
             </div>
         },

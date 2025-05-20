@@ -7,10 +7,11 @@ import { DataTable } from "@/components/ui/datatable";
 import { columns } from "@/app/(dashboard)/orders/[id]/columns";
 import useOrdersStore from "@/app/libs/store/useOrderStore";
 import useRetailersStore from "@/app/libs/store/useRetailerStore";
+import { Badge } from "@/components/ui/badge";
 
 
 // @ts-ignore
-export default function OrderDetail({ params: { locale } }) {
+export default function OrderDetail() {
     const routeParam = useParams<{ id: string }>();
 
     const {
@@ -50,14 +51,14 @@ export default function OrderDetail({ params: { locale } }) {
     return (
         <div className="px-20">
             <div className="flex flex-col sm:px-4 border-gray-200 border-b-[1px] py-4 mb-5">
-                <div className="font-semibold">
+                <div className="font-semibold flex gap-2">
                     <p>Order #{order.Id}</p>
-                    <div className="bg-green-100[0.5] text-green-900 rounded-full">
+                    <Badge className="bg-green-100 text-green-900 rounded-full">
                         {order.DeliveryStatus}
-                    </div>
-                    <div className="bg-green-100[0.5] text-green-900 rounded-full">
+                    </Badge>
+                    <Badge className="bg-green-100 text-green-900 rounded-full">
                         {order.PaymentStatus}
-                    </div>
+                    </Badge>
                 </div>
                 <div className="text-gray-800">
                     {new Date(order.CreatedAt).toUTCString()}
@@ -90,10 +91,10 @@ export default function OrderDetail({ params: { locale } }) {
                     </div>
                     <div className="">
                         <p className="">
-                            {retailer.user.first_name} {retailer.user.last_name}
+                            {retailer?.user?.first_name} {retailer?.user?.last_name}
                         </p>
                         <p className="text-gray-700">
-                            {retailer.user.email}
+                            {retailer?.user?.email}
                         </p>
                     </div>
                 </Card>

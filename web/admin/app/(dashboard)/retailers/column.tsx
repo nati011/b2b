@@ -3,11 +3,11 @@ import { ColumnDef } from "@tanstack/react-table";
 
 export const columns: ColumnDef<Retailer>[] = [
     {
-        accessorKey: "Id",
+        accessorKey: "id",
         header: "Id",
     },
     {
-        accessorKey: "Name",
+        accessorKey: "name",
         header: "Name",
     },
     {

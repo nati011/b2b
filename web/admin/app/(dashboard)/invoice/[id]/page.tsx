@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 
 // @ts-ignore
-export default function InvoiceDetail({ params: { locale } }) {
+export default function InvoiceDetail() {
     const routeParam = useParams<{ id: string }>();
 
     const {

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 
 const Map = dynamic(
   () => import('@/app/components/map'),
@@ -43,6 +44,9 @@ export default function DistributorsForm() {
   })
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([8.9934609, 38.7714897])
   const [useCurrentLocation, setUseCurrentLocation] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const router = useRouter()
+
   const handleReset = () => {
     setFormData({
       name: "",
@@ -61,7 +65,6 @@ export default function DistributorsForm() {
       external_id: "",
 
     });
-    toast.info("Form reset");
   };
 
 
@@ -85,6 +88,18 @@ export default function DistributorsForm() {
     }
   }, [useCurrentLocation])
 
+  useEffect(() => {
+    if (submitted && !loading) {
+      if (error) {
+        toast.error(error)
+      } else {
+        toast.success("Distributor created successfully!")
+        handleReset()
+        router.push('/distributors')
+      }
+      setSubmitted(false)
+    }
+  }, [loading, error, submitted])
   const pages = [
     {
       "title": "Distributor",
@@ -97,6 +112,7 @@ export default function DistributorsForm() {
   ]
 
   const handleSubmit = () => {
+    setSubmitted(true)
     createDistributors(formData)
   }
 
@@ -159,7 +175,7 @@ export default function DistributorsForm() {
                     name="phone"
                     value={formData.phone}
                     onChange={(e) => { setFormData(prev => ({ ...prev, phone: e.target.value })) }}
-                    placeholder="abebe.kebede"
+                    placeholder="+251955123456"
                     required
                   />
                 </div>
@@ -269,11 +285,16 @@ export default function DistributorsForm() {
           type="button"
           variant="outline"
           onClick={handleReset}
+          disabled={loading}
         >
           Reset
         </Button>
-        <Button type="submit" onClick={handleSubmit}>
-          Register Distributor
+        <Button
+          type="submit"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Registering..." : "Register Distributor"}
         </Button>
       </div>
     </div>

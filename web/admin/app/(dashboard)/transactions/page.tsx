@@ -32,11 +32,7 @@ export default function Transactions() {
         {
             "title": "Transactions",
             "href": "/transactions"
-        },
-        {
-            "title": "Role Categories",
-            "href": "/transactions/role"
-        },
+        }
     ]
     const [confirmTransactionOpen, setConfirmTransactionOpen] = useState(false)
     useEffect(() => {

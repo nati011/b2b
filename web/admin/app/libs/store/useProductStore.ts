@@ -15,7 +15,7 @@ interface ProductsStore {
 
   fetchProducts: (url?: string) => Promise<void>;
   fetchConfigurableProducts: (url?: string) => Promise<void>;
-  updateProduct: (ProductsData: Partial<ProductForm>) => Promise<void>;
+  updateProduct: (ProductsData: any) => Promise<void>;
   createProduct: (productData: any) => Promise<void>;
   createConfigurableProduct: (productData: any) => Promise<void>
   addStock: (stock: number, id: number) => Promise<void>;
@@ -117,7 +117,8 @@ const useProductsStore = create<ProductsStore>((set) => ({
       await useProductsStore.getState().fetchProducts();
       set({ loading: false, success: response.data });
     } catch (error: any) {
-      set({ loading: false, error: error.message });
+      const errorMessage = error.response?.data?.message || 'An error occurred';
+      set({ error: errorMessage, loading: false });
     }
   },
   createConfigurableProduct: async (productData: any) => {
@@ -134,7 +135,8 @@ const useProductsStore = create<ProductsStore>((set) => ({
       }
       set({ loading: false });
     } catch (error: any) {
-      set({ loading: false, error: error.message });
+      const errorMessage = error.response?.data?.message || 'An error occurred';
+      set({ error: errorMessage, loading: false });
     }
   },
   addStock: async (stock: number, id: number) => {

@@ -48,7 +48,7 @@ const useRetailersStore = create<RetailersStore>((set) => ({
     try {
       const response = await axiosIns.get('/api/retailer');
       set({
-        retailers: response.data.body.Retailers,
+        retailers: response.data.retailers.list,
         loading: false
       });
     } catch (error) {
@@ -60,7 +60,7 @@ const useRetailersStore = create<RetailersStore>((set) => ({
     try {
       const response = await axiosIns.get(`/api/retailer?id=${id}`);
       set({
-        retailer: response.data.body.retailer,
+        retailer: response.data.retailer,
         loading: false
       });
     } catch (error) {

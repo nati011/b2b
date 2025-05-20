@@ -90,7 +90,7 @@ export type ConfigurableProduct = {
 };
 
 
-export type ConfigurableProductForm = {
+export type ConfigurableProductRequest = {
   id?: number;
   name: string;
   desc: string;

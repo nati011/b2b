@@ -28,7 +28,8 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         general_zone: '',
         region: '',
         woreda: '',
-        user: []
+        user: [],
+        is_active: false
     },
     distributorUser: {
         id: 0,
@@ -68,8 +69,9 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
                 Distributors: [...state.distributors, response.data.detail],
                 loading: false
             }));
-        } catch (error) {
-            set({ error: 'Failed to create distributor', loading: false });
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'An error occurred';
+            set({ error: errorMessage, loading: false });
         }
     },
     fetchDistributorDetail: async (id: number) => {
