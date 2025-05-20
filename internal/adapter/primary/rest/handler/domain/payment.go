@@ -23,7 +23,8 @@ type CheckoutRequest struct {
 }
 
 type Payment struct {
-	service payment_verification.Provider
+	authMiddleware util.AuthMiddleware
+	service        payment_verification.Provider
 }
 
 func InitPayment() {
@@ -32,12 +33,18 @@ func InitPayment() {
 
 func (p *Payment) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.PaymentVerificationService
+	p.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (p *Payment) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/payment/webhook/{gateway_id}/{tx_ref}", p.CallbackGETHandler)
-	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}", p.CallbackPOSTHandler)
+	mux.HandleFunc("GET /api/v1/payment/webhook/{gateway_id}/{tx_ref}", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.CallbackGETHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/payment/webhook/{gateway_id}", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.CallbackPOSTHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (p *Payment) CallbackGETHandler(w http.ResponseWriter, r *http.Request) {
