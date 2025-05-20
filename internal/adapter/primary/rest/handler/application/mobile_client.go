@@ -25,7 +25,6 @@ func (m *MobileClientHandler) Init(authMiddleWare *util.AuthMiddleware, applicat
 
 func (m *MobileClientHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/minCompatibleClientVersion", m.CheckminimumCompatibleVersion)
-
 }
 
 func (m *MobileClientHandler) CheckminimumCompatibleVersion(w http.ResponseWriter, r *http.Request) {

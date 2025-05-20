@@ -79,23 +79,23 @@ func (r *Role) Init(authMiddleWare *util.AuthMiddleware, applicationServices *ap
 
 func (ro *Role) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
-		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.GetHandler)).ServeHTTP(w, r)
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.GetHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/role/resource", func(w http.ResponseWriter, r *http.Request) {
-		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.GetAllResourcesHandler)).ServeHTTP(w, r)
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.GetAllResourcesHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
-		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.CreateHandler)).ServeHTTP(w, r)
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.CreateHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PATCH /api/v1/role/{id}", func(w http.ResponseWriter, r *http.Request) {
-		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.CommandHandler)).ServeHTTP(w, r)
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.CommandHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PUT /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
-		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.UpdateHandler)).ServeHTTP(w, r)
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.UpdateHandler)).ServeHTTP(w, r)
 	})
 }
 
