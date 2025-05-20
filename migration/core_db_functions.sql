@@ -3168,7 +3168,7 @@ END;
 $$; 
 
 CREATE OR REPLACE FUNCTION public.update_transaction_by_transaction_ref(
-    tx_ref VARCHAR(255),
+    t_tx_ref VARCHAR(255),
     t_status VARCHAR(255)
 )
 RETURNS INT
@@ -3179,9 +3179,11 @@ DECLARE
 BEGIN
     UPDATE public.transactions
     SET status = t_status
-    WHERE tx_ref = tx_ref
+    WHERE tx_ref = t_tx_ref
       AND is_deleted = FALSE
     RETURNING id INTO new_id;
+
+    RETURN new_id;
 END;
 $$; 
 
