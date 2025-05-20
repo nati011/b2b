@@ -119,11 +119,11 @@ func NewAuthService(ap port.Provider, em email.Provider) Provider {
 }
 
 func (a *AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
-
 	return DecodeResult{}, nil
 }
 
 func (a *AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
+	// result, err := a.authProvider.RetrospectToken(ctx, token)
 	return RetrospectionResult{}, nil
 }
 
