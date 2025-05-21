@@ -10,7 +10,7 @@ import (
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
-	port "b2b.nati011.github.com/internal/port/application/payment/db"
+
 	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
 	"github.com/google/uuid"
 )
@@ -46,7 +46,6 @@ type Provider interface {
 }
 
 type CheckoutService struct {
-	db             port.DB
 	paymentPartner partner.Provider
 	transaction    transaction.Provider
 	frontendUrl    string
@@ -59,9 +58,8 @@ type CreatePaymentRequest struct {
 	Amount           float64
 }
 
-func NewCheckoutService(DB port.DB, partner partner.Provider, transaction transaction.Provider, frontendUrl string, baseUrl string) Provider {
+func NewCheckoutService(partner partner.Provider, transaction transaction.Provider, frontendUrl string, baseUrl string) Provider {
 	return &CheckoutService{
-		db:             DB,
 		frontendUrl:    frontendUrl,
 		baseUrl:        baseUrl,
 		paymentPartner: partner,
