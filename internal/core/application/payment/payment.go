@@ -6,6 +6,7 @@ import (
 	"time"
 
 	port "b2b.nati011.github.com/internal/port/application/payment/db"
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 )
 
 var (
@@ -13,6 +14,7 @@ var (
 	ErrEmptyGetContent = errors.New("oopsy, empty get content")
 	ErrTxRefNotFound   = errors.New("oopsy, txRef not found")
 	ErrOrderIdNotFound = errors.New("oopsy, orderId not found")
+	ErrUnknown         = errors.New("oopsy, unknown error")
 )
 
 type GetAllResponse struct {
@@ -72,7 +74,12 @@ func (p *PaymentService) GetByID(ctx context.Context, id int) (GetResponse, erro
 func (p *PaymentService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := p.db.GetAll(ctx)
 	if err != nil {
-		return GetAllResponse{}, ErrEmptyGetContent
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
 	}
 	getAllResp := GetAllResponse{}
 	for _, i := range resp.List {
@@ -84,7 +91,7 @@ func (p *PaymentService) GetAll(ctx context.Context) (GetAllResponse, error) {
 func (p *PaymentService) GetByTransactionRef(ctx context.Context, txRef string) (GetResponse, error) {
 	resp, err := p.db.GetByTransactionRef(ctx, txRef)
 	if err != nil {
-		return GetResponse{}, ErrIdNotFound
+		return GetResponse{}, ErrTxRefNotFound
 	}
 	return GetResponse(resp), nil
 }
@@ -92,7 +99,12 @@ func (p *PaymentService) GetByTransactionRef(ctx context.Context, txRef string) 
 func (p *PaymentService) GetByOrderId(ctx context.Context, orderId int) (GetAllResponse, error) {
 	resp, err := p.db.GetByOrderId(ctx, orderId)
 	if err != nil {
-		return GetAllResponse{}, ErrEmptyGetContent
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrOrderIdNotFound
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
 	}
 	getAllResp := GetAllResponse{}
 	for _, i := range resp.List {
