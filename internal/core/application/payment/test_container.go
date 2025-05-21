@@ -5,11 +5,15 @@ import (
 )
 
 type TestContainer struct {
-	service Provider
+	Service Provider
 }
 
 func NewTestContainer() TestContainer {
 	return TestContainer{
-		service: NewPaymentService(adapter.NewMock()),
+		Service: NewPaymentService(adapter.NewMock()),
 	}
+}
+
+func (t *TestContainer) Teardown() {
+	t.Service = NewPaymentService(adapter.NewMock())
 }

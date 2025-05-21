@@ -8,10 +8,10 @@ import (
 	"time"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
-
-	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
+	payment_gateway "b2b.nati011.github.com/internal/port/application/payment/gateway"
 	"github.com/google/uuid"
 )
 
@@ -46,6 +46,7 @@ type Provider interface {
 }
 
 type CheckoutService struct {
+	paymentService payment.Provider
 	paymentPartner partner.Provider
 	transaction    transaction.Provider
 	frontendUrl    string
@@ -58,8 +59,9 @@ type CreatePaymentRequest struct {
 	Amount           float64
 }
 
-func NewCheckoutService(partner partner.Provider, transaction transaction.Provider, frontendUrl string, baseUrl string) Provider {
+func NewCheckoutService(paymentService payment.Provider, partner partner.Provider, transaction transaction.Provider, frontendUrl string, baseUrl string) Provider {
 	return &CheckoutService{
+		paymentService: paymentService,
 		frontendUrl:    frontendUrl,
 		baseUrl:        baseUrl,
 		paymentPartner: partner,
@@ -71,14 +73,12 @@ func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentR
 	currentTimestamp := time.Now()
 	//to ensure uniqueness use current time stamp as transaction ref
 	generatedTxRef := fmt.Sprintf("%s_%s", currentTimestamp.Format("2006_01_02_15_04_05"), uuid.New().String())
-	createRequest := port.CreateRequest{
+	_, err := p.paymentService.Create(ctx, &payment.CreateRequest{
 		OrderId:        req.OrderId,
 		PartnerId:      req.PaymentPartnerId,
 		TransactionRef: generatedTxRef,
 		Amount:         req.Amount,
-	}
-
-	_, err := p.db.Create(ctx, createRequest)
+	})
 	if err != nil {
 		return "", err
 	}
@@ -129,7 +129,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		return CheckoutResponse{}, err
 	}
 
-	paymentInitiateRequest := payment.InitiateRequest{
+	paymentInitiateRequest := payment_gateway.InitiateRequest{
 		Amount:         req.Amount,
 		TransactionRef: transaction_ref,
 		PartnerUrl:     paymentPartner.BaseURL,
@@ -168,7 +168,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 
 func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *ReinitiateCheckoutRequest) (CheckoutResponse, error) {
 	log.Printf("reinitate payment for orderId: %v", req.OrderId)
-	payRecords, err := p.db.GetByOrderId(ctx, req.OrderId)
+	payRecords, err := p.paymentService.GetByOrderId(ctx, req.OrderId)
 	if err != nil {
 		log.Printf("failed to fetch payment records: %v", err)
 		return CheckoutResponse{}, ErrUnknown
@@ -214,7 +214,7 @@ func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *Reinitiat
 		return CheckoutResponse{}, err
 	}
 
-	paymentInitiateRequest := payment.InitiateRequest{
+	paymentInitiateRequest := payment_gateway.InitiateRequest{
 		Amount:         pay.Amount,
 		TransactionRef: transaction_ref,
 		PartnerUrl:     paymentPartner.BaseURL,

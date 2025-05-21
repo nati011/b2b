@@ -7,11 +7,11 @@ import (
 	"time"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
-	port "b2b.nati011.github.com/internal/port/application/payment/db"
-	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
+	payment_gateway "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
 
 var (
@@ -48,7 +48,7 @@ type Provider interface {
 }
 
 type PaymentService struct {
-	db             port.DB
+	paymentService payment.Provider
 	paymentPartner partner.Provider
 	transaction    transaction.Provider
 	order          order.Provider
@@ -59,9 +59,9 @@ type CreatePaymentRequest struct {
 	OrderId          int
 }
 
-func NewPaymentVerificationService(DB port.DB, partner partner.Provider, transaction transaction.Provider, order order.Provider) Provider {
+func NewPaymentVerificationService(paymentService payment.Provider, partner partner.Provider, transaction transaction.Provider, order order.Provider) Provider {
 	return &PaymentService{
-		db:             DB,
+		paymentService: paymentService,
 		paymentPartner: partner,
 		transaction:    transaction,
 		order:          order,
@@ -69,7 +69,7 @@ func NewPaymentVerificationService(DB port.DB, partner partner.Provider, transac
 }
 
 func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPaymentResponse, error) {
-	payment, err := p.db.GetByTransactionRef(ctx, txRef)
+	payment, err := p.paymentService.GetByTransactionRef(ctx, txRef)
 	if err != nil {
 		return GetPaymentResponse{}, err
 	}
@@ -115,13 +115,11 @@ func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef
 		return false, ErrCannotProceedWithPaymentPartner
 	}
 
-	paymentVerificationRequest := payment.VerificationRequest{
+	is_verified, err := paymentGateway.Verify(payment_gateway.VerificationRequest{
 		PartnerUrl:     paymentPartner.BaseURL,
 		TransactionRef: txRef,
 		PartnerSecret:  paymentPartnerSecret.Secret,
-	}
-
-	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
+	})
 	if err != nil {
 		return false, ErrUnknown
 	}
