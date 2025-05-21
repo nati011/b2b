@@ -3527,7 +3527,7 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.payment(order_id, partner_id, transaction_ref, amount)
+    INSERT INTO public.payments(order_id, partner_id, transaction_ref, amount)
     VALUES ( p_order_id, p_partner_id, p_transaction_ref, p_amount) 
     RETURNING id INTO new_id;
 
@@ -3537,7 +3537,7 @@ $$;
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_payment_by_id(
-    p_id INT,
+    p_id INT
 )
 RETURNS TABLE(id INT,
               order_id INT,
@@ -3554,15 +3554,16 @@ BEGIN
            t.partner_id,
            t.transaction_ref,
            t.amount,
-           t.date
-    FROM public.payment t
+           t.created_date
+    FROM public.payments t
     WHERE t.id = p_id
       AND t.is_deleted = FALSE;
 END;
 $$;
 
+
 CREATE OR REPLACE FUNCTION public.get_payment_by_order_id(
-    p_order_id INT,
+    p_order_id INT
 )
 RETURNS TABLE(id INT,
               order_id INT,
@@ -3579,15 +3580,15 @@ BEGIN
            t.partner_id,
            t.transaction_ref,
            t.amount,
-           t.date
-    FROM public.payment t
+           t.created_date
+    FROM public.payments t
     WHERE t.order_id = p_order_id
       AND t.is_deleted = FALSE;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_payment_by_tx_ref(
-    p_tx_ref VARCHAR(255),
+    p_tx_ref VARCHAR(255)
 )
 RETURNS TABLE(id INT,
               order_id INT,
@@ -3604,8 +3605,8 @@ BEGIN
            t.partner_id,
            t.transaction_ref,
            t.amount,
-           t.date
-    FROM public.payment t
+           t.created_date
+    FROM public.payments t
     WHERE t.transaction_ref = p_tx_ref
       AND t.is_deleted = FALSE;
 END;
@@ -3627,8 +3628,8 @@ BEGIN
            t.partner_id,
            t.transaction_ref,
            t.amount,
-           t.date
-    FROM public.payment t
+           t.created_date
+    FROM public.payments t
     WHERE t.is_deleted = FALSE;
 END;
 $$; 

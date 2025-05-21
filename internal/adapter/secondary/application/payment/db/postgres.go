@@ -20,7 +20,7 @@ func NewPostgres(db *sql.DB) port.DB {
 
 func (p *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.create_payment($1, $2, $3);"
+	query := "SELECT * FROM public.create_payment($1, $2, $3, $4);"
 
 	result := []any{&resourceId}
 	args := []any{
@@ -70,7 +70,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.PartnerId = *result[2].(*int)
 	response.TransactionRef = *result[3].(*string)
 	response.Amount = *result[4].(*float64)
-	response.Date = *result[4].(*time.Time)
+	response.Date = *result[5].(*time.Time)
 
 	return response, nil
 }
@@ -103,7 +103,7 @@ func (p *Postgres) GetByTransactionRef(ctx context.Context, txRef string) (port.
 	response.PartnerId = *result[2].(*int)
 	response.TransactionRef = *result[3].(*string)
 	response.Amount = *result[4].(*float64)
-	response.Date = *result[4].(*time.Time)
+	response.Date = *result[5].(*time.Time)
 
 	return response, nil
 }
