@@ -59,6 +59,5 @@ func Test_write(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to checkout err: %v", err)
 		}
-
 	})
 }
