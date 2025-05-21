@@ -393,7 +393,8 @@ CREATE TABLE IF NOT EXISTS public."payment"(
     id SERIAL PRIMARY KEY,
     order_id INT,
     partner_id INT,
-    transaction_ref VARCHAR(255)
+    transaction_ref VARCHAR(255),
+    amount DECIMAL(12,2)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."payment" IS 'stores payment info';
