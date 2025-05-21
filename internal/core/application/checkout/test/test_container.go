@@ -3,8 +3,8 @@ package test
 import (
 	"database/sql"
 
-	port "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 )
@@ -22,7 +22,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	container.CheckoutService = checkout.NewCheckoutService(
-		port.NewMock(),
+		payment.NewTestContainer().Service,
 		container.PartnerService,
 		container.TransactionService,
 		"https://example.com",
@@ -34,7 +34,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 
 func (t *TestContainer) TearDown() {
 	t.CheckoutService = checkout.NewCheckoutService(
-		port.NewMock(),
+		payment.NewTestContainer().Service,
 		t.PartnerService,
 		t.TransactionService,
 		"https://example.com",
@@ -47,7 +47,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	container.CheckoutService = checkout.NewCheckoutService(
-		port.NewPostgres(db),
+		payment.NewTestContainer().Service,
 		container.PartnerService,
 		container.TransactionService,
 		"https://example.com",
