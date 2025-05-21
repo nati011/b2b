@@ -231,8 +231,8 @@ func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *Reinitiat
 	}
 
 	_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
-		Amount:    payment.Amount,
-		PartnerId: payment.PartnerId,
+		Amount:    pay.Amount,
+		PartnerId: pay.PartnerId,
 		TxRef:     transaction_ref,
 		Status:    transaction.PENDING_STATUS,
 	})

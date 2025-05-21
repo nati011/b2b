@@ -73,9 +73,14 @@ func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPayme
 	if err != nil {
 		return GetPaymentResponse{}, err
 	}
-
-	return (GetPaymentResponse)(payment), err
-
+	return GetPaymentResponse{
+		Id:             payment.Id,
+		Date:           payment.Date,
+		Amount:         payment.Amount,
+		OrderId:        payment.OrderId,
+		PartnerId:      payment.PartnerId,
+		TransactionRef: payment.TransactionRef,
+	}, err
 }
 
 func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
