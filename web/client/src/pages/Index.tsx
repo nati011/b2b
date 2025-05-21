@@ -12,13 +12,11 @@ const Index = () => {
     <>
 
       <main>
-        <Navbar />
         <Hero />
         <ProductGrid />
         <WhyChooseUs />
         <Testimonials />
       </main>
-      <Footer />
     </>
   );
 };

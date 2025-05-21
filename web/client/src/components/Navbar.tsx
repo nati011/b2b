@@ -1,11 +1,23 @@
 
 import { Link } from "react-router-dom";
-import { ShoppingBag, Menu, X, Search } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, User2Icon, ShoppingBasketIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { IoIosLogOut } from "react-icons/io";
+import { CiShoppingBasket } from "react-icons/ci";
 
 export const Navbar = () => {
     const { getTotalItems } = useCart();
@@ -90,6 +102,43 @@ export const Navbar = () => {
                                         )}
                                     </Button>
                                 </Link>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <User2Icon />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel className="flex gap-2 items-center">
+                                            <Avatar>
+
+                                                <AvatarFallback>
+                                                    <User2Icon className="" />
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex flex-col gap-1">
+                                                John Doe
+                                            </div>
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <Link to="/orders">
+                                                <DropdownMenuItem
+                                                    className="gap-2"
+                                                >
+                                                    <CiShoppingBasket className="h-5 w-5" />
+                                                    <span>Orders</span>
+                                                </DropdownMenuItem>
+                                            </Link>
+
+                                            <DropdownMenuItem
+                                            >
+                                                <IoIosLogOut className="mr-2 text-red-500" />
+                                                Logout
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
 
                                 {/* Mobile menu button */}
                                 <Sheet>

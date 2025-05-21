@@ -1,0 +1,4 @@
+export const CANCELED_STATUS = "CANCELED";
+export const PENDING_STATUS = "PENDING";
+export const COMPLETED_STATUS = "COMPLETED";
+export const ACCEPTED_STATUS = "ACCEPTED"

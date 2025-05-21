@@ -37,7 +37,7 @@ axiosIns.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     let retryLimit = 2;
-    console.log(error.response.status, "error.response.status");
+    console.log(error, "________________________________________________");
     if (error.response.status === 401 && retryLimit > 0) {
       console.log(retryLimit);
       retryLimit -= 1;
