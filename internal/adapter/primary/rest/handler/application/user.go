@@ -100,7 +100,7 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.CreateUser)).ServeHTTP(w, r)
 	})
 
-	mux.HandleFunc("POST /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("PUT /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
 		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.UpdateProfile)).ServeHTTP(w, r)
 	})
 
