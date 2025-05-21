@@ -108,7 +108,7 @@ func Test_getAll_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		_, err := container.Service.GetAll(ctx)
 		wantErr := ErrEmptyGetContent
-		if err != nil {
+		if err != wantErr {
 			t.Errorf("Expected err: %v, Want: %v", wantErr, err)
 		}
 	})

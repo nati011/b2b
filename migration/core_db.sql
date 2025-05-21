@@ -389,7 +389,7 @@ CREATE TABLE IF NOT EXISTS public."payment_partners"
 COMMENT ON TABLE public."invoices" IS 'stores payment processing partners';
 
 
-CREATE TABLE IF NOT EXISTS public."payment"(
+CREATE TABLE IF NOT EXISTS public."payments"(
     id SERIAL PRIMARY KEY,
     order_id INT,
     partner_id INT,
@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS public."payment"(
     amount DECIMAL(12,2)
 ) INHERITS (public."base");
 
-COMMENT ON TABLE public."payment" IS 'stores payment info';
+COMMENT ON TABLE public."payments" IS 'stores payment info';
 
 
 CREATE TABLE IF NOT EXISTS public."email_templates"

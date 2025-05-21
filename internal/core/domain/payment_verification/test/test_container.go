@@ -30,7 +30,6 @@ func NewPackageIntegrationTestContainer() TestContainer {
 		container.TransactionService,
 		container.OrderService,
 	)
-
 	return container
 }
 

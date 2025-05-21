@@ -66,7 +66,7 @@ func (p *Mock) GetByOrderId(ctx context.Context, orderId int) (port.GetAllRespon
 	if len(resp.List) == 0 {
 		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
-	return resp, port_commons.ErrSysNoRows
+	return resp, nil
 }
 
 func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
@@ -77,5 +77,5 @@ func (p *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	if len(resp.List) == 0 {
 		return port.GetAllResponse{}, port_commons.ErrSysNoRows
 	}
-	return resp, port_commons.ErrSysNoRows
+	return resp, nil
 }
