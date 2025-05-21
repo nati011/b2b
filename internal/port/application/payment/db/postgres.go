@@ -10,17 +10,18 @@ type GetAllResponse struct {
 }
 type GetResponse struct {
 	Id             int
-	Date           time.Time
-	Amount         float64
 	OrderId        int
 	PartnerId      int
 	TransactionRef string
+	Amount         float64
+	Date           time.Time
 }
 
 type CreateRequest struct {
 	OrderId        int
 	PartnerId      int
 	TransactionRef string
+	Amount         float64
 }
 
 type Reader interface {
