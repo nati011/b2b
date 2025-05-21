@@ -1,11 +1,10 @@
 package payment_verification
 
 import (
-	adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
-	payment_port "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	checkout_test "b2b.nati011.github.com/internal/core/application/checkout/test"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -25,7 +24,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	orderTestContainer := order.NewPackageIntegrationTestContainer()
 	container.CheckoutService = checkout.NewCheckoutService(
-		payment_port.NewMock(),
+		payment.NewTestContainer().Service,
 		container.PartnerService,
 		container.TransactionService,
 		"https://example.com",
@@ -39,7 +38,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 		container.CheckoutService,
 	)
 	container.PaymentVerificationService = NewPaymentVerificationService(
-		adapter.NewMock(),
+		payment.NewTestContainer().Service,
 		container.PartnerService,
 		container.TransactionService,
 		container.OrderService,
@@ -53,7 +52,7 @@ func (t *TestContainer) TearDown() {
 	t.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	t.OrderService = order.NewPackageIntegrationTestContainer().OrderService
 	t.PaymentVerificationService = NewPaymentVerificationService(
-		adapter.NewMock(),
+		payment.NewTestContainer().Service,
 		t.PartnerService,
 		t.TransactionService,
 		t.OrderService,

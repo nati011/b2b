@@ -36,9 +36,11 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/login", func(w http.ResponseWriter, r *http.Request) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.LoginHandler)).ServeHTTP(w, r)
 	})
+
 	mux.HandleFunc("POST /api/v1/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.RefreshTokenHandler)).ServeHTTP(w, r)
 	})
+
 	mux.HandleFunc("POST /api/v1/auth/reset/{token}", func(w http.ResponseWriter, r *http.Request) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.ResetCredentialsHandler)).ServeHTTP(w, r)
 	})
