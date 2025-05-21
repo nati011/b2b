@@ -77,6 +77,7 @@ func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentR
 		OrderId:        req.OrderId,
 		PartnerId:      req.PaymentPartnerId,
 		TransactionRef: generatedTxRef,
+		Amount:         req.Amount,
 	}
 
 	_, err := p.db.Create(ctx, createRequest)

@@ -23,7 +23,8 @@ func (p *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 	query := "SELECT * FROM public.create_payment($1, $2, $3);"
 
 	result := []any{&resourceId}
-	args := []any{req.OrderId,
+	args := []any{
+		req.OrderId,
 		req.PartnerId,
 		req.TransactionRef,
 		req.Amount}
