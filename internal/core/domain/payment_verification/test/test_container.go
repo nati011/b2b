@@ -1,9 +1,9 @@
 package test
 
 import (
-	port "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	checkout_test "b2b.nati011.github.com/internal/core/application/checkout/test"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -25,12 +25,11 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container.OrderService = order.NewPackageIntegrationTestContainer().OrderService
 	container.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
 	container.PaymementVerificationService = payment_verification.NewPaymentVerificationService(
-		port.NewMock(),
+		payment.NewTestContainer().Service,
 		container.PartnerService,
 		container.TransactionService,
 		container.OrderService,
 	)
-
 	return container
 }
 
@@ -40,7 +39,7 @@ func (t *TestContainer) TearDown() {
 	t.OrderService = order.NewPackageIntegrationTestContainer().OrderService
 	t.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
 	t.PaymementVerificationService = payment_verification.NewPaymentVerificationService(
-		port.NewMock(),
+		payment.NewTestContainer().Service,
 		t.PartnerService,
 		t.TransactionService,
 		t.OrderService,
