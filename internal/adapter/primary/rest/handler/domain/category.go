@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -31,7 +32,7 @@ type GetAllCategoryResponse struct {
 }
 
 type Category struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        category.Provider
 }
 
@@ -39,7 +40,7 @@ func InitCategory() {
 	handler.Register(new(Category))
 }
 
-func (r *Category) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Category) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.CategoryService
 	return nil
 }

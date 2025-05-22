@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -23,7 +24,7 @@ type CheckoutRequest struct {
 }
 
 type Payment struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        payment_verification.Provider
 }
 
@@ -31,7 +32,7 @@ func InitPayment() {
 	handler.Register(new(Payment))
 }
 
-func (p *Payment) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (p *Payment) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.PaymentVerificationService
 	p.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
