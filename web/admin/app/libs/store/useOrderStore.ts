@@ -51,7 +51,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchOrders: async (url?: string) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get('/api/order');
+            const response = await axiosIns.get('/api/v1/order');
             set({
                 orders: response.data.body.List,
                 loading: false
@@ -63,7 +63,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchOrder: async (order_id?: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/order?id=${order_id}`);
+            const response = await axiosIns.get(`/api/v1/order?id=${order_id}`);
             set({
                 order: response.data.body.order,
                 loading: false
@@ -75,7 +75,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     createOrders: async (OrdersData: Partial<Order>) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.post('/api/order/', OrdersData);
+            const response = await axiosIns.post('/api/v1/order/', OrdersData);
             set(state => ({
                 Orders: [...state.orders, response.data.detail],
                 loading: false
