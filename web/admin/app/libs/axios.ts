@@ -79,10 +79,6 @@ async function refreshAccessToken() {
           refresh: sessionData.refreshToken,
         })
       ).data;
-      console.log(tokens, "Tokens");
-
-      console.log("After use session");
-      const accessToken = tokens.access;
 
       isRefreshing = false;
       return tokens;

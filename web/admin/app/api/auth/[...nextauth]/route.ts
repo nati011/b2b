@@ -20,12 +20,7 @@ interface KeycloakJWT {
   }
 }
 
-async function refreshAccessToken() {
-  const refreshToken = localStorage.getItem('refreshToken');
-  if (!refreshToken) {
-    throw new Error('No refresh token available');
-  }
-
+async function refreshAccessToken(refreshToken: string) {
   try {
     const response = await axios.post(`${baseURL}/api/auth/refresh/`, {
       refresh: refreshToken,
@@ -112,7 +107,8 @@ export const authOptions: AuthOptions = {
 
       // @ts-expect-error
       if (Date.now() > token.accessTokenExpires) {
-        return await refreshAccessToken()
+        //@ts-expect-error
+        return await refreshAccessToken(token.refreshToken)
       }
 
       return token
