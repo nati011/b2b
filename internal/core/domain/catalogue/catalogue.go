@@ -170,10 +170,11 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 			return GetAllCatalogueResponse{}, err
 		}
 	}
-	var configurables []CatalogueResponse
+
 	for _, i := range pr.List {
 		if !productInSlice(products_belonging_to_cps, i.Id) {
 			var images []Image
+			var configurables []CatalogueResponse
 			for _, value := range i.Images {
 				image := Image{
 					ImageUrl: value.ImageUrl,
