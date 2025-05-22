@@ -1,7 +1,7 @@
 'use client'
 
-import Heading from "@/app/components/breadcrumb";
-import ConfigurableProductFormComponent from "@/app/components/configurable-product-form";
+import Heading from "@/components/breadcrumb";
+import ConfigurableProductFormComponent from "@/components/configurable-product-form";
 import useConfigurableProductStore from "@/app/libs/store/useConfigurableProduct";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";

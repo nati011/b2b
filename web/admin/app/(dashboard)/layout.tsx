@@ -4,7 +4,7 @@ import { DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
 import "@/app/globals.css";
 
-import Topnav from "@/app/components/topnav";
+import Topnav from "@/components/topnav";
 import SessionProvider from "@/app/sessionprovider";
 import { Provider } from "@/app/themeprovider";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"

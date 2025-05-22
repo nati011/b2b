@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
-import Heading from "../../components/breadcrumb";
+import Heading from "../../../components/breadcrumb";
 import {
     DropdownMenu,
     DropdownMenuContent,

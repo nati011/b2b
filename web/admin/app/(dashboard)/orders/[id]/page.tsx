@@ -1,7 +1,7 @@
 "use client"
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/datatable";
 import { columns } from "@/app/(dashboard)/orders/[id]/columns";
