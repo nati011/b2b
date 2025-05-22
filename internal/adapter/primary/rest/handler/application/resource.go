@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/resource"
@@ -35,7 +36,7 @@ type GetAllResourceResponse struct {
 }
 
 type Resource struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        resource.Provider
 }
 
@@ -43,7 +44,7 @@ func InitResource() {
 	handler.Register(new(Resource))
 }
 
-func (r *Resource) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Resource) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.ResourceService
 	r.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

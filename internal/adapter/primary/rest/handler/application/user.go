@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	"b2b.nati011.github.com/internal/core/application/user"
 
@@ -77,7 +78,7 @@ type GetAllUserResponse struct {
 }
 
 type UserHandler struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        user.Provider
 }
 
@@ -85,7 +86,7 @@ func InitUser() {
 	handler.Register(new(UserHandler))
 }
 
-func (a *UserHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
+func (a *UserHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.UserService
 	a.authMiddleware = *services.AuthMiddleware
 	return nil

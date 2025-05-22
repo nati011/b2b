@@ -33,7 +33,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 )
 
 /* Dependency Tree */
@@ -70,7 +70,7 @@ import (
 type Container struct {
 	db                         *sql.DB
 	AuthService                auth.Provider
-	AuthMiddleware             *util.AuthMiddleware
+	AuthMiddleware             *middleware.Auth
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	EmailService               email.Provider
@@ -107,6 +107,7 @@ func NewContainer(
 
 	//mobile client version
 	MinMobileClientCompatibleVersion string,
+
 	//baseurl
 	baseUrl string,
 	frontendUrl string) *Container {
@@ -145,7 +146,7 @@ func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername
 	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
 		m.EmailService)
 
-	m.AuthMiddleware = util.NewAuthMiddleware(m.AuthService)
+	m.AuthMiddleware = middleware.NewAuthMiddleware(m.AuthService)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port, email_password string) {
@@ -165,8 +166,6 @@ func (m *Container) InitResourceService() {
 }
 
 func (m *Container) InitRoleService() {
-	//create superAdminRole
-	//grant Access to all resources
 	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, &m.Pagination), m.ResourceService)
 }
 
@@ -183,7 +182,6 @@ func (m *Container) InitTransactionService() {
 }
 
 func (m *Container) InitUserService() {
-	//create user with superadmin role
 	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, &m.Pagination), m.RoleService, m.AuthService)
 }
 

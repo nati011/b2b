@@ -9,6 +9,7 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -60,7 +61,7 @@ type UpdateRetailerRequest struct {
 }
 
 type Retailer struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        retailer.Provider
 	userService    user.Provider
 }
@@ -69,7 +70,7 @@ func InitRetailer() {
 	handler.Register(new(Retailer))
 }
 
-func (r *Retailer) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (r *Retailer) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	r.service = domainServices.RetailerService
 	r.userService = applicationServices.UserService
 	r.authMiddleware = *applicationServices.AuthMiddleware

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	auth "b2b.nati011.github.com/internal/core/application/authentication"
 
@@ -14,7 +15,7 @@ import (
 )
 
 type AuthHandler struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        auth.Provider
 }
 
@@ -26,7 +27,7 @@ func InitAuth() {
 	handler.Register(new(AuthHandler))
 }
 
-func (a *AuthHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
+func (a *AuthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.AuthService
 	a.authMiddleware = *services.AuthMiddleware
 	return nil
