@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"
@@ -18,7 +19,7 @@ func InitMobileClient() {
 	handler.Register(new(MobileClientHandler))
 }
 
-func (m *MobileClientHandler) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (m *MobileClientHandler) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	m.service = applicationServices.MobileClient
 	return nil
 }

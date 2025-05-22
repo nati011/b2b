@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/role"
@@ -64,7 +65,7 @@ var (
 )
 
 type Role struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        role.Provider
 }
 
@@ -72,7 +73,7 @@ func InitRole() {
 	handler.Register(new(Role))
 }
 
-func (r *Role) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Role) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ApplicationServices.RoleService
 	return nil
 }

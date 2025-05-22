@@ -1,10 +1,11 @@
-package handler
+package middleware
 
 import (
 	"net/http"
 	"strconv"
 
 	"b2b.nati011.github.com/config"
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 type PaginationMiddleware struct {
@@ -33,18 +34,16 @@ func (p *PaginationMiddleware) Paginate(next http.Handler) http.Handler {
 		if paramLimitValue != "" {
 			limit, err = strconv.Atoi(paramLimitValue)
 			if err != nil {
-				RequestErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
-
 			}
 		}
 
 		if paramOffsetValue != "" {
 			offset, err = strconv.Atoi(paramOffsetValue)
 			if err != nil {
-				RequestErrorResponse(w, err)
+				util.RequestErrorResponse(w, err)
 				return
-
 			}
 		}
 
