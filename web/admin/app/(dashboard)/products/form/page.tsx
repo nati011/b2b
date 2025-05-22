@@ -1,6 +1,6 @@
 'use client'
 
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import ProductForm from "@/app/components/ProductForm";
 
 export default function Retailers() {

@@ -1,5 +1,5 @@
 'use client'
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import useDistributorsStore from "@/app/libs/store/useDistributorStore"
 import { Distributor, DistributorRequest } from '@/app/libs/types';
 import dynamic from "next/dynamic";
@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const Map = dynamic(
-  () => import('@/app/components/map'),
+  () => import('@/components/map'),
   { ssr: false }
 )
 

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Images } from "lucide-react";
-import ImageUpload from "@/app/components/image-upload";
+import ImageUpload from "@/components/image-upload";
 
 interface ProductImagesFormProps {
     images: string[];

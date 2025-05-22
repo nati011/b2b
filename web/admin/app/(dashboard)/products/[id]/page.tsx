@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import Heading from "@/app/components/breadcrumb";
-import { MultiSelect } from "@/app/components/multiselect";
+import Heading from "@/components/breadcrumb";
+import { MultiSelect } from "@/components/multiselect";
 import { Badge } from "@/components/ui/badge"
 import { Plus, X } from "lucide-react";
-import ImageUpload from "@/app/components/image-upload";
+import ImageUpload from "@/components/image-upload";
 import { useParams } from "next/navigation";
 import ProductForm from "@/app/components/ProductForm";
 

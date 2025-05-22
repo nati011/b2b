@@ -2,7 +2,7 @@
 import { columns } from "@/app/(dashboard)/retailers/column"
 import useRetailersStore from "@/app/libs/store/useRetailerStore"
 import { useEffect } from "react";
-import Heading from "../../components/breadcrumb";
+import Heading from "../../../components/breadcrumb";
 import { DataTableLayout } from "@/components/ui/datatablelayout";
 
 export default function Retailers() {
