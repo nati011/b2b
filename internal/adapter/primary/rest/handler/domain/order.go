@@ -73,6 +73,10 @@ func (o *Order) Routes(mux *http.ServeMux) {
 		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.PostHandler)).ServeHTTP(w, r)
 	})
 
+	mux.HandleFunc("POST /api/v1/order/init_settlement", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.InitPaymentHandler)).ServeHTTP(w, r)
+	})
+
 	mux.HandleFunc("PATCH /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
 		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.CommandHandler)).ServeHTTP(w, r)
 	})
@@ -203,6 +207,32 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		util.OperationSuccessResponse(w, resp)
 	}
 
+}
+
+func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+
+		id, err := o.service.InitPayment(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": id})
+	}
 }
 
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
