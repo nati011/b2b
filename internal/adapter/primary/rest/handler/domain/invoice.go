@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -12,7 +13,7 @@ import (
 )
 
 type Invoice struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	Service        invoice.Provider
 }
 
@@ -20,7 +21,7 @@ func InitInvoice() {
 	handler.Register(new(Invoice))
 }
 
-func (i *Invoice) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (i *Invoice) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	i.Service = domainService.InvoiceService
 	i.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

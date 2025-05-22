@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -55,11 +56,11 @@ func InitOrder() {
 }
 
 type Order struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        order.Provider
 }
 
-func (o *Order) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (o *Order) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	o.service = domainService.OrderService
 	o.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

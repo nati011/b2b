@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -70,7 +71,7 @@ type UpdateConfigurableProductRequest struct {
 }
 
 type ConfigurableProduct struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        configurable_product.Provider
 }
 
@@ -78,7 +79,7 @@ func InitConfigurableProduct() {
 	handler.Register(new(ConfigurableProduct))
 }
 
-func (c *ConfigurableProduct) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (c *ConfigurableProduct) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	c.service = domainService.ConfigurableProductService
 	c.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
