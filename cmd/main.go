@@ -9,7 +9,7 @@ import (
 
 	"b2b.nati011.github.com/config"
 
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -76,8 +76,8 @@ func main() {
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_constainer, domain_container)
 
-	loggingingMiddleware := util.NewLoggingMiddleware()
-	paginationMiddleware := util.NewPaginationMiddleware(*config.NewPaginationBuilder())
+	loggingingMiddleware := middleware.NewLoggingMiddleware()
+	paginationMiddleware := middleware.NewPaginationMiddleware(*config.NewPaginationBuilder())
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
