@@ -73,20 +73,24 @@ type GetAllCatalogueResponse struct {
 }
 
 type Catalogue struct {
-	service catalogue.Provider
+	authMiddleware util.AuthMiddleware
+	service        catalogue.Provider
 }
 
 func InitCatalogue() {
 	handler.Register(new(Catalogue))
 }
 
-func (c *Catalogue) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (c *Catalogue) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	c.service = domainService.CatalogueService
+	c.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (c *Catalogue) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/catalogue", c.GetCatalogueHandler)
+	mux.HandleFunc("GET /api/v1/catalogue", func(w http.ResponseWriter, r *http.Request) {
+		c.authMiddleware.RequireNoAuthentication(http.HandlerFunc(c.GetCatalogueHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (c *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) {

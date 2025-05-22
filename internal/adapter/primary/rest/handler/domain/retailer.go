@@ -60,26 +60,38 @@ type UpdateRetailerRequest struct {
 }
 
 type Retailer struct {
-	service     retailer.Provider
-	userService user.Provider
+	authMiddleware util.AuthMiddleware
+	service        retailer.Provider
+	userService    user.Provider
 }
 
 func InitRetailer() {
 	handler.Register(new(Retailer))
 }
 
-func (r *Retailer) Init(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (r *Retailer) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	r.service = domainServices.RetailerService
 	r.userService = applicationServices.UserService
+	r.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
-func (r *Retailer) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/retailer", r.GetHandler)
-	mux.HandleFunc("POST /api/v1/retailer", r.CreateHandler)
-	mux.HandleFunc("PUT /api/v1/retailer", r.UpdateHandler)
+func (re *Retailer) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.GetHandler)).ServeHTTP(w, r)
+	})
 
-	mux.HandleFunc("GET /api/v1/retailer/{id}/user", r.GetUserHandler)
+	mux.HandleFunc("POST /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.CreateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PUT /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.UpdateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/retailer/{id}/user", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.GetUserHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (re *Retailer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
