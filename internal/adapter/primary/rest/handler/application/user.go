@@ -112,6 +112,14 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", func(w http.ResponseWriter, r *http.Request) {
 		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
 	})
+
+	mux.HandleFunc("POST /api/v1/user/auth/login", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.LoginHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/user/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.RefreshTokenHandler)).ServeHTTP(w, r)
+	})
 }
 
 const (
@@ -359,4 +367,50 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"user": id})
+}
+
+func (u *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody user.LoginUserRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	loginResponse, err := u.service.Login(r.Context(), &requestBody)
+	if err != nil {
+		switch err {
+		case user.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, loginResponse.JWT)
+
+}
+
+func (u *UserHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var req user.RefreshTokenRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	refreshResponse, err := u.service.RefreshToken(r.Context(), &req)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
 }
