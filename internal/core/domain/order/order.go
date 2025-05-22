@@ -112,7 +112,7 @@ type OrderService struct {
 	InvoiceService  invoice.Provider
 	ProductService  product.Provider
 	RetailerService retailer.Provider
-	PaymentService  checkout.Provider
+	CheckoutService checkout.Provider
 }
 
 func NewOrderService(
@@ -129,7 +129,7 @@ func NewOrderService(
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
-		PaymentService:  pays,
+		CheckoutService: pays,
 	}
 }
 
@@ -211,7 +211,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 		return OrderPlaceResponse{}, ErrUnknown
 	}
 
-	checkout_resp, err := o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
+	checkout_resp, err := o.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
 		OrderId:          order_id,
 		Amount:           itemsTotal,
 		PaymentPartnerId: req.PaymentPartnerId,
@@ -273,6 +273,20 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 	return OrderPlaceResponse{
 		Id:          order_id,
 		CheckoutUrl: checkout_resp.CheckoutUrl,
+	}, nil
+}
+
+func (o *OrderService) InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error) {
+	resp, err := o.CheckoutService.ReinitiateCheckout(ctx, &checkout.ReinitiateCheckoutRequest{
+		OrderId: id,
+	})
+	if err != nil {
+		log.Printf("failed to init payment: %v", err)
+		return OrderPlaceResponse{}, nil
+	}
+	return OrderPlaceResponse{
+		Id:          id,
+		CheckoutUrl: resp.CheckoutUrl,
 	}, nil
 }
 
