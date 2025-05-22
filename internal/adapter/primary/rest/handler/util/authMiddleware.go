@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/authentication"
 )
 
 type AuthMiddleware struct {

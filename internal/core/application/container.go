@@ -17,7 +17,7 @@ import (
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/authentication"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/email"
 	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"

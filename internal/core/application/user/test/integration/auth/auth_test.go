@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/authentication"
 	"b2b.nati011.github.com/internal/core/application/user"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 )
