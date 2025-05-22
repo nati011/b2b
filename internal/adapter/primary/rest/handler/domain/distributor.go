@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -75,14 +76,14 @@ type UpdateDistributorRequest struct {
 type Distributor struct {
 	service        distributor.Provider
 	userService    user.Provider
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 }
 
 func InitDistributor() {
 	handler.Register(new(Distributor))
 }
 
-func (d *Distributor) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (d *Distributor) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	d.service = domainServices.DistributorService
 	d.userService = applicationServices.UserService
 	d.authMiddleware = *applicationServices.AuthMiddleware

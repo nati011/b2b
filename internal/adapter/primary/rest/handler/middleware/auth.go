@@ -1,59 +1,60 @@
-package handler
+package middleware
 
 import (
 	"context"
 	"net/http"
 	"strings"
 
+	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	auth "b2b.nati011.github.com/internal/core/application/authentication"
 )
 
-type AuthMiddleware struct {
+type Auth struct {
 	auth auth.Provider
 }
 
-type Option func(*AuthMiddleware)
+type Option func(*Auth)
 
-func NewAuthMiddleware(auth_service auth.Provider) *AuthMiddleware {
-	return &AuthMiddleware{
+func NewAuthMiddleware(auth_service auth.Provider) *Auth {
+	return &Auth{
 		auth: auth_service,
 	}
 }
 
 func WithRole(roles []string) Option {
-	return func(a *AuthMiddleware) {
+	return func(a *Auth) {
 
 	}
 }
 
-func (am *AuthMiddleware) RequireAuthentication(next http.Handler, options ...Option) http.Handler {
+func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if strings.TrimSpace(authHeader) == "" {
-			UnauthorizedResponse(w)
+			util.UnauthorizedResponse(w)
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			UnauthorizedResponse(w)
+			util.UnauthorizedResponse(w)
 			return
 		}
 
 		token := parts[1]
 		if strings.TrimSpace(token) == "" {
-			UnauthorizedResponse(w)
+			util.UnauthorizedResponse(w)
 			return
 		}
 
 		result, err := am.auth.RetrospectToken(r.Context(), token)
 		if err != nil {
-			UnauthorizedResponse(w)
+			util.UnauthorizedResponse(w)
 			return
 		}
 
 		if !result.Active {
-			UnauthorizedResponse(w)
+			util.UnauthorizedResponse(w)
 			return
 		}
 
@@ -64,7 +65,7 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler, options ...Op
 		claims := decodedToken.Claims
 
 		if err != nil {
-			UnauthorizedResponse(w)
+			util.UnauthorizedResponse(w)
 			return
 		}
 		ctx := context.WithValue(r.Context(), "claims", claims)
@@ -72,7 +73,7 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler, options ...Op
 	})
 }
 
-func (am *AuthMiddleware) RequireNoAuthentication(next http.Handler) http.Handler {
+func (am *Auth) RequireNoAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 	})
