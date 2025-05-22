@@ -1,7 +1,7 @@
 'use client'
 import { columns } from "@/app/(dashboard)/orders/column"
 import { useEffect, useState } from "react";
-import Heading from "../../components/breadcrumb";
+import Heading from "../../../components/breadcrumb";
 import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { fetchOrders } from "@/actions/order";
 import { Order } from "@/app/libs/types";
