@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/authentication"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/user"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
@@ -33,10 +33,9 @@ var (
 	ErrUnknown               = errors.New("oopsy, unknown error")
 	ErrPhoneNotValid         = errors.New("oopsy, phone number not valid")
 	ErrEmailNotValid         = errors.New("oopsy, email not valid")
-
-	ErrEmailTaken        = errors.New("oopsy, email already taken")
-	ErrUserNameTaken     = errors.New("oopsy, username already taken")
-	ErrPasswordMandatory = errors.New("oopsy, password not supplied")
+	ErrEmailTaken            = errors.New("oopsy, email already taken")
+	ErrUserNameTaken         = errors.New("oopsy, username already taken")
+	ErrPasswordMandatory     = errors.New("oopsy, password not supplied")
 )
 
 type CreateRequest struct {
