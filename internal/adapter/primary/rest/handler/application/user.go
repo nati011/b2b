@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -95,7 +96,9 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
 		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.GetUser)).ServeHTTP(w, r)
 	})
-
+	mux.HandleFunc("GET /api/v1/user/me", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.GetLoggedInUser)).ServeHTTP(w, r)
+	})
 	mux.HandleFunc("POST /api/v1/user", func(w http.ResponseWriter, r *http.Request) {
 		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.CreateUser)).ServeHTTP(w, r)
 	})
@@ -332,6 +335,12 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"users": response})
 	}
+}
+
+func (a *UserHandler) GetLoggedInUser(w http.ResponseWriter, r *http.Request) {
+	user := r.Context()
+	log.Printf("Context, %v", user.Value("claims"))
+	util.OperationSuccessResponse(w, util.Envelope{"users": user})
 }
 
 func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {

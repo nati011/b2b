@@ -68,6 +68,7 @@ func (am *AuthMiddleware) RequireAuthentication(next http.Handler, options ...Op
 			return
 		}
 		ctx := context.WithValue(r.Context(), "claims", claims)
+		logger.Printf("Claims, %v", decodedToken)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

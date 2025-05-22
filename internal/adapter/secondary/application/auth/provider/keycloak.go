@@ -79,11 +79,13 @@ func (k KeycloakProvider) RetrospectToken(ctx context.Context, token string) (po
 
 func (k KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.DecodedResult, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
-	decodedToken, _, err := client.DecodeAccessToken(
+	decodedToken, claims, err := client.DecodeAccessToken(
 		ctx,
 		token,
 		k.KeycloakApplicationRealm,
 	)
+	email, _ := (*MapClaims)(claims).GetEmail()
+	log.Printf("email, %v", email)
 	if err != nil {
 		log.Printf("failed to decode token: %v", err)
 		return port.DecodedResult{}, port.ErrSysUnknown

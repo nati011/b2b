@@ -3533,7 +3533,7 @@ BEGIN
 
     RETURN new_id;
 END;
-$$;
+$$;  
 
     -- reader
 CREATE OR REPLACE FUNCTION public.get_payment_by_id(

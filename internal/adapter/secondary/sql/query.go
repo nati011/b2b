@@ -108,11 +108,13 @@ func (s QueryMaster) DoMultiQuery() ([][]any, error) {
 func (s QueryMaster) DoSingleQuery() error {
 	row := s.db.QueryRowContext(s.ctx, s.query, s.args...)
 	if row.Err() != nil {
+		log.Printf("Query Error: %v", row.Err())
 		return port_commons.ErrSysUnknown
 	}
 	if s.singleRowResultSet != nil {
 		err := row.Scan(s.singleRowResultSet...)
 		if err != nil {
+			log.Printf("Query Error: %v", err.Error())
 			return port_commons.ErrSysNoRows
 		}
 	}
