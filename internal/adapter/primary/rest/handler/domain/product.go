@@ -10,6 +10,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	"b2b.nati011.github.com/internal/core/domain/product"
 
+	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -69,7 +70,7 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        product.Provider
 }
 
@@ -77,7 +78,7 @@ func InitProduct() {
 	handler.Register(new(Product))
 }
 
-func (p *Product) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (p *Product) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.ProductService
 	p.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
