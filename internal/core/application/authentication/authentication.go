@@ -325,11 +325,11 @@ func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req Re
 	// 	UserId: resp.Id,
 	// 	Email:  req.Email,
 	// })
-	if err != nil {
-		log.Printf("Failed to init client credentials reset")
-		// a.authProvider.DeleteClient(ctx, req)
-		return RegisterUserResponse{}, err
-	}
+	// if err != nil {
+	// 	log.Printf("Failed to init client credentials reset")
+	// 	// a.authProvider.DeleteClient(ctx, req)
+	// 	return RegisterUserResponse{}, err
+	// }
 
 	return RegisterUserResponse{
 		Id:       resp.Id,
