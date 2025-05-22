@@ -47,7 +47,7 @@ type Provider interface {
 	Callback(ctx context.Context, PaymentPartnerId int, txRef string)
 }
 
-type PaymentService struct {
+type PaymentVerificationService struct {
 	paymentService payment.Provider
 	paymentPartner partner.Provider
 	transaction    transaction.Provider
@@ -60,7 +60,7 @@ type CreatePaymentRequest struct {
 }
 
 func NewPaymentVerificationService(paymentService payment.Provider, partner partner.Provider, transaction transaction.Provider, order order.Provider) Provider {
-	return &PaymentService{
+	return &PaymentVerificationService{
 		paymentService: paymentService,
 		paymentPartner: partner,
 		transaction:    transaction,
@@ -68,7 +68,7 @@ func NewPaymentVerificationService(paymentService payment.Provider, partner part
 	}
 }
 
-func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPaymentResponse, error) {
+func (p *PaymentVerificationService) getPayment(ctx context.Context, txRef string) (GetPaymentResponse, error) {
 	payment, err := p.paymentService.GetByTransactionRef(ctx, txRef)
 	if err != nil {
 		return GetPaymentResponse{}, err
@@ -83,7 +83,7 @@ func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPayme
 	}, err
 }
 
-func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
+func (p *PaymentVerificationService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
 	if err := validateTxRef(txRef); err != nil {
 		return false, err
 	}
@@ -126,7 +126,7 @@ func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef
 	return is_verified, nil
 }
 
-func (p *PaymentService) Callback(ctx context.Context, gatewayId int, txRef string) {
+func (p *PaymentVerificationService) Callback(ctx context.Context, gatewayId int, txRef string) {
 	is_verified, err := p.Verify(ctx, gatewayId, txRef)
 	if err != nil {
 		switch err {
