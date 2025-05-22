@@ -95,6 +95,7 @@ type OrderPlaceResponse struct {
 
 type Provider interface {
 	Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error)
+	InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error)
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
