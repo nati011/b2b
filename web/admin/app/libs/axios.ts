@@ -1,10 +1,10 @@
+import { getSession } from "@/actions/getSession";
 import axios from "axios";
-import { getSession, useSession } from "next-auth/react";
 
-const apiUrl = "http://localhost:8084/api/v1";
+const apiUrl = "http://localhost:3000/api/v1";
 
 const axiosIns = axios.create({
-  //   baseURL: apiUrl,
+  baseURL: apiUrl,
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,12 +14,13 @@ let isRefreshing = false;
 axiosIns.interceptors.request.use(
   async (config) => {
     console.log("Config called");
-    // const session = getSession()
-    // // @ts-ignore
-    // if (session && session.user?.accessToken) {
-    //      // @ts-ignore
-    //     config.headers.Authorization = `Bearer ${session.accessToken}`;
-    // }
+    const session = await getSession()
+    console.log("*****************************")
+    // @ts-ignore
+    if (session && session?.accessToken) {
+      // @ts-ignore
+      config.headers.Authorization = `Bearer ${session.accessToken}`;
+    }
 
     // console.log(config.baseURL, 'Config Here')
     return config;
@@ -69,11 +70,13 @@ async function refreshAccessToken() {
 
     try {
       const sessionData = await getSession();
+      console.log("Session Data_________________________")
+      console.log(sessionData)
 
       const tokens = (
-        await axiosIns.post("/accounts/token/refresh/", {
+        await axiosIns.post(`/auth/refresh`, {
           // @ts-ignore
-          refresh: sessionData.user.refreshToken,
+          refresh: sessionData.refreshToken,
         })
       ).data;
       console.log(tokens, "Tokens");
