@@ -37,7 +37,6 @@ export default function LoginPage() {
                 await signIn("credentials", {
                     email: email,
                     password: password,
-                    callbackUrl: "/",
                     redirect: true,
                 })
             } catch (error: any) {
