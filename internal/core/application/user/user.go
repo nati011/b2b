@@ -178,6 +178,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	if err != nil {
 		return 0, err
 	}
+
 	if req.Password == "" {
 		providerResponse, err = u.auth_service.CreateNewClientWithOutPassword(ctx, &auth.RegisterUserWithoutPasswordRequest{
 			Email:       req.Email,
