@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/user"
 
 	application_core "b2b.nati011.github.com/internal/core/application"

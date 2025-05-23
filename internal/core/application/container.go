@@ -17,9 +17,10 @@ import (
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 
-	auth "b2b.nati011.github.com/internal/core/application/authentication"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/email"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
@@ -32,8 +33,6 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
-
-	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 )
 
 /* Dependency Tree */
@@ -143,8 +142,10 @@ func (m *Container) InitMobileClientService(minMobileClientCompatibleVersion str
 }
 
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
-	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
-		m.EmailService)
+	m.AuthService = auth.NewAuthService(
+		auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
+		m.EmailService,
+		m.RoleService)
 
 	m.AuthMiddleware = middleware.NewAuthMiddleware(m.AuthService)
 }
