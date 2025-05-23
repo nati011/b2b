@@ -2,7 +2,7 @@ import NextAuth, { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { jwtDecode } from "jwt-decode"
 import axios from "axios"
-import { redirect } from 'next/navigation'
+import { NextResponse } from "next/server";
 
 const baseURL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
 
@@ -41,7 +41,8 @@ async function refreshAccessToken(refreshToken: string) {
       }
     }
   } catch (error) {
-    redirect("/auth/signin")
+    NextResponse.redirect("/auth/signin")
+    throw error
   }
 }
 
