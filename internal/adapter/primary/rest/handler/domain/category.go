@@ -31,23 +31,35 @@ type GetAllCategoryResponse struct {
 }
 
 type Category struct {
-	service category.Provider
+	authMiddleware util.AuthMiddleware
+	service        category.Provider
 }
 
 func InitCategory() {
 	handler.Register(new(Category))
 }
 
-func (r *Category) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Category) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.CategoryService
 	return nil
 }
 
 func (c *Category) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/category", c.GetHandler)
-	mux.HandleFunc("POST /api/v1/category", c.CreateHandler)
-	mux.HandleFunc("PATCH /api/v1/category/{id}", c.UpdateHandler)
-	mux.HandleFunc("DELETE /api/v1/category", c.DeleteHandler)
+	mux.HandleFunc("GET /api/v1/category", func(w http.ResponseWriter, r *http.Request) {
+		c.authMiddleware.RequireNoAuthentication(http.HandlerFunc(c.GetHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/category", func(w http.ResponseWriter, r *http.Request) {
+		c.authMiddleware.RequireAuthentication(http.HandlerFunc(c.CreateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/category/{id}", func(w http.ResponseWriter, r *http.Request) {
+		c.authMiddleware.RequireAuthentication(http.HandlerFunc(c.UpdateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("DELETE /api/v1/category", func(w http.ResponseWriter, r *http.Request) {
+		c.authMiddleware.RequireAuthentication(http.HandlerFunc(c.DeleteHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {

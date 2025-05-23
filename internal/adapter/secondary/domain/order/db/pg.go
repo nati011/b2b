@@ -154,7 +154,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 	}
 
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		v, _ := strconv.ParseFloat(res[4].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			RetailerId:     int(res[1].(int64)),
@@ -271,7 +271,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}
 
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		v, _ := strconv.ParseFloat(res[4].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			RetailerId:     int(res[1].(int64)),
@@ -289,9 +289,10 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 		for _, s := range allOrderItems.Items {
 			val.Items = append(val.Items, port.Item{
-				ProductId: s.ProductId,
-				Quantity:  s.Quantity,
-				Price:     s.Price,
+				ProductId:   s.ProductId,
+				ProductName: s.ProductName,
+				Quantity:    s.Quantity,
+				Price:       s.Price,
 			})
 		}
 
