@@ -16,7 +16,7 @@ import (
 type TestContainer struct {
 	RoleService     role.Provider
 	ResourceService resource.Provider
-	Service         auth.AuthService
+	Service         auth.Provider
 }
 
 func NewIntegrationTestContainer() TestContainer {
@@ -67,10 +67,11 @@ func NewIntegrationTestContainer() TestContainer {
 		panic("failed to create email template")
 	}
 
-	auth.NewAuthService(
+	container.Service = auth.NewAuthService(
 		provider.NewMockAuthProvider(),
 		emailTestContainer.EmailService,
 		role.NewTestContainer().RoleService)
+
 	return container
 }
 
