@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import ProductImagesForm from "./ProductImageForm";
+import ProductImagesForm from "@/components/product-image-form";
 import { MultiSelect } from "@/components/multiselect";
 import useProductsStore from "@/app/libs/store/useProductStore";
-import ConfigurableProductAttributeForm from "./ConfigurableAttributeForm";
+import ConfigurableProductAttributeForm from "@/components/configurable-attribute-form";
 import { ConfigurableProduct, ConfigurableProductForm } from "../app/libs/types";
 
 interface ProductFormProps {
