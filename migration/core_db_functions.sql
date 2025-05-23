@@ -3045,20 +3045,22 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT o.id, 
-           o.retailer_id,
-           r.name,
-           o.status, 
-           o.total,
-           o.payment_status,
-           o.delivery_status,
-           o.created_date
-    FROM public.orders o
-    JOIN public.retailer_business_info r
-    ON r.retailer_id = o.retailer_id
-    WHERE o.is_deleted = FALSE
-    LIMIT t_limit
-    OFFSET t_offset;
+
+SELECT o.id, 
+        o.retailer_id,
+        r.name,
+        o.status, 
+        o.total,
+        o.payment_status,
+        o.delivery_status,
+        o.created_date
+        FROM public.orders o
+        JOIN public.retailer_business_info r
+        ON r.retailer_id = o.retailer_id
+        WHERE o.is_deleted = FALSE
+        ORDER BY o.created_date ASC
+        LIMIT t_limit
+        OFFSET t_offset
 END;
 $$;
 
