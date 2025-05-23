@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
 import { Product, ConfigurableProduct, ProductForm } from "@/app/libs/types";
+import { addStock, createConfigurableProduct, createProduct, depleteStock, fetchConfigurableProductDetail, fetchConfigurableProducts, fetchProductDetail, fetchProducts, updateConfigurableProductStatus, updateProduct, updateProductStatus } from "@/actions/product";
 
 interface ProductsStore {
   success: string;
@@ -73,10 +74,10 @@ const useProductsStore = create<ProductsStore>((set) => ({
   fetchProducts: async (url?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get("/api/product");
-      console.log(response.data)
+      const resp = await fetchProducts()
+      console.log(resp)
       set({
-        products: response.data.body.List,
+        products: resp.body.List,
         loading: false,
       });
     } catch (error) {
@@ -86,10 +87,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
   fetchConfigurableProducts: async (url?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get("/api/configurable_product");
-      console.log(response.data)
+      const resp = await fetchConfigurableProducts()
       set({
-        configurable_products: response.data.body.configurable_products.List,
+        configurable_products: resp.body.configurable_products.List,
         loading: false,
       });
     } catch (error) {
@@ -100,7 +100,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
   updateProduct: async (ProductsData: Partial<ProductForm>) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.put("/api/product/", ProductsData);
+      await updateProduct(ProductsData)
       set((state) => ({
         loading: false,
       }));
@@ -113,7 +113,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
   createProduct: async (productData: any) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.post("/api/product", productData);
+      const response = await createProduct(productData);
       await useProductsStore.getState().fetchProducts();
       set({ loading: false, success: response.data });
     } catch (error: any) {
@@ -123,11 +123,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
   createConfigurableProduct: async (productData: any) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.post('/api/configurable_product', productData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await createConfigurableProduct(productData);
       await useProductsStore.getState().fetchProducts();
       if (response.status = 200) {
         window.location.href = '/products/configurable'
@@ -139,21 +135,17 @@ const useProductsStore = create<ProductsStore>((set) => ({
   },
   addStock: async (stock: number, id: number) => {
     try {
-      const response = await axiosIns.patch(`/api/product/${id}/stock?amount=${stock}&command=receive`);
-      console.log(response.data)
+      await addStock(stock, id);
       await useProductsStore.getState().fetchProducts();
       set({ loading: false });
     } catch (error: any) {
-      set({ loading: false, error: error.message });
+      console.log("Error here____________________________")
+      set({ loading: false, error: error.message || "An error has occured while updating stock." });
     }
   },
   depleteStock: async (stock: number, id: number) => {
     try {
-      const response = await axiosIns.patch(`/api/product/${id}/stock?amount=${stock}&command=deplete`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      await depleteStock(stock, id);
       await useProductsStore.getState().fetchProducts();
       set({ loading: false });
     } catch (error: any) {
@@ -163,14 +155,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
   updateProductStatus: async (id: number, productStatus: boolean) => {
     try {
       const command = productStatus ? "deactivate" : "activate"
-      const response = await axiosIns.patch(`/api/product/${id}/status?command=${command}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await updateProductStatus(id, command);
       await useProductsStore.getState().fetchProducts();
-      console.log(response.data)
-      set({ loading: false, success: response.data.message, });
+      set({ loading: false, success: response.message, });
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }
@@ -178,10 +165,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
   fetchProductDetail: async (id: number) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get(`/api/product?id=${id}`);
-      response.data.body.Attributes = [response.data.body.Attributes]
+      const detail = await fetchProductDetail(id);
       set({
-        product: response.data.body,
+        product: detail,
         loading: false,
       });
     } catch (error) {
@@ -191,12 +177,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
   fetchConfigurableProductDetail: async (id: number) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get(`/api/configurable_product?id=${id}`);
-      console.log(response.data.body)
-      // Note: TEMP
-      response.data.body.Attributes = [response.data.body.Attributes]
+      const detail = await fetchConfigurableProductDetail(id);
       set({
-        product: response.data.body,
+        product: detail,
         loading: false,
       });
     } catch (error) {
@@ -206,10 +189,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
   updateConfigurableProductStatus: async (id: number, productStatus: boolean) => {
     try {
       const command = productStatus ? "deactivate" : "activate"
-      const response = await axiosIns.patch(`/api/configurable_product/${id}/status?command=${command}`);
+      const response = await updateConfigurableProductStatus(id, command);
       await useProductsStore.getState().fetchConfigurableProducts();
-      console.log(response.data)
-      set({ loading: false, success: response.data.message, });
+      set({ loading: false, success: response.message, });
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }

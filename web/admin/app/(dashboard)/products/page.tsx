@@ -54,7 +54,7 @@ export default function Products() {
   const [stockModal, setStockModal] = useState(false)
   const [depleteStockModal, setDepleteStockModal] = useState(false)
   const [statusModal, setStatusModal] = useState(false)
-  const [stockQuantity, setStockQuantity] = useState(0)
+  const [stockQuantity, setStockQuantity] = useState("")
   const [productId, setProductId] = useState(0)
   const [productStatus, setProductStatus] = useState(false)
 
@@ -62,6 +62,13 @@ export default function Products() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error)
+    }
+  }, [error]);
 
 
   const columns: ColumnDef<Product>[] = [
@@ -164,13 +171,16 @@ export default function Products() {
   ];
 
   const handleAddStock = () => {
-    console.log(stockQuantity, productId)
-    addStock(stockQuantity, productId)
+    if (stockQuantity) {
+      addStock(parseFloat(stockQuantity), productId)
+    }
   };
 
 
   const handlDepleteStock = () => {
-    depleteStock(stockQuantity, productId)
+    if (stockQuantity) {
+      depleteStock(parseFloat(stockQuantity), productId)
+    }
   };
 
 
@@ -199,11 +209,12 @@ export default function Products() {
           <Input
             placeholder="Quantity"
             value={stockQuantity}
-            onChange={(e) => setStockQuantity(parseFloat(e.target.value))}
+            type="number"
+            onChange={(e) => setStockQuantity(e.target.value)}
             autoFocus
           />
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setStockModal(false); setStockQuantity(0) }}>
+            <AlertDialogCancel onClick={() => { setStockModal(false); setStockQuantity("") }}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -228,11 +239,12 @@ export default function Products() {
           <Input
             placeholder="Quantity"
             value={stockQuantity}
-            onChange={(e) => setStockQuantity(parseFloat(e.target.value))}
+            type="number"
+            onChange={(e) => e.target.value}
             autoFocus
           />
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); setStockQuantity(0) }}>
+            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); setStockQuantity("") }}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -256,7 +268,7 @@ export default function Products() {
           </AlertDialogHeader>
           <AlertDialogDescription>Are you sure you want to update the product status?</AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); setStockQuantity(0) }}>
+            <AlertDialogCancel onClick={() => { setDepleteStockModal(false); }}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

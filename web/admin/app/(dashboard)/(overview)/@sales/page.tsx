@@ -1,3 +1,5 @@
+'use client'
+import useOrdersStore from '@/app/libs/store/useOrderStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Card,
@@ -6,60 +8,77 @@ import {
   CardTitle,
   CardDescription
 } from '@/components/ui/card';
+import { useEffect } from 'react';
+import { CANCELED_STATUS, COMPLETED_STATUS, PENDING_STATUS } from "@/app/libs/enums";
+import Loading from './loading';
+import { Separator } from '@/components/ui/separator';
 
-const salesData = [
-  {
-    name: 'Olivia Martin',
-    email: 'olivia.martin@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/1.png',
-    fallback: 'OM',
-    amount: '1Item'
+
+
+const statusConfig = {
+  [CANCELED_STATUS]: {
+    bg: "bg-red-100/50",
+    text: "text-red-800",
+    border: "border-red-200",
+    label: "Canceled"
   },
-  {
-    name: 'Jackson Lee',
-    email: 'jackson.lee@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/2.png',
-    fallback: 'JL',
-    amount: '3 Item'
+  [PENDING_STATUS]: {
+    bg: "bg-amber-100/50",
+    text: "text-amber-800",
+    border: "border-amber-200",
+    label: "Pending"
   },
-  {
-    name: 'Isabella Nguyen',
-    email: 'isabella.nguyen@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/3.png',
-    fallback: 'IN',
-    amount: '4 Item'
+  [COMPLETED_STATUS]: {
+    bg: "bg-emerald-100/50",
+    text: "text-emerald-800",
+    border: "border-emerald-200",
+    label: "Completed"
   },
-  {
-    name: 'William Kim',
-    email: 'will@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/4.png',
-    fallback: 'WK',
-    amount: '2 Items'
-  },]
+};
 
 export default function RecentSales() {
+  const {
+    loading,
+    error,
+    orders,
+    fetchOrders,
+    invoice
+  } = useOrdersStore()
+
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
   return (
-    <Card className='h-full  rounded-sm shadow-none'>
-      <CardHeader>
-        <CardTitle>Recent Sales</CardTitle>
-        <CardDescription>You made 265 sales this month.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className='space-y-8'>
-          {salesData.map((sale, index) => (
-            <div key={index} className='flex items-center'>
-              <Avatar className='h-10 w-10'>
-                <AvatarFallback>{sale.fallback}</AvatarFallback>
-              </Avatar>
-              <div className='ml-4 space-y-1'>
-                <p className='text-sm leading-none font-medium'>{sale.name}</p>
-                <div className='ml-auto font-medium text-sm text-gray-700'>{sale.amount}</div>
+    loading ? <Loading /> :
+      <Card className='h-full  rounded-sm shadow-none'>
+        <CardHeader>
+          <CardTitle>Recent orders</CardTitle>
+          <CardDescription>You have {orders.length} orders.</CardDescription>
+          <Separator orientation='horizontal' />
+        </CardHeader>
+        <CardContent>
+          <div className='space-y-8'>
+            {orders.slice(0, 4).map((sale, index) => (
+              <div key={index} className='flex items-center'>
+                <Avatar className='h-10 w-10'>
+                  <AvatarFallback>{sale.RetailerName.split(" ")[0].slice(0, 1)}{sale.RetailerName.split(" ")[1].slice(0, 1)}</AvatarFallback>
+                </Avatar>
+                <div className='ml-4 space-y-1'>
+                  <p className='text-sm leading-none font-medium'>{sale.RetailerName}</p>
+                  <div className='ml-auto font-medium text-sm text-gray-700'>{sale.Items.length} Items</div>
+                </div>
+                {/* @ts-expect-error */}
+                <div className={`ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[sale.Status as string].bg} ${statusConfig[sale.Status as string].text} ${statusConfig[sale.Status as string].border}`}>
+                  {/* @ts-expect-error */}
+                  {statusConfig[sale.Status as string].label}
+                </div>
               </div>
-              <div className='ml-auto teext-sm inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100/50'>Pending</div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+
   );
 }
