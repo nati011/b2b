@@ -6,10 +6,11 @@ import (
 )
 
 type Item struct {
-	ProductId   int
-	ProductName string
-	Quantity    int
-	Price       float64
+	ProductId    int
+	ProductName  string
+	ProductPrice float64
+	Quantity     int
+	Price        float64
 }
 type CreateRequest struct {
 	RetailerId     int

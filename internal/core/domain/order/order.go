@@ -49,9 +49,10 @@ const (
 )
 
 type Item struct {
-	ProductId   int
-	ProductName string
-	Quantity    int
+	ProductId    int
+	ProductName  string
+	ProductPrice float64
+	Quantity     int
 }
 
 type PlaceRequest struct {
@@ -333,9 +334,10 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	items := []Item{}
 	for _, i := range resp.Items {
 		items = append(items, Item{
-			ProductId:   i.ProductId,
-			ProductName: i.ProductName,
-			Quantity:    i.Quantity,
+			ProductId:    i.ProductId,
+			ProductName:  i.ProductName,
+			ProductPrice: i.ProductPrice,
+			Quantity:     i.Quantity,
 		})
 	}
 	return GetResponse{
@@ -366,10 +368,12 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		items := []Item{}
 		for _, i := range i.Items {
 			items = append(items, Item{
-				ProductId:   i.ProductId,
-				Quantity:    i.Quantity,
-				ProductName: i.ProductName,
+				ProductId:    i.ProductId,
+				ProductName:  i.ProductName,
+				ProductPrice: i.Price,
+				Quantity:     i.Quantity,
 			})
+
 		}
 		return_response.List = append(return_response.List, GetResponse{
 			Id:             i.Id,

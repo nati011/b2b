@@ -289,9 +289,10 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 		for _, s := range allOrderItems.Items {
 			val.Items = append(val.Items, port.Item{
-				ProductId: s.ProductId,
-				Quantity:  s.Quantity,
-				Price:     s.Price,
+				ProductId:   s.ProductId,
+				ProductName: s.ProductName,
+				Quantity:    s.Quantity,
+				Price:       s.Price,
 			})
 		}
 
