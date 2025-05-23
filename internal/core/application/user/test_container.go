@@ -49,25 +49,16 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	db_global = db
 	c := TestContainer{}
 	c.RoleService = role.NewRole(
-		db_role_mock.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		db_role_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		resource.NewResource(
-			db_resource_mock.NewPostgres(db, &config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			}),
+			db_resource_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		),
 	)
 	c.AuthService = auth_test.NewIntegrationTestContainer().Service
 	c.UserService = NewUser(
 		db_provider.NewPostgres(
 			db,
-			&config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			},
+			config.DefaultPaginationBuilder().Build(),
 		),
 		c.RoleService,
 		c.AuthService,
@@ -80,10 +71,7 @@ func (t *TestContainer) TeardownIntegrationTestContainer() {
 	t.UserService = NewUser(
 		db_provider.NewPostgres(
 			db_global,
-			&config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			},
+			config.DefaultPaginationBuilder().Build(),
 		),
 		t.RoleService,
 		t.AuthService,
