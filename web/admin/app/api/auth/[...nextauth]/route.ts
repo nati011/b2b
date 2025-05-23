@@ -22,7 +22,6 @@ interface KeycloakJWT {
 
 async function refreshAccessToken(refreshToken: string) {
   try {
-    console.log(refreshToken)
     const response = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
       refresh_token: refreshToken,
     });
@@ -41,8 +40,9 @@ async function refreshAccessToken(refreshToken: string) {
       }
     }
   } catch (error) {
-    NextResponse.redirect("/auth/signin")
-    throw error
+    return {
+      error: "RefreshAccessTokenError",
+    }
   }
 }
 

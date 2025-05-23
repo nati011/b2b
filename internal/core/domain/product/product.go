@@ -82,7 +82,8 @@ type GetAllStockLedgerResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type GetByParamRequest struct {
@@ -618,6 +619,7 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		}
 		resp_val.List = append(resp_val.List, response)
 	}
+	resp_val.TotalCount = resp.TotalCount
 	return resp_val, nil
 }
 

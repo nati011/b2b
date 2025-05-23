@@ -50,7 +50,8 @@ type GetStockLedgerBaseResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type GetByNameRequest struct {
