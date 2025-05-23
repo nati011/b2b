@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	auth "b2b.nati011.github.com/internal/core/application/authentication"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/user"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
@@ -179,7 +179,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		return 0, err
 	}
 	if req.Password == "" {
-		providerResponse, err = u.auth_service.CreateNewClientWithOutPassword(ctx, auth.RegisterUserWithoutPasswordRequest{
+		providerResponse, err = u.auth_service.CreateNewClientWithOutPassword(ctx, &auth.RegisterUserWithoutPasswordRequest{
 			Email:       req.Email,
 			FirstName:   req.FirstName,
 			LastName:    req.LastName,
@@ -208,7 +208,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			}
 		}
 	} else {
-		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, auth.RegisterUserRequest{
+		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, &auth.RegisterUserRequest{
 			Email:       req.Email,
 			Password:    req.Password,
 			FirstName:   req.FirstName,
@@ -849,6 +849,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 			return ErrUnknown
 		}
 	}
+
 	for _, i := range resp.List {
 		err = u.auth_service.DeleteClient(ctx, i.ProviderId)
 		if err != nil {
@@ -858,7 +859,6 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 			}
 		}
 	}
-
 	//remove
 	log.Printf("Deleting Id %v", id)
 	err = u.db.Delete(ctx, id)
@@ -885,9 +885,10 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 }
 
 func (u *UserService) Login(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error) {
-	resp, err := u.auth_service.ClientLogin(ctx, auth.LoginUserRequest{
+	resp, err := u.auth_service.ClientLogin(ctx, &auth.LoginUserRequest{
 		Email:    req.Email,
-		Password: req.Password})
+		Password: req.Password,
+	})
 	if err != nil {
 		log.Printf("Failed to login user: %v err: %v", req.Email, err)
 		return LoginAuthResponse{}, ErrUnknown
@@ -899,7 +900,7 @@ func (u *UserService) Login(ctx context.Context, req *LoginUserRequest) (LoginAu
 }
 
 func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
-	resp, err := u.auth_service.RefreshToken(ctx, auth.RefreshTokenRequest{
+	resp, err := u.auth_service.RefreshToken(ctx, &auth.RefreshTokenRequest{
 		RefreshToken: req.RefreshToken,
 	})
 	if err != nil {
@@ -907,5 +908,6 @@ func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 		return LoginAuthResponse{}, ErrUnknown
 	}
 
-	return LoginAuthResponse{JWT: JWT(resp.JWT)}, nil
+	return LoginAuthResponse{
+		JWT: JWT(resp.JWT)}, nil
 }
