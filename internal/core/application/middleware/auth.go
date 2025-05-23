@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
-	auth "b2b.nati011.github.com/internal/core/application/authentication"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
 )
 
 type Auth struct {
