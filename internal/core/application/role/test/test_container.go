@@ -20,16 +20,11 @@ type TestContainer struct {
 func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	c := TestContainer{}
 	c.ResourceService = resource.NewResource(
-		db_resource_adapter.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		db_resource_adapter.NewPostgres(db,
+			config.DefaultPaginationBuilder().Build()),
 	)
 	c.RoleService = role.NewRole(
-		db_role_adapter.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		db_role_adapter.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		c.ResourceService,
 	)
 	return c

@@ -27,10 +27,7 @@ func setup() {
 	service = resource.NewResource(
 		db_adapter.NewPostgres(
 			db,
-			&config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			},
+			config.DefaultPaginationBuilder().Build(),
 		),
 	)
 }
