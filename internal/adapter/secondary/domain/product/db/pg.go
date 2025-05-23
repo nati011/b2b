@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"database/sql"
+	"log"
 	"strconv"
 	"time"
 
@@ -250,7 +251,8 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
-	query := "SELECT * FROM public.get_all_products();"
+	var totalCount int64
+	query := "SELECT * FROM public.get_all_products_paginated($1,$2);"
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -262,12 +264,14 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.AvailableStock,
 		&responseBase.ReservedStock,
 		&responseBase.Price,
+		&totalCount,
 	}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		switch err {
@@ -290,6 +294,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			ReservedStock:  int(res[8].(int64)),
 			Price:          v,
 		}
+
+		totalCount = res[10].(int64)
+		log.Print(totalCount)
 		// images
 		//--------------------
 		var imageResponse []port.Image
@@ -390,6 +397,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
+	response.TotalCount = totalCount
 	return response, nil
 }
 
