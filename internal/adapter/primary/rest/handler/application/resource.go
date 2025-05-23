@@ -35,23 +35,36 @@ type GetAllResourceResponse struct {
 }
 
 type Resource struct {
-	service resource.Provider
+	authMiddleware util.AuthMiddleware
+	service        resource.Provider
 }
 
 func InitResource() {
 	handler.Register(new(Resource))
 }
 
-func (r *Resource) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Resource) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.ResourceService
+	r.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
-func (r *Resource) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/resource", r.GetResourceHandler)
-	mux.HandleFunc("POST /api/v1/resource", r.CreateResourceHandler)
-	mux.HandleFunc("PATCH /api/v1/resource", r.UpdateResourceHandler)
-	mux.HandleFunc("DELETE /api/v1/resource", r.DeleteResourceHandler)
+func (re *Resource) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/resource", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.GetResourceHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/resource", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.CreateResourceHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/resource", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.UpdateResourceHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("DELETE /api/v1/resource", func(w http.ResponseWriter, r *http.Request) {
+		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.DeleteResourceHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (rs *Resource) GetResourceHandler(w http.ResponseWriter, r *http.Request) {

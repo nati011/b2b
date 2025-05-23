@@ -18,14 +18,13 @@ func InitMobileClient() {
 	handler.Register(new(MobileClientHandler))
 }
 
-func (m *MobileClientHandler) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (m *MobileClientHandler) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	m.service = applicationServices.MobileClient
 	return nil
 }
 
 func (m *MobileClientHandler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/minCompatibleClientVersion", m.CheckminimumCompatibleVersion)
-
 }
 
 func (m *MobileClientHandler) CheckminimumCompatibleVersion(w http.ResponseWriter, r *http.Request) {

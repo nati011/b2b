@@ -32,6 +32,14 @@ func (m *MockAuthProvider) Teardown() {
 	m.clients = []MockClient{}
 }
 
+func (m MockAuthProvider) RetrospectToken(ctx context.Context, token string) (port.RetrospectionResult, error) {
+	return port.RetrospectionResult{}, nil
+}
+
+func (m MockAuthProvider) DecodeToken(ctx context.Context, token string) (port.DecodedResult, error) {
+	return port.DecodedResult{}, nil
+}
+
 func (m *MockAuthProvider) DeleteClient(ctx context.Context, userId string) error {
 	for _, i := range m.clients {
 		if i.userId != userId {

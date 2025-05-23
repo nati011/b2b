@@ -3092,20 +3092,22 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT o.id, 
-           o.retailer_id,
-           r.name,
-           o.status, 
-           o.total,
-           o.payment_status,
-           o.delivery_status,
-           o.created_date
-    FROM public.orders o
-    JOIN public.retailer_business_info r
-    ON r.retailer_id = o.retailer_id
-    WHERE o.is_deleted = FALSE
-    LIMIT t_limit
-    OFFSET t_offset;
+
+SELECT o.id, 
+        o.retailer_id,
+        r.name,
+        o.status, 
+        o.total,
+        o.payment_status,
+        o.delivery_status,
+        o.created_date
+        FROM public.orders o
+        JOIN public.retailer_business_info r
+        ON r.retailer_id = o.retailer_id
+        WHERE o.is_deleted = FALSE
+        ORDER BY o.created_date ASC
+        LIMIT t_limit
+        OFFSET t_offset
 END;
 $$;
 
@@ -3565,7 +3567,8 @@ $$;
 CREATE OR REPLACE FUNCTION public.create_payment(
     p_order_id INT,
     p_partner_id INT,
-    p_transaction_ref VARCHAR(255)
+    p_transaction_ref VARCHAR(255),
+    p_amount DECIMAL(12, 2)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -3573,13 +3576,112 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.payment(order_id, partner_id, transaction_ref)
-    VALUES ( p_order_id,p_partner_id,p_transaction_ref) 
+    INSERT INTO public.payments(order_id, partner_id, transaction_ref, amount)
+    VALUES ( p_order_id, p_partner_id, p_transaction_ref, p_amount) 
     RETURNING id INTO new_id;
 
     RETURN new_id;
 END;
 $$;
+
+    -- reader
+CREATE OR REPLACE FUNCTION public.get_payment_by_id(
+    p_id INT
+)
+RETURNS TABLE(id INT,
+              order_id INT,
+              partner_id INT,
+              transaction_ref VARCHAR(255),
+              amount DECIMAL(12, 2),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.order_id, 
+           t.partner_id,
+           t.transaction_ref,
+           t.amount,
+           t.created_date
+    FROM public.payments t
+    WHERE t.id = p_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.get_payment_by_order_id(
+    p_order_id INT
+)
+RETURNS TABLE(id INT,
+              order_id INT,
+              partner_id INT,
+              transaction_ref VARCHAR(255),
+              amount DECIMAL(12, 2),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.order_id, 
+           t.partner_id,
+           t.transaction_ref,
+           t.amount,
+           t.created_date
+    FROM public.payments t
+    WHERE t.order_id = p_order_id
+      AND t.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_payment_by_tx_ref(
+    p_tx_ref VARCHAR(255)
+)
+RETURNS TABLE(id INT,
+              order_id INT,
+              partner_id INT,
+              transaction_ref VARCHAR(255),
+              amount DECIMAL(12, 2),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.order_id, 
+           t.partner_id,
+           t.transaction_ref,
+           t.amount,
+           t.created_date
+    FROM public.payments t
+    WHERE t.transaction_ref = p_tx_ref
+      AND t.is_deleted = FALSE;
+END;
+$$; 
+
+CREATE OR REPLACE FUNCTION public.get_all_payment()
+RETURNS TABLE(id INT,
+              order_id INT,
+              partner_id INT,
+              transaction_ref VARCHAR(255),
+              amount DECIMAL(12, 2),
+              date TIMESTAMP)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.id, 
+           t.order_id, 
+           t.partner_id,
+           t.transaction_ref,
+           t.amount,
+           t.created_date
+    FROM public.payments t
+    WHERE t.is_deleted = FALSE;
+END;
+$$; 
 
 -- email_templates ---------------------------
 
