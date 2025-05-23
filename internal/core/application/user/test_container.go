@@ -68,7 +68,13 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	return c
 }
 
-func (t *TestContainer) TeardownIntegrationTestContainer() {
+func (t *TestContainer) TeardownIntegrationTestContainer(db *sql.DB) {
+	t.RoleService = role.NewRole(
+		db_role_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		resource.NewResource(
+			db_resource_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		),
+	)
 	t.AuthService = auth_test.NewIntegrationTestContainer().Service
 	t.UserService = NewUser(
 		db_provider.NewPostgres(
