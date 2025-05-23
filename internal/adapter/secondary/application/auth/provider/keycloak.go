@@ -14,16 +14,7 @@ import (
 const (
 	MessageErrKeyCloakEmailTaken    = "User exists with same email"
 	MessageErrKeyCloakUsernameTaken = "User exists with same username"
-
-	MessageErrFailedLogin = "Invalid user credentials"
-
-	// KeycloakInstanceURL      = "http://localhost:8080"
-	// KeycloakUsername         = "admin"
-	// KeycloakPassword         = "admin"
-	// KeycloakRealm            = "master"
-	// KeycloakApplicationRealm = "test"
-	// KeycloakClientId         = "test"
-	// KeycloakClientSecret     = "jQILbkSn6ywmVVYjxgSMHYOUfnlA7pMS"
+	MessageErrFailedLogin           = "Invalid user credentials"
 )
 
 type KeycloakProvider struct {
@@ -56,7 +47,7 @@ func NewKeycloakProvider(
 	}
 }
 
-func (k KeycloakProvider) RetrospectToken(ctx context.Context, token string) (port.RetrospectionResult, error) {
+func (k *KeycloakProvider) RetrospectToken(ctx context.Context, token string) (port.RetrospectionResult, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	result, err := client.RetrospectToken(
 		ctx,
@@ -77,7 +68,7 @@ func (k KeycloakProvider) RetrospectToken(ctx context.Context, token string) (po
 	}, err
 }
 
-func (k KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.DecodedResult, error) {
+func (k *KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.DecodedResult, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	decodedToken, _, err := client.DecodeAccessToken(
 		ctx,
@@ -95,7 +86,7 @@ func (k KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.D
 		Valid:     decodedToken.Valid}, nil
 }
 
-func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
+func (k *KeycloakProvider) CreateNewClient(ctx context.Context, req *port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
@@ -149,7 +140,7 @@ func (k KeycloakProvider) CreateNewClient(ctx context.Context, req port.Register
 	}, nil
 }
 
-func (k KeycloakProvider) DeleteClient(ctx context.Context, userId string) error {
+func (k *KeycloakProvider) DeleteClient(ctx context.Context, userId string) error {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
@@ -163,7 +154,7 @@ func (k KeycloakProvider) DeleteClient(ctx context.Context, userId string) error
 	return nil
 }
 
-func (k KeycloakProvider) ResetPassword(ctx context.Context, userId, new_password string) error {
+func (k *KeycloakProvider) ResetPassword(ctx context.Context, userId, new_password string) error {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 	token, err := client.LoginAdmin(ctx, k.KeycloakUsername, k.KeycloakPassword, k.KeycloakRealm)
 	if err != nil {
@@ -177,7 +168,7 @@ func (k KeycloakProvider) ResetPassword(ctx context.Context, userId, new_passwor
 	return nil
 }
 
-func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error) {
+func (k KeycloakProvider) ClientLogin(ctx context.Context, req *port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
 	token, err := client.Login(ctx, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakApplicationRealm, req.Email, req.Password)
@@ -217,7 +208,7 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req port.LoginUserReq
 	}, err
 }
 
-func (k *KeycloakProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
+func (k *KeycloakProvider) RefreshToken(ctx context.Context, req *port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
 	token, err := client.RefreshToken(ctx, req.RefreshToken, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakRealm)
