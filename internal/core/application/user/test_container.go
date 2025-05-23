@@ -37,7 +37,6 @@ func NewTestContainer() TestContainer {
 }
 
 func (t *TestContainer) Teardown() {
-	t.AuthService = auth.NewTestContainer().Service
 	t.UserService = NewUser(
 		db_provider.NewMock(),
 		t.RoleService,
