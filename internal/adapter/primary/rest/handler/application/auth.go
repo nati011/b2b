@@ -89,7 +89,7 @@ func (h *AuthHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
+	util.OperationSuccessResponse(w, refreshResponse)
 }
 
 func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Request) {
