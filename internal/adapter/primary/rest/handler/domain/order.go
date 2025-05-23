@@ -17,9 +17,10 @@ import (
 )
 
 type OrderItem struct {
-	ProductId   int    `json:"id"`
-	ProductName string `json:"name"`
-	Quantity    int    `json:"quantity"`
+	ProductId    int     `json:"id"`
+	ProductName  string  `json:"name"`
+	ProductPrice float64 `json:"price"`
+	Quantity     int     `json:"quantity"`
 }
 
 type PlaceOrderRequest struct {
