@@ -9,8 +9,8 @@ import (
 
 	"b2b.nati011.github.com/config"
 
-	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 

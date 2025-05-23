@@ -1,4 +1,4 @@
-package auth
+package test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	db_resource_provider "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
+	"b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/email"
 	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/role"
@@ -15,10 +16,10 @@ import (
 type TestContainer struct {
 	RoleService     role.Provider
 	ResourceService resource.Provider
-	Service         Provider
+	Service         auth.AuthService
 }
 
-func NewTestContainer() TestContainer {
+func NewIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
 	container.RoleService = role.NewRole(db_role_mock.NewMock(), container.ResourceService)
 	container.ResourceService = resource.NewResource(db_resource_provider.NewMock())
@@ -66,7 +67,7 @@ func NewTestContainer() TestContainer {
 		panic("failed to create email template")
 	}
 
-	container.Service = NewAuthService(
+	auth.NewAuthService(
 		provider.NewMockAuthProvider(),
 		emailTestContainer.EmailService,
 		role.NewTestContainer().RoleService)

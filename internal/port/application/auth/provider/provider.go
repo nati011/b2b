@@ -56,23 +56,14 @@ type JWT struct {
 	Scope            string
 }
 
-type ResourcePermission struct {
-	RSID           *string   `json:"rsid,omitempty"`
-	ResourceID     *string   `json:"resource_id,omitempty"`
-	RSName         *string   `json:"rsname,omitempty"`
-	Scopes         *[]string `json:"scopes,omitempty"`
-	ResourceScopes *[]string `json:"resource_scopes,omitempty"`
-}
-
 type RetrospectionResult struct {
-	Permissions *[]ResourcePermission `json:"permissions,omitempty"`
-	Exp         *int                  `json:"exp,omitempty"`
-	Nbf         *int                  `json:"nbf,omitempty"`
-	Iat         *int                  `json:"iat,omitempty"`
-	Active      *bool                 `json:"active,omitempty"`
-	AuthTime    *int                  `json:"auth_time,omitempty"`
-	Jti         *string               `json:"jti,omitempty"`
-	Type        *string               `json:"typ,omitempty"`
+	Exp      *int
+	Nbf      *int
+	Iat      *int
+	Active   *bool
+	AuthTime *int
+	Jti      *string
+	Type     *string
 }
 
 type DecodedResult struct {
@@ -83,9 +74,9 @@ type DecodedResult struct {
 }
 
 type Provider interface {
-	CreateNewClient(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
-	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
-	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
+	CreateNewClient(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error)
+	ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error)
+	RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
 	ResetPassword(ctx context.Context, userId, new_password string) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)

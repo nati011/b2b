@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	"b2b.nati011.github.com/internal/adapter/primary/rest/handler/middleware"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
-	auth "b2b.nati011.github.com/internal/core/application/authentication"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -58,7 +58,7 @@ func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Req
 		util.RequestErrorResponse(w, err)
 		return
 	}
-	err = h.service.ResetClientCredentials(r.Context(), auth.ResetCredentialsRequest{
+	err = h.service.ResetClientCredentials(r.Context(), &auth.ResetCredentialsRequest{
 		NewPassword: requestBody.NewPassword,
 		ResetToken:  restToken,
 	})
