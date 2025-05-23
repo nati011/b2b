@@ -22,6 +22,10 @@ func setup() {
 	service = testContainer.UserService
 }
 
+func teardown() {
+	testContainer.Teardown()
+}
+
 func Test_create_happyPath(t *testing.T) {
 
 	t.Run("create", func(t *testing.T) {
@@ -176,7 +180,7 @@ func Test_create_unhappyPath(t *testing.T) {
 
 func Test_getAll_happyPath(t *testing.T) {
 	t.Run("non_empty_content", func(t *testing.T) {
-		t.Cleanup(testContainer.Teardown)
+		t.Cleanup(teardown)
 		ctx := context.Background()
 		//setup
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
