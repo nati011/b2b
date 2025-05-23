@@ -49,9 +49,10 @@ const (
 )
 
 type Item struct {
-	ProductId   int
-	ProductName string
-	Quantity    int
+	ProductId    int
+	ProductName  string
+	ProductPrice float64
+	Quantity     int
 }
 
 type PlaceRequest struct {
@@ -95,6 +96,7 @@ type OrderPlaceResponse struct {
 
 type Provider interface {
 	Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error)
+	InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error)
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
@@ -111,7 +113,7 @@ type OrderService struct {
 	InvoiceService  invoice.Provider
 	ProductService  product.Provider
 	RetailerService retailer.Provider
-	PaymentService  checkout.Provider
+	CheckoutService checkout.Provider
 }
 
 func NewOrderService(
@@ -128,7 +130,7 @@ func NewOrderService(
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
-		PaymentService:  pays,
+		CheckoutService: pays,
 	}
 }
 
@@ -210,7 +212,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 		return OrderPlaceResponse{}, ErrUnknown
 	}
 
-	checkout_resp, err := o.PaymentService.Checkout(ctx, &checkout.CheckoutRequest{
+	checkout_resp, err := o.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
 		OrderId:          order_id,
 		Amount:           itemsTotal,
 		PaymentPartnerId: req.PaymentPartnerId,
@@ -275,6 +277,20 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 	}, nil
 }
 
+func (o *OrderService) InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error) {
+	resp, err := o.CheckoutService.ReinitiateCheckout(ctx, &checkout.ReinitiateCheckoutRequest{
+		OrderId: id,
+	})
+	if err != nil {
+		log.Printf("failed to init payment: %v", err)
+		return OrderPlaceResponse{}, nil
+	}
+	return OrderPlaceResponse{
+		Id:          id,
+		CheckoutUrl: resp.CheckoutUrl,
+	}, nil
+}
+
 func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	//validate
 	got, err := o.DB.GetByID(ctx, id)
@@ -318,9 +334,10 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 	items := []Item{}
 	for _, i := range resp.Items {
 		items = append(items, Item{
-			ProductId:   i.ProductId,
-			ProductName: i.ProductName,
-			Quantity:    i.Quantity,
+			ProductId:    i.ProductId,
+			ProductName:  i.ProductName,
+			ProductPrice: i.ProductPrice,
+			Quantity:     i.Quantity,
 		})
 	}
 	return GetResponse{
@@ -351,10 +368,12 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		items := []Item{}
 		for _, i := range i.Items {
 			items = append(items, Item{
-				ProductId:   i.ProductId,
-				Quantity:    i.Quantity,
-				ProductName: i.ProductName,
+				ProductId:    i.ProductId,
+				ProductName:  i.ProductName,
+				ProductPrice: i.Price,
+				Quantity:     i.Quantity,
 			})
+
 		}
 		return_response.List = append(return_response.List, GetResponse{
 			Id:             i.Id,
@@ -441,9 +460,10 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 		items := []Item{}
 		for _, i := range i.Items {
 			items = append(items, Item{
-				ProductId:   i.ProductId,
-				ProductName: i.ProductName,
-				Quantity:    i.Quantity,
+				ProductId:    i.ProductId,
+				ProductName:  i.ProductName,
+				ProductPrice: i.Price,
+				Quantity:     i.Quantity,
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
@@ -454,6 +474,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			Total:          float32(i.Total),
 			Status:         i.Status,
 			DeliveryStatus: i.DeliveryStatus,
+			CreatedAt:      i.CreatedAt,
 			PaymentStatus:  i.PaymentStatus,
 		})
 	}

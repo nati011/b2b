@@ -7,11 +7,11 @@ import (
 	"time"
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
-	port "b2b.nati011.github.com/internal/port/application/payment/db"
-	payment "b2b.nati011.github.com/internal/port/application/payment/gateway"
+	payment_gateway "b2b.nati011.github.com/internal/port/application/payment/gateway"
 )
 
 var (
@@ -47,8 +47,8 @@ type Provider interface {
 	Callback(ctx context.Context, PaymentPartnerId int, txRef string)
 }
 
-type PaymentService struct {
-	db             port.DB
+type PaymentVerificationService struct {
+	paymentService payment.Provider
 	paymentPartner partner.Provider
 	transaction    transaction.Provider
 	order          order.Provider
@@ -59,26 +59,31 @@ type CreatePaymentRequest struct {
 	OrderId          int
 }
 
-func NewPaymentVerificationService(DB port.DB, partner partner.Provider, transaction transaction.Provider, order order.Provider) Provider {
-	return &PaymentService{
-		db:             DB,
+func NewPaymentVerificationService(paymentService payment.Provider, partner partner.Provider, transaction transaction.Provider, order order.Provider) Provider {
+	return &PaymentVerificationService{
+		paymentService: paymentService,
 		paymentPartner: partner,
 		transaction:    transaction,
 		order:          order,
 	}
 }
 
-func (p *PaymentService) getPayment(ctx context.Context, txRef string) (GetPaymentResponse, error) {
-	payment, err := p.db.GetByTransactionRef(ctx, txRef)
+func (p *PaymentVerificationService) getPayment(ctx context.Context, txRef string) (GetPaymentResponse, error) {
+	payment, err := p.paymentService.GetByTransactionRef(ctx, txRef)
 	if err != nil {
 		return GetPaymentResponse{}, err
 	}
-
-	return (GetPaymentResponse)(payment), err
-
+	return GetPaymentResponse{
+		Id:             payment.Id,
+		Date:           payment.Date,
+		Amount:         payment.Amount,
+		OrderId:        payment.OrderId,
+		PartnerId:      payment.PartnerId,
+		TransactionRef: payment.TransactionRef,
+	}, err
 }
 
-func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
+func (p *PaymentVerificationService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
 	if err := validateTxRef(txRef); err != nil {
 		return false, err
 	}
@@ -110,20 +115,18 @@ func (p *PaymentService) Verify(ctx context.Context, paymentPartnerId int, txRef
 		return false, ErrCannotProceedWithPaymentPartner
 	}
 
-	paymentVerificationRequest := payment.VerificationRequest{
+	is_verified, err := paymentGateway.Verify(payment_gateway.VerificationRequest{
 		PartnerUrl:     paymentPartner.BaseURL,
 		TransactionRef: txRef,
 		PartnerSecret:  paymentPartnerSecret.Secret,
-	}
-
-	is_verified, err := paymentGateway.Verify(paymentVerificationRequest)
+	})
 	if err != nil {
 		return false, ErrUnknown
 	}
 	return is_verified, nil
 }
 
-func (p *PaymentService) Callback(ctx context.Context, gatewayId int, txRef string) {
+func (p *PaymentVerificationService) Callback(ctx context.Context, gatewayId int, txRef string) {
 	is_verified, err := p.Verify(ctx, gatewayId, txRef)
 	if err != nil {
 		switch err {

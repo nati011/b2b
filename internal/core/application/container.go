@@ -7,12 +7,13 @@ import (
 	auth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	template_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
-	payment_db_port "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
+	payment_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment_partner/db"
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
 	user_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
+	payment "b2b.nati011.github.com/internal/core/application/payment"
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 
@@ -85,6 +86,7 @@ type Container struct {
 	CheckoutService            checkout.Provider
 	PaymentVerificationService payment_verification.Provider
 	MobileClient               mobileclient.Provider
+	PaymentService             payment.Provider
 }
 
 func NewContainer(
@@ -127,6 +129,7 @@ func NewContainer(
 	container.InitRoleService()
 	container.InitUserService()
 	container.InitMobileClientService(MinMobileClientCompatibleVersion)
+	container.InitPaymentService()
 	container.InitCheckoutService(baseUrl, frontendUrl)
 	// container.InitSMSService()
 
@@ -141,9 +144,8 @@ func (m *Container) InitMobileClientService(minMobileClientCompatibleVersion str
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
 	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
 		m.EmailService)
-	m.AuthMiddleware = util.NewAuthMiddleware(
-		keycloakInstanceURL, keycloakClientId, keycloakClientSecret, keycloakRealm, keycloakPassword,
-	)
+
+	m.AuthMiddleware = util.NewAuthMiddleware(m.AuthService)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port, email_password string) {
@@ -189,6 +191,10 @@ func (m *Container) InitPagination() {
 	m.Pagination = *config.DefaultPaginationBuilder().Build()
 }
 
+func (m *Container) InitPaymentService() {
+	m.PaymentService = payment.NewPaymentService(payment_db_adapter.NewPostgres(m.db))
+}
+
 func (m *Container) InitCheckoutService(baseUrl, frontendUrl string) {
-	m.CheckoutService = checkout.NewCheckoutService(payment_db_port.NewPostgres(m.db), m.PaymentPartnerService, m.TransactionService, frontendUrl, baseUrl)
+	m.CheckoutService = checkout.NewCheckoutService(m.PaymentService, m.PaymentPartnerService, m.TransactionService, frontendUrl, baseUrl)
 }

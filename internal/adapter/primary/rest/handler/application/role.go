@@ -64,24 +64,39 @@ var (
 )
 
 type Role struct {
-	service role.Provider
+	authMiddleware util.AuthMiddleware
+	service        role.Provider
 }
 
 func InitRole() {
 	handler.Register(new(Role))
 }
 
-func (r *Role) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *Role) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ApplicationServices.RoleService
 	return nil
 }
 
-func (r *Role) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/role", r.GetHandler)
-	mux.HandleFunc("GET /api/v1/role/resource", r.GetAllResourcesHandler)
-	mux.HandleFunc("POST /api/v1/role", r.CreateHandler)
-	mux.HandleFunc("PATCH /api/v1/role/{id}", r.CommandHandler)
-	mux.HandleFunc("PUT /api/v1/role", r.UpdateHandler)
+func (ro *Role) Routes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.GetHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/role/resource", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.GetAllResourcesHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.CreateHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/role/{id}", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.CommandHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PUT /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
+		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.UpdateHandler)).ServeHTTP(w, r)
+	})
 }
 
 const (

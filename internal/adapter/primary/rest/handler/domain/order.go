@@ -17,9 +17,10 @@ import (
 )
 
 type OrderItem struct {
-	ProductId   int    `json:"id"`
-	ProductName string `json:"name"`
-	Quantity    int    `json:"quantity"`
+	ProductId    int     `json:"id"`
+	ProductName  string  `json:"name"`
+	ProductPrice float64 `json:"price"`
+	Quantity     int     `json:"quantity"`
 }
 
 type PlaceOrderRequest struct {
@@ -54,20 +55,40 @@ func InitOrder() {
 }
 
 type Order struct {
-	service order.Provider
+	authMiddleware util.AuthMiddleware
+	service        order.Provider
 }
 
-func (r *Order) Init(applicationServices *application_core.Container, domainService *domain_core.Container) error {
-	r.service = domainService.OrderService
+func (o *Order) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+	o.service = domainService.OrderService
+	o.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
 }
 
 func (o *Order) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/order", o.GetHandler)
-	mux.HandleFunc("POST /api/v1/order", o.PostHandler)
-	mux.HandleFunc("PATCH /api/v1/order", o.CommandHandler)
-	mux.HandleFunc("GET /api/v1/orders/retailer", o.GetRetailerOrders)
-	mux.HandleFunc("GET /api/v1/orders/distributor", o.GetDistributorOrders)
+	mux.HandleFunc("GET /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.PostHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/order/init_settlement", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.InitPaymentHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PATCH /api/v1/order", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.CommandHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/orders/retailer", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetRetailerOrders)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("GET /api/v1/orders/distributor", func(w http.ResponseWriter, r *http.Request) {
+		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetDistributorOrders)).ServeHTTP(w, r)
+	})
 }
 
 func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +208,32 @@ func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
 		util.OperationSuccessResponse(w, resp)
 	}
 
+}
+
+func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+
+		id, err := o.service.InitPayment(r.Context(), typedParamId)
+		if err != nil {
+			switch err {
+			case order.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": id})
+	}
 }
 
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {

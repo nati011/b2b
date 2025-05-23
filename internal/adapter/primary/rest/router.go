@@ -34,7 +34,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	domain_handler.InitInvoice()
 
 	for _, h := range handler.GetHandlers() {
-		if err := h.Init(applicationServices, domainServices); err != nil {
+		if err := h.Init(applicationServices.AuthMiddleware, applicationServices, domainServices); err != nil {
 			return err
 		}
 		h.Routes(mux)

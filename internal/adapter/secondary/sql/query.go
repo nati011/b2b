@@ -123,7 +123,3 @@ type QueryResult struct {
 	Row  *sql.Row
 	Rows *sql.Rows
 }
-
-func MustQueryRow(db *sql.DB, ctx context.Context, query string, multiple bool, args ...any) (*QueryResult, error) {
-	return nil, nil
-}
