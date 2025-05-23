@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, X } from "lucide-react";
 import ImageUpload from "@/components/image-upload";
 import { useParams } from "next/navigation";
-import ProductForm from "@/app/components/ProductForm";
+import ProductForm from "@/components/product-form";
 
 
 

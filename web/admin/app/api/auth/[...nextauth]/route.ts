@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next"
 import NextAuth, { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { jwtDecode } from "jwt-decode"
@@ -22,15 +21,15 @@ interface KeycloakJWT {
 
 async function refreshAccessToken(refreshToken: string) {
   try {
-    const response = await axios.post(`${baseURL}/api/auth/refresh/`, {
-      refresh: refreshToken,
+    console.log(refreshToken)
+    const response = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
+      refresh_token: refreshToken,
     });
-    const decoded = jwtDecode<KeycloakJWT>(response.data.body.access_token)
+    console.log(response.data)
+    const decoded = jwtDecode<KeycloakJWT>(response.data.body.jwt.access_token)
     return {
-      // @ts-expect-error
-      accessToken: user.body.access_token,
-      // @ts-expect-error
-      refreshToken: user.body.refresh_token,
+      accessToken: response.data.body.jwt.access_token,
+      refreshToken: response.data.body.jwt.refresh_token,
       accessTokenExpires: decoded.exp * 1000,
       user: {
         id: decoded.sub,
@@ -41,7 +40,7 @@ async function refreshAccessToken(refreshToken: string) {
       }
     }
   } catch (error) {
-    window.location.href = '/login';
+    console.log(error)
     throw error;
   }
 }
@@ -69,7 +68,6 @@ export const authOptions: AuthOptions = {
             const error = await res.json()
             throw new Error(error.message || "Authentication failed")
           }
-
           return await res.json()
         } catch (error) {
           console.error("Authentication error:", error)

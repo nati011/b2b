@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Invoice, Order, Transaction } from '@/app/libs/types';
+import { fetchOrders } from '@/actions/order';
 
 interface OrdersStore {
     orders: Order[];
@@ -51,9 +52,9 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchOrders: async (url?: string) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get('/api/v1/order');
+            const response = await fetchOrders();
             set({
-                orders: response.data.body.List,
+                orders: response,
                 loading: false
             });
         } catch (error) {

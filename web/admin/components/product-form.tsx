@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import ProductAttributeForm from "./attribute-form";
-import ProductImagesForm from "./ProductImageForm";
+import ProductImagesForm from "@/components/product-image-form";
 import { MultiSelect } from "@/components/multiselect";
 import useProductsStore from "@/app/libs/store/useProductStore";
 import useCategoryStore from "@/app/libs/store/useCategories";
