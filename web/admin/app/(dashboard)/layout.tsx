@@ -35,7 +35,6 @@ export default async function RootLayout({
             <div className=" p-4 w-full bg-slate-50/50">
               <Topnav />
               {children}
-              <Toaster />
             </div>
 
           </SidebarProvider>
