@@ -32,7 +32,7 @@ export default async function RootLayout({
           <SidebarProvider defaultOpen={true}>
             <AppSidebar />
             <Separator orientation="vertical" className="h-4" />
-            <div className=" p-4 w-full bg-slate-50/50">
+            <div className=" p-4 w-full bg-slate-100/50">
               <Topnav />
               {children}
             </div>
