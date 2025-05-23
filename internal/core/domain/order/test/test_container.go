@@ -38,10 +38,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.CheckoutService = checkout_container.CheckoutService
 	container.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
 	container.OrderService = order.NewOrderService(
-		order_db.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		order_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		container.InvoiceService,
 		container.ProductService,
 		container.RetailerService,
