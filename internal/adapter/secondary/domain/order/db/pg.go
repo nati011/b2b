@@ -154,7 +154,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 	}
 
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		v, _ := strconv.ParseFloat(res[4].(string), 64)
 		val := port.GetResponse{
 			Id:             int(res[0].(int64)),
 			RetailerId:     int(res[1].(int64)),

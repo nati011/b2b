@@ -460,9 +460,10 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 		items := []Item{}
 		for _, i := range i.Items {
 			items = append(items, Item{
-				ProductId:   i.ProductId,
-				ProductName: i.ProductName,
-				Quantity:    i.Quantity,
+				ProductId:    i.ProductId,
+				ProductName:  i.ProductName,
+				ProductPrice: i.Price,
+				Quantity:     i.Quantity,
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
@@ -473,6 +474,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			Total:          float32(i.Total),
 			Status:         i.Status,
 			DeliveryStatus: i.DeliveryStatus,
+			CreatedAt:      i.CreatedAt,
 			PaymentStatus:  i.PaymentStatus,
 		})
 	}
