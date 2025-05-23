@@ -4,13 +4,8 @@ import axiosIns from "@/app/libs/axios";
 export default async function getCurrentUser() {
     try {
         const session = await getSession();
-        // @ts-ignore
-        if (!session?.user?.employeeNumber) {
-            return null;
-        }
-
-        const resp = await axiosIns.get("/users/me")
-        const currentUser = resp.data
+        // const resp = await axiosIns.get("/users/me")
+        const currentUser = session?.user
 
         if (!currentUser) {
             return null;

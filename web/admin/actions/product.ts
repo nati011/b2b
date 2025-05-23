@@ -12,7 +12,7 @@ export const fetchProducts = async (url?: string) => {
 }
 export const fetchConfigurableProducts = async (url?: string) => {
     try {
-        const response = await axiosIns.get("/api/configurable_product");
+        const response = await axiosIns.get("/configurable_product");
         return response.data
     } catch (error) {
         throw error
@@ -21,7 +21,7 @@ export const fetchConfigurableProducts = async (url?: string) => {
 
 export const updateProduct = async (ProductsData: Partial<ProductForm>) => {
     try {
-        const response = await axiosIns.put("/api/product/", ProductsData);
+        const response = await axiosIns.put("/product/", ProductsData);
         return response.data
     } catch (error) {
         throw error

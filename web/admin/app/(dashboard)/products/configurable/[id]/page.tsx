@@ -2,15 +2,15 @@
 
 import Heading from "@/components/breadcrumb";
 import ConfigurableProductFormComponent from "@/components/configurable-product-form";
-import useConfigurableProductStore from "@/app/libs/store/useConfigurableProduct";
+import useProductStore from "@/app/libs/store/useProductStore";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Retailers() {
     const {
-        product,
+        configurable_product,
         fetchConfigurableProductDetail
-    } = useConfigurableProductStore()
+    } = useProductStore()
     const routeParam = useParams<{ id: string }>();
 
     const pages = [
@@ -33,7 +33,7 @@ export default function Retailers() {
             <ConfigurableProductFormComponent
                 isEdit
                 loading
-                initialData={product}
+                initialData={configurable_product}
             />
         </>
     );
