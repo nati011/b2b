@@ -9,10 +9,10 @@ import (
 )
 
 type PaginationMiddleware struct {
-	pagination config.PaginationBuilder
+	pagination *config.Pagination
 }
 
-func NewPaginationMiddleware(pagination config.PaginationBuilder) *PaginationMiddleware {
+func NewPaginationMiddleware(pagination *config.Pagination) *PaginationMiddleware {
 	return &PaginationMiddleware{
 		pagination: pagination,
 	}
@@ -46,9 +46,8 @@ func (p *PaginationMiddleware) Paginate(next http.Handler) http.Handler {
 				return
 			}
 		}
-
-		p.pagination.SetLimit(limit)
-		p.pagination.SetOffset(offset)
+		p.pagination.Limit = limit
+		p.pagination.Offset = offset
 
 		next.ServeHTTP(w, r)
 	})

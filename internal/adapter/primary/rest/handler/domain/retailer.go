@@ -83,7 +83,7 @@ func (re *Retailer) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
-		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.CreateHandler)).ServeHTTP(w, r)
+		re.authMiddleware.RequireNoAuthentication(http.HandlerFunc(re.CreateHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PUT /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
