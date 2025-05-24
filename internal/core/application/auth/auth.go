@@ -446,7 +446,8 @@ func (a *AuthService) ClientLogin(ctx context.Context, rq LoginUserRequest) (Log
 =======
 func (a AuthService) ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error) {
 	resp, err := a.authProvider.ClientLogin(ctx, &port.LoginUserRequest{
-		Email: req.Email,
+		Email:    req.Email,
+		Password: req.Password,
 	})
 >>>>>>> 8bacbbe2 (- resolve weird issues)
 	if err != nil {

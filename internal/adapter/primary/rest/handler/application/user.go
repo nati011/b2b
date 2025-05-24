@@ -388,13 +388,13 @@ func (u *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case user.ErrUnknown:
 			util.ServerErrorResponse(w, err)
+			return
 		default:
 			util.UnauthorizedResponse(w)
 			return
 		}
 	}
 	util.OperationSuccessResponse(w, loginResponse.JWT)
-
 }
 
 func (u *UserHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {

@@ -81,7 +81,7 @@ type Container struct {
 	TemplateService            template.Provider
 	TransactionService         transaction.Provider
 	UserService                user.Provider
-	Pagination                 config.Pagination
+	Pagination                 *config.Pagination
 	CheckoutService            checkout.Provider
 	PaymentVerificationService payment_verification.Provider
 	MobileClient               mobileclient.Provider
@@ -109,13 +109,14 @@ func NewContainer(
 
 	//baseurl
 	baseUrl string,
-	frontendUrl string) *Container {
+	frontendUrl string,
+
+	//pagination
+	pagination *config.Pagination) *Container {
 
 	container := Container{}
 	container.db = db
-
-	//utils
-	container.InitPagination()
+	container.Pagination = pagination
 
 	//ORDER ORDER!!
 	container.InitTemplateService()
@@ -155,7 +156,7 @@ func (m *Container) InitEmailService(email_address, smtp_port, email_password st
 }
 
 func (m *Container) InitPaymentPartnerService() {
-	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, m.Pagination))
 }
 
 func (m *Container) InitRenderService() {
@@ -163,11 +164,11 @@ func (m *Container) InitRenderService() {
 }
 
 func (m *Container) InitResourceService() {
-	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db, m.Pagination))
 }
 
 func (m *Container) InitRoleService() {
-	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, &m.Pagination), m.ResourceService)
+	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, m.Pagination), m.ResourceService)
 }
 
 // func (m *Container) InitSMSService() {
@@ -179,15 +180,11 @@ func (m *Container) InitTemplateService() {
 }
 
 func (m *Container) InitTransactionService() {
-	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, m.Pagination))
 }
 
 func (m *Container) InitUserService() {
-	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, &m.Pagination), m.RoleService, m.AuthService)
-}
-
-func (m *Container) InitPagination() {
-	m.Pagination = *config.DefaultPaginationBuilder().Build()
+	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, m.Pagination), m.RoleService, m.AuthService)
 }
 
 func (m *Container) InitPaymentService() {
