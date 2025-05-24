@@ -53,8 +53,9 @@ func main() {
 
 	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
-
-	application_constainer := application_core.NewContainer(
+	pagination := config.NewPaginationBuilder().Build()
+	paginationMiddleware := middleware.NewPaginationMiddleware(pagination)
+	application_container := application_core.NewContainer(
 		db_pool,
 		cfg.KeycloakInstanceURL,
 		cfg.KeycloakUsername,
@@ -69,15 +70,14 @@ func main() {
 		cfg.MinMobileClientCompatibleVersion,
 		cfg.BaseUrl,
 		cfg.FrontendUrl,
+		pagination,
 	)
 
-	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
+	domain_container := domain_core.NewContainer(*application_container, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
 	mux := http.NewServeMux()
-	InitREST(mux, db_pool, application_constainer, domain_container)
-
+	InitREST(mux, db_pool, application_container, domain_container)
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
-	paginationMiddleware := middleware.NewPaginationMiddleware(*config.NewPaginationBuilder())
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

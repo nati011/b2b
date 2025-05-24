@@ -125,6 +125,7 @@ type JWT struct {
 	NotBeforePolicy  int
 	SessionState     string
 	Scope            string
+	Permission       []string
 }
 
 type LoginAuthResponse struct {
@@ -895,9 +896,48 @@ func (u *UserService) Login(ctx context.Context, req *LoginUserRequest) (LoginAu
 		return LoginAuthResponse{}, ErrUnknown
 	}
 
-	return LoginAuthResponse{
-		JWT: JWT(resp.JWT),
-	}, nil
+	user, err := u.db.GetByEmail(ctx, req.Email)
+	if err != nil {
+		log.Printf("Failed to get user by email err: %v", err)
+		return LoginAuthResponse{}, ErrUnknown
+	}
+
+	assigned_roles, err := u.GetAllAssignedRoles(ctx, user.List[0].Id)
+	if err != nil {
+		switch err {
+		case ErrNoRoleAssigned:
+		default:
+			log.Printf("Failed to get assigned roles: %v", err)
+			return LoginAuthResponse{}, ErrUnknown
+		}
+	}
+
+	permissions := []string{}
+	for _, r := range assigned_roles.List {
+		role, err := u.role_service.Get(ctx, &role.GetRequest{
+			Id: r.Id,
+		})
+		if err != nil {
+			log.Printf("Failed to get role err: %v", err)
+			return LoginAuthResponse{}, ErrUnknown
+		}
+		permissions = append(permissions, role.Name)
+	}
+	var response = LoginAuthResponse{
+		JWT: JWT{
+			AccessToken:      resp.JWT.AccessToken,
+			ExpiresIn:        resp.JWT.ExpiresIn,
+			IDToken:          resp.JWT.IDToken,
+			NotBeforePolicy:  resp.JWT.NotBeforePolicy,
+			RefreshExpiresIn: resp.JWT.RefreshExpiresIn,
+			RefreshToken:     resp.JWT.RefreshToken,
+			Scope:            resp.JWT.Scope,
+			SessionState:     resp.JWT.SessionState,
+			TokenType:        resp.JWT.TokenType,
+			Permission:       permissions,
+		},
+	}
+	return response, nil
 }
 
 func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
@@ -909,6 +949,42 @@ func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 		return LoginAuthResponse{}, ErrUnknown
 	}
 
-	return LoginAuthResponse{
-		JWT: JWT(resp.JWT)}, nil
+	user, err := u.db.GetByEmail(ctx, req.RefreshToken)
+	if err != nil {
+		log.Print("Failed to get user by email err: %v", err)
+		return LoginAuthResponse{}, ErrUnknown
+	}
+
+	assigned_roles, err := u.GetAllAssignedRoles(ctx, user.List[0].Id)
+	if err != nil {
+		log.Print("Failed to get assigned roles: %v", err)
+		return LoginAuthResponse{}, ErrUnknown
+	}
+
+	permissions := []string{}
+	for _, r := range assigned_roles.List {
+		role, err := u.role_service.Get(ctx, &role.GetRequest{
+			Id: r.Id,
+		})
+		if err != nil {
+			log.Print("Failed to get role err: %v", err)
+			return LoginAuthResponse{}, ErrUnknown
+		}
+		permissions = append(permissions, role.Name)
+	}
+	var response = LoginAuthResponse{
+		JWT: JWT{
+			AccessToken:      resp.JWT.AccessToken,
+			ExpiresIn:        resp.JWT.ExpiresIn,
+			IDToken:          resp.JWT.IDToken,
+			NotBeforePolicy:  resp.JWT.NotBeforePolicy,
+			RefreshExpiresIn: resp.JWT.RefreshExpiresIn,
+			RefreshToken:     resp.JWT.RefreshToken,
+			Scope:            resp.JWT.Scope,
+			SessionState:     resp.JWT.SessionState,
+			TokenType:        resp.JWT.TokenType,
+			Permission:       permissions,
+		},
+	}
+	return response, nil
 }
