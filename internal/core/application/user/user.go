@@ -125,7 +125,6 @@ type JWT struct {
 	NotBeforePolicy  int
 	SessionState     string
 	Scope            string
-	Permission       []string
 }
 
 type LoginAuthResponse struct {
@@ -933,9 +932,7 @@ func (u *UserService) Login(ctx context.Context, req *LoginUserRequest) (LoginAu
 			RefreshToken:     resp.JWT.RefreshToken,
 			Scope:            resp.JWT.Scope,
 			SessionState:     resp.JWT.SessionState,
-			TokenType:        resp.JWT.TokenType,
-			Permission:       permissions,
-		},
+			TokenType:        resp.JWT.TokenType},
 	}
 	return response, nil
 }
@@ -951,13 +948,13 @@ func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 
 	user, err := u.db.GetByEmail(ctx, req.RefreshToken)
 	if err != nil {
-		log.Print("Failed to get user by email err: %v", err)
+		log.Printf("Failed to get user by email err: %v", err)
 		return LoginAuthResponse{}, ErrUnknown
 	}
 
 	assigned_roles, err := u.GetAllAssignedRoles(ctx, user.List[0].Id)
 	if err != nil {
-		log.Print("Failed to get assigned roles: %v", err)
+		log.Printf("Failed to get assigned roles: %v", err)
 		return LoginAuthResponse{}, ErrUnknown
 	}
 
@@ -967,7 +964,7 @@ func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 			Id: r.Id,
 		})
 		if err != nil {
-			log.Print("Failed to get role err: %v", err)
+			log.Printf("Failed to get role err: %v", err)
 			return LoginAuthResponse{}, ErrUnknown
 		}
 		permissions = append(permissions, role.Name)
@@ -983,7 +980,6 @@ func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest
 			Scope:            resp.JWT.Scope,
 			SessionState:     resp.JWT.SessionState,
 			TokenType:        resp.JWT.TokenType,
-			Permission:       permissions,
 		},
 	}
 	return response, nil
