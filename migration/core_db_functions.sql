@@ -2028,7 +2028,7 @@ BEGIN
     ORDER BY p.created_date DESC
     LIMIT p_limit
     OFFSET p_offset;
-END;
+END
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_all_products()
@@ -3107,8 +3107,8 @@ SELECT o.id,
         WHERE o.is_deleted = FALSE
         ORDER BY o.created_date ASC
         LIMIT t_limit
-        OFFSET t_offset
-END;
+        OFFSET t_offset;
+END
 $$;
 
 -- Order Item ------------------------------------------
