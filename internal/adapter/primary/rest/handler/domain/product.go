@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -150,6 +151,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamCategoryId = "category_id"
 	const ParamPriceMin = "price_min"
 	const ParamPriceMax = "price_max"
+	const ParamSearch = "search"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
@@ -157,6 +159,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	ParamCategoryIdValue := paramValues.Get(ParamCategoryId)
 	ParamPriceMinValue := paramValues.Get(ParamPriceMin)
 	ParamPriceMaxValue := paramValues.Get(ParamPriceMax)
+	ParamSearchValue := paramValues.Get(ParamSearch)
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -223,6 +226,20 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
+		if err != nil {
+			switch err {
+			case product.ErrUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+	} else if ParamSearchValue != "" {
+		log.Printf(ParamSearchValue)
+		resp, err := p.service.Search(r.Context(), ParamSearchValue)
 		if err != nil {
 			switch err {
 			case product.ErrUnknown:
