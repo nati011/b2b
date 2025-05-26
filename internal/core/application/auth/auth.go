@@ -113,7 +113,7 @@ type Provider interface {
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
 	IsAuthorizedForResource(ctx context.Context, userId int, resourceId int) (bool, error)
-	GetUserAuthorization(ctx context.Context, userId int) (ResourceAccess, error)
+	AssignRole(ctx context.Context, userId int, roleId int) error
 }
 
 type AuthService struct {
@@ -419,6 +419,6 @@ func (a AuthService) IsAuthorizedForResource(ctx context.Context, userId int, re
 	return false, nil
 }
 
-func (a AuthService) GetUserAuthorization(ctx context.Context, userId int) (ResourceAccess, error) {
-	return ResourceAccess{}, nil
+func (a *AuthService) AssignRole(ctx context.Context, userId int, roleId int) error {
+	return nil
 }
