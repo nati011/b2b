@@ -119,36 +119,20 @@ type Provider interface {
 	ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error)
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
-<<<<<<< HEAD
-	ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error
-	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
-	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
-=======
 	ResetClientCredentials(ctx context.Context, req *ResetCredentialsRequest) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
-	IsAuthorizedForResource(ctx context.Context, userId int, resourceId int) (bool, error)
-	GetUserAuthorization(ctx context.Context, userId int) (ResourceAccess, error)
->>>>>>> 8bacbbe2 (- resolve weird issues)
+	AssignRole(ctx context.Context, userId int, roleId int) error
+	RemoveRole(ctx context.Context, userId int, roleId int) error
 }
 
 type AuthService struct {
 	authProvider  port.Provider
 	emailProvider email.Provider
-<<<<<<< HEAD
 }
 
 func NewAuthService(ap port.Provider, em email.Provider) Provider {
 	return &AuthService{authProvider: ap, emailProvider: em}
-}
-
-func (a *AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
-	return DecodeResult{}, nil
-}
-
-func (a *AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
-=======
-	roleService   role.Provider
 }
 
 func NewAuthService(
@@ -166,7 +150,6 @@ func (a AuthService) DecodeToken(ctx context.Context, token string) (DecodeResul
 }
 
 func (a AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	result, err := a.authProvider.RetrospectToken(ctx, token)
 	if err != nil {
 		return RetrospectionResult{}, ErrUnknown
@@ -175,11 +158,7 @@ func (a AuthService) RetrospectToken(ctx context.Context, token string) (Retrosp
 	return RetrospectionResult{Active: *result.Active}, nil
 }
 
-<<<<<<< HEAD
-func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error {
-=======
 func (a AuthService) ResetClientCredentials(ctx context.Context, req *ResetCredentialsRequest) error {
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	if req.ResetToken == "" {
 		return ErrTokenNotSupplied
 	}
@@ -294,11 +273,8 @@ func (s AuthService) sendResetEmail(token, recepientEmail string) error {
 	return nil
 }
 
-<<<<<<< HEAD
-func (a *AuthService) CreateNewClientWithPassword(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
-=======
+
 func (a AuthService) CreateNewClientWithPassword(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error) {
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
 		return RegisterUserResponse{}, err
@@ -316,9 +292,6 @@ func (a AuthService) CreateNewClientWithPassword(ctx context.Context, req *Regis
 		return RegisterUserResponse{}, err
 	}
 
-<<<<<<< HEAD
-	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest(req))
-=======
 	resp, err := a.authProvider.CreateNewClient(ctx, &port.RegisterUserRequest{
 		Email:       req.Email,
 		Password:    req.Password,
@@ -328,7 +301,6 @@ func (a AuthService) CreateNewClientWithPassword(ctx context.Context, req *Regis
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		Username:    req.Username})
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	if err != nil {
 		switch err {
 		case port.ErrSysUsernameTaken:
@@ -345,11 +317,7 @@ func (a AuthService) CreateNewClientWithPassword(ctx context.Context, req *Regis
 	}, nil
 }
 
-<<<<<<< HEAD
-func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error) {
-=======
 func (a AuthService) CreateNewClientWithOutPassword(ctx context.Context, req *RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error) {
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
 		return RegisterUserResponse{}, err
@@ -360,11 +328,7 @@ func (a AuthService) CreateNewClientWithOutPassword(ctx context.Context, req *Re
 	}
 	err = validateUsername(req.Username)
 	if err != nil {
-<<<<<<< HEAD
 		return RegisterUserResponse{}, err
-=======
-		return RegisterUserResponse{}, nil
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	}
 
 	genPassword, err := generateRandomPassword(10)
@@ -373,11 +337,7 @@ func (a AuthService) CreateNewClientWithOutPassword(ctx context.Context, req *Re
 		return RegisterUserResponse{}, ErrUnknown
 	}
 	log.Printf("generated password: %v", genPassword)
-<<<<<<< HEAD
-	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest{
-=======
 	resp, err := a.authProvider.CreateNewClient(ctx, &port.RegisterUserRequest{
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		Email:       req.Email,
 		Password:    genPassword,
 		BirthDate:   req.BirthDate,
@@ -428,11 +388,7 @@ func generateRandomPassword(length int) (string, error) {
 	return string(password), nil
 }
 
-<<<<<<< HEAD
-func (a *AuthService) DeleteClient(ctx context.Context, userId string) error {
-=======
 func (a AuthService) DeleteClient(ctx context.Context, userId string) error {
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	err := a.authProvider.DeleteClient(ctx, userId)
 	if err != nil {
 		return ErrUnknown
@@ -440,16 +396,11 @@ func (a AuthService) DeleteClient(ctx context.Context, userId string) error {
 	return nil
 }
 
-<<<<<<< HEAD
-func (a *AuthService) ClientLogin(ctx context.Context, rq LoginUserRequest) (LoginAuthResponse, error) {
-	resp, err := a.authProvider.ClientLogin(ctx, port.LoginUserRequest(rq))
-=======
 func (a AuthService) ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error) {
 	resp, err := a.authProvider.ClientLogin(ctx, &port.LoginUserRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
@@ -462,14 +413,8 @@ func (a AuthService) ClientLogin(ctx context.Context, req *LoginUserRequest) (Lo
 		JWT: JWT(resp.JWT),
 	}, nil
 }
-<<<<<<< HEAD
-func (a *AuthService) RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error) {
-	resp, err := a.authProvider.RefreshToken(ctx, port.RefreshTokenRequest(req))
-=======
-
 func (a AuthService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
 	resp, err := a.authProvider.RefreshToken(ctx, &port.RefreshTokenRequest{RefreshToken: req.RefreshToken})
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
@@ -482,14 +427,11 @@ func (a AuthService) RefreshToken(ctx context.Context, req *RefreshTokenRequest)
 		JWT: JWT(resp.JWT),
 	}, nil
 }
-<<<<<<< HEAD
-=======
 
-func (a AuthService) IsAuthorizedForResource(ctx context.Context, userId int, resourceId int) (bool, error) {
-	return false, nil
+func (a *AuthService) AssignRole(ctx context.Context, userId int, roleId int) error {
+	return nil
 }
 
-func (a AuthService) GetUserAuthorization(ctx context.Context, userId int) (ResourceAccess, error) {
-	return ResourceAccess{}, nil
+func (a *AuthService) UnassignRole(ctx context.Context, userId int, roleId int) error {
+	return nil
 }
->>>>>>> 8bacbbe2 (- resolve weird issues)
