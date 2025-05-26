@@ -14,6 +14,7 @@ type MockClient struct {
 	email     string
 	username  string
 	password  string
+	roles     []int
 }
 
 type MockAuthProvider struct {
@@ -118,5 +119,14 @@ func (k *MockAuthProvider) ResetPassword(ctx context.Context, userId, new_passwo
 		}
 	}
 	k.clients = updated
+	return nil
+}
+
+func (k *MockAuthProvider) AssignRole(ctx context.Context, UserId string, roleId int) error {
+	for _, i := range k.clients {
+		if i.userId == UserId {
+			i.roles = append(i.roles, roleId)
+		}
+	}
 	return nil
 }

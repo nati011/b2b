@@ -101,36 +101,6 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
-type LoginUserRequest struct {
-	Email    string
-	Password string
-}
-
-type ResetCredentialsRequest struct {
-	NewPassword string
-	ResetToken  string
-}
-
-type RefreshTokenRequest struct {
-	RefreshToken string
-}
-
-type JWT struct {
-	AccessToken      string
-	IDToken          string
-	ExpiresIn        int
-	RefreshExpiresIn int
-	RefreshToken     string
-	TokenType        string
-	NotBeforePolicy  int
-	SessionState     string
-	Scope            string
-}
-
-type LoginAuthResponse struct {
-	JWT JWT
-}
-
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
 	Get(ctx context.Context, id int) (resp GetResponse, err error)
@@ -145,10 +115,6 @@ type Provider interface {
 	HasRole(ctx context.Context, id int, role_id int) (resp bool, err error)
 	Update(ctx context.Context, req *UpdateRequest) (resp GetResponse, err error)
 	Remove(ctx context.Context, id int) (err error)
-
-	//auth
-	Login(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error)
-	RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error)
 }
 
 type UserService struct {
@@ -250,7 +216,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		ExternalId: req.ExternalId,
 	})
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("Failed to create and activate user: %v err:%v", req.Email, err)
 		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
@@ -543,9 +509,9 @@ func (u *UserService) Deactivate(ctx context.Context, id int) error {
 	return nil
 }
 
-func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error {
+func (u *UserService) AssignRole(ctx context.Context, id int, roleId int) error {
 	//validate id
-	_, err := u.Get(ctx, id)
+	user, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -557,7 +523,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 
 	//validate if role exists
 	_, err = u.role_service.Get(ctx, &role.GetRequest{
-		Id: role_id,
+		Id: roleId,
 	})
 	if err != nil {
 		switch err {
@@ -579,7 +545,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 	}
 	alreadyAssigned := false
 	for _, i := range assigned_roles.List {
-		if i.Id == role_id {
+		if i.Id == roleId {
 			alreadyAssigned = true
 		}
 	}
@@ -589,8 +555,22 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 	}
 
 	//assign
-	err = u.db.AssignRole(ctx, id, role_id)
+	err = u.db.AssignRole(ctx, id, roleId)
 	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+
+	//assign for auth
+	err = u.auth_service.AssignRole(ctx, user.Id, roleId)
+	if err != nil {
+		log.Printf("Failed to assign user auth role: %v", err)
+		err := u.db.RemoveAssignedRole(ctx, user.Id, roleId)
+		if err != nil {
+			log.Printf("Failed to rollback assigned role")
+		}
 		switch err {
 		default:
 			return ErrUnknown
@@ -883,104 +863,4 @@ func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
 		}
 	}
 	return user.IsActive, nil
-}
-
-func (u *UserService) Login(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error) {
-	resp, err := u.auth_service.ClientLogin(ctx, &auth.LoginUserRequest{
-		Email:    req.Email,
-		Password: req.Password,
-	})
-	if err != nil {
-		log.Printf("Failed to login user: %v err: %v", req.Email, err)
-		return LoginAuthResponse{}, ErrUnknown
-	}
-
-	user, err := u.db.GetByEmail(ctx, req.Email)
-	if err != nil {
-		log.Printf("Failed to get user by email err: %v", err)
-		return LoginAuthResponse{}, ErrUnknown
-	}
-
-	assigned_roles, err := u.GetAllAssignedRoles(ctx, user.List[0].Id)
-	if err != nil {
-		switch err {
-		case ErrNoRoleAssigned:
-		default:
-			log.Printf("Failed to get assigned roles: %v", err)
-			return LoginAuthResponse{}, ErrUnknown
-		}
-	}
-
-	permissions := []string{}
-	for _, r := range assigned_roles.List {
-		role, err := u.role_service.Get(ctx, &role.GetRequest{
-			Id: r.Id,
-		})
-		if err != nil {
-			log.Printf("Failed to get role err: %v", err)
-			return LoginAuthResponse{}, ErrUnknown
-		}
-		permissions = append(permissions, role.Name)
-	}
-	var response = LoginAuthResponse{
-		JWT: JWT{
-			AccessToken:      resp.JWT.AccessToken,
-			ExpiresIn:        resp.JWT.ExpiresIn,
-			IDToken:          resp.JWT.IDToken,
-			NotBeforePolicy:  resp.JWT.NotBeforePolicy,
-			RefreshExpiresIn: resp.JWT.RefreshExpiresIn,
-			RefreshToken:     resp.JWT.RefreshToken,
-			Scope:            resp.JWT.Scope,
-			SessionState:     resp.JWT.SessionState,
-			TokenType:        resp.JWT.TokenType},
-	}
-	return response, nil
-}
-
-func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
-	resp, err := u.auth_service.RefreshToken(ctx, &auth.RefreshTokenRequest{
-		RefreshToken: req.RefreshToken,
-	})
-	if err != nil {
-		log.Printf("Failed to refresh token err: %v", err)
-		return LoginAuthResponse{}, ErrUnknown
-	}
-
-	user, err := u.db.GetByEmail(ctx, req.RefreshToken)
-	if err != nil {
-		log.Printf("Failed to get user by email err: %v", err)
-		return LoginAuthResponse{}, ErrUnknown
-	}
-
-	assigned_roles, err := u.GetAllAssignedRoles(ctx, user.List[0].Id)
-	if err != nil {
-		log.Printf("Failed to get assigned roles: %v", err)
-		return LoginAuthResponse{}, ErrUnknown
-	}
-
-	permissions := []string{}
-	for _, r := range assigned_roles.List {
-		role, err := u.role_service.Get(ctx, &role.GetRequest{
-			Id: r.Id,
-		})
-		if err != nil {
-			log.Printf("Failed to get role err: %v", err)
-			return LoginAuthResponse{}, ErrUnknown
-		}
-		permissions = append(permissions, role.Name)
-	}
-	var response = LoginAuthResponse{
-		JWT: JWT{
-			AccessToken:      resp.JWT.AccessToken,
-			ExpiresIn:        resp.JWT.ExpiresIn,
-			IDToken:          resp.JWT.IDToken,
-			NotBeforePolicy:  resp.JWT.NotBeforePolicy,
-			RefreshExpiresIn: resp.JWT.RefreshExpiresIn,
-			RefreshToken:     resp.JWT.RefreshToken,
-			Scope:            resp.JWT.Scope,
-			SessionState:     resp.JWT.SessionState,
-			TokenType:        resp.JWT.TokenType,
-		},
-	}
-	return response, nil
 }

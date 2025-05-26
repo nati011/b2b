@@ -73,6 +73,9 @@ type DecodedResult struct {
 	Valid     bool
 }
 
+type AssignRoleRequest struct {
+}
+
 type Provider interface {
 	CreateNewClient(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error)
 	ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error)
@@ -81,4 +84,5 @@ type Provider interface {
 	ResetPassword(ctx context.Context, userId, new_password string) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodedResult, error)
+	AssignRole(ctx context.Context, userId string, roleId int) error
 }
