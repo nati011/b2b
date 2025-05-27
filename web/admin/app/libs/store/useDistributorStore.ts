@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Distributor, DistributorRequest, UserAccount } from '@/app/libs/types';
+import { Create, GetAll, GetDistributorUser } from '@/actions/distributor';
+import { GetById } from '@/actions/retailer';
 
 interface DistributorsStore {
     distributors: Distributor[];
@@ -28,7 +30,8 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         general_zone: '',
         region: '',
         woreda: '',
-        user: []
+        user: [],
+        is_active: false
     },
     distributorUser: {
         id: 0,
@@ -49,13 +52,13 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
     fetchDistributors: async (url?: string) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get('/api/distributor');
+            const response = await GetAll()
             set({
-                distributors: response.data.body.distributors,
+                distributors: response,
                 loading: false
             });
-        } catch (error) {
-            set({ error: 'Failed to fetch distributor', loading: false });
+        } catch (error: any) {
+            set({ error: error, loading: false });
         }
     },
 
@@ -63,37 +66,37 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         set({ loading: true, error: null });
         try {
             console.log(DistributorsData)
-            const response = await axiosIns.post('/api/distributor/', DistributorsData);
+            const response = await Create(DistributorsData);
             set(state => ({
                 Distributors: [...state.distributors, response.data.detail],
                 loading: false
             }));
-        } catch (error) {
-            set({ error: 'Failed to create distributor', loading: false });
+        } catch (error: any) {
+            set({ error: error, loading: false });
         }
     },
     fetchDistributorDetail: async (id: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/distributor?id=${id}`);
+            const response = await GetById(id);
             set({
                 distributor: response.data.body.distributor,
                 loading: false
             });
-        } catch (error) {
-            set({ error: 'Failed to fetch distributor', loading: false });
+        } catch (error: any) {
+            set({ error: error, loading: false });
         }
     },
     fetchDistributorUser: async (id: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/user?id=${id}`);
+            const response = await GetDistributorUser(id);
             set({
                 distributorUser: response.data.body.user,
                 loading: false
             });
-        } catch (error) {
-            set({ error: 'Failed to fetch distributor', loading: false });
+        } catch (error: any) {
+            set({ error: error, loading: false });
         }
     }
 }));

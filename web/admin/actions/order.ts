@@ -12,7 +12,7 @@ export async function fetchOrders() {
     }
 }
 
-export async function getOrderById(orderId: string) {
+export async function getOrderById(orderId: number) {
     try {
         const response = await axiosIns.get(`/order?id=${orderId}`);
         return response.data;

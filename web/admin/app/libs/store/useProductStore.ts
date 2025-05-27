@@ -66,10 +66,6 @@ const useProductsStore = create<ProductsStore>((set) => ({
   error: null,
   next: null,
   previous: null,
-  categories: [],
-  categoriesLoading: false,
-  categoriesError: null,
-
 
   fetchProducts: async (url?: string) => {
     set({ loading: true, error: null });
