@@ -25,7 +25,6 @@ async function refreshAccessToken(refreshToken: string) {
     const response = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
       refresh_token: refreshToken,
     });
-    console.log(response.data)
     const decoded = jwtDecode<KeycloakJWT>(response.data.body.jwt.access_token)
     return {
       accessToken: response.data.body.jwt.access_token,
@@ -113,8 +112,6 @@ export const authOptions: AuthOptions = {
       return token
     },
     async session({ session, token }) {
-      console.log(session)
-      console.log(token)
       return {
         ...session,
         error: token.error,
