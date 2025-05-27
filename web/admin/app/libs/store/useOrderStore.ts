@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Invoice, Order, Transaction } from '@/app/libs/types';
-import { fetchOrders } from '@/actions/order';
+import { fetchOrders, getOrderById } from '@/actions/order';
 
 interface OrdersStore {
     orders: Order[];
@@ -61,12 +61,13 @@ const useOrdersStore = create<OrdersStore>((set) => ({
             set({ error: 'Failed to fetch order', loading: false });
         }
     },
-    fetchOrder: async (order_id?: number) => {
+    fetchOrder: async (order_id: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/v1/order?id=${order_id}`);
+            const response = await getOrderById(order_id);
+            console.log(response)
             set({
-                order: response.data.body.order,
+                order: response.body.order,
                 loading: false
             });
         } catch (error) {

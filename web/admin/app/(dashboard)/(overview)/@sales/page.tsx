@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { CANCELED_STATUS, COMPLETED_STATUS, PENDING_STATUS } from "@/app/libs/enums";
 import Loading from './loading';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 
 
@@ -60,9 +61,9 @@ export default function RecentSales() {
         <CardContent>
           <div className='space-y-8'>
             {orders.slice(0, 4).map((sale, index) => (
-              <div key={index} className='flex items-center'>
+              <Link key={index} href={`/orders/${sale.Id}`} className='flex items-center'>
                 <Avatar className='h-10 w-10'>
-                  <AvatarFallback>{sale.RetailerName.split(" ")[0].slice(0, 1)}{sale.RetailerName.split(" ")[1].slice(0, 1)}</AvatarFallback>
+                  <AvatarFallback>{sale.RetailerName.split("")[0].slice(0, 2)}</AvatarFallback>
                 </Avatar>
                 <div className='ml-4 space-y-1'>
                   <p className='text-sm leading-none font-medium'>{sale.RetailerName}</p>
@@ -73,7 +74,8 @@ export default function RecentSales() {
                   {/* @ts-expect-error */}
                   {statusConfig[sale.Status as string].label}
                 </div>
-              </div>
+              </Link>
+
             ))}
           </div>
         </CardContent>

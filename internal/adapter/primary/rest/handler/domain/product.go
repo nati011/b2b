@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -238,7 +237,6 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else if ParamSearchValue != "" {
-		log.Printf(ParamSearchValue)
 		resp, err := p.service.Search(r.Context(), ParamSearchValue)
 		if err != nil {
 			switch err {
