@@ -1,6 +1,6 @@
 import { getSession } from "@/actions/getSession";
 import axios from "axios";
-import { signIn } from "next-auth/react";
+import { NextResponse } from "next/server";
 
 const apiUrl = "http://localhost:3000/api/v1";
 
@@ -11,11 +11,6 @@ const axiosIns = axios.create({
 axiosIns.interceptors.request.use(
   async (config) => {
     const session = await getSession()
-    // @ts-ignore
-    if (session?.error === "RefreshAccessTokenError") {
-      window.location.href = "/auth/signin"
-    }
-
     // @ts-ignore
     if (session && session?.accessToken) {
       // @ts-ignore

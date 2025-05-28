@@ -32,9 +32,14 @@ export const updateProduct = async (ProductsData: Partial<ProductForm>) => {
 export const createProduct = async (productData: any) => {
     try {
         const response = await axiosIns.post("/product", productData);
-        return response.data
-    } catch (error) {
-        throw error
+        return response.data.detail
+    } catch (error: any) {
+
+        if (error.response) {
+            throw error.response.data.message || "An error has occured while creating the product"
+        }
+
+        throw "An error has occured while creating the product"
     }
 }
 

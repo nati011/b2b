@@ -29,6 +29,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const [product, setProduct] = useState(initialData || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {
+        loading,
+        success,
+        error,
         createProduct,
         updateProduct,
         fetchProductDetail,
@@ -77,10 +80,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
             if (isEdit) {
                 await updateProduct(productData);
-                toast.success("Product updated successfully!");
             } else {
                 await createProduct(productData);
-                toast.success("Product created successfully!");
             }
 
             onSuccess?.();
@@ -108,7 +109,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
         }
         setProduct(initialData || {})
     }, [initialData])
+    useEffect(() => {
+        if (success != null) {
+            toast.success(success)
+        }
+    }, [success])
 
+
+    useEffect(() => {
+        if (error != null) {
+            toast.error(error)
+        }
+    }, [error])
     return (
         <form onSubmit={handleSubmit}>
             <div className="space-y-6">
@@ -200,7 +212,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 />
 
                 <ProductImagesForm
-                    images={product.Images?.map((i: { ImageUrl: any; }) => i.ImageUrl) || []}
+                    images={product.Images || []}
                     onChange={(images) => setProduct((prev) => ({
                         ...prev,
                         Images: images

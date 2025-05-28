@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { jwtDecode } from "jwt-decode"
 import axios from "axios"
 import { NextResponse } from "next/server";
+import { redirect } from "next/navigation";
 
 const baseURL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
 
@@ -20,10 +21,10 @@ interface KeycloakJWT {
   }
 }
 
-async function refreshAccessToken(refreshToken: string) {
+async function refreshAccessToken(token: any) {
   try {
     const response = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
-      refresh_token: refreshToken,
+      refresh_token: token.refreshToken,
     });
     const decoded = jwtDecode<KeycloakJWT>(response.data.body.jwt.access_token)
     return {
@@ -39,7 +40,9 @@ async function refreshAccessToken(refreshToken: string) {
       }
     }
   } catch (error) {
+    redirect("/auth/signin")
     return {
+      ...token,
       error: "RefreshAccessTokenError",
     }
   }
@@ -57,10 +60,6 @@ export const authOptions: AuthOptions = {
         try {
           const res = await fetch(`${baseURL}/api/v1/auth/login`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
             body: JSON.stringify(credentials)
           })
 
@@ -79,7 +78,7 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/auth/signin",
-    error: "/error"
+    error: "/auth/signin"
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
@@ -105,8 +104,7 @@ export const authOptions: AuthOptions = {
 
       // @ts-expect-error
       if (Date.now() > token.accessTokenExpires) {
-        //@ts-expect-error
-        return await refreshAccessToken(token.refreshToken)
+        return await refreshAccessToken(token)
       }
 
       return token

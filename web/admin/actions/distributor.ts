@@ -16,9 +16,14 @@ export const GetAll = async (url?: string) => {
 export const Create = async (DistributorsData: DistributorRequest) => {
     try {
         const response = await axiosIns.post('/distributor/', DistributorsData);
+        console.log(response)
         return response.data.detail
-    } catch (error) {
-        throw error
+    } catch (error: any) {
+        if (error.response) {
+            throw error.response.data.message
+        }
+
+
     }
 }
 export const GetById = async (id: number) => {

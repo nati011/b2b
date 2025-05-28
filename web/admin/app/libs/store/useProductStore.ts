@@ -4,7 +4,7 @@ import { Product, ConfigurableProduct, ProductForm } from "@/app/libs/types";
 import { addStock, createConfigurableProduct, createProduct, depleteStock, fetchConfigurableProductDetail, fetchConfigurableProducts, fetchProductDetail, fetchProducts, updateConfigurableProductStatus, updateProduct, updateProductStatus } from "@/actions/product";
 
 interface ProductsStore {
-  success: string;
+  success: string | null;
   products: Product[];
   configurable_products: ConfigurableProduct[];
   configurable_product: ConfigurableProduct;
@@ -28,7 +28,7 @@ interface ProductsStore {
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
-  success: "",
+  success: null,
   products: [],
   product: {
     Id: 0,
@@ -111,7 +111,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
     try {
       const response = await createProduct(productData);
       await useProductsStore.getState().fetchProducts();
-      set({ loading: false, success: response.data });
+      set({ loading: false, success: response });
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }
