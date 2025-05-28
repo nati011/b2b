@@ -7,6 +7,7 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HealthHandler struct {
@@ -21,11 +22,6 @@ func (d *HealthHandler) Init(authMiddleWare *middleware.Auth, services *applicat
 }
 
 func (d *HealthHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/v1/health", d.CheckHealth)
+	mux.Handle("GET /metric", promhttp.Handler())
 
-}
-
-func (h *HealthHandler) CheckHealth(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
 }
