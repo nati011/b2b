@@ -52,7 +52,8 @@ const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
                                         className="object-cover h-full w-full rounded-md"
                                         src={image}
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                            console.log(image)
+                                            console.log(e)
                                         }}
                                     />
                                     <Button
@@ -75,7 +76,7 @@ const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
                             onChange={(e) => setNewImageUrl(e.target.value)}
                             className="flex-1"
                         />
-                        <Button onClick={addImage}>Add Image</Button>
+                        <Button type="button" onClick={addImage}>Add Image</Button>
                     </div>
                     <ImageUpload value={images} onChange={onChange} />
                 </div>

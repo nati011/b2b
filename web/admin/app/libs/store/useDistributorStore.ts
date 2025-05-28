@@ -5,6 +5,7 @@ import { Create, GetAll, GetDistributorUser } from '@/actions/distributor';
 import { GetById } from '@/actions/retailer';
 
 interface DistributorsStore {
+    success: string | null
     distributors: Distributor[];
     distributor: Distributor;
     distributorUser: UserAccount
@@ -44,6 +45,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         is_active: false,
         external_id: ''
     },
+    success: null,
     loading: false,
     error: null,
     next: null,
@@ -58,7 +60,8 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
                 loading: false
             });
         } catch (error: any) {
-            set({ error: error, loading: false });
+            console.log(error)
+            set({ error: error.response.data, loading: false });
         }
     },
 
@@ -67,12 +70,14 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         try {
             console.log(DistributorsData)
             const response = await Create(DistributorsData);
+            console.log(response)
             set(state => ({
-                Distributors: [...state.distributors, response.data.detail],
+                success: response,
                 loading: false
             }));
         } catch (error: any) {
-            set({ error: error, loading: false });
+            console.log(error)
+            set({ error: error.message, loading: false });
         }
     },
     fetchDistributorDetail: async (id: number) => {
@@ -84,7 +89,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
                 loading: false
             });
         } catch (error: any) {
-            set({ error: error, loading: false });
+            set({ error: error.response.data || "An error has occured", loading: false });
         }
     },
     fetchDistributorUser: async (id: number) => {
