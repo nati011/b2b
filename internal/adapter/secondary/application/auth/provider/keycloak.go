@@ -241,3 +241,9 @@ func (k *KeycloakProvider) RefreshToken(ctx context.Context, req *port.RefreshTo
 		},
 	}, err
 }
+
+func (k *KeycloakProvider) AssignRole(ctx context.Context, UserId string, roleId int) error {
+	// client := gocloak.NewClient(k.KeycloakInstanceURL)
+	// client.AddClientRolesToUser(ctx, client.RestyClient().Token, )
+	return nil
+}
