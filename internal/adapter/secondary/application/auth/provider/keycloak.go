@@ -6,9 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Nerzal/gocloak/v13"
-
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
+	"github.com/Nerzal/gocloak/v13"
 )
 
 const (
@@ -241,4 +240,10 @@ func (k *KeycloakProvider) RefreshToken(ctx context.Context, req *port.RefreshTo
 			Scope:            token.Scope,
 		},
 	}, err
+}
+
+func (k *KeycloakProvider) AssignRole(ctx context.Context, UserId string, roleId int) error {
+	// client := gocloak.NewClient(k.KeycloakInstanceURL)
+	// client.AddClientRolesToUser(ctx, client.RestyClient().Token, )
+	return nil
 }
