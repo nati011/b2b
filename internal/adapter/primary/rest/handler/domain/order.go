@@ -52,6 +52,11 @@ var (
 
 func InitOrder() {
 	handler.Register(new(Order))
+
+	handler.RegisterResource("/api/v1/order")
+	handler.RegisterResource("/api/v1/order/init_settlement")
+	handler.RegisterResource("/api/v1/orders/retailer")
+	handler.RegisterResource("/api/v1/orders/distributor")
 }
 
 type Order struct {

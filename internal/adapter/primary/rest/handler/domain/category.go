@@ -38,6 +38,9 @@ type Category struct {
 
 func InitCategory() {
 	handler.Register(new(Category))
+
+	handler.RegisterResource("/api/v1/category")
+	handler.RegisterResource("/api/v1/category/{id}")
 }
 
 func (r *Category) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
