@@ -112,8 +112,8 @@ type Provider interface {
 	ResetClientCredentials(ctx context.Context, req *ResetCredentialsRequest) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
-	IsAuthorizedForResource(ctx context.Context, userId int, resourceId int) (bool, error)
 	AssignRole(ctx context.Context, userId int, roleId int) error
+	RemoveRole(ctx context.Context, userId int, roleId int) error
 }
 
 type AuthService struct {
@@ -415,10 +415,10 @@ func (a AuthService) RefreshToken(ctx context.Context, req *RefreshTokenRequest)
 	}, nil
 }
 
-func (a AuthService) IsAuthorizedForResource(ctx context.Context, userId int, resourceId int) (bool, error) {
-	return false, nil
+func (a *AuthService) AssignRole(ctx context.Context, userId int, roleId int) error {
+	return nil
 }
 
-func (a *AuthService) AssignRole(ctx context.Context, userId int, roleId int) error {
+func (a *AuthService) RemoveRole(ctx context.Context, userId int, roleId int) error {
 	return nil
 }
