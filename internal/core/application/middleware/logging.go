@@ -30,7 +30,17 @@ func (r *statusRecorder) Write(b []byte) (int, error) {
 }
 
 func (lm *LoggingMiddleware) Log(next http.Handler) http.Handler {
+	exemptedPaths := []string{"/metrics"}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if the request path is in the exemptedPaths list
+		for _, path := range exemptedPaths {
+			if r.URL.Path == path {
+				next.ServeHTTP(w, r) // Call the next handler without logging
+				return
+			}
+		}
+
 		responseBuffer := &bytes.Buffer{}
 		recorder := &statusRecorder{
 			ResponseWriter: w,
