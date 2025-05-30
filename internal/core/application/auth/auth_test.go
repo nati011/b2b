@@ -6,10 +6,6 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
-<<<<<<< HEAD
-	"b2b.nati011.github.com/internal/core/application/email"
-=======
->>>>>>> 8bacbbe2 (- resolve weird issues)
 )
 
 const (
@@ -29,11 +25,7 @@ const (
 	INVALID_EMAIL     = ""
 )
 
-<<<<<<< HEAD
-var service Provider
-=======
 var testContainer TestContainer
->>>>>>> 8bacbbe2 (- resolve weird issues)
 var mock = provider.NewMockAuthProvider()
 
 func TestMain(m *testing.M) {
@@ -43,13 +35,6 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-<<<<<<< HEAD
-	service = NewAuthService(&mock, email.NewTestContainer().EmailService)
-}
-
-func Test_CreateClient_happyPath(t *testing.T) {
-	t.Cleanup(mock.Teardown)
-=======
 	testContainer = NewTestContainer()
 }
 
@@ -59,7 +44,6 @@ func teardown() {
 
 func Test_CreateClient_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	ctx := context.Background()
 	in := RegisterUserRequest{
 		Username:  VALID_USERNAME_A,
@@ -68,11 +52,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 		LastName:  VALID_LastName,
 		Email:     VALID_EMAIL_A,
 	}
-<<<<<<< HEAD
-	_, err := service.CreateNewClientWithPassword(ctx, in)
-=======
 	_, err := testContainer.Service.CreateNewClientWithPassword(ctx, &in)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	if err != nil {
 		t.Errorf("Failed to create err: %v", err)
 	}
@@ -80,11 +60,7 @@ func Test_CreateClient_happyPath(t *testing.T) {
 
 func Test_CreateClient_UnhappyPath(t *testing.T) {
 	t.Run("email_not_supplied", func(t *testing.T) {
-<<<<<<< HEAD
-		t.Cleanup(mock.Teardown)
-=======
 		t.Cleanup(teardown)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		ctx := context.Background()
 		in := RegisterUserRequest{
 			Username:  VALID_USERNAME_A,
@@ -92,11 +68,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName: VALID_FirstName,
 			LastName:  VALID_LastName,
 		}
-<<<<<<< HEAD
-		_, err := service.CreateNewClientWithPassword(ctx, in)
-=======
 		_, err := testContainer.Service.CreateNewClientWithPassword(ctx, &in)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		wantErr := ErrEmailNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -104,11 +76,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("password_not_supplied", func(t *testing.T) {
-<<<<<<< HEAD
-		t.Cleanup(mock.Teardown)
-=======
 		t.Cleanup(teardown)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		ctx := context.Background()
 		in := RegisterUserRequest{
 			Email:     VALID_EMAIL_A,
@@ -116,11 +84,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			FirstName: VALID_FirstName,
 			LastName:  VALID_LastName,
 		}
-<<<<<<< HEAD
-		_, err := service.CreateNewClientWithPassword(ctx, in)
-=======
 		_, err := testContainer.Service.CreateNewClientWithPassword(ctx, &in)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		wantErr := ErrPasswordNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)
@@ -128,11 +92,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 	})
 
 	t.Run("FirstName_not_supplied", func(t *testing.T) {
-<<<<<<< HEAD
-		t.Cleanup(mock.Teardown)
-=======
 		t.Cleanup(teardown)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		ctx := context.Background()
 		in := RegisterUserRequest{
 			Email:    VALID_EMAIL_A,
@@ -140,11 +100,7 @@ func Test_CreateClient_UnhappyPath(t *testing.T) {
 			Password: VALID_PASSWORD,
 			LastName: VALID_LastName,
 		}
-<<<<<<< HEAD
-		_, err := service.CreateNewClientWithPassword(ctx, in)
-=======
 		_, err := testContainer.Service.CreateNewClientWithPassword(ctx, &in)
->>>>>>> 8bacbbe2 (- resolve weird issues)
 		wantErr := ErrFirstNameNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got : %v", wantErr, err)

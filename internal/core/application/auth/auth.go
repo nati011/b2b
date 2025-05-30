@@ -9,10 +9,7 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/email"
-<<<<<<< HEAD
-=======
 	"b2b.nati011.github.com/internal/core/application/role"
->>>>>>> 8bacbbe2 (- resolve weird issues)
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 	"github.com/golang-jwt/jwt"
 )
@@ -118,10 +115,7 @@ type Provider interface {
 type AuthService struct {
 	authProvider  port.Provider
 	emailProvider email.Provider
-}
-
-func NewAuthService(ap port.Provider, em email.Provider) Provider {
-	return &AuthService{authProvider: ap, emailProvider: em}
+	roleService   role.Provider
 }
 
 func NewAuthService(
@@ -261,7 +255,6 @@ func (s AuthService) sendResetEmail(token, recepientEmail string) error {
 	}
 	return nil
 }
-
 
 func (a AuthService) CreateNewClientWithPassword(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error) {
 	err := validateName(req.FirstName, req.LastName)
@@ -421,6 +414,6 @@ func (a *AuthService) AssignRole(ctx context.Context, userId int, roleId int) er
 	return nil
 }
 
-func (a *AuthService) UnassignRole(ctx context.Context, userId int, roleId int) error {
+func (a *AuthService) RemoveRole(ctx context.Context, userId int, roleId int) error {
 	return nil
 }
