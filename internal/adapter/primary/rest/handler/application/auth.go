@@ -25,6 +25,10 @@ type ResetPasswordRequest struct {
 
 func InitAuth() {
 	handler.Register(new(AuthHandler))
+
+	handler.RegisterResource("/api/v1/auth/login")
+	handler.RegisterResource("/api/v1/auth/refresh")
+	handler.RegisterResource("/api/v1/auth/reset/{token}")
 }
 
 func (a *AuthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
