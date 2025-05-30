@@ -42,6 +42,8 @@ type Resource struct {
 
 func InitResource() {
 	handler.Register(new(Resource))
+
+	handler.RegisterResource("/api/v1/resource")
 }
 
 func (r *Resource) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

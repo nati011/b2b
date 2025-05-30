@@ -84,6 +84,10 @@ type UserHandler struct {
 
 func InitUser() {
 	handler.Register(new(UserHandler))
+
+	handler.RegisterResource("/api/v1/user")
+	handler.RegisterResource("/api/v1/user/{id}/status")
+	handler.RegisterResource("/api/v1/user/{id}/role/{role_id}")
 }
 
 func (a *UserHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {

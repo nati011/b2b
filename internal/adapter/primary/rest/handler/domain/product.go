@@ -75,6 +75,11 @@ type Product struct {
 
 func InitProduct() {
 	handler.Register(new(Product))
+
+	handler.RegisterResource("/api/v1/product")
+	handler.RegisterResource("/api/v1/stock_ledger")
+	handler.RegisterResource("/api/v1/product/{id}/status")
+	handler.RegisterResource("/api/v1/product/{id}/stock")
 }
 
 func (p *Product) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
