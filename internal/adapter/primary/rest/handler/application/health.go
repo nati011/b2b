@@ -22,6 +22,5 @@ func (d *HealthHandler) Init(authMiddleWare *middleware.Auth, services *applicat
 }
 
 func (d *HealthHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /metric", promhttp.Handler())
-
+	mux.Handle("GET /metrics", promhttp.Handler())
 }
