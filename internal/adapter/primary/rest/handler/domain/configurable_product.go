@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	// "errors"
 	"io"
 	"net/http"
 
@@ -77,6 +76,9 @@ type ConfigurableProduct struct {
 
 func InitConfigurableProduct() {
 	handler.Register(new(ConfigurableProduct))
+
+	handler.RegisterResource("/api/v1/configurable_product")
+	handler.RegisterResource("/api/v1/configurable_product/{id}/status")
 }
 
 func (c *ConfigurableProduct) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
