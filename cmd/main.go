@@ -51,6 +51,7 @@ func main() {
 	InitAuth(&cfg)
 	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
+
 	pagination := config.NewPaginationBuilder().Build()
 	paginationMiddleware := middleware.NewPaginationMiddleware(pagination)
 	application_container := application_core.NewContainer(
