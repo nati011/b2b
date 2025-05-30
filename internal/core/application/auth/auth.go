@@ -99,6 +99,10 @@ type DecodeResult struct {
 	Claims string
 }
 
+type ResourceAccess struct {
+	Roles []string `json:"roles"`
+}
+
 type Provider interface {
 	CreateNewClientWithPassword(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error)
 	CreateNewClientWithOutPassword(ctx context.Context, req *RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error)
@@ -310,7 +314,7 @@ func (a AuthService) CreateNewClientWithOutPassword(ctx context.Context, req *Re
 	}
 	err = validateUsername(req.Username)
 	if err != nil {
-		return RegisterUserResponse{}, err
+		return RegisterUserResponse{}, nil
 	}
 
 	genPassword, err := generateRandomPassword(10)
@@ -395,6 +399,7 @@ func (a AuthService) ClientLogin(ctx context.Context, req *LoginUserRequest) (Lo
 		JWT: JWT(resp.JWT),
 	}, nil
 }
+
 func (a AuthService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
 	resp, err := a.authProvider.RefreshToken(ctx, &port.RefreshTokenRequest{RefreshToken: req.RefreshToken})
 	if err != nil {
