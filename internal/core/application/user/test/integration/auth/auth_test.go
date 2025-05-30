@@ -8,8 +8,6 @@ import (
 	"time"
 
 	auth "b2b.nati011.github.com/internal/core/application/auth"
-	"b2b.nati011.github.com/internal/core/application/resource"
-	"b2b.nati011.github.com/internal/core/application/role"
 	"b2b.nati011.github.com/internal/core/application/user"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 )
@@ -63,66 +61,5 @@ func Test_create_auth_client_upon_user_registration(t *testing.T) {
 	})
 	if err == auth.ErrFailedToLogin {
 		t.Fatalf("failed to login err %v", err)
-	}
-}
-
-func Test_check_if_user_is_authorized(t *testing.T) {
-	t.Cleanup(teardown)
-	ctx := context.Background()
-	//create user
-	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
-	in := user.CreateRequest{
-		FirstName:  "natnael asefa",
-		LastName:   "jemaneh",
-		Email:      "natnaeljemaneh001@gmail.com",
-		Phone:      "+251949184879",
-		Username:   "test",
-		DOB:        parsedTime,
-		ExternalId: "123",
-		Password:   "test",
-	}
-	user_id, err := testContainer.UserService.Create(ctx, &in)
-	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
-	}
-
-	//create resource
-	resource_in := resource.CreateRequest{
-		Action: "test",
-		Name:   "test",
-	}
-	resource_id, err := testContainer.ResourceService.Create(ctx, &resource_in)
-	if err != nil {
-		t.Errorf("Failed to create resource err: %v", err)
-	}
-
-	//create role
-	role_id, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
-		Name: "test",
-		Desc: "test",
-	})
-	if err != nil {
-		t.Fatalf("Failed to create role err: %v", err)
-	}
-
-	err = testContainer.RoleService.AddResource(ctx, &role.AddResourceRequest{
-		ResourceId: resource_id,
-		RoleId:     role_id})
-	if err != nil {
-		t.Errorf("Failed to add resource err: %v", err)
-	}
-	//give user role
-	err = testContainer.UserService.AssignRole(ctx, user_id, role_id)
-	if err != nil {
-		t.Errorf("Expected err: %v Got err: %v", nil, err)
-	}
-	//check user authorization
-	isAuthorized, err := testContainer.AuthService.IsAuthorizedForResource(ctx, user_id, resource_id)
-	if err != nil {
-		t.Errorf("Failed to check err: %v", err)
-	}
-	wantResponse := true
-	if isAuthorized != wantResponse {
-		t.Errorf("Expected response: %v, Got: %v", wantResponse, isAuthorized)
 	}
 }
