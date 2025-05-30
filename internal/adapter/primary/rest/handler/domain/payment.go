@@ -30,6 +30,9 @@ type Payment struct {
 
 func InitPayment() {
 	handler.Register(new(Payment))
+
+	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}/{tx_ref}")
+	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}")
 }
 
 func (p *Payment) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
