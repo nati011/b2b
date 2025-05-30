@@ -613,7 +613,7 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 	return resp, nil
 }
 
-func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id int) error {
+func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, roleId int) error {
 	//validate id
 	_, err := u.Get(ctx, id)
 	if err != nil {
@@ -627,7 +627,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 
 	//validate if role exists
 	_, err = u.role_service.Get(ctx, &role.GetRequest{
-		Id: role_id,
+		Id: roleId,
 	})
 	if err != nil {
 		switch err {
@@ -650,7 +650,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 	}
 	alreadyAssigned := false
 	for _, i := range assigned_roles.List {
-		if i.Id == role_id {
+		if i.Id == roleId {
 			alreadyAssigned = true
 		}
 	}
@@ -660,12 +660,20 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 	}
 
 	//remove
-	err = u.db.RemoveAssignedRole(ctx, id, role_id)
+	err = u.db.RemoveAssignedRole(ctx, id, roleId)
 	if err != nil {
 		switch err {
 		default:
 			return ErrUnknown
 		}
+	}
+
+	//remove from authService
+	err = u.auth_service.RemoveRole(ctx, id, roleId)
+	if err != nil {
+		log.Printf("Failed to remove assign roleId: %v err:%v", roleId, err)
+		u.AssignRole(ctx, id, roleId)
+		return ErrUnknown
 	}
 	return nil
 }
