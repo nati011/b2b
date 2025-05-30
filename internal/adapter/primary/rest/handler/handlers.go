@@ -27,3 +27,7 @@ func RegisterResource(route string) {
 func GetHandlers() []Handler {
 	return handlers
 }
+
+func GetRoutes() []string {
+	return routes
+}
