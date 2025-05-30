@@ -41,6 +41,8 @@ type Transaction struct {
 
 func InitTransaction() {
 	handler.Register(new(Transaction))
+
+	handler.RegisterResource("/api/v1/transaction")
 }
 
 func (t *Transaction) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
