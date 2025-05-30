@@ -7,10 +7,12 @@ import (
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	auth "b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/role"
 )
 
 type Auth struct {
 	auth auth.Provider
+	role role.Provider
 }
 
 type Option func(*Auth)
@@ -68,6 +70,11 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			util.UnauthorizedResponse(w)
 			return
 		}
+
+		//get roleIds from permissions
+		//get resource route := r.URL.Path
+		//check in role if roleHasResource
+
 		ctx := context.WithValue(r.Context(), "claims", claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

@@ -26,6 +26,8 @@ type EmailTemplate struct {
 
 func InitEmailTemplate() {
 	handler.Register(new(EmailTemplate))
+
+	handler.RegisterResource("/api/v1/email_template")
 }
 
 func (e *EmailTemplate) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

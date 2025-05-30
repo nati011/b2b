@@ -9,6 +9,7 @@ import (
 )
 
 var handlers []Handler
+var routes []string
 
 type Handler interface {
 	Routes(mux *http.ServeMux)
@@ -17,6 +18,10 @@ type Handler interface {
 
 func Register(h Handler) {
 	handlers = append(handlers, h)
+}
+
+func RegisterResource(route string) {
+	routes = append(routes, route)
 }
 
 func GetHandlers() []Handler {
