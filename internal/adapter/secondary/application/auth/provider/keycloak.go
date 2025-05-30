@@ -6,9 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Nerzal/gocloak/v13"
-
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
+	"github.com/Nerzal/gocloak/v13"
 )
 
 const (

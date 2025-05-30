@@ -101,6 +101,36 @@ type GetAllResponse struct {
 	List []GetResponse
 }
 
+type LoginUserRequest struct {
+	Email    string
+	Password string
+}
+
+type ResetCredentialsRequest struct {
+	NewPassword string
+	ResetToken  string
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string
+}
+
+type JWT struct {
+	AccessToken      string
+	IDToken          string
+	ExpiresIn        int
+	RefreshExpiresIn int
+	RefreshToken     string
+	TokenType        string
+	NotBeforePolicy  int
+	SessionState     string
+	Scope            string
+}
+
+type LoginAuthResponse struct {
+	JWT JWT
+}
+
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
 	Get(ctx context.Context, id int) (resp GetResponse, err error)
@@ -115,6 +145,10 @@ type Provider interface {
 	HasRole(ctx context.Context, id int, role_id int) (resp bool, err error)
 	Update(ctx context.Context, req *UpdateRequest) (resp GetResponse, err error)
 	Remove(ctx context.Context, id int) (err error)
+
+	//auth
+	Login(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error)
+	RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error)
 }
 
 type UserService struct {
@@ -838,11 +872,40 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 }
 
 func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
-	// validate id
 	user, err := u.Get(ctx, id)
 	if err != nil {
-		return false, err
-
+		switch err {
+		case ErrUnknown:
+			return false, ErrUnknown
+		default:
+			return false, ErrIdNotFound
+		}
 	}
 	return user.IsActive, nil
+}
+
+func (u *UserService) Login(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error) {
+	resp, err := u.auth_service.ClientLogin(ctx, auth.LoginUserRequest{
+		Email:    req.Email,
+		Password: req.Password})
+	if err != nil {
+		log.Printf("Failed to login user: %v err: %v", req.Email, err)
+		return LoginAuthResponse{}, ErrUnknown
+	}
+
+	return LoginAuthResponse{
+		JWT: JWT(resp.JWT),
+	}, nil
+}
+
+func (u *UserService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
+	resp, err := u.auth_service.RefreshToken(ctx, auth.RefreshTokenRequest{
+		RefreshToken: req.RefreshToken,
+	})
+	if err != nil {
+		log.Printf("Failed to refresh token err: %v", err)
+		return LoginAuthResponse{}, ErrUnknown
+	}
+
+	return LoginAuthResponse{JWT: JWT(resp.JWT)}, nil
 }
