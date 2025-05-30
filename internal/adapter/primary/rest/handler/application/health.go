@@ -15,6 +15,8 @@ type HealthHandler struct {
 
 func InitHealth() {
 	handler.Register(new(HealthHandler))
+
+	handler.RegisterResource("/metrics/promethus")
 }
 
 func (d *HealthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
@@ -22,5 +24,5 @@ func (d *HealthHandler) Init(authMiddleWare *middleware.Auth, services *applicat
 }
 
 func (d *HealthHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /metrics", promhttp.Handler())
+	mux.Handle("GET /metrics/promethus", promhttp.Handler())
 }
