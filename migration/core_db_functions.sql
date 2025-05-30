@@ -3060,7 +3060,7 @@ SELECT o.id,
         WHERE o.is_deleted = FALSE
         ORDER BY o.created_date ASC
         LIMIT t_limit
-        OFFSET t_offset
+        OFFSET t_offset;
 END;
 $$;
 
