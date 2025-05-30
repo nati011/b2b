@@ -48,11 +48,10 @@ func main() {
 
 	db_pool := InitDB(&cfg)
 
-	//for testing purposes
 	InitAuth(&cfg)
-
 	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
+
 	pagination := config.NewPaginationBuilder().Build()
 	paginationMiddleware := middleware.NewPaginationMiddleware(pagination)
 	application_container := application_core.NewContainer(
