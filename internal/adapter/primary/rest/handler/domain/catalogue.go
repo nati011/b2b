@@ -80,6 +80,8 @@ type Catalogue struct {
 
 func InitCatalogue() {
 	handler.Register(new(Catalogue))
+
+	handler.RegisterResource("/api/v1/catalogue")
 }
 
 func (c *Catalogue) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

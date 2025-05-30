@@ -81,6 +81,11 @@ type Distributor struct {
 
 func InitDistributor() {
 	handler.Register(new(Distributor))
+
+	handler.RegisterResource("/api/v1/distributor")
+	handler.RegisterResource("/api/v1/distributor/{id}/user")
+	handler.RegisterResource("/api/v1/distributor/{id}/status")
+	handler.RegisterResource("/api/v1/distributor/{id}/onboarding_review")
 }
 
 func (d *Distributor) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
