@@ -92,17 +92,6 @@ type JWT struct {
 	NotBeforePolicy  int
 	SessionState     string
 	Scope            string
-<<<<<<< HEAD
-=======
-}
-
-type RetrospectionResult struct {
-	Active bool
-}
-
-type DecodeResult struct {
-	Claims string
->>>>>>> 8bacbbe2 (- resolve weird issues)
 }
 
 type RetrospectionResult struct {
