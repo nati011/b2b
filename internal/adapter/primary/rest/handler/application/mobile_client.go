@@ -17,6 +17,8 @@ type MobileClientHandler struct {
 
 func InitMobileClient() {
 	handler.Register(new(MobileClientHandler))
+
+	handler.RegisterResource("/api/v1/minCompatibleClientVersion")
 }
 
 func (m *MobileClientHandler) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
