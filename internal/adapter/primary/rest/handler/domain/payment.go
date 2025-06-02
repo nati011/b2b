@@ -33,6 +33,7 @@ func InitPayment() {
 
 	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}/{tx_ref}")
 	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}")
+	handler.RegisterResource("/api/v1/payment/verify")
 }
 
 func (p *Payment) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
