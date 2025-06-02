@@ -43,7 +43,7 @@ type CheckoutResponse struct {
 }
 
 type Provider interface {
-	Verify(ctx context.Context, PaymentPartnerId int, txRef string) (bool, error)
+	Verify(ctx context.Context, txRef string) (bool, error)
 	Callback(ctx context.Context, PaymentPartnerId int, txRef string)
 }
 
@@ -83,10 +83,15 @@ func (p *PaymentVerificationService) getPayment(ctx context.Context, txRef strin
 	}, err
 }
 
-func (p *PaymentVerificationService) Verify(ctx context.Context, paymentPartnerId int, txRef string) (bool, error) {
+func (p *PaymentVerificationService) Verify(ctx context.Context, txRef string) (bool, error) {
 	if err := validateTxRef(txRef); err != nil {
 		return false, err
 	}
+	payment, err := p.transaction.GetByParam(ctx, &transaction.GetByParamRequest{TxRef: txRef})
+	if err != nil {
+		return false, ErrUnknown
+	}
+	paymentPartnerId := payment.List[0].PartnerId
 	paymentPartner, err := p.paymentPartner.Get(ctx, paymentPartnerId)
 	if err != nil {
 		switch err {
@@ -127,7 +132,7 @@ func (p *PaymentVerificationService) Verify(ctx context.Context, paymentPartnerI
 }
 
 func (p *PaymentVerificationService) Callback(ctx context.Context, gatewayId int, txRef string) {
-	is_verified, err := p.Verify(ctx, gatewayId, txRef)
+	is_verified, err := p.Verify(ctx, txRef)
 	if err != nil {
 		switch err {
 		default:
