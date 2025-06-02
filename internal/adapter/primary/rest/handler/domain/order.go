@@ -55,7 +55,7 @@ func InitOrder() {
 	handler.Register(new(Order))
 
 	handler.RegisterResource("/api/v1/order")
-	handler.RegisterResource("/api/v1/order/init_settlement")
+	handler.RegisterResource("/api/v1/order/init_payment")
 	handler.RegisterResource("/api/v1/orders/retailer")
 	handler.RegisterResource("/api/v1/orders/distributor")
 }
@@ -80,7 +80,7 @@ func (o *Order) Routes(mux *http.ServeMux) {
 		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.PostHandler)).ServeHTTP(w, r)
 	})
 
-	mux.HandleFunc("POST /api/v1/order/init_settlement", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v1/order/init_payment", func(w http.ResponseWriter, r *http.Request) {
 		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.InitPaymentHandler)).ServeHTTP(w, r)
 	})
 
@@ -227,7 +227,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		id, err := o.service.InitPayment(r.Context(), typedParamId)
+		resp, err := o.service.InitPayment(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case order.ErrUnknown:
@@ -238,7 +238,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": id})
+		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": resp.CheckoutUrl})
 	}
 }
 
