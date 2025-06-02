@@ -25,6 +25,7 @@ CMD ./main \
     --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET \
     --env $ENV \
     --base_url $BASE_URL \
-    --frontend_base_url $FRONTEND_URL
+    --frontend_base_url $FRONTEND_URL \
+    --min_compatible_client_version $CLIENT_VERSION
 
 EXPOSE 8080
