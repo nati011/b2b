@@ -446,9 +446,6 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			ReservedStock:  int(res[8].(int64)),
 			Price:          v,
 		}
-
-		totalCount = res[10].(int64)
-		log.Print(totalCount)
 		// images
 		//--------------------
 		var imageResponse []port.Image
