@@ -82,7 +82,8 @@ type GetAllStockLedgerResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type GetByParamRequest struct {
@@ -122,6 +123,7 @@ type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
+	Search(ctx context.Context, search_query string) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	ReceiveGoods(ctx context.Context, req *GoodsReceivingRequest) error
@@ -579,6 +581,47 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 
 	return resp, nil
 }
+func (p *ProductService) Search(ctx context.Context, search_query string) (GetAllResponse, error) {
+	resp, err := p.DB.Search(ctx, search_query)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	resp_val := GetAllResponse{}
+	for _, i := range resp.List {
+		var images []Image
+		for _, value := range i.Images {
+			image := Image{
+				ImageUrl: value.ImageUrl,
+				BlurHash: value.BlurHash,
+			}
+			images = append(images, image)
+		}
+		response := GetResponse{
+			Id:             i.Id,
+			Name:           i.Name,
+			Desc:           i.Desc,
+			ExternalID:     i.ExternalID,
+			Images:         images,
+			Price:          i.Price,
+			Attributes:     i.Attributes,
+			DistributorId:  i.DistributorId,
+			CategoryId:     i.CategoryId,
+			Stock:          i.Stock,
+			AvailableStock: i.AvailableStock,
+			ReservedStock:  i.ReservedStock,
+			IsActive:       i.IsActive,
+		}
+		resp_val.List = append(resp_val.List, response)
+	}
+	resp_val.TotalCount = resp.TotalCount
+	return resp_val, nil
+}
 
 func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	resp, err := p.DB.GetAll(ctx)
@@ -618,6 +661,7 @@ func (p *ProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		}
 		resp_val.List = append(resp_val.List, response)
 	}
+	resp_val.TotalCount = resp.TotalCount
 	return resp_val, nil
 }
 

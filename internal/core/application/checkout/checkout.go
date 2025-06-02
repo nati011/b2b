@@ -129,13 +129,15 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		return CheckoutResponse{}, err
 	}
 
+	returnUrl := fmt.Sprintf("%v/confirmOrder/%v", p.frontendUrl, req.OrderId)
+
 	paymentInitiateRequest := payment_gateway.InitiateRequest{
 		Amount:         req.Amount,
 		TransactionRef: transaction_ref,
 		PartnerUrl:     paymentPartner.BaseURL,
 		PartnerSecret:  paymentPartnerSecret.Secret,
 		BaseUrl:        p.baseUrl,
-		ReturnUrl:      p.frontendUrl,
+		ReturnUrl:      returnUrl,
 	}
 
 	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)

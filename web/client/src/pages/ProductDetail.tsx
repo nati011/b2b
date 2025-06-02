@@ -185,7 +185,7 @@ const ProductDetail = () => {
           }
         `}
       </style>
-      <header className='fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100'>
+      {/* <header className='fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100'>
         <nav className='container mx-auto px-4 py-4 flex justify-between items-center'>
           <Link
             to='/'
@@ -206,7 +206,7 @@ const ProductDetail = () => {
             )}
           </Link>
         </nav>
-      </header>
+      </header> */}
 
       <main className='container mx-auto px-4 pt-24 pb-16'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12'>

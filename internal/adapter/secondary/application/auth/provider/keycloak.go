@@ -207,6 +207,15 @@ func (k KeycloakProvider) ClientLogin(ctx context.Context, req *port.LoginUserRe
 	}, err
 }
 
+func (k KeycloakProvider) ClientLogout(ctx context.Context, req port.RefreshTokenRequest) error {
+	client := gocloak.NewClient(k.KeycloakInstanceURL)
+	err := client.Logout(ctx, k.KeycloakClientId, k.KeycloakClientSecret, k.KeycloakRealm, req.RefreshToken)
+	if err != nil {
+		return port.ErrSysUnknown
+	}
+	return nil
+}
+
 func (k *KeycloakProvider) RefreshToken(ctx context.Context, req *port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 

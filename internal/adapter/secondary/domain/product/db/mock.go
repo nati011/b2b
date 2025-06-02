@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"math/rand"
@@ -85,6 +86,35 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		}
 	}
 	return port.GetResponse{}, port_commons.ErrSysNoRows
+}
+
+func (m *Mock) Search(ctx context.Context, search_query string) (port.GetAllResponse, error) {
+	responses := port.GetAllResponse{}
+	for _, i := range m.products {
+		if strings.Contains(i.Name, search_query) || strings.Contains(i.Desc, search_query) || strings.Contains(i.ExternalID, search_query) {
+			responses.List = append(responses.List,
+				port.GetResponse{
+					Id:             i.Id,
+					Name:           i.Name,
+					Desc:           i.Desc,
+					ExternalID:     i.ExternalID,
+					Images:         i.Images,
+					Price:          i.Price,
+					Attributes:     i.Attributes,
+					DistributorId:  i.DistributorId,
+					CategoryId:     i.CategoryId,
+					Stock:          i.Stock,
+					AvailableStock: i.Stock - i.ReservedStock,
+					ReservedStock:  i.ReservedStock,
+					IsActive:       i.IsActive,
+				},
+			)
+		}
+	}
+	if len(responses.List) == 0 {
+		return responses, port_commons.ErrSysNoRows
+	}
+	return responses, nil
 }
 
 func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
