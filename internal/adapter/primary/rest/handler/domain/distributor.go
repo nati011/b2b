@@ -11,6 +11,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/user"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -75,14 +76,19 @@ type UpdateDistributorRequest struct {
 type Distributor struct {
 	service        distributor.Provider
 	userService    user.Provider
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 }
 
 func InitDistributor() {
 	handler.Register(new(Distributor))
+
+	handler.RegisterResource("/api/v1/distributor")
+	handler.RegisterResource("/api/v1/distributor/{id}/user")
+	handler.RegisterResource("/api/v1/distributor/{id}/status")
+	handler.RegisterResource("/api/v1/distributor/{id}/onboarding_review")
 }
 
-func (d *Distributor) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (d *Distributor) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	d.service = domainServices.DistributorService
 	d.userService = applicationServices.UserService
 	d.authMiddleware = *applicationServices.AuthMiddleware

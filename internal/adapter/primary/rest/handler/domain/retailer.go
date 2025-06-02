@@ -11,6 +11,7 @@ import (
 	application_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/application"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/user"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
@@ -60,16 +61,19 @@ type UpdateRetailerRequest struct {
 }
 
 type Retailer struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        retailer.Provider
 	userService    user.Provider
 }
 
 func InitRetailer() {
 	handler.Register(new(Retailer))
+
+	handler.RegisterResource("/api/v1/retailer")
+	handler.RegisterResource("/api/v1/retailer/{id}/user")
 }
 
-func (r *Retailer) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func (r *Retailer) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
 	r.service = domainServices.RetailerService
 	r.userService = applicationServices.UserService
 	r.authMiddleware = *applicationServices.AuthMiddleware
@@ -82,7 +86,7 @@ func (re *Retailer) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
-		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.CreateHandler)).ServeHTTP(w, r)
+		re.authMiddleware.RequireNoAuthentication(http.HandlerFunc(re.CreateHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PUT /api/v1/retailer", func(w http.ResponseWriter, r *http.Request) {
