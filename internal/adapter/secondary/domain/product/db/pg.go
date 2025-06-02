@@ -405,7 +405,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	var totalCount int64
-	query := "SELECT * FROM public.get_all_products_paginated($1,$2);"
+	query := "SELECT * FROM public.get_all_products();"
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -417,9 +417,8 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.AvailableStock,
 		&responseBase.ReservedStock,
 		&responseBase.Price,
-		&totalCount,
 	}
-	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	args := []any{}
 	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
