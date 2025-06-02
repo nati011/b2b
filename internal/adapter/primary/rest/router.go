@@ -39,6 +39,5 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 		}
 		h.Routes(mux)
 	}
-
 	return nil
 }

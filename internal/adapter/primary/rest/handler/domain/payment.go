@@ -9,6 +9,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 )
@@ -23,15 +24,18 @@ type CheckoutRequest struct {
 }
 
 type Payment struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        payment_verification.Provider
 }
 
 func InitPayment() {
 	handler.Register(new(Payment))
+
+	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}/{tx_ref}")
+	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}")
 }
 
-func (p *Payment) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (p *Payment) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.PaymentVerificationService
 	p.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

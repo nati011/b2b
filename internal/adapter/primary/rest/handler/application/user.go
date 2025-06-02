@@ -11,6 +11,7 @@ import (
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/user"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
@@ -77,15 +78,19 @@ type GetAllUserResponse struct {
 }
 
 type UserHandler struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        user.Provider
 }
 
 func InitUser() {
 	handler.Register(new(UserHandler))
+
+	handler.RegisterResource("/api/v1/user")
+	handler.RegisterResource("/api/v1/user/{id}/status")
+	handler.RegisterResource("/api/v1/user/{id}/role/{role_id}")
 }
 
-func (a *UserHandler) Init(authMiddleWare *util.AuthMiddleware, services *application_core.Container, domainService *domain_core.Container) error {
+func (a *UserHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.UserService
 	a.authMiddleware = *services.AuthMiddleware
 	return nil

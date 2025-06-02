@@ -9,8 +9,8 @@ import (
 
 	"b2b.nati011.github.com/config"
 
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
@@ -48,13 +48,13 @@ func main() {
 
 	db_pool := InitDB(&cfg)
 
-	//for testing purposes
 	InitAuth(&cfg)
-
 	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
 
-	application_constainer := application_core.NewContainer(
+	pagination := config.NewPaginationBuilder().Build()
+	paginationMiddleware := middleware.NewPaginationMiddleware(pagination)
+	application_container := application_core.NewContainer(
 		db_pool,
 		cfg.KeycloakInstanceURL,
 		cfg.KeycloakUsername,
@@ -69,15 +69,14 @@ func main() {
 		cfg.MinMobileClientCompatibleVersion,
 		cfg.BaseUrl,
 		cfg.FrontendUrl,
+		pagination,
 	)
 
-	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
+	domain_container := domain_core.NewContainer(*application_container, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
 	mux := http.NewServeMux()
-	InitREST(mux, db_pool, application_constainer, domain_container)
-
-	loggingingMiddleware := util.NewLoggingMiddleware()
-	paginationMiddleware := util.NewPaginationMiddleware(*config.NewPaginationBuilder())
+	InitREST(mux, db_pool, application_container, domain_container)
+	loggingingMiddleware := middleware.NewLoggingMiddleware()
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

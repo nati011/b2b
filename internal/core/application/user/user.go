@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
 	role "b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/user"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
@@ -33,10 +33,9 @@ var (
 	ErrUnknown               = errors.New("oopsy, unknown error")
 	ErrPhoneNotValid         = errors.New("oopsy, phone number not valid")
 	ErrEmailNotValid         = errors.New("oopsy, email not valid")
-
-	ErrEmailTaken        = errors.New("oopsy, email already taken")
-	ErrUserNameTaken     = errors.New("oopsy, username already taken")
-	ErrPasswordMandatory = errors.New("oopsy, password not supplied")
+	ErrEmailTaken            = errors.New("oopsy, email already taken")
+	ErrUserNameTaken         = errors.New("oopsy, username already taken")
+	ErrPasswordMandatory     = errors.New("oopsy, password not supplied")
 )
 
 type CreateRequest struct {
@@ -145,8 +144,9 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	if err != nil {
 		return 0, err
 	}
+
 	if req.Password == "" {
-		providerResponse, err = u.auth_service.CreateNewClientWithOutPassword(ctx, auth.RegisterUserWithoutPasswordRequest{
+		providerResponse, err = u.auth_service.CreateNewClientWithOutPassword(ctx, &auth.RegisterUserWithoutPasswordRequest{
 			Email:       req.Email,
 			FirstName:   req.FirstName,
 			LastName:    req.LastName,
@@ -175,7 +175,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 			}
 		}
 	} else {
-		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, auth.RegisterUserRequest{
+		providerResponse, err = u.auth_service.CreateNewClientWithPassword(ctx, &auth.RegisterUserRequest{
 			Email:       req.Email,
 			Password:    req.Password,
 			FirstName:   req.FirstName,
@@ -216,7 +216,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		ExternalId: req.ExternalId,
 	})
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("Failed to create and activate user: %v err:%v", req.Email, err)
 		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
@@ -509,9 +509,9 @@ func (u *UserService) Deactivate(ctx context.Context, id int) error {
 	return nil
 }
 
-func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error {
+func (u *UserService) AssignRole(ctx context.Context, id int, roleId int) error {
 	//validate id
-	_, err := u.Get(ctx, id)
+	user, err := u.Get(ctx, id)
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
@@ -523,7 +523,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 
 	//validate if role exists
 	_, err = u.role_service.Get(ctx, &role.GetRequest{
-		Id: role_id,
+		Id: roleId,
 	})
 	if err != nil {
 		switch err {
@@ -545,7 +545,7 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 	}
 	alreadyAssigned := false
 	for _, i := range assigned_roles.List {
-		if i.Id == role_id {
+		if i.Id == roleId {
 			alreadyAssigned = true
 		}
 	}
@@ -555,8 +555,22 @@ func (u *UserService) AssignRole(ctx context.Context, id int, role_id int) error
 	}
 
 	//assign
-	err = u.db.AssignRole(ctx, id, role_id)
+	err = u.db.AssignRole(ctx, id, roleId)
 	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+
+	//assign for auth
+	err = u.auth_service.AssignRole(ctx, user.Id, roleId)
+	if err != nil {
+		log.Printf("Failed to assign user auth role: %v", err)
+		err := u.db.RemoveAssignedRole(ctx, user.Id, roleId)
+		if err != nil {
+			log.Printf("Failed to rollback assigned role")
+		}
 		switch err {
 		default:
 			return ErrUnknown
@@ -599,7 +613,7 @@ func (u *UserService) GetAllAssignedRoles(ctx context.Context, id int) (GetAllAs
 	return resp, nil
 }
 
-func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id int) error {
+func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, roleId int) error {
 	//validate id
 	_, err := u.Get(ctx, id)
 	if err != nil {
@@ -613,7 +627,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 
 	//validate if role exists
 	_, err = u.role_service.Get(ctx, &role.GetRequest{
-		Id: role_id,
+		Id: roleId,
 	})
 	if err != nil {
 		switch err {
@@ -636,7 +650,7 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 	}
 	alreadyAssigned := false
 	for _, i := range assigned_roles.List {
-		if i.Id == role_id {
+		if i.Id == roleId {
 			alreadyAssigned = true
 		}
 	}
@@ -646,12 +660,20 @@ func (u *UserService) RemoveAssignedRole(ctx context.Context, id int, role_id in
 	}
 
 	//remove
-	err = u.db.RemoveAssignedRole(ctx, id, role_id)
+	err = u.db.RemoveAssignedRole(ctx, id, roleId)
 	if err != nil {
 		switch err {
 		default:
 			return ErrUnknown
 		}
+	}
+
+	//remove from authService
+	err = u.auth_service.RemoveRole(ctx, id, roleId)
+	if err != nil {
+		log.Printf("Failed to remove assign roleId: %v err:%v", roleId, err)
+		u.AssignRole(ctx, id, roleId)
+		return ErrUnknown
 	}
 	return nil
 }
@@ -816,6 +838,7 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 			return ErrUnknown
 		}
 	}
+
 	for _, i := range resp.List {
 		err = u.auth_service.DeleteClient(ctx, i.ProviderId)
 		if err != nil {
@@ -825,7 +848,6 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 			}
 		}
 	}
-
 	//remove
 	log.Printf("Deleting Id %v", id)
 	err = u.db.Delete(ctx, id)
@@ -839,11 +861,14 @@ func (u *UserService) Remove(ctx context.Context, id int) error {
 }
 
 func (u *UserService) IsActive(ctx context.Context, id int) (bool, error) {
-	// validate id
 	user, err := u.Get(ctx, id)
 	if err != nil {
-		return false, err
-
+		switch err {
+		case ErrUnknown:
+			return false, ErrUnknown
+		default:
+			return false, ErrIdNotFound
+		}
 	}
 	return user.IsActive, nil
 }

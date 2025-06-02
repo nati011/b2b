@@ -19,18 +19,14 @@ type TestContainer struct {
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
 	container.UserService = user.NewTestContainer().UserService
-	container.DistributorService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db, &config.Pagination{
-		Limit:  10,
-		Offset: 0,
-	}), container.DistributorApprovalService)
+	container.DistributorService = distributor.NewDistributorService(container.UserService, db_adapter.NewPostgres(db,
+		config.DefaultPaginationBuilder().Build()), container.DistributorApprovalService)
 
 	return container
 }
 
 func (t *TestContainer) Teardown(db *sql.DB) {
 	t.UserService = user.NewTestContainer().UserService
-	t.DistributorService = distributor.NewDistributorService(t.UserService, db_adapter.NewPostgres(db, &config.Pagination{
-		Limit:  10,
-		Offset: 0,
-	}), t.DistributorApprovalService)
+	t.DistributorService = distributor.NewDistributorService(t.UserService,
+		db_adapter.NewPostgres(db, config.DefaultPaginationBuilder().Build()), t.DistributorApprovalService)
 }
