@@ -90,4 +90,5 @@ type Provider interface {
 	ResetPassword(ctx context.Context, userId, new_password string) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodedResult, error)
+	ClientLogout(ctx context.Context, req RefreshTokenRequest) error
 }
