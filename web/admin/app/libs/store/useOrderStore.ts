@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Invoice, Order, Transaction } from '@/app/libs/types';
+import { fetchOrders, getOrderById } from '@/actions/order';
 
 interface OrdersStore {
     orders: Order[];
@@ -51,21 +52,22 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchOrders: async (url?: string) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get('/api/order');
+            const response = await fetchOrders();
             set({
-                orders: response.data.body.List,
+                orders: response,
                 loading: false
             });
         } catch (error) {
             set({ error: 'Failed to fetch order', loading: false });
         }
     },
-    fetchOrder: async (order_id?: number) => {
+    fetchOrder: async (order_id: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/order?id=${order_id}`);
+            const response = await getOrderById(order_id);
+            console.log(response)
             set({
-                order: response.data.body.order,
+                order: response.body.order,
                 loading: false
             });
         } catch (error) {
@@ -75,7 +77,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     createOrders: async (OrdersData: Partial<Order>) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.post('/api/order/', OrdersData);
+            const response = await axiosIns.post('/api/v1/order/', OrdersData);
             set(state => ({
                 Orders: [...state.orders, response.data.detail],
                 loading: false

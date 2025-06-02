@@ -3,7 +3,7 @@ import { IoPrintOutline } from "react-icons/io5";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/datatable";
 import { columns } from "@/app/(dashboard)/invoice/[id]/columns";

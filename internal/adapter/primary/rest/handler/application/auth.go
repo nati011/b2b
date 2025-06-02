@@ -43,6 +43,10 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.LoginHandler)).ServeHTTP(w, r)
 	})
 
+	mux.HandleFunc("POST /api/v1/auth/logout", func(w http.ResponseWriter, r *http.Request) {
+		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.LogoutHandler)).ServeHTTP(w, r)
+	})
+
 	mux.HandleFunc("POST /api/v1/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.RefreshTokenHandler)).ServeHTTP(w, r)
 	})
@@ -124,5 +128,23 @@ func (a *AuthHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	util.OperationSuccessResponse(w, util.Envelope{"body": refreshResponse})
+	util.OperationSuccessResponse(w, refreshResponse.JWT)
+}
+
+func (h *AuthHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	var req auth.RefreshTokenRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err := h.service.ClientLogout(r.Context(), req)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	util.OperationSuccessMessageResponse(w, "Logged out successfully")
 }

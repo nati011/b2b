@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"database/sql"
+	"log"
 	"strconv"
 	"time"
 
@@ -247,10 +248,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	return response, nil
 }
 
-func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+func (p *Postgres) Search(ctx context.Context, search_query string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
-	query := "SELECT * FROM public.get_all_products();"
+	var totalCount int64
+	query := "SELECT * FROM public.get_all_products_paginated($1,$2, $3);"
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -262,12 +264,14 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.AvailableStock,
 		&responseBase.ReservedStock,
 		&responseBase.Price,
+		&totalCount,
 	}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset, search_query}
 	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),
 		query_handler.WithQuery(query),
-		query_handler.WithMultiRowResultSet(nil, dest),
+		query_handler.WithMultiRowResultSet(args, dest),
 	).DoMultiQuery()
 	if err != nil {
 		switch err {
@@ -290,6 +294,9 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			ReservedStock:  int(res[8].(int64)),
 			Price:          v,
 		}
+
+		totalCount = res[10].(int64)
+		log.Print(totalCount)
 		// images
 		//--------------------
 		var imageResponse []port.Image
@@ -390,6 +397,160 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		val.Attributes = productAttruteValue
 		response.List = append(response.List, val)
 	}
+	response.TotalCount = totalCount
+	return response, nil
+}
+
+func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+	var totalCount int64
+	query := "SELECT * FROM public.get_all_products_paginated($1,$2);"
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Desc,
+		&responseBase.ExternalID,
+		&responseBase.IsActive,
+		&responseBase.DistributorId,
+		&responseBase.Stock,
+		&responseBase.AvailableStock,
+		&responseBase.ReservedStock,
+		&responseBase.Price,
+		&totalCount,
+	}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return port.GetAllResponse{}, err
+		}
+	}
+	for _, res := range result {
+		v, _ := strconv.ParseFloat(res[9].(string), 64)
+		val := port.GetResponse{
+			Id:             int(res[0].(int64)),
+			Name:           res[1].(string),
+			Desc:           res[2].(string),
+			ExternalID:     res[3].(string),
+			IsActive:       res[4].(bool),
+			DistributorId:  int(res[5].(int64)),
+			Stock:          int(res[6].(int64)),
+			AvailableStock: int(res[7].(int64)),
+			ReservedStock:  int(res[8].(int64)),
+			Price:          v,
+		}
+
+		totalCount = res[10].(int64)
+		log.Print(totalCount)
+		// images
+		//--------------------
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
+		query = "SELECT * FROM public.get_images_by_productId($1);"
+
+		productImageArgs := []any{val.Id}
+		imagesDest := []any{
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
+		}
+
+		imagesResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.db),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+
+		for _, i := range imagesResult {
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
+		}
+		val.Images = imageResponse
+
+		// categories
+		var productCategories []int
+		var productCategoryBase int
+		query = "SELECT * FROM public.get_categories_by_productId($1);"
+
+		categoryArgs := []any{val.Id}
+		categoryDest := []any{
+			&productCategoryBase,
+		}
+
+		categoryResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.db),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(categoryArgs, categoryDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+
+		for _, i := range categoryResult {
+			productCategories = append(productCategories, int(i[0].(int64)))
+		}
+		val.CategoryId = productCategories
+
+		type avProductReq struct {
+			AttributeKey   string
+			AttributeValue string
+		}
+		var productAttruteValue = map[string]string{}
+		var attributeValueResponseBase avProductReq
+
+		query = "SELECT * FROM public.get_attributes_values_by_productId($1)"
+		avArgs := []any{val.Id}
+		avDest := []any{
+			&attributeValueResponseBase.AttributeKey,
+			&attributeValueResponseBase.AttributeValue,
+		}
+
+		avResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.db),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(avArgs, avDest),
+		).DoMultiQuery()
+
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+
+		for _, a := range avResult {
+			productAttruteValue[a[0].(string)] = a[1].(string)
+
+		}
+		val.Attributes = productAttruteValue
+		response.List = append(response.List, val)
+	}
+	response.TotalCount = totalCount
 	return response, nil
 }
 

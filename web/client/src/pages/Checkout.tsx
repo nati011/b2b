@@ -8,7 +8,6 @@ import { Footer } from "@/components/Footer";
 const Checkout = () => {
   return (
     <div className="min-h-screen">
-      <Navbar />
       <div className="mx-auto  flex justify-center text-center px-20 my-[10rem]">
         <div className="grid grid-cols-1 gap-4">
           <CiCircleCheck className="mx-auto text-emerald-900 text-9xl" />
