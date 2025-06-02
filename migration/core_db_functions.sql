@@ -3108,7 +3108,7 @@ SELECT o.id,
         ORDER BY o.created_date ASC
         LIMIT t_limit
         OFFSET t_offset;
-END
+END;
 $$;
 
 -- Order Item ------------------------------------------

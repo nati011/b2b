@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	// "errors"
 	"io"
 	"net/http"
 
@@ -13,6 +12,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 )
@@ -70,15 +70,18 @@ type UpdateConfigurableProductRequest struct {
 }
 
 type ConfigurableProduct struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        configurable_product.Provider
 }
 
 func InitConfigurableProduct() {
 	handler.Register(new(ConfigurableProduct))
+
+	handler.RegisterResource("/api/v1/configurable_product")
+	handler.RegisterResource("/api/v1/configurable_product/{id}/status")
 }
 
-func (c *ConfigurableProduct) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (c *ConfigurableProduct) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	c.service = domainService.ConfigurableProductService
 	c.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

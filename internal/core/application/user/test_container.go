@@ -7,7 +7,8 @@ import (
 	db_resource_mock "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
 	db_role_mock "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	db_provider "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
+	auth_test "b2b.nati011.github.com/internal/core/application/auth/test"
 	resource "b2b.nati011.github.com/internal/core/application/resource"
 	role "b2b.nati011.github.com/internal/core/application/role"
 )
@@ -15,17 +16,18 @@ import (
 var db_global *sql.DB
 
 type TestContainer struct {
-	UserService Provider
-	RoleService role.Provider
-	AuthService auth.Provider
+	UserService     Provider
+	RoleService     role.Provider
+	ResourceService resource.Provider
+	AuthService     auth.Provider
 }
 
 func NewTestContainer() TestContainer {
 	c := TestContainer{}
 
-	role_testContainer := role.NewTestContainer()
-	c.RoleService = role_testContainer.RoleService
-	c.AuthService = auth.NewIntegrationAuthContainer()
+	c.ResourceService = resource.NewTestContainer().ResourceService
+	c.RoleService = role.NewRole(db_role_mock.NewMock(), c.ResourceService)
+	c.AuthService = auth.NewTestContainer().Service
 	c.UserService = NewUser(
 		db_provider.NewMock(),
 		c.RoleService,
@@ -35,9 +37,9 @@ func NewTestContainer() TestContainer {
 }
 
 func (t *TestContainer) Teardown() {
-	role_testContainer := role.NewTestContainer()
-	t.RoleService = role_testContainer.RoleService
-	t.AuthService = auth.NewIntegrationAuthContainer()
+	t.ResourceService = resource.NewTestContainer().ResourceService
+	t.RoleService = role.NewRole(db_role_mock.NewMock(), t.ResourceService)
+	t.AuthService = auth.NewTestContainer().Service
 	t.UserService = NewUser(
 		db_provider.NewMock(),
 		t.RoleService,
@@ -49,25 +51,16 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	db_global = db
 	c := TestContainer{}
 	c.RoleService = role.NewRole(
-		db_role_mock.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		db_role_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		resource.NewResource(
-			db_resource_mock.NewPostgres(db, &config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			}),
+			db_resource_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		),
 	)
-	c.AuthService = auth.NewIntegrationAuthContainer()
+	c.AuthService = auth_test.NewIntegrationTestContainer().Service
 	c.UserService = NewUser(
 		db_provider.NewPostgres(
 			db,
-			&config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			},
+			config.DefaultPaginationBuilder().Build(),
 		),
 		c.RoleService,
 		c.AuthService,
@@ -75,15 +68,18 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	return c
 }
 
-func (t *TestContainer) TeardownIntegrationTestContainer() {
-	t.AuthService = auth.NewIntegrationAuthContainer()
+func (t *TestContainer) TeardownIntegrationTestContainer(db *sql.DB) {
+	t.RoleService = role.NewRole(
+		db_role_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		resource.NewResource(
+			db_resource_mock.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		),
+	)
+	t.AuthService = auth_test.NewIntegrationTestContainer().Service
 	t.UserService = NewUser(
 		db_provider.NewPostgres(
 			db_global,
-			&config.Pagination{
-				Limit:  10,
-				Offset: 0,
-			},
+			config.DefaultPaginationBuilder().Build(),
 		),
 		t.RoleService,
 		t.AuthService,

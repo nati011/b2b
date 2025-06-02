@@ -8,11 +8,11 @@ import (
 	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
-	"b2b.nati011.github.com/internal/core/domain/product"
-
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
+	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var (
@@ -69,15 +69,20 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        product.Provider
 }
 
 func InitProduct() {
 	handler.Register(new(Product))
+
+	handler.RegisterResource("/api/v1/product")
+	handler.RegisterResource("/api/v1/stock_ledger")
+	handler.RegisterResource("/api/v1/product/{id}/status")
+	handler.RegisterResource("/api/v1/product/{id}/stock")
 }
 
-func (p *Product) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (p *Product) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.ProductService
 	p.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

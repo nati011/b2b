@@ -17,9 +17,10 @@ import (
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/email"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
@@ -32,8 +33,6 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
-
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 )
 
 /* Dependency Tree */
@@ -70,7 +69,7 @@ import (
 type Container struct {
 	db                         *sql.DB
 	AuthService                auth.Provider
-	AuthMiddleware             *util.AuthMiddleware
+	AuthMiddleware             *middleware.Auth
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	EmailService               email.Provider
@@ -82,7 +81,7 @@ type Container struct {
 	TemplateService            template.Provider
 	TransactionService         transaction.Provider
 	UserService                user.Provider
-	Pagination                 config.Pagination
+	Pagination                 *config.Pagination
 	CheckoutService            checkout.Provider
 	PaymentVerificationService payment_verification.Provider
 	MobileClient               mobileclient.Provider
@@ -107,15 +106,17 @@ func NewContainer(
 
 	//mobile client version
 	MinMobileClientCompatibleVersion string,
+
 	//baseurl
 	baseUrl string,
-	frontendUrl string) *Container {
+	frontendUrl string,
+
+	//pagination
+	pagination *config.Pagination) *Container {
 
 	container := Container{}
 	container.db = db
-
-	//utils
-	container.InitPagination()
+	container.Pagination = pagination
 
 	//ORDER ORDER!!
 	container.InitTemplateService()
@@ -142,10 +143,12 @@ func (m *Container) InitMobileClientService(minMobileClientCompatibleVersion str
 }
 
 func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
-	m.AuthService = auth.NewAuthService(auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
-		m.EmailService)
+	m.AuthService = auth.NewAuthService(
+		auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
+		m.EmailService,
+		m.RoleService)
 
-	m.AuthMiddleware = util.NewAuthMiddleware(m.AuthService)
+	m.AuthMiddleware = middleware.NewAuthMiddleware(m.AuthService)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port, email_password string) {
@@ -153,7 +156,7 @@ func (m *Container) InitEmailService(email_address, smtp_port, email_password st
 }
 
 func (m *Container) InitPaymentPartnerService() {
-	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.PaymentPartnerService = payment_partner.NewPartner(payment_partner_db_adapter.NewPostgres(m.db, m.Pagination))
 }
 
 func (m *Container) InitRenderService() {
@@ -161,13 +164,11 @@ func (m *Container) InitRenderService() {
 }
 
 func (m *Container) InitResourceService() {
-	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.ResourceService = resource.NewResource(resource_db_adapter.NewPostgres(m.db, m.Pagination))
 }
 
 func (m *Container) InitRoleService() {
-	//create superAdminRole
-	//grant Access to all resources
-	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, &m.Pagination), m.ResourceService)
+	m.RoleService = role.NewRole(role_db_adapter.NewPostgres(m.db, m.Pagination), m.ResourceService)
 }
 
 // func (m *Container) InitSMSService() {
@@ -179,16 +180,11 @@ func (m *Container) InitTemplateService() {
 }
 
 func (m *Container) InitTransactionService() {
-	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, &m.Pagination))
+	m.TransactionService = transaction.NewTransactionService(transaction_db_adapter.NewPostgres(m.db, m.Pagination))
 }
 
 func (m *Container) InitUserService() {
-	//create user with superadmin role
-	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, &m.Pagination), m.RoleService, m.AuthService)
-}
-
-func (m *Container) InitPagination() {
-	m.Pagination = *config.DefaultPaginationBuilder().Build()
+	m.UserService = user.NewUser(user_db_adapter.NewPostgres(m.db, m.Pagination), m.RoleService, m.AuthService)
 }
 
 func (m *Container) InitPaymentService() {
