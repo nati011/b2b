@@ -4,7 +4,7 @@ import { DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
 import "@/app/globals.css";
 
-import Topnav from "@/app/components/topnav";
+import Topnav from "@/components/topnav";
 import SessionProvider from "@/app/sessionprovider";
 import { Provider } from "@/app/themeprovider";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
@@ -26,28 +26,22 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies()
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${font} antialiased`}
-      >
-        <SessionProvider>
-          <Provider>
-            <div className="flex relative">
-              <SidebarProvider defaultOpen={true}>
-                <AppSidebar />
-                <Separator orientation="vertical" className="h-4" />
-                <div className=" p-4 w-full bg-slate-50/50">
-                  <Topnav />
-                  {children}
-                  <Toaster />
-                </div>
-
-              </SidebarProvider>
+    <SessionProvider>
+      <Provider>
+        <div className="flex relative">
+          <SidebarProvider defaultOpen={true}>
+            <AppSidebar />
+            <Separator orientation="vertical" className="h-4" />
+            <div className=" p-4 w-full bg-slate-100/50">
+              <Topnav />
+              {children}
             </div>
-          </Provider>
-        </SessionProvider>
-      </body>
-    </html>
+
+          </SidebarProvider>
+        </div>
+      </Provider>
+    </SessionProvider>
+
 
   );
 }

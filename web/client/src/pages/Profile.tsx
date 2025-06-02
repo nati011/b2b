@@ -64,7 +64,6 @@ export default function Settings() {
 
     return (
         <div className="mx-20 justify-center items-center">
-            <Navbar />
             <div className="">
                 <div className="shadow-none grid grid-cols-1 p-4">
                     <p className="font-semibold text-xl">

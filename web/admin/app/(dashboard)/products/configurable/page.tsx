@@ -1,7 +1,7 @@
 'use client'
 import useProductsStore from "@/app/libs/store/useProductStore"
 import { useEffect, useState } from "react";
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { ColumnDef } from "@tanstack/react-table";
 import { ConfigurableProduct, Product } from "@/app/libs/types";

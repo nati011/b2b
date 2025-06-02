@@ -5,7 +5,7 @@ module.exports = {
     return {
       beforeFiles: [
         {
-          source: "/api/:path*",
+          source: "/api/v1/:path*",
           destination: "https://b2b-67gk.onrender.com/api/v1/:path*",
         },
       ],
@@ -20,7 +20,11 @@ module.exports = {
       {
         protocol: "https",
         hostname: 'images.unsplash.com',
-      }
+      },
+      {
+        protocol: "https",
+        hostname: 'unsplash.com',
+      },
     ]
   }
 };

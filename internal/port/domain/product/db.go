@@ -50,7 +50,8 @@ type GetStockLedgerBaseResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type GetByNameRequest struct {
@@ -132,6 +133,7 @@ type FreeReservedRequest struct {
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
+	Search(ctx context.Context, search_query string) (GetAllResponse, error)
 	GetByName(ctx context.Context, req *GetByNameRequest) (GetAllResponse, error)
 	GetByExternalId(ctx context.Context, req *GetByExternalIdRequest) (GetAllResponse, error)
 	GetByDistributorId(ctx context.Context, req *GetByDistributorIdRequest) (GetAllResponse, error)

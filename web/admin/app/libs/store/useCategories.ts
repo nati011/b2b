@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
 import { Category } from "@/app/libs/types";
+import { Create, Delete, GetAll, Update } from "@/actions/category";
 
 interface CategoryStore {
     success: string;
@@ -32,9 +33,9 @@ const useCategoryStore = create<CategoryStore>((set) => ({
     fetchCategories: async () => {
         set({ categoriesLoading: true, categoriesError: null });
         try {
-            const response = await axiosIns.get("/api/category");
+            const response = await GetAll()
             set({
-                categories: response.data.body.category.categories,
+                categories: response,
                 categoriesLoading: false,
             });
         } catch (error) {
@@ -47,17 +48,9 @@ const useCategoryStore = create<CategoryStore>((set) => ({
     createCategory: async (name: string) => {
         set({ categoriesLoading: true, categoriesError: null });
         try {
-            const response = await axiosIns.post(
-                "/api/category",
-                { name: name },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+            const response = await Create(name)
             await useCategoryStore.getState().fetchCategories();
-            set({ categoriesLoading: false });
+            set({ categoriesLoading: false, success: response });
         } catch (error: any) {
             set({ categoriesLoading: false, categoriesError: error.message });
         }
@@ -65,7 +58,7 @@ const useCategoryStore = create<CategoryStore>((set) => ({
     deleteCategory: async (id: number) => {
         set({ categoriesLoading: true, categoriesError: null });
         try {
-            await axiosIns.delete(`/api/category?id=${id}`);
+            await Delete(id)
             set({ categoriesLoading: false });
             await useCategoryStore.getState().fetchCategories();
         } catch (error: any) {
@@ -75,9 +68,7 @@ const useCategoryStore = create<CategoryStore>((set) => ({
     editCategory: async (id: number, name: string) => {
         set({ categoriesLoading: true, categoriesError: null });
         try {
-            await axiosIns.patch(`/api/category/${id}`, {
-                "name": name
-            });
+            await Update(id, name)
             set({ categoriesLoading: false });
             await useCategoryStore.getState().fetchCategories();
         } catch (error: any) {
