@@ -21,7 +21,7 @@ type MockAuthProvider struct {
 }
 
 func (m *MockAuthProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
-	panic("unimplemented")
+	return port.LoginAuthResponse{}, nil
 }
 
 func NewMockAuthProvider() MockAuthProvider {
@@ -96,6 +96,10 @@ func (m *MockAuthProvider) ClientLogin(ctx context.Context, req port.LoginUserRe
 	}
 
 	return port.LoginAuthResponse{}, nil
+}
+
+func (k *MockAuthProvider) ClientLogout(ctx context.Context, req port.RefreshTokenRequest) error {
+	return nil
 }
 
 func (k *MockAuthProvider) ResetPassword(ctx context.Context, userId, new_password string) error {

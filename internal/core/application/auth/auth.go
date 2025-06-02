@@ -107,6 +107,7 @@ type Provider interface {
 	ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
+	ClientLogout(ctx context.Context, req RefreshTokenRequest) error
 }
 
 type AuthService struct {
@@ -387,4 +388,17 @@ func (a *AuthService) RefreshToken(ctx context.Context, req RefreshTokenRequest)
 	return LoginAuthResponse{
 		JWT: JWT(resp.JWT),
 	}, nil
+}
+
+func (a *AuthService) ClientLogout(ctx context.Context, req RefreshTokenRequest) error {
+	err := a.authProvider.ClientLogout(ctx, port.RefreshTokenRequest(req))
+	if err != nil {
+		switch err {
+		case port.ErrSysFailedToLogin:
+			return ErrFailedToLogin
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
 }
