@@ -91,25 +91,25 @@ type Container struct {
 func NewContainer(
 	//database
 	db *sql.DB,
+	cfg *config.Config,
+	// //auth
+	// keycloakInstanceURL string,
+	// keycloakUsername string,
+	// keycloakPassword string,
+	// keycloakRealm string,
+	// keycloakApplicationRealm string,
+	// keycloakClientId string,
+	// keycloakClientSecret string,
+	// email_address,
+	// smtp_port string,
+	// email_password string,
 
-	//auth
-	keycloakInstanceURL string,
-	keycloakUsername string,
-	keycloakPassword string,
-	keycloakRealm string,
-	keycloakApplicationRealm string,
-	keycloakClientId string,
-	keycloakClientSecret string,
-	email_address,
-	smtp_port string,
-	email_password string,
+	// //mobile client version
+	// MinMobileClientCompatibleVersion string,
 
-	//mobile client version
-	MinMobileClientCompatibleVersion string,
-
-	//baseurl
-	baseUrl string,
-	frontendUrl string,
+	// //baseurl
+	// baseUrl string,
+	// frontendUrl string,
 
 	//pagination
 	pagination *config.Pagination) *Container {
@@ -121,17 +121,17 @@ func NewContainer(
 	//ORDER ORDER!!
 	container.InitTemplateService()
 	container.InitRenderService()
-	container.InitEmailService(email_address, smtp_port, email_password)
-	container.InitAuthService(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret)
+	container.InitEmailService(cfg.Email, cfg.SMTP, cfg.EmailPassword)
+	container.InitAuthService(cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.KeycloakClientSecret)
 	container.InitUserService()
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitUserService()
-	container.InitMobileClientService(MinMobileClientCompatibleVersion)
+	container.InitMobileClientService(cfg.MinMobileClientCompatibleVersion)
 	container.InitPaymentService()
-	container.InitCheckoutService(baseUrl, frontendUrl)
+	container.InitCheckoutService(cfg.BaseUrl, cfg.FrontendUrl)
 	// container.InitSMSService()
 
 	return &container
