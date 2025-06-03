@@ -67,7 +67,7 @@ func Test_Verify_Payment(t *testing.T) {
 			t.Errorf("Failed to checkout err: %v", err)
 		}
 
-		resp, err := testContainer.PaymementVerificationService.Verify(ctx, PaymentPartnerId, checkout_resp.TransactionRef)
+		resp, err := testContainer.PaymementVerificationService.Verify(ctx, checkout_resp.TransactionRef)
 		if err != nil {
 			t.Errorf("Failed to verify err: %v", err)
 		}
@@ -81,7 +81,7 @@ func Test_Verify_Payment(t *testing.T) {
 		ctx := context.Background()
 		//init transaction
 
-		resp, err := testContainer.PaymementVerificationService.Verify(ctx, PaymentPartnerId, "invalidTransaction")
+		resp, err := testContainer.PaymementVerificationService.Verify(ctx, "invalidTransaction")
 		if err != nil {
 			t.Fatalf("Failed to verify err: %v", err)
 		}
