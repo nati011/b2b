@@ -89,29 +89,8 @@ type Container struct {
 }
 
 func NewContainer(
-	//database
 	db *sql.DB,
 	cfg *config.Config,
-	// //auth
-	// keycloakInstanceURL string,
-	// keycloakUsername string,
-	// keycloakPassword string,
-	// keycloakRealm string,
-	// keycloakApplicationRealm string,
-	// keycloakClientId string,
-	// keycloakClientSecret string,
-	// email_address,
-	// smtp_port string,
-	// email_password string,
-
-	// //mobile client version
-	// MinMobileClientCompatibleVersion string,
-
-	// //baseurl
-	// baseUrl string,
-	// frontendUrl string,
-
-	//pagination
 	pagination *config.Pagination) *Container {
 
 	container := Container{}
