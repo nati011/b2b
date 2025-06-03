@@ -48,8 +48,7 @@ func main() {
 	application_container := application_core.NewContainer(
 		db_pool,
 		&cfg,
-		pagination,
-	)
+		pagination)
 
 	domain_container := domain_core.NewContainer(*application_container, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
