@@ -17,7 +17,6 @@ import (
 func main() {
 	var cfg config.Config
 
-	//keycloak
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakInstanceURL, "keycloak_base_url", "", "Environment (development|staging|production)")
@@ -27,19 +26,11 @@ func main() {
 	flag.StringVar(&cfg.KeycloakApplicationRealm, "keycloak_application_realm", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientSecret, "keycloak_client_secret", "", "Environment (development|staging|production)")
-
-	//email
 	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
-
-	//db
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
-
-	//min mobile client compatible version
 	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Environment (development|staging|production)")
-
-	// BaseUrl and frontendUrl
 	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
 
@@ -56,19 +47,7 @@ func main() {
 	paginationMiddleware := middleware.NewPaginationMiddleware(pagination)
 	application_container := application_core.NewContainer(
 		db_pool,
-		cfg.KeycloakInstanceURL,
-		cfg.KeycloakUsername,
-		cfg.KeycloakPassword,
-		cfg.KeycloakRealm,
-		cfg.KeycloakApplicationRealm,
-		cfg.KeycloakClientId,
-		cfg.KeycloakClientSecret,
-		cfg.Email,
-		cfg.SMTP,
-		cfg.EmailPassword,
-		cfg.MinMobileClientCompatibleVersion,
-		cfg.BaseUrl,
-		cfg.FrontendUrl,
+		&cfg,
 		pagination,
 	)
 
