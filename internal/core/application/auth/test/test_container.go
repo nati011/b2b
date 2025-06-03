@@ -11,6 +11,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/role"
 	"b2b.nati011.github.com/internal/core/application/template"
+	keycloak "github.com/stillya/testcontainers-keycloak"
 )
 
 type TestContainer struct {
@@ -67,14 +68,68 @@ func NewIntegrationTestContainer() TestContainer {
 		panic("failed to create email template")
 	}
 
+	keycloakContainer, err := RunContainer(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	keycloakInstanceUrl, err := keycloakContainer.GetAuthServerURL(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	keycloakAdminClient, err := keycloakContainer.GetAdminClient(ctx)
+	if err != nil {
+		panic(err)
+	}
+	// KeycloakUsername := "ruthtirusew944@gmail.com"
+	// KeycloakPassword := "W>-553:F?XWXpmV"
+	// KeycloakRealm := "b2b"
+	// keycloakApplicationRealm := "b2b"
+	// keycloakClientId := "test"
+	// keycloakInstanceUrl := "https://euc1.auth.ac/auth"
+
+	KeycloakUsername := keycloakAdminClient.Username
+	KeycloakPassword := keycloakAdminClient.Password
+	KeycloakRealm := keycloakAdminClient.Realm
+	keycloakApplicationRealm := keycloakAdminClient.Realm
+	keycloakClientId := keycloakAdminClient.ClientID
+
+	KeycloakProvider := provider.NewKeycloakProvider(
+		keycloakInstanceUrl,
+		KeycloakUsername,
+		KeycloakPassword,
+		KeycloakRealm,
+		keycloakApplicationRealm,
+		keycloakClientId,
+		"",
+	)
+
 	container.Service = auth.NewAuthService(
-		provider.NewMockAuthProvider(),
+		KeycloakProvider,
 		emailTestContainer.EmailService,
 		role.NewTestContainer().RoleService)
-
 	return container
 }
 
 func (t *TestContainer) teardown() {
 
+}
+
+const (
+	KEYCLOAK_VERSION        = "keycloak/keycloak:24.0"
+	KEYCLOAK_ADMIN_USERNAME = "admin"
+	KEYCLOAK_ADMIN_PASSWORD = "admin"
+	// KEYCLOAK_ADMIN_IMPORTFILE   = "../testdata/realm-export.json"
+	KEYCLOAK_ADMIN_CONTEXT_PATH = "/auth"
+)
+
+func RunContainer(ctx context.Context) (*keycloak.KeycloakContainer, error) {
+	return keycloak.Run(ctx,
+		KEYCLOAK_VERSION,
+		keycloak.WithContextPath(KEYCLOAK_ADMIN_CONTEXT_PATH),
+		// keycloak.WithRealmImportFile(KEYCLOAK_ADMIN_IMPORTFILE),
+		keycloak.WithAdminUsername(KEYCLOAK_ADMIN_USERNAME),
+		keycloak.WithAdminPassword(KEYCLOAK_ADMIN_PASSWORD),
+	)
 }
