@@ -3576,8 +3576,14 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.payments(order_id, partner_id, transaction_ref, amount)
-    VALUES ( p_order_id, p_partner_id, p_transaction_ref, p_amount) 
+    INSERT INTO public.payments(order_id, 
+                                partner_id, 
+                                transaction_ref, 
+                                amount)
+    VALUES (p_order_id, 
+            p_partner_id, 
+            p_transaction_ref, 
+            p_amount)
     RETURNING id INTO new_id;
 
     RETURN new_id;
