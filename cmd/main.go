@@ -9,15 +9,14 @@ import (
 
 	"b2b.nati011.github.com/config"
 
-	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
 func main() {
 	var cfg config.Config
 
-	//keycloak
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakInstanceURL, "keycloak_base_url", "", "Environment (development|staging|production)")
@@ -27,19 +26,11 @@ func main() {
 	flag.StringVar(&cfg.KeycloakApplicationRealm, "keycloak_application_realm", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientId, "keycloak_client_id", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.KeycloakClientSecret, "keycloak_client_secret", "", "Environment (development|staging|production)")
-
-	//email
 	flag.StringVar(&cfg.Email, "email", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.SMTP, "smtp", "", "Environment (development|staging|production)")
-
-	//db
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
-
-	//min mobile client compatible version
 	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Environment (development|staging|production)")
-
-	// BaseUrl and frontendUrl
 	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
 
@@ -48,36 +39,22 @@ func main() {
 
 	db_pool := InitDB(&cfg)
 
-	//for testing purposes
 	InitAuth(&cfg)
-
 	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
 
-	application_constainer := application_core.NewContainer(
+	pagination := config.DefaultPaginationBuilder().Build()
+	paginationMiddleware := middleware.NewPaginationMiddleware(pagination)
+	application_container := application_core.NewContainer(
 		db_pool,
-		cfg.KeycloakInstanceURL,
-		cfg.KeycloakUsername,
-		cfg.KeycloakPassword,
-		cfg.KeycloakRealm,
-		cfg.KeycloakApplicationRealm,
-		cfg.KeycloakClientId,
-		cfg.KeycloakClientSecret,
-		cfg.Email,
-		cfg.SMTP,
-		cfg.EmailPassword,
-		cfg.MinMobileClientCompatibleVersion,
-		cfg.BaseUrl,
-		cfg.FrontendUrl,
-	)
+		&cfg,
+		pagination)
 
-	domain_container := domain_core.NewContainer(*application_constainer, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
+	domain_container := domain_core.NewContainer(*application_container, cfg.BaseUrl, cfg.FrontendUrl, db_pool)
 
 	mux := http.NewServeMux()
-	InitREST(mux, db_pool, application_constainer, domain_container)
-
-	loggingingMiddleware := util.NewLoggingMiddleware()
-	paginationMiddleware := util.NewPaginationMiddleware(*config.NewPaginationBuilder())
+	InitREST(mux, db_pool, application_container, domain_container)
+	loggingingMiddleware := middleware.NewLoggingMiddleware()
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

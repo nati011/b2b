@@ -78,7 +78,6 @@ func teardown() {
 }
 
 func Test_Timeout(t *testing.T) {
-
 }
 
 func Test_Read(t *testing.T) {

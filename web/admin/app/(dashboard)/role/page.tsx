@@ -1,7 +1,7 @@
 'use client'
 import useRolesStore from "@/app/libs/store/useRoleStore"
 import { useEffect, useState } from "react";
-import Heading from "../../components/breadcrumb";
+import Heading from "../../../components/breadcrumb";
 import {
   AlertDialog,
   AlertDialogAction,

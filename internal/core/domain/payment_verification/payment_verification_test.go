@@ -34,18 +34,9 @@ func setup() {
 }
 
 func Test_Verify(t *testing.T) {
-	t.Run("paymentPartnerIdMissing", func(t *testing.T) {
-		ctx := context.Background()
-		_, err := testContainer.PaymentVerificationService.Verify(ctx, 999, "90909090990909")
-		wantErr := ErrPaymentPartnerNotSupported
-		if err != wantErr {
-			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
-		}
-	})
-
 	t.Run("transactionRefNotSupplied", func(t *testing.T) {
 		ctx := context.Background()
-		_, err := testContainer.PaymentVerificationService.Verify(ctx, PaymentPartnerId, "")
+		_, err := testContainer.PaymentVerificationService.Verify(ctx, "")
 		wantErr := ErrTransactionReferenceNotSupplied
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)

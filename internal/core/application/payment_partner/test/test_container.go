@@ -14,10 +14,8 @@ type TestContainer struct {
 
 func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	c := TestContainer{}
-	c.PartnerService = payment_partner.NewPartner(adapter.NewPostgres(db, &config.Pagination{
-		Limit:  10,
-		Offset: 0,
-	}))
+	c.PartnerService = payment_partner.NewPartner(adapter.NewPostgres(db,
+		config.DefaultPaginationBuilder().Build()))
 	return c
 }
 
