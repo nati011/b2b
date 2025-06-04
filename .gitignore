@@ -3,4 +3,4 @@
 */cfg.env
 web/*/node_modules/*
 */.vite/
-web/*/.next/
+web/*/.next/*
