@@ -31,8 +31,9 @@ func (p *PaginationMiddleware) Paginate(next http.Handler) http.Handler {
 		var offset int
 		var err error
 
-		if (paramLimitValue == "") && (paramOffsetValue == "") {
+		if paramLimitValue == "" && paramOffsetValue == "" {
 			next.ServeHTTP(w, r)
+			return
 		}
 
 		if paramLimitValue != "" {
