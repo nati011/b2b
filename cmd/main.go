@@ -31,8 +31,8 @@ func main() {
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.BaseUrl, "base_url", "", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.BaseUrl, "base_url", "http://localhost:8080", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "http://localhost:8080", "Environment (development|staging|production)")
 
 	flag.Parse()
 	validateFlags(cfg)
