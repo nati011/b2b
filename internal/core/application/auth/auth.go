@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/email"
+	"b2b.nati011.github.com/internal/core/application/role"
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 	"github.com/golang-jwt/jwt"
 )
@@ -30,52 +31,52 @@ var (
 )
 
 type RegisterUserRequest struct {
-	Email       string    `json:"email"`
-	Password    string    `json:"password"`
-	BirthDate   time.Time `json:"birth_date"`
-	PhoneNumber string    `json:"phone_number"`
-	ExternalId  string    `json:"external_id"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	Username    string    `json:"username"`
+	Email       string
+	Password    string
+	BirthDate   time.Time
+	PhoneNumber string
+	ExternalId  string
+	FirstName   string
+	LastName    string
+	Username    string
 }
 
 type RegisterUserWithoutPasswordRequest struct {
-	Email       string    `json:"email"`
-	BirthDate   time.Time `json:"birth_date"`
-	PhoneNumber string    `json:"phone_number"`
-	ExternalId  string    `json:"external_id"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	Username    string    `json:"username"`
+	Email       string
+	BirthDate   time.Time
+	PhoneNumber string
+	ExternalId  string
+	FirstName   string
+	LastName    string
+	Username    string
 }
 
 type RegisterUserResponse struct {
-	Id       string `json:"id"`
-	Username string `json:"username"`
+	Id       string
+	Username string
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string
 }
 
 type LoginAuthResponse struct {
-	JWT JWT `json:"jwt"`
+	JWT JWT
 }
 
 type LoginUserRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string
+	Password string
 }
 
 type ResetCredentialsRequest struct {
-	NewPassword string `json:"password"`
-	ResetToken  string `json:"resetToken"`
+	NewPassword string
+	ResetToken  string
 }
 
 type InitClientCredentialsResetRequest struct {
-	UserId string
-	Email  string
+	UserId string `json:"user_id"`
+	Email  string `json:"email"`
 }
 
 type JWT struct {
@@ -91,38 +92,53 @@ type JWT struct {
 }
 
 type RetrospectionResult struct {
-	Active bool
+	Active bool `json:"active"`
 }
 
 type DecodeResult struct {
-	Claims string
+	Claims string `json:"claims"`
+}
+
+type ResourceAccess struct {
+	Roles []string `json:"roles"`
 }
 
 type Provider interface {
-	CreateNewClientWithPassword(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error)
-	CreateNewClientWithOutPassword(ctx context.Context, req RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error)
-	ClientLogin(ctx context.Context, req LoginUserRequest) (LoginAuthResponse, error)
-	RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error)
+	CreateNewClientWithPassword(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error)
+	CreateNewClientWithOutPassword(ctx context.Context, req *RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error)
+	ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error)
+	RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error)
 	DeleteClient(ctx context.Context, userId string) error
-	ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error
+	ResetClientCredentials(ctx context.Context, req *ResetCredentialsRequest) error
 	RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error)
 	DecodeToken(ctx context.Context, token string) (DecodeResult, error)
+	ClientLogout(ctx context.Context, req RefreshTokenRequest) error
+	AssignRole(ctx context.Context, userId int, roleId int) error
+	RemoveRole(ctx context.Context, userId int, roleId int) error
+	InitClientCredentialsReset(ctx context.Context, req InitClientCredentialsResetRequest) error
 }
 
 type AuthService struct {
 	authProvider  port.Provider
 	emailProvider email.Provider
+	roleService   role.Provider
 }
 
-func NewAuthService(ap port.Provider, em email.Provider) Provider {
-	return &AuthService{authProvider: ap, emailProvider: em}
+func NewAuthService(
+	AP port.Provider,
+	EP email.Provider,
+	RP role.Provider) Provider {
+	return &AuthService{
+		authProvider:  AP,
+		emailProvider: EP,
+		roleService:   RP}
 }
 
-func (a *AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
+func (a AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
 	return DecodeResult{}, nil
 }
 
-func (a *AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
+func (a AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
 	result, err := a.authProvider.RetrospectToken(ctx, token)
 	if err != nil {
 		return RetrospectionResult{}, ErrUnknown
@@ -131,7 +147,7 @@ func (a *AuthService) RetrospectToken(ctx context.Context, token string) (Retros
 	return RetrospectionResult{Active: *result.Active}, nil
 }
 
-func (a *AuthService) ResetClientCredentials(ctx context.Context, req ResetCredentialsRequest) error {
+func (a AuthService) ResetClientCredentials(ctx context.Context, req *ResetCredentialsRequest) error {
 	if req.ResetToken == "" {
 		return ErrTokenNotSupplied
 	}
@@ -246,7 +262,7 @@ func (s AuthService) sendResetEmail(token, recepientEmail string) error {
 	return nil
 }
 
-func (a *AuthService) CreateNewClientWithPassword(ctx context.Context, req RegisterUserRequest) (RegisterUserResponse, error) {
+func (a AuthService) CreateNewClientWithPassword(ctx context.Context, req *RegisterUserRequest) (RegisterUserResponse, error) {
 	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
 		return RegisterUserResponse{}, err
@@ -264,7 +280,15 @@ func (a *AuthService) CreateNewClientWithPassword(ctx context.Context, req Regis
 		return RegisterUserResponse{}, err
 	}
 
-	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest(req))
+	resp, err := a.authProvider.CreateNewClient(ctx, &port.RegisterUserRequest{
+		Email:       req.Email,
+		Password:    req.Password,
+		BirthDate:   req.BirthDate,
+		PhoneNumber: req.PhoneNumber,
+		ExternalId:  req.ExternalId,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Username:    req.Username})
 	if err != nil {
 		switch err {
 		case port.ErrSysUsernameTaken:
@@ -281,7 +305,7 @@ func (a *AuthService) CreateNewClientWithPassword(ctx context.Context, req Regis
 	}, nil
 }
 
-func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error) {
+func (a AuthService) CreateNewClientWithOutPassword(ctx context.Context, req *RegisterUserWithoutPasswordRequest) (RegisterUserResponse, error) {
 	err := validateName(req.FirstName, req.LastName)
 	if err != nil {
 		return RegisterUserResponse{}, err
@@ -292,7 +316,7 @@ func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req Re
 	}
 	err = validateUsername(req.Username)
 	if err != nil {
-		return RegisterUserResponse{}, err
+		return RegisterUserResponse{}, nil
 	}
 
 	genPassword, err := generateRandomPassword(10)
@@ -301,7 +325,7 @@ func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req Re
 		return RegisterUserResponse{}, ErrUnknown
 	}
 	log.Printf("generated password: %v", genPassword)
-	resp, err := a.authProvider.CreateNewClient(ctx, port.RegisterUserRequest{
+	resp, err := a.authProvider.CreateNewClient(ctx, &port.RegisterUserRequest{
 		Email:       req.Email,
 		Password:    genPassword,
 		BirthDate:   req.BirthDate,
@@ -325,11 +349,11 @@ func (a *AuthService) CreateNewClientWithOutPassword(ctx context.Context, req Re
 	// 	UserId: resp.Id,
 	// 	Email:  req.Email,
 	// })
-	if err != nil {
-		log.Printf("Failed to init client credentials reset")
-		// a.authProvider.DeleteClient(ctx, req)
-		return RegisterUserResponse{}, err
-	}
+	// if err != nil {
+	// 	log.Printf("Failed to init client credentials reset")
+	// 	// a.authProvider.DeleteClient(ctx, req)
+	// 	return RegisterUserResponse{}, err
+	// }
 
 	return RegisterUserResponse{
 		Id:       resp.Id,
@@ -352,7 +376,7 @@ func generateRandomPassword(length int) (string, error) {
 	return string(password), nil
 }
 
-func (a *AuthService) DeleteClient(ctx context.Context, userId string) error {
+func (a AuthService) DeleteClient(ctx context.Context, userId string) error {
 	err := a.authProvider.DeleteClient(ctx, userId)
 	if err != nil {
 		return ErrUnknown
@@ -360,8 +384,11 @@ func (a *AuthService) DeleteClient(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (a *AuthService) ClientLogin(ctx context.Context, rq LoginUserRequest) (LoginAuthResponse, error) {
-	resp, err := a.authProvider.ClientLogin(ctx, port.LoginUserRequest(rq))
+func (a AuthService) ClientLogin(ctx context.Context, req *LoginUserRequest) (LoginAuthResponse, error) {
+	resp, err := a.authProvider.ClientLogin(ctx, &port.LoginUserRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	})
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
@@ -374,8 +401,9 @@ func (a *AuthService) ClientLogin(ctx context.Context, rq LoginUserRequest) (Log
 		JWT: JWT(resp.JWT),
 	}, nil
 }
-func (a *AuthService) RefreshToken(ctx context.Context, req RefreshTokenRequest) (LoginAuthResponse, error) {
-	resp, err := a.authProvider.RefreshToken(ctx, port.RefreshTokenRequest(req))
+
+func (a AuthService) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (LoginAuthResponse, error) {
+	resp, err := a.authProvider.RefreshToken(ctx, &port.RefreshTokenRequest{RefreshToken: req.RefreshToken})
 	if err != nil {
 		switch err {
 		case port.ErrSysFailedToLogin:
@@ -387,4 +415,24 @@ func (a *AuthService) RefreshToken(ctx context.Context, req RefreshTokenRequest)
 	return LoginAuthResponse{
 		JWT: JWT(resp.JWT),
 	}, nil
+}
+
+func (a *AuthService) ClientLogout(ctx context.Context, req RefreshTokenRequest) error {
+	err := a.authProvider.ClientLogout(ctx, port.RefreshTokenRequest(req))
+	if err != nil {
+		switch err {
+		case port.ErrSysFailedToLogin:
+			return ErrFailedToLogin
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
+}
+func (a *AuthService) AssignRole(ctx context.Context, userId int, roleId int) error {
+	return nil
+}
+
+func (a *AuthService) RemoveRole(ctx context.Context, userId int, roleId int) error {
+	return nil
 }

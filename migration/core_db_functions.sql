@@ -1984,6 +1984,53 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_all_products_paginated(
+    p_limit INT DEFAULT 10,
+    p_offset INT DEFAULT 0,
+    p_search VARCHAR(255) DEFAULT NULL
+)
+RETURNS TABLE(
+    id INT,
+    product_name VARCHAR(255),
+    product_description VARCHAR(255),
+    external_id VARCHAR(255),
+    is_active BOOLEAN,
+    distributor_id INT,
+    quantity INT,
+    available_quantity INT,
+    reserved_quantity INT,
+    price DECIMAL(12,2),
+    total_count BIGINT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.id,
+        p.name,
+        p.description,
+        p.external_id,
+        p.is_active,
+        p.distributor_id,
+        ps.quantity,
+        (ps.quantity - ps.reserved_quantity) AS available_quantity,
+        ps.reserved_quantity,
+        p.price,
+        COUNT(*) OVER() AS total_count
+    FROM public.products p
+    JOIN p_stock ps ON ps.product_id = p.id
+    WHERE p.is_deleted = FALSE
+        AND (p_search IS NULL OR 
+             p.name ILIKE '%' || p_search || '%' OR 
+             p.description ILIKE '%' || p_search || '%' OR
+             p.external_id ILIKE '%' || p_search || '%')
+    ORDER BY p.created_date DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+END
+$$;
+
 CREATE OR REPLACE FUNCTION public.get_all_products()
 RETURNS TABLE(id INT, 
               product_name VARCHAR(255), 
@@ -3060,7 +3107,7 @@ SELECT o.id,
         WHERE o.is_deleted = FALSE
         ORDER BY o.created_date ASC
         LIMIT t_limit
-        OFFSET t_offset
+        OFFSET t_offset;
 END;
 $$;
 

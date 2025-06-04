@@ -10,6 +10,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -52,14 +53,19 @@ var (
 
 func InitOrder() {
 	handler.Register(new(Order))
+
+	handler.RegisterResource("/api/v1/order")
+	handler.RegisterResource("/api/v1/order/init_payment")
+	handler.RegisterResource("/api/v1/orders/retailer")
+	handler.RegisterResource("/api/v1/orders/distributor")
 }
 
 type Order struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        order.Provider
 }
 
-func (o *Order) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (o *Order) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	o.service = domainService.OrderService
 	o.authMiddleware = *applicationServices.AuthMiddleware
 	return nil
@@ -74,7 +80,7 @@ func (o *Order) Routes(mux *http.ServeMux) {
 		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.PostHandler)).ServeHTTP(w, r)
 	})
 
-	mux.HandleFunc("POST /api/v1/order/init_settlement", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v1/order/init_payment", func(w http.ResponseWriter, r *http.Request) {
 		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.InitPaymentHandler)).ServeHTTP(w, r)
 	})
 
@@ -221,7 +227,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		id, err := o.service.InitPayment(r.Context(), typedParamId)
+		resp, err := o.service.InitPayment(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case order.ErrUnknown:
@@ -232,7 +238,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": id})
+		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": resp.CheckoutUrl})
 	}
 }
 

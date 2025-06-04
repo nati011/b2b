@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import { ACCEPTED_STATUS, CANCELED_STATUS, COMPLETED_STATUS, PENDING_STATUS } from "@/app/libs/enums";
 
 
 export const columns: ColumnDef<Order>[] = [
@@ -25,20 +26,81 @@ export const columns: ColumnDef<Order>[] = [
         accessorKey: "Status",
         header: "Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'COMPLETED'
-            return <div className={!status ? "font-semibold py-1 rounded-md text-amber-500 text-center text-xs w-fit flex" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
-                {row.original.Status}
-            </div>
+            const status = row.getValue("Status");
+            console.log(status)
+            const statusConfig = {
+                [CANCELED_STATUS]: {
+                    bg: "bg-red-100/50",
+                    text: "text-red-800",
+                    border: "border-red-200",
+                    label: "Canceled"
+                },
+                [PENDING_STATUS]: {
+                    bg: "bg-amber-100/50",
+                    text: "text-amber-800",
+                    border: "border-amber-200",
+                    label: "Pending"
+                },
+                [COMPLETED_STATUS]: {
+                    bg: "bg-emerald-100/50",
+                    text: "text-emerald-800",
+                    border: "border-emerald-200",
+                    label: "Completed"
+                },
+            };
+            //   @ts-ignore
+            const config = statusConfig[status as string] || {
+                bg: "bg-gray-100",
+                text: "text-gray-800",
+                border: "border-gray-200",
+                label: "Unknown"
+            };
+
+            return (
+                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text} ${config.border}`}>
+                    {config.label}
+                </div>
+            );
         },
     },
     {
         accessorKey: "DeliveryStatus",
         header: "Delivery Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'COMPLETED'
-            return <p className={!status ? "font-semibold py-1 rounded-md text-amber-500 text-center text-xs w-fit flex" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
-                {row.original.DeliveryStatus}
-            </p>
+            const status = row.getValue("DeliveryStatus")
+            const statusConfig = {
+                [CANCELED_STATUS]: {
+                    bg: "bg-blue-100/50",
+                    text: "text-blue-800",
+                    border: "border-blue-200",
+                    label: "Dispatched"
+                },
+                [PENDING_STATUS]: {
+                    bg: "bg-amber-100/50",
+                    text: "text-amber-800",
+                    border: "border-amber-200",
+                    label: "Pending"
+                },
+                [COMPLETED_STATUS]: {
+                    bg: "bg-emerald-100/50",
+                    text: "text-emerald-800",
+                    border: "border-emerald-200",
+                    label: "Completed"
+                },
+            };
+            //   @ts-ignore
+            const config = statusConfig[status as string] || {
+                bg: "bg-gray-100",
+                text: "text-gray-800",
+                border: "border-gray-200",
+                label: "Unknown"
+            };
+
+            return (
+                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text} ${config.border}`}>
+                    {config.label}
+                </div>
+            );
         },
 
     },
@@ -46,10 +108,34 @@ export const columns: ColumnDef<Order>[] = [
         accessorKey: "PaymentStatus",
         header: "Payment Status",
         cell: ({ row }) => {
-            const status = row.getValue("status") == 'COMPLETED'
-            return <div className={!status ? "font-semibold py-1 rounded-md text-amber-500 text-center text-xs w-fit flex" : "border border-emerald-500  py-1 rounded-md  text-emerald-500 text-center text-xs"}>
-                {row.original.PaymentStatus}
-            </div>
+            const status = row.getValue("PaymentStatus")
+            const statusConfig = {
+                [PENDING_STATUS]: {
+                    bg: "bg-amber-100/50",
+                    text: "text-amber-800",
+                    border: "border-amber-200",
+                    label: "Pending"
+                },
+                [ACCEPTED_STATUS]: {
+                    bg: "bg-emerald-100/50",
+                    text: "text-emerald-800",
+                    border: "border-emerald-200",
+                    label: "Accepted"
+                },
+            };
+            //   @ts-ignore
+            const config = statusConfig[status as string] || {
+                bg: "bg-gray-100",
+                text: "text-gray-800",
+                border: "border-gray-200",
+                label: "Unknown"
+            };
+
+            return (
+                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text} ${config.border}`}>
+                    {config.label}
+                </div>
+            );
         },
     },
 

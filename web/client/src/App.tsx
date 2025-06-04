@@ -15,6 +15,8 @@ import NotFound from "./pages/NotFound";
 import { Navbar } from "./components/Navbar";
 import Index from "./pages/Index";
 import Settings from "./pages/Profile";
+import { Footer } from "./components/Footer";
+import { PrivateRoutes } from "./GuardedRoutes";
 
 const queryClient = new QueryClient();
 
@@ -25,17 +27,23 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <Navbar />
           <Routes>
+
             <Route path="/" element={<Index />} />
             <Route path="/product" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/cart" element={<Cart />} />
+            <Route element={<PrivateRoutes />}>
+              <Route path="/cart" element={<Cart />} />
+            </Route>
+
             <Route path="/checkout/successful" element={<Checkout />} />
             <Route path="/profile" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Footer />
         </BrowserRouter>
       </CartProvider>
     </TooltipProvider>

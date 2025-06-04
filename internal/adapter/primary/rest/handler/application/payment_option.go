@@ -11,6 +11,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -50,15 +51,21 @@ type UpdatePaymentOptionRequest struct {
 }
 
 type PaymentPartner struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        payment_partner.Provider
 }
 
 func InitPaymentPartner() {
 	handler.Register(new(PaymentPartner))
+
+	handler.RegisterResource("/api/v1/payment_option")
+	handler.RegisterResource("/api/v1/payment_option/active")
+	handler.RegisterResource("/api/v1/payment_option")
+	handler.RegisterResource("/api/v1/payment_option/{id}/status")
+	handler.RegisterResource("/api/v1/payment_option/{id}/secret")
 }
 
-func (r *PaymentPartner) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (r *PaymentPartner) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = applicationServices.PaymentPartnerService
 	r.authMiddleware = *applicationServices.AuthMiddleware
 	return nil

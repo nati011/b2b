@@ -1,5 +1,5 @@
 'use client'
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import useDistributorsStore from "@/app/libs/store/useDistributorStore"
 import { Distributor, DistributorRequest } from '@/app/libs/types';
 import dynamic from "next/dynamic";
@@ -11,19 +11,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PiSpinner } from "react-icons/pi";
+import { useRouter } from "next/navigation";
+
 
 const Map = dynamic(
-  () => import('@/app/components/map'),
+  () => import('@/components/map'),
   { ssr: false }
 )
 
 
 export default function DistributorsForm() {
   const {
+    success,
     loading,
     error,
     createDistributors
   } = useDistributorsStore()
+  const router = useRouter()
   const [formData, setFormData] = useState<DistributorRequest>({
     name: "",
     tin: "",
@@ -85,6 +90,18 @@ export default function DistributorsForm() {
     }
   }, [useCurrentLocation])
 
+  useEffect(() => {
+    if (error != null) {
+      console.log(error)
+      toast.error(error)
+    }
+    if (success != null) {
+      setTimeout(() => {
+        toast.success(success)
+      }, 1000)
+      router.push("/distributors")
+    }
+  }, [success, error])
   const pages = [
     {
       "title": "Distributor",
@@ -159,7 +176,7 @@ export default function DistributorsForm() {
                     name="phone"
                     value={formData.phone}
                     onChange={(e) => { setFormData(prev => ({ ...prev, phone: e.target.value })) }}
-                    placeholder="abebe.kebede"
+                    placeholder="+25191234566"
                     required
                   />
                 </div>
@@ -272,8 +289,19 @@ export default function DistributorsForm() {
         >
           Reset
         </Button>
-        <Button type="submit" onClick={handleSubmit}>
-          Register Distributor
+        <Button type="submit" onClick={handleSubmit} disabled={loading}>
+          {
+            loading ? (
+              <>
+                <PiSpinner className="animate-spin text-white" />
+                Loading
+              </>
+            ) :
+              <>
+                Register Distributor
+              </>
+          }
+
         </Button>
       </div>
     </div>
