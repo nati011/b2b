@@ -14,22 +14,23 @@ type MockClient struct {
 	email     string
 	username  string
 	password  string
+	roles     []int
 }
 
 type MockAuthProvider struct {
 	clients []MockClient
 }
 
-func (m *MockAuthProvider) RefreshToken(ctx context.Context, req port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
-	panic("unimplemented")
-}
-
 func NewMockAuthProvider() MockAuthProvider {
 	return MockAuthProvider{}
 }
 
-func (m *MockAuthProvider) Teardown() {
+func (m MockAuthProvider) Teardown() {
 	m.clients = []MockClient{}
+}
+
+func (m MockAuthProvider) RefreshToken(ctx context.Context, req *port.RefreshTokenRequest) (port.LoginAuthResponse, error) {
+	return port.LoginAuthResponse{}, nil
 }
 
 func (m MockAuthProvider) RetrospectToken(ctx context.Context, token string) (port.RetrospectionResult, error) {
@@ -40,7 +41,7 @@ func (m MockAuthProvider) DecodeToken(ctx context.Context, token string) (port.D
 	return port.DecodedResult{}, nil
 }
 
-func (m *MockAuthProvider) DeleteClient(ctx context.Context, userId string) error {
+func (m MockAuthProvider) DeleteClient(ctx context.Context, userId string) error {
 	for _, i := range m.clients {
 		if i.userId != userId {
 			m.clients = append(m.clients, MockClient{
@@ -56,7 +57,7 @@ func (m *MockAuthProvider) DeleteClient(ctx context.Context, userId string) erro
 	return nil
 }
 
-func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.RegisterUserRequest) (port.RegisterUserResponse, error) {
+func (m MockAuthProvider) CreateNewClient(ctx context.Context, req *port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	newId := strconv.Itoa(len(m.clients) + 1)
 	// check if username or email is taken
 	for _, index := range m.clients {
@@ -82,7 +83,7 @@ func (m *MockAuthProvider) CreateNewClient(ctx context.Context, req port.Registe
 	}, nil
 }
 
-func (m *MockAuthProvider) ClientLogin(ctx context.Context, req port.LoginUserRequest) (port.LoginAuthResponse, error) {
+func (m MockAuthProvider) ClientLogin(ctx context.Context, req *port.LoginUserRequest) (port.LoginAuthResponse, error) {
 	// check if username or password is taken
 	clientExists := false
 
@@ -98,7 +99,11 @@ func (m *MockAuthProvider) ClientLogin(ctx context.Context, req port.LoginUserRe
 	return port.LoginAuthResponse{}, nil
 }
 
-func (k *MockAuthProvider) ResetPassword(ctx context.Context, userId, new_password string) error {
+func (k MockAuthProvider) ClientLogout(ctx context.Context, req port.RefreshTokenRequest) error {
+	return nil
+}
+
+func (k MockAuthProvider) ResetPassword(ctx context.Context, userId, new_password string) error {
 	updated := []MockClient{}
 	for _, i := range k.clients {
 		if i.userId == userId {
@@ -122,5 +127,14 @@ func (k *MockAuthProvider) ResetPassword(ctx context.Context, userId, new_passwo
 		}
 	}
 	k.clients = updated
+	return nil
+}
+
+func (m MockAuthProvider) AssignRole(ctx context.Context, userId string, roleId int) error {
+	for _, i := range m.clients {
+		if i.userId == userId {
+			i.roles = append(i.roles, roleId)
+		}
+	}
 	return nil
 }

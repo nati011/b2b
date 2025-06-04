@@ -218,6 +218,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 		PaymentPartnerId: req.PaymentPartnerId,
 	})
 	if err != nil {
+		o.Cancel(ctx, order_id)
 		return OrderPlaceResponse{}, err
 	}
 
@@ -253,6 +254,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 	//reserve stock
 	for _, i := range req.Items {
 		if err = o.ProductService.Reserve(ctx, i.ProductId, i.Quantity); err != nil {
+			o.Cancel(ctx, order_id)
 			log.Printf("order placement failed due to inability to reserve stock qty: %v for productId: %v", i.Quantity, i.ProductId)
 			return OrderPlaceResponse{}, ErrUnknown
 		}

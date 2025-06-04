@@ -3,7 +3,6 @@ package core
 import (
 	"database/sql"
 
-	"b2b.nati011.github.com/config"
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
@@ -63,7 +62,6 @@ type Container struct {
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	ApplicationServices        application_core.Container
-	Pagination                 config.Pagination
 	CatalogueService           catalogue.Provider
 	PaymentVerificationService payment_verification.Provider
 	DistributorApprovalService distributorApproval.Provider
@@ -75,9 +73,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.ApplicationServices = application_core
 
 	// ORDER ORDER!!
-
 	//  messing up the order creates chaos
-	container.InitPagination()
 	container.InitCategoryService()
 	container.InitProductService()
 	container.InitConfigrableProductService()
@@ -89,10 +85,6 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitCatalogueService()
 	container.InitPaymentVerificationService()
 	return &container
-}
-
-func (m *Container) InitPagination() {
-	m.Pagination = *config.NewPaginationBuilder().Build()
 }
 
 func (m *Container) InitCategoryService() {
@@ -108,7 +100,7 @@ func (m *Container) InitCatalogueService() {
 
 func (m *Container) InitProductService() {
 	m.ProductService = product.NewProduct(
-		product_db_port.NewPostgres(m.db, &m.Pagination),
+		product_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination),
 		m.CategoryService)
 }
 
@@ -122,13 +114,13 @@ func (m *Container) InitConfigrableProductService() {
 func (m *Container) InitInvoiceService() {
 	m.InvoiceService = invoice.NewInvoice(invoice_db_port.NewPostgres(
 		m.db,
-		&m.ApplicationServices.Pagination))
+		m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitDistributorService() {
 	m.DistributorService = distributor.NewDistributorService(
 		m.ApplicationServices.UserService,
-		distributor_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination),
+		distributor_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination),
 		m.DistributorApprovalService)
 }
 
@@ -140,12 +132,13 @@ func (m *Container) InitDistributorApprovalService() {
 func (m *Container) InitRetailerService() {
 	m.RetailerService = retailer.NewRetailerService(
 		m.ApplicationServices.UserService,
-		retailer_db_port.NewPostgres(m.db, &m.ApplicationServices.Pagination))
+		retailer_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination))
 }
 
 func (m *Container) InitOrderService() {
 	m.OrderService = order.NewOrderService(
-		order_db_port.NewPostgres(m.db, &m.Pagination),
+		order_db_port.NewPostgres(
+			m.db, m.ApplicationServices.Pagination),
 		m.InvoiceService,
 		m.ProductService,
 		m.RetailerService,

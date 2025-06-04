@@ -1,5 +1,5 @@
 'use client'
-import Heading from "@/app/components/breadcrumb";
+import Heading from "@/components/breadcrumb";
 import useDistributorsStore from "@/app/libs/store/useDistributorStore"
 import { Distributor, DistributorRequest } from '@/app/libs/types';
 import dynamic from "next/dynamic";
@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
 const Map = dynamic(
-    () => import('@/app/components/map'),
+    () => import('@/components/map'),
     { ssr: false }
 )
 

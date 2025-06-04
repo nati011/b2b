@@ -25,10 +25,7 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.UserService = user.NewIntegrationTestContainer(db).UserService
 
 	container.TransactionService = transaction.NewTransactionService(
-		transaction_db.NewPostgres(db, &config.Pagination{
-			Limit:  10,
-			Offset: 0,
-		}),
+		transaction_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 	)
 	return container
 }

@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"b2b.nati011.github.com/internal/core/application/auth"
+	auth "b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/user"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 )
 
 var testContainer user.TestContainer
-
 var db *sql.DB
 
 func TestMain(m *testing.M) {
@@ -30,7 +29,7 @@ func setup() {
 }
 
 func teardown() {
-	testContainer.TeardownIntegrationTestContainer()
+	testContainer.Teardown()
 	db_test_container.Teardown(db)
 }
 
@@ -40,13 +39,13 @@ func Test_create_auth_client_upon_user_registration(t *testing.T) {
 	//setup
 	parsedTime, _ := time.Parse("2006-01-02 15:04:05", "2024-09-19 14:00:00")
 	in := user.CreateRequest{
-		FirstName: "natnael asefa",
-		LastName:  "jemaneh",
-		Email:     "natnaeljemaneh001@gmail.com",
-		Phone:     "+251949184879",
-		Username:  "test",
-		DOB:       parsedTime,
-
+		FirstName:  "natnael asefa",
+		LastName:   "jemaneh",
+		Email:      "natnaeljemaneh001@gmail.com",
+		Phone:      "+251949184879",
+		Username:   "test",
+		DOB:        parsedTime,
+		Password:   "test",
 		ExternalId: "123",
 	}
 	_, err := testContainer.UserService.Create(ctx, &in)
@@ -55,11 +54,21 @@ func Test_create_auth_client_upon_user_registration(t *testing.T) {
 	}
 
 	//verify
-	_, err = testContainer.AuthService.ClientLogin(ctx, auth.LoginUserRequest{
+	_, err = testContainer.AuthService.ClientLogin(ctx, &auth.LoginUserRequest{
 		Email:    "natnaeljemaneh001@gmail.com",
 		Password: "test",
 	})
 	if err == auth.ErrFailedToLogin {
 		t.Fatalf("failed to login err %v", err)
 	}
+}
+
+func Test_assign_role_to_auth_client(t *testing.T) {
+	t.Cleanup(teardown)
+	// ctx := context.Background()
+}
+
+func Test_remove_assigned_role_from_auth_client(t *testing.T) {
+	t.Cleanup(teardown)
+	// ctx := context.Background()
 }

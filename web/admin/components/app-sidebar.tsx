@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { NavUser } from "@/components/nav-user"
 
@@ -23,81 +21,85 @@ import { PiUsersThreeLight } from "react-icons/pi"
 import { GoGear } from "react-icons/go"
 import Image from "next/image"
 import Link from "next/link"
+import getCurrentUser from "@/actions/getCurrentUser"
 
-const data = {
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
-    singular: [
-        {
-            title: "Admin Users",
-            url: "/admin",
-            icon: PiUsersThreeLight,
-        }
-    ],
-    navMain: [
-        {
-            title: "Product",
-            url: "/products",
-            icon: AiOutlineProduct,
-            isActive: true,
-            items: [
-                {
-                    title: "Simple Product",
-                    url: "/products",
-                },
-                {
-                    title: "Configurable Products",
-                    url: "/products/configurable",
-                },
-                {
-                    title: "Product Categories",
-                    url: "/products/category",
-                },
-            ],
-        },
-        {
-            title: "Customers",
-            url: "/retailers",
-            icon: PiUsersThreeLight,
-        },
-        {
-            title: "Distributors",
-            url: "/distributors",
-            icon: PiUsersThreeLight
-        },
-        {
-            title: "Order",
-            url: "/Order",
-            icon: PiUsersThreeLight,
-            items: [
-                {
-                    title: "Orders",
-                    url: "/orders",
-                },
-                {
-                    title: "Transactions",
-                    url: "/transactions",
-                }
-            ],
-        },
-        {
-            title: "Configurations",
-            url: "/settings",
-            icon: GoGear,
-            items: [
-                {
-                    title: "Role",
-                    url: "/role",
-                }
-            ],
-        }
-    ]
-}
+export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const user = await getCurrentUser()
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+
+    const data = {
+        user: {
+            name: user?.name || "",
+            email: user?.email || "",
+        },
+        singular: [
+            {
+                title: "Admin Users",
+                url: "/admin",
+                icon: PiUsersThreeLight,
+            }
+        ],
+        navMain: [
+            {
+                title: "Product",
+                url: "/products",
+                icon: AiOutlineProduct,
+                isActive: true,
+                items: [
+                    {
+                        title: "Simple Product",
+                        url: "/products",
+                    },
+                    {
+                        title: "Configurable Products",
+                        url: "/products/configurable",
+                    },
+                    {
+                        title: "Product Categories",
+                        url: "/products/category",
+                    },
+                ],
+            },
+            {
+                title: "Customers",
+                url: "/retailers",
+                icon: PiUsersThreeLight,
+            },
+            {
+                title: "Distributors",
+                url: "/distributors",
+                icon: PiUsersThreeLight
+            },
+            {
+                title: "Order",
+                url: "/Order",
+                icon: PiUsersThreeLight,
+                items: [
+                    {
+                        title: "Orders",
+                        url: "/orders",
+                    },
+                    {
+                        title: "Transactions",
+                        url: "/transactions",
+                    }
+                ],
+            },
+            {
+                title: "Configurations",
+                url: "/settings",
+                icon: GoGear,
+                items: [
+                    {
+                        title: "Role",
+                        url: "/role",
+                    }
+                ],
+            }
+        ]
+    }
+
     return (
         <Sidebar {...props}>
             <SidebarHeader>

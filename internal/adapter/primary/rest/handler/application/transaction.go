@@ -9,6 +9,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -34,15 +35,17 @@ type GetAllResponse struct {
 }
 
 type Transaction struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	service        transaction.Provider
 }
 
 func InitTransaction() {
 	handler.Register(new(Transaction))
+
+	handler.RegisterResource("/api/v1/transaction")
 }
 
-func (t *Transaction) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (t *Transaction) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	t.authMiddleware = *applicationServices.AuthMiddleware
 	t.service = applicationServices.TransactionService
 	return nil

@@ -7,38 +7,36 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import ProductAttributeForm from "./AttributeForm";
-import ProductImagesForm from "./ProductImageForm";
-import { MultiSelect } from "@/app/components/multiselect";
+import ProductImagesForm from "@/components/product-image-form";
+import { MultiSelect } from "@/components/multiselect";
 import useProductsStore from "@/app/libs/store/useProductStore";
-import useCategoryStore from "@/app/libs/store/useCategories";
+import ConfigurableProductAttributeForm from "@/components/configurable-attribute-form";
+import { ConfigurableProduct, ConfigurableProductForm } from "../app/libs/types";
 
 interface ProductFormProps {
-    initialData?: Partial<any>;
+    initialData?: Partial<ConfigurableProduct>;
     isEdit?: boolean;
+    loading?: boolean;
     onSuccess?: () => void;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({
+const ConfigurableProductFormComponent: React.FC<ProductFormProps> = ({
     initialData,
+    loading = false,
     isEdit = false,
     onSuccess,
 }) => {
-    console.log("Initial Data_________")
-    console.log(initialData)
-    const [product, setProduct] = useState(initialData || {});
+    const [product, setProduct] = useState<Partial<ConfigurableProductForm>>();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {
-        createProduct,
-        updateProduct,
+        products,
+        createConfigurableProduct,
+        fetchProducts,
         fetchProductDetail,
     } = useProductsStore();
-    const {
-        categories,
-        fetchCategories,
-    } = useCategoryStore()
+
     useEffect(() => {
-        fetchCategories();
+        fetchProducts();
         if (isEdit && initialData?.Id) {
             fetchProductDetail(initialData.Id);
         }
@@ -48,9 +46,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target;
-        setProduct((prev) => ({
+        setProduct((prev: any) => ({
             ...prev,
-            [name]: name === "Price" ? parseFloat(value) || 0 : value,
+            [name]: value,
         }));
     };
 
@@ -59,27 +57,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setIsSubmitting(true);
 
         try {
-            const attributesObject = product.Attributes?.reduce((acc: { [x: string]: any; }, attr: { key: string | number; value: any; }) => {
-                acc[attr.key] = attr.value;
-                return acc;
-            }, {} as Record<string, string>) || {};
-            const productData = {
-                ...product,
-                Id: product.Id,
-                Name: product.Name || '',
-                ExternalID: product.ExternalID || '',
-                Desc: product.Desc || '',
-                Price: product.Price || 0,
-                Attributes: attributesObject || [],
-                Images: product.Images || [],
-                CategoryId: product.CategoryId?.map(Number) || []
-            };
 
             if (isEdit) {
-                await updateProduct(productData);
+                // await updateCon(productData);
                 toast.success("Product updated successfully!");
             } else {
-                await createProduct(productData);
+                await createConfigurableProduct(product);
                 toast.success("Product created successfully!");
             }
 
@@ -92,22 +75,42 @@ const ProductForm: React.FC<ProductFormProps> = ({
     };
 
     const handleReset = () => {
-        setProduct(initialData || {});
+        const p: ConfigurableProductForm = {
+            id: initialData?.Id || 0,
+            name: initialData?.Name || "",
+            desc: initialData?.Desc || "",
+            external_id: initialData?.Desc || "",
+            images: initialData?.Images?.map((i: { ImageUrl: string; }) => { return i.ImageUrl }) || [],
+            attribute_keys: initialData?.Attributes || [],
+            products: initialData?.Products || []
+        }
+        setProduct(p);
         toast.info("Form reset");
     };
 
-    const categoryOptions = categories.map((c) => ({
-        value: c.id.toString(),
-        label: c.name,
+    const productOptions = products.map((c) => ({
+        value: c.Id.toString(),
+        label: c.Name,
     }));
 
     useEffect(() => {
-        if (initialData?.Images) {
-            const images = initialData?.Images.map((i: { ImageUrl: string; }) => { return i.ImageUrl })
-            initialData.Images = images
+        if (!loading) {
+            const p: ConfigurableProductForm = {
+                id: initialData?.Id || 0,
+                name: initialData?.Name || "",
+                desc: initialData?.Desc || "",
+                external_id: initialData?.Desc || "",
+                images: initialData?.Images?.map((i: { ImageUrl: string; }) => { return i.ImageUrl }) || [],
+                attribute_keys: initialData?.Attributes || [],
+                products: initialData?.Products || []
+            }
+            setProduct(p)
         }
-        setProduct(initialData || {})
-    }, [initialData])
+    }, [initialData, loading])
+
+    useEffect(() => {
+        fetchProducts()
+    }, [])
 
     return (
         <form onSubmit={handleSubmit}>
@@ -131,8 +134,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                         <Input
                                             id="ExternalID"
                                             name="ExternalID"
-                                            value={product.ExternalID || ""}
-                                            onChange={handleChange}
+                                            value={product?.external_id}
+                                            onChange={(e) => {
+                                                setProduct((prev: any) => ({
+                                                    ...prev,
+                                                    ExternalId: e.target.value,
+                                                }));
+                                            }}
                                             placeholder="e.g. 12345-abcde"
                                         />
                                     </div>
@@ -141,8 +149,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                         <Input
                                             id="Name"
                                             name="Name"
-                                            value={product.Name}
-                                            onChange={handleChange}
+                                            value={product?.name}
+                                            onChange={(e) => {
+                                                setProduct((prev: any) => ({
+                                                    ...prev,
+                                                    Name: e.target.value,
+                                                }));
+                                            }}
                                             placeholder="e.g. POLO black - xl"
                                             required
                                         />
@@ -153,35 +166,27 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                         <Textarea
                                             id="Desc"
                                             name="Desc"
-                                            value={product.Desc || ""}
-                                            onChange={handleChange}
+                                            value={product?.desc || ""}
+                                            onChange={(e) => {
+                                                setProduct((prev: any) => ({
+                                                    ...prev,
+                                                    desc: e.target.value,
+                                                }));
+                                            }}
                                             placeholder="Enter product description"
                                             rows={5}
                                         />
                                     </div>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="Price">Price</Label>
-                                        <Input
-                                            id="Price"
-                                            name="Price"
-                                            type="number"
-                                            step="0.01"
-                                            value={product.Price || ""}
-                                            onChange={handleChange}
-                                            placeholder="29.99"
-                                            required
-                                        />
-                                    </div>
 
                                     <div className="grid gap-2">
-                                        <Label>Categories</Label>
+                                        <Label>Products</Label>
                                         <MultiSelect
-                                            options={categoryOptions}
+                                            options={productOptions}
                                             onValueChange={(values) =>
-                                                setProduct((prev) => ({
+                                                setProduct((prev: any) => ({
                                                     ...prev,
-                                                    CategoryId: values.map(Number),
+                                                    Products: values.map(Number),
                                                 }))
                                             }
                                         />
@@ -192,18 +197,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     </CardContent>
                 </Card>
 
-                <ProductAttributeForm
-                    attributes={product.Attributes || []}
+                <ConfigurableProductAttributeForm
+                    attributes={product?.attribute_keys || []}
                     onChange={(attributes) =>
-                        setProduct((prev) => ({ ...prev, Attributes: attributes }))
+                        setProduct((prev: any) => ({ ...prev, attribute_keys: attributes }))
                     }
                 />
 
                 <ProductImagesForm
-                    images={product.Images?.map((i: { ImageUrl: any; }) => i.ImageUrl) || []}
-                    onChange={(images) => setProduct((prev) => ({
+                    images={product?.images || []}
+                    onChange={(images) => setProduct((prev: any) => ({
                         ...prev,
-                        Images: images
+                        images: images
                     }))}
                 />
 
@@ -231,4 +236,4 @@ const ProductForm: React.FC<ProductFormProps> = ({
     );
 };
 
-export default ProductForm;
+export default ConfigurableProductFormComponent;

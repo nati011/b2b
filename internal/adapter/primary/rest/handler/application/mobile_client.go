@@ -6,6 +6,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -16,9 +17,11 @@ type MobileClientHandler struct {
 
 func InitMobileClient() {
 	handler.Register(new(MobileClientHandler))
+
+	handler.RegisterResource("/api/v1/minCompatibleClientVersion")
 }
 
-func (m *MobileClientHandler) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (m *MobileClientHandler) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	m.service = applicationServices.MobileClient
 	return nil
 }

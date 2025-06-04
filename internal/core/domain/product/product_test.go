@@ -403,6 +403,41 @@ func Test_Get_All_unhappyPath(t *testing.T) {
 	}
 }
 
+func Test_Search_happyPath(t *testing.T) {
+	t.Run("search", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		// setup
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "searchTest",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+		}
+
+		_, err := container.ProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create product")
+		}
+
+		got, err := container.ProductService.Search(ctx, "sear")
+		if err != nil {
+			t.Errorf("Expected err: %v, Got err: %v", nil, err)
+		}
+		wantLen := 1
+		if wantLen != len(got.List) {
+			t.Errorf("Expected len: %v Got err: %v", wantLen, len(got.List))
+		}
+	})
+}
+
 func Test_Get_by_param_happyPath(t *testing.T) {
 
 	t.Run("byName", func(t *testing.T) {

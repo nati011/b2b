@@ -9,6 +9,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/email"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/template"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -22,15 +23,17 @@ type SendEmailRequest struct {
 }
 
 type Email struct {
-	authMiddleware util.AuthMiddleware
+	authMiddleware middleware.Auth
 	Service        email.Provider
 }
 
 func InitEmail() {
 	handler.Register(new(Email))
+
+	handler.RegisterResource("/api/v1/email")
 }
 
-func (e *Email) Init(authMiddleWare *util.AuthMiddleware, applicationServices *application_core.Container, domainService *domain_core.Container) error {
+func (e *Email) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	e.authMiddleware = *applicationServices.AuthMiddleware
 	e.Service = applicationServices.EmailService
 	return nil

@@ -120,9 +120,9 @@ func Test_read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to get err: %v", err)
 		}
-
-		if len(got.List) != 1 {
-			t.Errorf("expected len: %v Got: %v", len(got.List))
+		wantLen := 1
+		if len(got.List) != wantLen {
+			t.Errorf("expected len: %v Got: %v", wantLen, len(got.List))
 		}
 	})
 }

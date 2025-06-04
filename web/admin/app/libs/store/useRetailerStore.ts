@@ -1,8 +1,10 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Retailer } from '@/app/libs/types';
+import { Create, GetAll, GetById } from '@/actions/retailer';
 
 interface RetailersStore {
+  success: string | null
   retailers: Retailer[];
   retailer: Retailer;
   loading: boolean;
@@ -39,6 +41,7 @@ const useRetailersStore = create<RetailersStore>((set) => ({
     }
   },
   loading: false,
+  success: null,
   error: null,
   next: null,
   previous: null,
@@ -46,38 +49,41 @@ const useRetailersStore = create<RetailersStore>((set) => ({
   fetchRetailers: async (url?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get('/api/retailer');
+      const response = await GetAll();
       set({
-        retailers: response.data.body.Retailers,
+        retailers: response,
         loading: false
       });
-    } catch (error) {
-      set({ error: 'Failed to fetch Loan', loading: false });
+    } catch (error: any) {
+      set({ error: error, loading: false });
     }
   },
   fetchRetailer: async (id?: number) => {
+    console.log(id, "IDDDDDDDDDDDDDD")
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.get(`/api/retailer?id=${id}`);
+      const response = await GetById(id);
+      console.log(response, "Retailer Response")
       set({
-        retailer: response.data.body.retailer,
+        retailer: response,
         loading: false
       });
-    } catch (error) {
-      set({ error: 'Failed to fetch Loan', loading: false });
+    } catch (error: any) {
+      console.log(error)
+      set({ error: error, loading: false });
     }
   },
 
   createRetailers: async (RetailersData: Partial<Retailer>) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosIns.post('/retailer/', RetailersData);
+      const response = await Create(RetailersData);
       set(state => ({
-        Retailers: [...state.retailers, response.data.detail],
+        success: response,
         loading: false
       }));
-    } catch (error) {
-      set({ error: 'Failed to create retailer', loading: false });
+    } catch (error: any) {
+      set({ error: error, loading: false });
     }
   },
 

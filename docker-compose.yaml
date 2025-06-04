@@ -23,6 +23,7 @@ services:
       - ENV
       - BASE_URL
       - FRONTEND_URL
+      - CLIENT_VERSION
     networks:
       - backend
 

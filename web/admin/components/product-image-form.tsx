@@ -1,10 +1,9 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Images } from "lucide-react";
-import ImageUpload from "@/app/components/image-upload";
+import ImageUpload from "@/components/image-upload";
 
 interface ProductImagesFormProps {
     images: string[];
@@ -53,7 +52,8 @@ const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
                                         className="object-cover h-full w-full rounded-md"
                                         src={image}
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                            console.log(image)
+                                            console.log(e)
                                         }}
                                     />
                                     <Button
@@ -76,7 +76,7 @@ const ProductImagesForm: React.FC<ProductImagesFormProps> = ({
                             onChange={(e) => setNewImageUrl(e.target.value)}
                             className="flex-1"
                         />
-                        <Button onClick={addImage}>Add Image</Button>
+                        <Button type="button" onClick={addImage}>Add Image</Button>
                     </div>
                     <ImageUpload value={images} onChange={onChange} />
                 </div>
