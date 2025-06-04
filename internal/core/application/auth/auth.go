@@ -75,8 +75,8 @@ type ResetCredentialsRequest struct {
 }
 
 type InitClientCredentialsResetRequest struct {
-	UserId string
-	Email  string
+	UserId string `json:"user_id"`
+	Email  string `json:"email"`
 }
 
 type JWT struct {
@@ -115,6 +115,7 @@ type Provider interface {
 	ClientLogout(ctx context.Context, req RefreshTokenRequest) error
 	AssignRole(ctx context.Context, userId int, roleId int) error
 	RemoveRole(ctx context.Context, userId int, roleId int) error
+	InitClientCredentialsReset(ctx context.Context, req InitClientCredentialsResetRequest) error
 }
 
 type AuthService struct {
