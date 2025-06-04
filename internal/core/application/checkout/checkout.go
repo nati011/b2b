@@ -125,7 +125,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		OrderId:          req.OrderId,
 	})
 	if err != nil {
-		log.Printf("Error while fetching creating payment: %v", err.Error())
+		log.Printf("Error while creating payment: %v", err.Error())
 		return CheckoutResponse{}, err
 	}
 
@@ -212,7 +212,7 @@ func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *Reinitiat
 		OrderId:          pay.OrderId,
 	})
 	if err != nil {
-		log.Printf("Error while fetching creating payment: %v", err.Error())
+		log.Printf("Error while creating payment: %v", err.Error())
 		return CheckoutResponse{}, err
 	}
 
