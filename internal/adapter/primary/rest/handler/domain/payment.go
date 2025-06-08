@@ -47,6 +47,10 @@ func (p *Payment) Routes(mux *http.ServeMux) {
 		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.CallbackGETHandler)).ServeHTTP(w, r)
 	})
 
+	mux.HandleFunc("POST /api/v1/payment/webhook/{partnerId}", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.CallbackPOSTHandler)).ServeHTTP(w, r)
+	})
+
 	mux.HandleFunc("POST /api/v1/payment/webhook", func(w http.ResponseWriter, r *http.Request) {
 		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.CallbackPOSTHandler)).ServeHTTP(w, r)
 	})
