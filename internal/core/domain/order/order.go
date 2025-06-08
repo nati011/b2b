@@ -74,7 +74,8 @@ type GetResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type GetByParamRequest struct {
@@ -389,6 +390,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			CreatedAt:      i.CreatedAt,
 		})
 	}
+	return_response.TotalCount = resp.TotalCount
 	return return_response, nil
 }
 
