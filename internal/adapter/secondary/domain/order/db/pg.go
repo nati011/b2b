@@ -245,9 +245,10 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
+	var totalCount int64
 
 	query := "SELECT * FROM public.get_all_orders($1,$2);"
-	args := []any{10, 0}
+	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
 	dest := []any{
 		&responseBase.Id,
@@ -258,6 +259,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
 		&responseBase.CreatedAt,
+		&totalCount,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -282,6 +284,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			DeliveryStatus: res[6].(string),
 			CreatedAt:      res[7].(time.Time),
 		}
+		totalCount = res[8].(int64)
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
 			return port.GetAllResponse{}, err
@@ -297,6 +300,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		}
 
 		response.List = append(response.List, val)
+		response.TotalCount = totalCount
 	}
 
 	return response, nil
