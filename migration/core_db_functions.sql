@@ -1504,12 +1504,14 @@ RETURNS TABLE(
     external_id VARCHAR(255), 
     order_id INT, 
     subtotal DECIMAL(12,2), 
-    tax_amount DECIMAL(12,2))
+    tax_amount DECIMAL(12,2),
+    created_date TIMESTAMP
+    )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount, created_date
     FROM public.invoices i
     WHERE i.id = i_invoice_id
       AND i.is_deleted = FALSE
@@ -1597,28 +1599,32 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_invoices_by_order_id(
-     i_order_id INT
+    i_order_id INT
 )
-RETURNS TABLE(id INT, 
-              status VARCHAR(255), 
-              external_id VARCHAR(255), 
-              order_id INT, 
-              subtotal DECIMAL(12,2), 
-              tax_amount DECIMAL(12,2))
+RETURNS TABLE(
+    id INT, 
+    status VARCHAR(255), 
+    external_id VARCHAR(255), 
+    order_id INT, 
+    subtotal DECIMAL(12,2), 
+    tax_amount DECIMAL(12,2),
+    created_date TIMESTAMP  
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, 
-           i.status, 
-           i.external_id, 
-           i.order_id, 
-           i.subtotal, 
-           i.tax_amount
+    SELECT DISTINCT 
+        i.id, 
+        i.status, 
+        i.external_id, 
+        i.order_id, 
+        i.subtotal, 
+        i.tax_amount,
+        i.created_date 
     FROM public.invoices i
     WHERE i.is_deleted = FALSE 
-    AND i.order_id = i_order_id
-    LIMIT 1;
+    AND i.order_id = i_order_id;
 END;
 $$;
 
