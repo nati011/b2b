@@ -85,16 +85,17 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			default:
 				util.ServerErrorResponse(w, err)
+				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"category": GetCategoryResponse(resp)})
+		util.OperationSuccessResponse(w, GetCategoryResponse(resp))
 	} else {
 		var get_all_response GetAllCategoryResponse
 		resp, err := c.service.GetAll(r.Context())
 		if err != nil {
 			switch err {
 			case category.ErrEmptyGetContent:
-				util.OperationSuccessResponse(w, util.Envelope{"category": get_all_response})
+				util.OperationSuccessResponse(w, get_all_response)
 				return
 			case category.ErrUnknown:
 				util.ServerErrorResponse(w, err)
@@ -107,7 +108,8 @@ func (c *Category) GetHandler(w http.ResponseWriter, r *http.Request) {
 		for _, i := range resp.List {
 			get_all_response.List = append(get_all_response.List, GetCategoryResponse(i))
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"category": get_all_response})
+		util.OperationSuccessResponse(w, get_all_response)
+		return
 	}
 }
 

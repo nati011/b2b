@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"time"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -32,7 +33,9 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.ExternalId,
 		&response.OrderId,
 		&response.SubTotal,
-		&response.TaxAmount}
+		&response.TaxAmount,
+		&response.Created_Date,
+	}
 	args := []any{id}
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -60,6 +63,7 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.OrderId = *result[3].(*int)
 	response.SubTotal = *result[4].(*float64)
 	response.TaxAmount = *result[5].(*float64)
+	response.Created_Date = *result[6].(*time.Time)
 
 	return response, nil
 }
@@ -264,7 +268,9 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 		&response.ExternalId,
 		&response.OrderId,
 		&response.SubTotal,
-		&response.TaxAmount}
+		&response.TaxAmount,
+		&response.Created_Date,
+	}
 	args := []any{&orderId}
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -292,6 +298,7 @@ func (p *Postgres) GetByOrderId(ctx context.Context, orderId int) (port.GetRespo
 	response.OrderId = *result[3].(*int)
 	response.SubTotal = *result[4].(*float64)
 	response.TaxAmount = *result[5].(*float64)
+	response.Created_Date = *result[6].(*time.Time)
 
 	return response, nil
 }
