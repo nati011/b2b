@@ -17,7 +17,7 @@ func InitOrderExpiry(s gocron.Scheduler, domainServices *domain_core.Container) 
 			10*time.Second,
 		),
 		gocron.NewTask(
-			CancelExpiredOrder,
+			CancelExpiredOrders,
 			domainServices,
 		),
 	)
@@ -29,7 +29,7 @@ func InitOrderExpiry(s gocron.Scheduler, domainServices *domain_core.Container) 
 
 const EXPIRE_AFTER time.Duration = 10 * time.Hour
 
-func CancelExpiredOrder(domainServices *domain_core.Container) {
+func CancelExpiredOrders(domainServices *domain_core.Container) {
 	//get all orders
 	ctx := context.Background()
 	orders, err := domainServices.OrderService.GetByParam(ctx, &order.GetByParamRequest{
