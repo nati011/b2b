@@ -21,8 +21,10 @@ type ManualOrderConfirmation struct {
 	OrderService order.Provider
 }
 
-func NewManualOrderConfirmation() Provider {
-	return &ManualOrderConfirmation{}
+func NewManualOrderConfirmation(os order.Provider) Provider {
+	return &ManualOrderConfirmation{
+		OrderService: os,
+	}
 }
 
 func (m *ManualOrderConfirmation) ConfirmOrder(ctx context.Context, id int) error {
