@@ -363,4 +363,39 @@ func Test_Write(t *testing.T) {
 			t.Errorf("Expected status: %v got: %v", wantStatus, resp.DeliveryStatus)
 		}
 	})
+
+	t.Run("update_confirmation_status", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []order.Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+			PaymentPartnerId: digitalPaymentPartnerId,
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		//update
+		_, err = container.OrderService.UpdateManualConfirmationStatus(ctx, order_resp.Id, order.ORDER_CONFIRMED)
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		//check
+		resp, err := container.OrderService.Get(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantStatus := order.ORDER_CONFIRMED
+		if resp.ConfirmationStatus != wantStatus {
+			t.Errorf("Expected status: %v got: %v", wantStatus, resp.DeliveryStatus)
+		}
+	})
 }
