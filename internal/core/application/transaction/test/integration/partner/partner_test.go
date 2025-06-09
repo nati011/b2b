@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 )
@@ -25,10 +26,11 @@ func Test_Validate_PartnerId_Upon_Transaction_Create_happyPath(t *testing.T) {
 	ctx := context.Background()
 	//create partner
 	id, err := testContainer.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:    "test",
-		Icon:    "test",
-		BaseURL: "test",
-		Secret:  "test",
+		Name:          "test",
+		Icon:          "test",
+		BaseURL:       "test",
+		Secret:        "test",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		t.Fatalf("Failed to create err:%v", err)
