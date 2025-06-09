@@ -611,6 +611,21 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE function public.get_user_provider_by_email(u_email VARCHAR(255)) 
+RETURNS TABLE(user_id INT,
+              provider_id VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT up.user_id, up.provider_id 
+    FROM public.user_providers up
+    JOIN public.users u ON u.id=up.user_id
+    WHERE u.is_deleted = FALSE 
+    AND u.email=u_email;
+END;
+$$;
+
     --writers
 create or replace function public.create_user (
   u_firstname VARCHAR(255),
