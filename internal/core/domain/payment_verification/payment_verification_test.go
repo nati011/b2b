@@ -68,6 +68,7 @@ func setup() {
 		Id:     product_id,
 		Amount: 10000,
 	})
+
 	DigitalPaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
 			Name:          "chapa",
