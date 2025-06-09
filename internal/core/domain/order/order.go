@@ -287,7 +287,7 @@ func (o *OrderService) InitPayment(ctx context.Context, id int) (OrderPlaceRespo
 		OrderId: id,
 	})
 	if err != nil {
-		log.Printf("failed to init payment: %v", err)
+		log.Printf(" failed to init payment: %v", err)
 		return OrderPlaceResponse{}, nil
 	}
 	return OrderPlaceResponse{
