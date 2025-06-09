@@ -23,11 +23,6 @@ type ResetPasswordRequest struct {
 	NewPassword string `json:"password"`
 }
 
-type InitResetPasswordRequest struct {
-	UserId string `json:"user_id"`
-	Email  string `json:"email"`
-}
-
 func InitAuth() {
 	handler.Register(new(AuthHandler))
 
@@ -58,35 +53,9 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.RefreshTokenHandler)).ServeHTTP(w, r)
 	})
 
-	mux.HandleFunc("POST /api/v1/auth/init_reset", func(w http.ResponseWriter, r *http.Request) {
-		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.InitResetTokenHandler)).ServeHTTP(w, r)
-	})
-
 	mux.HandleFunc("POST /api/v1/auth/reset/{token}", func(w http.ResponseWriter, r *http.Request) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.ResetCredentialsHandler)).ServeHTTP(w, r)
 	})
-}
-
-func (h *AuthHandler) InitResetTokenHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	defer r.Body.Close()
-	var requestBody InitResetPasswordRequest
-	if err := json.Unmarshal(body, &requestBody); err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	err = h.service.InitClientCredentialsReset(r.Context(), auth.InitClientCredentialsResetRequest{
-		UserId: requestBody.UserId,
-		Email:  requestBody.Email})
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	util.OperationSuccessMessageResponse(w, "password reset init successfully")
 }
 
 func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Request) {
