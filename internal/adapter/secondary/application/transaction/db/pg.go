@@ -3,6 +3,7 @@ package transaction
 import (
 	"context"
 	"database/sql"
+	"log"
 	"strconv"
 	"time"
 
@@ -186,7 +187,7 @@ func (p *Postgres) GetByTxRef(ctx context.Context, tx_ref string) (port.GetAllRe
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_transactions_by_date($1,$2,$3);"
+	query := "SELECT * FROM public.get_transactions_by_tx_ref($1,$2,$3);"
 
 	dest := []any{
 		&responseBase.Id,
@@ -195,6 +196,8 @@ func (p *Postgres) GetByTxRef(ctx context.Context, tx_ref string) (port.GetAllRe
 		&responseBase.TxRef,
 		&responseBase.Status,
 		&responseBase.Date}
+
+	log.Printf("Args, %v", tx_ref)
 	args := []any{tx_ref, p.Pagination.Limit, p.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -228,7 +231,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_transactions_by_date($1,$2,$3);"
+	query := "SELECT * FROM public.get_transactions_by_status($1,$2,$3);"
 
 	dest := []any{
 		&responseBase.Id,

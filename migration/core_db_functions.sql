@@ -3337,7 +3337,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_transactions_by_tx_ref(
-    t_tx_ref TIMESTAMP,
+    t_tx_ref VARCHAR(255),
     t_limit INT,
     t_offset INT
 )
