@@ -15,7 +15,7 @@ var container TestContainer
 var retailer_id int
 var distributor_id int
 var product_id int
-var PaymentPartnerId int
+var DigitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -65,12 +65,13 @@ func setup() {
 		Id:     product_id,
 		Amount: 10000,
 	})
-	PaymentPartnerId, err = container.PartnerService.Create(ctx,
+	DigitalPaymentPartnerId, err = container.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:    "chapa",
-			Icon:    "etst",
-			BaseURL: "https://api.chapa.co",
-			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:          "chapa",
+			Icon:          "etst",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 		})
 	if err != nil {
 		panic("failed to create payment partner")
@@ -87,7 +88,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		setup()
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -95,7 +96,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 					Quantity:  19},
 			},
 		}
-		log.Printf("Partner id %v", PaymentPartnerId)
+		log.Printf("Partner id %v", DigitalPaymentPartnerId)
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
@@ -114,7 +115,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -144,7 +145,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -171,7 +172,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -189,7 +190,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items:            []Item{},
 		}
@@ -204,7 +205,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -223,7 +224,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		PaymentPartnerId: PaymentPartnerId,
+		PaymentPartnerId: DigitalPaymentPartnerId,
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
@@ -267,7 +268,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -298,7 +299,7 @@ func Test_Get_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		PaymentPartnerId: PaymentPartnerId,
+		PaymentPartnerId: DigitalPaymentPartnerId,
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
@@ -338,7 +339,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := &PlaceRequest{
-		PaymentPartnerId: PaymentPartnerId,
+		PaymentPartnerId: DigitalPaymentPartnerId,
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
@@ -378,7 +379,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -407,7 +408,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -436,7 +437,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -483,7 +484,7 @@ func Test_Get_By_Retailer_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -512,7 +513,7 @@ func Test_Get_By_Distributor_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -551,7 +552,7 @@ func Test_Get_By_Retailer_unhappyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -587,7 +588,7 @@ func Test_Update_Status(t *testing.T) {
 	t.Run("update_status", func(t *testing.T) {
 		ctx := context.Background()
 		in := &PlaceRequest{
-			PaymentPartnerId: PaymentPartnerId,
+			PaymentPartnerId: DigitalPaymentPartnerId,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
