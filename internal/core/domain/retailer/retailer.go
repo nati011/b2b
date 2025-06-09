@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	ErrUnknown            = errors.New("oopsy, unknown error")
-	ErrInvalidTin         = errors.New("oopsy, tin invalid")
-	ErrDuplicateTin       = errors.New("oopsy, tin already in use")
-	ErrIdNotFound         = errors.New("oopsy, id not found")
-	ErrEmptyGetContent    = errors.New("oopsy, empty get content")
+	ErrUnknown            = errors.New("¯\\_(ツ)_/¯, unknown error")
+	ErrInvalidTin         = errors.New("¯\\_(ツ)_/¯, tin invalid")
+	ErrDuplicateTin       = errors.New("¯\\_(ツ)_/¯, tin already in use")
+	ErrIdNotFound         = errors.New("¯\\_(ツ)_/¯, id not found")
+	ErrEmptyGetContent    = errors.New("¯\\_(ツ)_/¯, empty get content")
 	ErrRetailerHasNoUsers = errors.New("oopys, retailer has no users")
 	ErrPhoneMandatory     = errors.New("oopys, phonenumber mandatory")
 )
