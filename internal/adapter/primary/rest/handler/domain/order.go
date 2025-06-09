@@ -238,7 +238,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"order": init_resp})
+		util.OperationSuccessResponse(w, init_resp)
 	}
 }
 
