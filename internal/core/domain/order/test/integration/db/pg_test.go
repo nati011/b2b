@@ -70,6 +70,14 @@ func setup() {
 		Icon:          "etst",
 		BaseURL:       "https://api.chapa.co",
 		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_MANUAL,
+	})
+
+	digitalPaymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:          "chapa",
+		Icon:          "etst",
+		BaseURL:       "https://api.chapa.co",
+		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
 }
