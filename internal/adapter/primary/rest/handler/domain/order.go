@@ -278,7 +278,8 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 const (
-	CANCEL_COMMAND = "cancel"
+	CANCEL_COMMAND  = "cancel"
+	CONFIRM_COMMAND = "confirm"
 )
 
 func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
@@ -307,6 +308,7 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
+		case CONFIRM_COMMAND:
 		default:
 			util.RequestErrorResponse(w, ErrUnknownCommand)
 			return
