@@ -115,6 +115,7 @@ type Provider interface {
 	HasRole(ctx context.Context, id int, role_id int) (resp bool, err error)
 	Update(ctx context.Context, req *UpdateRequest) (resp GetResponse, err error)
 	Remove(ctx context.Context, id int) (err error)
+	ResetPassword(ctx context.Context, email string) error
 }
 
 type UserService struct {
@@ -304,6 +305,39 @@ func (u *UserService) GetUserProvider(ctx context.Context, id int) (GetUserProvi
 		})
 	}
 	return resp, nil
+}
+
+func (u *UserService) getUserProviderByEmail(ctx context.Context, email string) (UserProvider, error) {
+	user_provider, err := u.db.GetUserProviderByEmail(ctx, email)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return UserProvider{}, ErrIdNotFound
+		default:
+			return UserProvider{}, ErrUnknown
+		}
+	}
+
+	return (UserProvider)(user_provider), nil
+}
+
+func (u *UserService) ResetPassword(ctx context.Context, email string) error {
+	user_provider, err := u.getUserProviderByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	req := auth.InitClientCredentialsResetRequest{
+		UserId: user_provider.ProviderId,
+		Email:  email,
+	}
+
+	err = u.auth_service.InitClientCredentialsReset(ctx, req)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserService) GetByParam(ctx context.Context, req *GetByParam) (GetAllResponse, error) {

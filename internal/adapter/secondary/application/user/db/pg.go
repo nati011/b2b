@@ -249,6 +249,29 @@ func (p *Postgres) GetByExternalId(ctx context.Context, extId string) (port.GetA
 	return response, nil
 }
 
+func (p *Postgres) GetUserProviderByEmail(ctx context.Context, email string) (port.UserProvider, error) {
+	var response port.UserProvider
+
+	query := "SELECT * FROM public.get_user_provider_by_email($1);"
+	dest := []any{&response.UserId, &response.ProviderId}
+	args := []any{email}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, dest),
+	).DoSingleQuery()
+	if err != nil {
+		return port.UserProvider{}, err
+	}
+
+	response.UserId = *dest[0].(*int)
+	response.ProviderId = *dest[1].(*string)
+
+	return response, nil
+}
+
 func (p *Postgres) GetUserProvider(ctx context.Context, id int) (port.GetUserProviderResponse, error) {
 	var response port.GetUserProviderResponse
 	var responseBase port.UserProvider

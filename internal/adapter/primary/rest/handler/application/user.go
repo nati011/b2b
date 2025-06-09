@@ -82,6 +82,10 @@ type UserHandler struct {
 	service        user.Provider
 }
 
+type InitResetPasswordRequest struct {
+	Email string `json:"email"`
+}
+
 func InitUser() {
 	handler.Register(new(UserHandler))
 
@@ -115,6 +119,10 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 
 	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", func(w http.ResponseWriter, r *http.Request) {
 		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/user/init_reset", func(w http.ResponseWriter, r *http.Request) {
+		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.InitResetTokenHandler)).ServeHTTP(w, r)
 	})
 }
 
@@ -363,4 +371,24 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"user": id})
+}
+
+func (u *UserHandler) InitResetTokenHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+	var requestBody InitResetPasswordRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	err = u.service.ResetPassword(r.Context(), requestBody.Email)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	util.OperationSuccessMessageResponse(w, "password reset init successfully")
 }
