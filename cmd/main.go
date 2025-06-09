@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	InitCron(s)
+	InitCron(s, application_container, domain_container)
 
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))

@@ -48,6 +48,13 @@ const (
 	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
 )
 
+// confirmation
+const (
+	ORDER_CONFIRMED = "CONFIRMED"
+	ORDER_REJECTED  = "REJECTED"
+	ORDER_PENDING   = "PENDING"
+)
+
 type Item struct {
 	ProductId    int
 	ProductName  string
@@ -62,15 +69,16 @@ type PlaceRequest struct {
 }
 
 type GetResponse struct {
-	Id             int
-	RetailerId     int
-	RetailerName   string
-	Items          []Item
-	Total          float32
-	Status         string
-	DeliveryStatus string
-	PaymentStatus  string
-	CreatedAt      time.Time
+	Id                 int
+	RetailerId         int
+	RetailerName       string
+	Items              []Item
+	Total              float32
+	Status             string
+	DeliveryStatus     string
+	PaymentStatus      string
+	ConfirmationStatus string
+	CreatedAt          time.Time
 }
 
 type GetAllResponse struct {
@@ -93,7 +101,7 @@ type UpdateRequest struct {
 type OrderPlaceResponse struct {
 	Id          int    `json:"id"`
 	CheckoutUrl string `json:"checkout_url"`
-	TxRef       string `json:tx_ref`
+	TxRef       string `json:"tx_ref"`
 }
 
 type Provider interface {
@@ -108,6 +116,7 @@ type Provider interface {
 	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
+	UpdateManualConfirmationStatus(ctx context.Context, id int, status string) (int, error)
 }
 
 type OrderService struct {
@@ -147,7 +156,7 @@ func (o *OrderService) validate_placement(ctx context.Context, req *PlaceRequest
 	return nil
 }
 
-// order cannot placed if retailer has ongoing order
+// order cannot be placed if retailer has ongoing order
 func (o *OrderService) checkOrderDuplicacyEligibility(ctx context.Context, retailerId int) (bool, error) {
 	// check if there is an incomplete(PENDING, ...) order with the same retailer
 	retailer_orders, err := o.GetRetailerOrders(ctx, retailerId)
@@ -203,12 +212,13 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 	}
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
-		RetailerId:     req.RetailerId,
-		Items:          items,
-		Status:         PENDING_STATUS,
-		PaymentStatus:  PAYMENT_PENDING_STATUS,
-		DeliveryStatus: DELIVERY_PENDING_STATUS,
-		Total:          itemsTotal,
+		RetailerId:         req.RetailerId,
+		Items:              items,
+		Status:             PENDING_STATUS,
+		PaymentStatus:      PAYMENT_PENDING_STATUS,
+		DeliveryStatus:     DELIVERY_PENDING_STATUS,
+		ConfirmationStatus: ORDER_PENDING,
+		Total:              itemsTotal,
 	})
 	if err != nil {
 		return OrderPlaceResponse{}, ErrUnknown
@@ -674,6 +684,31 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 			if err != nil {
 				log.Printf("failed to free reserved stock for productId: %v", item.ProductId)
 			}
+		}
+	}
+
+	return resp.Id, nil
+}
+
+func (o *OrderService) UpdateManualConfirmationStatus(ctx context.Context, id int, status string) (int, error) {
+	resp, err := o.Get(ctx, id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return 0, ErrIdNotFound
+		default:
+			return 0, ErrUnknown
+		}
+	}
+	err = o.DB.UpdateConfirmationStatus(ctx, &port.UpdateOrderConfirmationStatusRequest{
+		Id:                 id,
+		ConfirmationStatus: status,
+	})
+	if err != nil {
+		log.Printf("failed to update order confirmation status for id: %v  err: %v", resp.Id, err)
+		switch err {
+		default:
+			return 0, ErrUnknown
 		}
 	}
 
