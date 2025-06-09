@@ -187,7 +187,7 @@ func (p *Postgres) GetByTxRef(ctx context.Context, tx_ref string) (port.GetAllRe
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_transactions_by_tx_ref($1,$2,$3);"
+	query := "SELECT * FROM public.get_transactions_by_transaction_ref($1,$2,$3);"
 
 	dest := []any{
 		&responseBase.Id,
