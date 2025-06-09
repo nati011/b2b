@@ -293,6 +293,7 @@ func (o *OrderService) InitPayment(ctx context.Context, id int) (OrderPlaceRespo
 	return OrderPlaceResponse{
 		Id:          id,
 		CheckoutUrl: resp.CheckoutUrl,
+		TxRef:       resp.TransactionRef,
 	}, nil
 }
 
