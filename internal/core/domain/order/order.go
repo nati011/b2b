@@ -117,6 +117,8 @@ type Provider interface {
 	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
 	UpdateManualConfirmationStatus(ctx context.Context, id int, status string) (int, error)
+	ConfirmOrder(ctx context.Context, id int) error
+	RejectOrder(ctx context.Context, id int) error
 }
 
 type OrderService struct {
@@ -713,4 +715,24 @@ func (o *OrderService) UpdateManualConfirmationStatus(ctx context.Context, id in
 	}
 
 	return resp.Id, nil
+}
+
+func (m *OrderService) ConfirmOrder(ctx context.Context, id int) error {
+	id, err := m.UpdateManualConfirmationStatus(ctx, id, ORDER_CONFIRMED)
+	if err != nil {
+		log.Printf("Failed to confirm order %v", err)
+		return ErrUnknown
+	}
+	log.Printf("confirm order id: %v", id)
+	return nil
+}
+
+func (m *OrderService) RejectOrder(ctx context.Context, id int) error {
+	id, err := m.UpdateManualConfirmationStatus(ctx, id, ORDER_REJECTED)
+	if err != nil {
+		log.Printf("Failed to reject order %v", err)
+		return ErrUnknown
+	}
+	log.Printf("reject order id: %v", id)
+	return nil
 }
