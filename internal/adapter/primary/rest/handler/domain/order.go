@@ -274,7 +274,7 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"order": order_resp})
+	util.OperationSuccessResponse(w, order_resp)
 }
 
 const (
