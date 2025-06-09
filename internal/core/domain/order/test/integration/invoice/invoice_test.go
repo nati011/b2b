@@ -82,7 +82,8 @@ func setup() {
 func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
 	ctx := context.Background()
 	in := &order.PlaceRequest{
-		RetailerId: retailer_id,
+		RetailerId:    retailer_id,
+		PaymentMethod: order.PAYMENT_METHOD_DIGITAL,
 		Items: []order.Item{
 			{
 				ProductId: product_id,

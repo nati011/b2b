@@ -86,6 +86,7 @@ func Test_Checkout_url_generate(t *testing.T) {
 		in := &order.PlaceRequest{
 			PaymentPartnerId: paymentPartnerId,
 			RetailerId:       retailerId,
+			PaymentMethod:    order.PAYMENT_METHOD_DIGITAL,
 			Items: []order.Item{
 				{
 					ProductId: productId,
@@ -108,6 +109,7 @@ func Test_Checkout_url_generate(t *testing.T) {
 		in := &order.PlaceRequest{
 			PaymentPartnerId: paymentPartnerId,
 			RetailerId:       retailerId,
+			PaymentMethod:    order.PAYMENT_METHOD_DIGITAL,
 			Items: []order.Item{
 				{
 					ProductId: productId,

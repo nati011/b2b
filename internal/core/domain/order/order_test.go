@@ -89,6 +89,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -116,6 +117,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -146,6 +148,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -172,6 +175,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -190,6 +194,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			RetailerId:       retailer_id,
 			Items:            []Item{},
 		}
@@ -205,6 +210,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -224,6 +230,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &PlaceRequest{
 		PaymentPartnerId: PaymentPartnerId,
+		PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
@@ -268,6 +275,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
@@ -299,6 +307,7 @@ func Test_Get_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &PlaceRequest{
 		PaymentPartnerId: PaymentPartnerId,
+		PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
@@ -340,6 +349,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 	in := &PlaceRequest{
 		PaymentPartnerId: PaymentPartnerId,
 		RetailerId:       retailer_id,
+		PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 		Items: []Item{
 			{
 				ProductId: product_id,
@@ -380,6 +390,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -409,6 +420,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -438,6 +450,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -485,6 +498,7 @@ func Test_Get_By_Retailer_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -514,6 +528,7 @@ func Test_Get_By_Distributor_happyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -553,6 +568,7 @@ func Test_Get_By_Retailer_unhappyPath(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,
@@ -589,6 +605,7 @@ func Test_Update_Status(t *testing.T) {
 		in := &PlaceRequest{
 			PaymentPartnerId: PaymentPartnerId,
 			RetailerId:       retailer_id,
+			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 			Items: []Item{
 				{
 					ProductId: product_id,

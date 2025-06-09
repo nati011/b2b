@@ -47,6 +47,7 @@ func Test_VerifyTransaction(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
+		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		t.Errorf("Failed to checkout err: %v", err)
@@ -68,6 +69,7 @@ func Test_StatusChangeUponSuccessfulVerification(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
+		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		t.Errorf("Failed to checkout err: %v", err)

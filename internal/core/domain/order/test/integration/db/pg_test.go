@@ -97,6 +97,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
+			PaymentMethod:    order.PAYMENT_METHOD_DIGITAL,
 			PaymentPartnerId: payment_partner_id,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)

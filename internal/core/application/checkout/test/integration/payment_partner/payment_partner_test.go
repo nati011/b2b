@@ -46,6 +46,7 @@ func Test_DisallowCheckOutIfPaymentProviderIsInactive(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
+		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	})
 	wantErr := checkout.ErrPaymentPartnerNotSupported
 	if err != wantErr {
@@ -70,6 +71,7 @@ func Test_AllowCheckOutIfPaymentProviderIsActive(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
+		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		t.Fatalf("Failed to checkout: %v", err)

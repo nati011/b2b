@@ -22,13 +22,20 @@ var (
 	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is not supported")
 	ErrTransactionReferenceNotSupplied = errors.New("oopsy, transaction refrence is mandatory")
 	ErrOrderIdNotSupplied              = errors.New("oopsy, order id not supplied")
+	ErrInvalidPaymentMethod            = errors.New("oopsy, invalid payment method")
 	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
+)
+
+const (
+	PAYMENT_METHOD_DIGITAL = "DIGITAL_PAYMENT"
+	PAYMENT_METHOD_MANUAL  = "MANUAL_PAYMENT"
 )
 
 type CheckoutRequest struct {
 	OrderId          int
 	Amount           float64
 	PaymentPartnerId int
+	PaymentMethod    string
 }
 
 type CheckoutResponse struct {
@@ -90,82 +97,116 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 	if req.Amount == 0 {
 		return CheckoutResponse{}, ErrAmountNotSupplied
 	}
-	paymentPartner, err := p.paymentPartner.Get(ctx, req.PaymentPartnerId)
-	if err != nil {
-		switch err {
-		case partner.ErrIdNotFound:
-			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
-		default:
-			return CheckoutResponse{}, ErrUnknown
-		}
-	}
-	if paymentPartner.Status != partner.ACTIVE_STATUS {
-		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
-	}
 
-	paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
-	if err != nil {
-		log.Printf("Error while fetching paymentPartnerSecret: %v", err.Error())
-		switch err {
-		case partner.ErrIdNotFound:
-			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
-		default:
-			return CheckoutResponse{}, ErrUnknown
-		}
-	}
-
-	paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
-	if err != nil {
-		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
-	}
-
-	transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
-		Amount:           req.Amount,
-		PaymentPartnerId: req.PaymentPartnerId,
-		OrderId:          req.OrderId,
-	})
-	if err != nil {
-		log.Printf("Error while creating payment: %v", err.Error())
-		return CheckoutResponse{}, err
-	}
-
-	returnUrl := fmt.Sprintf("%v/confirmOrder/%v", p.frontendUrl, req.OrderId)
-
-	paymentInitiateRequest := payment_gateway.InitiateRequest{
-		Amount:         req.Amount,
-		TransactionRef: transaction_ref,
-		PartnerUrl:     paymentPartner.BaseURL,
-		PartnerSecret:  paymentPartnerSecret.Secret,
-		BaseUrl:        p.baseUrl,
-		ReturnUrl:      returnUrl,
-	}
-
-	checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)
-	if err != nil {
-		log.Printf("Error while fetching Initiating payment: %v", err.Error())
-		return CheckoutResponse{}, err
-	}
-
-	_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
-		Amount:    req.Amount,
-		PartnerId: req.PaymentPartnerId,
-		TxRef:     transaction_ref,
-		Status:    transaction.PENDING_STATUS,
-	})
-	if err != nil {
-		log.Printf("Error while creating transaction: %v", err.Error())
-		switch err {
-		case transaction.ErrAmountIsNotSupplied:
-			return CheckoutResponse{}, ErrAmountNotSupplied
-		default:
+	if req.PaymentMethod == PAYMENT_METHOD_MANUAL {
+		transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
+			Amount:           req.Amount,
+			PaymentPartnerId: req.PaymentPartnerId,
+			OrderId:          req.OrderId,
+		})
+		if err != nil {
+			log.Printf("Error while creating payment: %v", err.Error())
 			return CheckoutResponse{}, err
 		}
-	}
 
-	return CheckoutResponse{
-		TransactionRef: transaction_ref,
-		CheckoutUrl:    checkoutUrl,
-	}, nil
+		_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
+			Amount:    req.Amount,
+			PartnerId: req.PaymentPartnerId,
+			TxRef:     transaction_ref,
+			Status:    transaction.PENDING_STATUS,
+		})
+		if err != nil {
+			log.Printf("Error while creating transaction: %v", err.Error())
+			switch err {
+			case transaction.ErrAmountIsNotSupplied:
+				return CheckoutResponse{}, ErrAmountNotSupplied
+			default:
+				return CheckoutResponse{}, err
+			}
+		}
+
+		return CheckoutResponse{
+			TransactionRef: transaction_ref,
+			CheckoutUrl:    "not-null",
+		}, nil
+	} else if req.PaymentMethod == PAYMENT_METHOD_DIGITAL {
+		paymentPartner, err := p.paymentPartner.Get(ctx, req.PaymentPartnerId)
+		if err != nil {
+			switch err {
+			case partner.ErrIdNotFound:
+				return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+			default:
+				return CheckoutResponse{}, ErrUnknown
+			}
+		}
+		if paymentPartner.Status != partner.ACTIVE_STATUS {
+			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+		}
+
+		paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
+		if err != nil {
+			log.Printf("Error while fetching paymentPartnerSecret: %v", err.Error())
+			switch err {
+			case partner.ErrIdNotFound:
+				return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+			default:
+				return CheckoutResponse{}, ErrUnknown
+			}
+		}
+
+		paymentGateway, err := factory.PaymentPartnerFactory(paymentPartner.Name)
+		if err != nil {
+			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+		}
+
+		transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
+			Amount:           req.Amount,
+			PaymentPartnerId: req.PaymentPartnerId,
+			OrderId:          req.OrderId,
+		})
+		if err != nil {
+			log.Printf("Error while creating payment: %v", err.Error())
+			return CheckoutResponse{}, err
+		}
+
+		returnUrl := fmt.Sprintf("%v/confirmOrder/%v", p.frontendUrl, req.OrderId)
+
+		paymentInitiateRequest := payment_gateway.InitiateRequest{
+			Amount:         req.Amount,
+			TransactionRef: transaction_ref,
+			PartnerUrl:     paymentPartner.BaseURL,
+			PartnerSecret:  paymentPartnerSecret.Secret,
+			BaseUrl:        p.baseUrl,
+			ReturnUrl:      returnUrl,
+		}
+
+		checkoutUrl, err := paymentGateway.Initiate(paymentInitiateRequest)
+		if err != nil {
+			log.Printf("Error while fetching Initiating payment: %v", err.Error())
+			return CheckoutResponse{}, err
+		}
+
+		_, err = p.transaction.Create(ctx, &transaction.CreateRequest{
+			Amount:    req.Amount,
+			PartnerId: req.PaymentPartnerId,
+			TxRef:     transaction_ref,
+			Status:    transaction.PENDING_STATUS,
+		})
+		if err != nil {
+			log.Printf("Error while creating transaction: %v", err.Error())
+			switch err {
+			case transaction.ErrAmountIsNotSupplied:
+				return CheckoutResponse{}, ErrAmountNotSupplied
+			default:
+				return CheckoutResponse{}, err
+			}
+		}
+		return CheckoutResponse{
+			TransactionRef: transaction_ref,
+			CheckoutUrl:    checkoutUrl,
+		}, nil
+	}
+	return CheckoutResponse{}, ErrInvalidPaymentMethod
 }
 
 func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *ReinitiateCheckoutRequest) (CheckoutResponse, error) {
