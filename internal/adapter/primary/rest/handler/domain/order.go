@@ -28,6 +28,7 @@ type PlaceOrderRequest struct {
 	RetailerId       int         `json:"retailer_id"`
 	Items            []OrderItem `json:"items"`
 	PaymentPartnerId int         `json:"payment_partner_id"`
+	PaymentMethod    string      `json:"payment_method"`
 }
 
 type GetOrderResponse struct {
@@ -263,6 +264,7 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 		RetailerId:       requestBody.RetailerId,
 		Items:            orderItems,
 		PaymentPartnerId: requestBody.PaymentPartnerId,
+		PaymentMethod:    requestBody.PaymentMethod,
 	})
 	if err != nil {
 		switch err {

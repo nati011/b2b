@@ -34,6 +34,7 @@ func InitPayment() {
 	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}/{tx_ref}")
 	handler.RegisterResource("/api/v1/payment/webhook/{gateway_id}")
 	handler.RegisterResource("/api/v1/payment/verify")
+	handler.RegisterResource("/api/v1/payment/confirm/{tx_ref}")
 }
 
 func (p *Payment) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
@@ -53,6 +54,10 @@ func (p *Payment) Routes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /api/v1/payment/verify", func(w http.ResponseWriter, r *http.Request) {
 		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.VerifyPaymentHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/payment/confirm/{tx_ref}", func(w http.ResponseWriter, r *http.Request) {
+		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.ConfirmPaymentHandler)).ServeHTTP(w, r)
 	})
 }
 
@@ -106,5 +111,19 @@ func (p *Payment) VerifyPaymentHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"verified_status": status})
+	}
+}
+
+func (p *Payment) ConfirmPaymentHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamTxRef = "tx_ref"
+	paramValues := r.URL.Query()
+	paramTxRefValue := paramValues.Get(ParamTxRef)
+	if paramTxRefValue != "" {
+		err := p.service.Confirm(r.Context(), paramTxRefValue)
+		if err != nil {
+			util.ServerErrorResponse(w, err)
+			return
+		}
+		util.OperationSuccessMessageResponse(w, "payment confirmed successfully")
 	}
 }

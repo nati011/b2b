@@ -88,6 +88,7 @@ func Test_validate_Item_exists_upon_order_creation(t *testing.T) {
 					ProductId: productId,
 					Quantity:  100},
 			},
+			PaymentMethod:    order.PAYMENT_METHOD_DIGITAL,
 			PaymentPartnerId: paymentPartnerId,
 		}
 		_, err := container.OrderService.Place(ctx, in)

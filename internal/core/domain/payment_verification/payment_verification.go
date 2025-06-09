@@ -45,6 +45,7 @@ type CheckoutResponse struct {
 type Provider interface {
 	Verify(ctx context.Context, txRef string) (bool, error)
 	Callback(ctx context.Context, PaymentPartnerId int, txRef string)
+	Confirm(ctx context.Context, txRef string) error
 }
 
 type PaymentVerificationService struct {
@@ -162,4 +163,28 @@ func (p *PaymentVerificationService) Callback(ctx context.Context, gatewayId int
 			log.Printf("Error Occured while updating payment status: %v", err)
 		}
 	}
+}
+
+func (p *PaymentVerificationService) Confirm(ctx context.Context, txRef string) error {
+	payment, err := p.getPayment(ctx, txRef)
+	if err != nil {
+		log.Printf("Error Occured while fetching payment: %v", err)
+	}
+
+	err = p.transaction.UpdateByTransactionRef(ctx, &transaction.UpdateByTransactionRefRequest{
+		TransactionRef: txRef,
+		Status:         transaction.COMPLETED_STATUS,
+	})
+	if err != nil {
+		log.Printf("Error Occured while updating transaction status: %v", err)
+	}
+
+	_, err = p.order.UpdatePaymentStatus(ctx, &order.UpdateRequest{
+		Id:            payment.OrderId,
+		PaymentStatus: order.PAYMENT_ACCEPTED_STATUS,
+	})
+	if err != nil {
+		log.Printf("Error Occured while updating payment status: %v", err)
+	}
+	return nil
 }
