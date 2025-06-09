@@ -141,6 +141,7 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 			Name:    "test",
 			Icon:    "test",
 			BaseURL: "https://google.com",
+			Secret:  "test",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)

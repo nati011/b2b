@@ -16,14 +16,14 @@ import (
 )
 
 var (
-	ErrUserNotFound                    = errors.New("oopsy, user is found")
-	ErrAmountNotSupplied               = errors.New("oopsy, amount is mandatory")
-	ErrAmountLessThanZero              = errors.New("oopsy, amount must be greater than zero")
-	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is not supported")
-	ErrTransactionReferenceNotSupplied = errors.New("oopsy, transaction refrence is mandatory")
-	ErrOrderIdNotSupplied              = errors.New("oopsy, order id not supplied")
-	ErrInvalidPaymentMethod            = errors.New("oopsy, invalid payment method")
-	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
+	ErrUserNotFound                    = errors.New("¯\\_(ツ)_/¯, user is found")
+	ErrAmountNotSupplied               = errors.New("¯\\_(ツ)_/¯, amount is mandatory")
+	ErrAmountLessThanZero              = errors.New("¯\\_(ツ)_/¯, amount must be greater than zero")
+	ErrPaymentPartnerNotSupported      = errors.New("¯\\_(ツ)_/¯, payment partner id is not supported")
+	ErrTransactionReferenceNotSupplied = errors.New("¯\\_(ツ)_/¯, transaction refrence is mandatory")
+	ErrOrderIdNotSupplied              = errors.New("¯\\_(ツ)_/¯, order id not supplied")
+	ErrInvalidPaymentMethod            = errors.New("¯\\_(ツ)_/¯, invalid payment method")
+	ErrUnknown                         = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
 )
 
 const (

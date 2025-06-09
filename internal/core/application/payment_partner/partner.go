@@ -22,16 +22,16 @@ const (
 )
 
 var (
-	ErrNameIsNotSupplied            = errors.New("oopsy, name is not supplied")
-	ErrIconIsNotSupplied            = errors.New("oopsy, icon is not supplied")
-	ErrSecretIsNotSupplied          = errors.New("oppsy, secret is not supplied")
-	ErrUrlIsNotSupplied             = errors.New("oopsy, init payment url is not supplied")
-	ErrPaymentMethodIsNotSupplied   = errors.New("oopsy, payment method is not supplied")
-	ErrIdNotFound                   = errors.New("oopsy, id not found")
-	ErrPaymentOptionaAlreadyActive  = errors.New("oopsy, payment option is already active")
-	ErrPaymentOptionAlreadyInactive = errors.New("oopsy, payment option is already inactive")
-	ErrEmptyGetContent              = errors.New("oopsy, empty get content")
-	ErrUnknown                      = errors.New("oopsy, unknown error has occured")
+	ErrNameIsNotSupplied            = errors.New("¯\\_(ツ)_/¯, name is not supplied")
+	ErrIconIsNotSupplied            = errors.New("¯\\_(ツ)_/¯, icon is not supplied")
+	ErrSecretIsNotSupplied          = errors.New("¯\\_(ツ)_/¯, secret is not supplied")
+	ErrUrlIsNotSupplied             = errors.New("¯\\_(ツ)_/¯, init payment url is not supplied")
+	ErrPaymentMethodIsNotSupplied   = errors.New("¯\\_(ツ)_/¯, payment method is not supplied")
+	ErrIdNotFound                   = errors.New("¯\\_(ツ)_/¯, id not found")
+	ErrPaymentOptionaAlreadyActive  = errors.New("¯\\_(ツ)_/¯, payment option is already active")
+	ErrPaymentOptionAlreadyInactive = errors.New("¯\\_(ツ)_/¯, payment option is already inactive")
+	ErrEmptyGetContent              = errors.New("¯\\_(ツ)_/¯, empty get content")
+	ErrUnknown                      = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
 )
 
 type CreateRequest struct {
@@ -96,21 +96,23 @@ func NewPartner(db port.DB) Provider {
 }
 
 func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, error) {
-	err := validateName(req.Name)
-	if err != nil {
-		return 0, err
-	}
-	err = validateIcon(req.Icon)
-	if err != nil {
-		return 0, err
-	}
-	err = validateInitPaymentURL(req.BaseURL)
-	if err != nil {
+	if err := validateName(req.Name); err != nil {
 		return 0, err
 	}
 
-	err = validateSecret(req.Secret)
-	if err != nil {
+	if err := validateIcon(req.Icon); err != nil {
+		return 0, err
+	}
+
+	if err := validateInitPaymentURL(req.BaseURL); err != nil {
+		return 0, err
+	}
+
+	if err := validateSecret(req.Secret); err != nil {
+		return 0, err
+	}
+
+	if err := validatePaymentMethod(req.PaymentMethod); err != nil {
 		return 0, err
 	}
 

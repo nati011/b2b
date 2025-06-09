@@ -15,17 +15,17 @@ import (
 )
 
 var (
-	ErrIdNotFound                         = errors.New("oopsy, id not found")
-	ErrRetailerIdNotSupplied              = errors.New("oopsy, retailer id mandatory")
-	ErrRetailerIdNotFound                 = errors.New("oopsy, retailer does not exist")
-	ErrAtleastOneOrderItemNeeded          = errors.New("oopsy, order items cannot be empty")
-	ErrItemMemberProductIdOrQuantityEmpty = errors.New("oopsy, either order item member productId or quantity missing")
-	ErrUnknown                            = errors.New("oopsy, unknown error")
-	ErrEmptyGetResponse                   = errors.New("oopsy, empty get response")
-	ErrAlreadyCanceled                    = errors.New("oopsy, order already canceled")
-	ErrItemMemberProductNotFound          = errors.New("oopsy, product not found")
-	ErrItemMemberProductQuantityNotFound  = errors.New("oopsy, product quantity not found")
-	ErrDuplicateOrderNotAllowed           = errors.New("oopsy, duplicate order not allowed")
+	ErrIdNotFound                         = errors.New("¯\\_(ツ)_/¯, id not found")
+	ErrRetailerIdNotSupplied              = errors.New("¯\\_(ツ)_/¯, retailer id mandatory")
+	ErrRetailerIdNotFound                 = errors.New("¯\\_(ツ)_/¯, retailer does not exist")
+	ErrAtleastOneOrderItemNeeded          = errors.New("¯\\_(ツ)_/¯, order items cannot be empty")
+	ErrItemMemberProductIdOrQuantityEmpty = errors.New("¯\\_(ツ)_/¯, either order item member productId or quantity missing")
+	ErrUnknown                            = errors.New("¯\\_(ツ)_/¯, unknown error")
+	ErrEmptyGetResponse                   = errors.New("¯\\_(ツ)_/¯, empty get response")
+	ErrAlreadyCanceled                    = errors.New("¯\\_(ツ)_/¯, order already canceled")
+	ErrItemMemberProductNotFound          = errors.New("¯\\_(ツ)_/¯, product not found")
+	ErrItemMemberProductQuantityNotFound  = errors.New("¯\\_(ツ)_/¯, product quantity not found")
+	ErrDuplicateOrderNotAllowed           = errors.New("¯\\_(ツ)_/¯, duplicate order not allowed")
 )
 
 // order status
