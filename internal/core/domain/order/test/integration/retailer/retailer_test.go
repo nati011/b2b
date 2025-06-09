@@ -30,6 +30,7 @@ func Test_validate_retailer_upon_registration(t *testing.T) {
 				ProductId: 1,
 				Quantity:  1},
 		},
+		PaymentMethod: order.PAYMENT_METHOD_DIGITAL,
 	}
 	_, err := testContainer.OrderService.Place(ctx, in)
 	wantErr := order.ErrRetailerIdNotFound

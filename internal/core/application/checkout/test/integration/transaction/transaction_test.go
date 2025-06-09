@@ -45,6 +45,7 @@ func Test_CreateTransactionUponPaymentInitAndSetStatusToPending(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
+		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	}
 
 	checkout_response, err := testContainer.CheckoutService.Checkout(ctx, in)
