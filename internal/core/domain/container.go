@@ -18,6 +18,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
+	order_confirmation "b2b.nati011.github.com/internal/core/domain/manual_order_confirmation"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -58,6 +59,7 @@ type Container struct {
 	ConfigurableProductService configurable_product.Provider
 	InvoiceService             invoice.Provider
 	OrderService               order.Provider
+	ManualOrderConfirmation    order_confirmation.Provider
 	DistributorService         distributor.Provider
 	RetailerService            retailer.Provider
 	ApplicationServices        application_core.Container
@@ -81,6 +83,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitDistributorApprovalService()
 	container.InitDistributorService()
 	container.InitOrderService()
+	container.InitManualOrderConfirmationService()
 	container.InitCatalogueService()
 	container.InitPaymentVerificationService()
 	return &container
@@ -142,6 +145,10 @@ func (m *Container) InitOrderService() {
 		m.ProductService,
 		m.RetailerService,
 		m.ApplicationServices.CheckoutService)
+}
+
+func (m *Container) InitManualOrderConfirmationService() {
+	m.ManualOrderConfirmation = order_confirmation.NewManualOrderConfirmation(m.OrderService)
 }
 
 func (m *Container) InitPaymentVerificationService() {
