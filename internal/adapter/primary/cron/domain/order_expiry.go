@@ -39,7 +39,6 @@ func CancelExpiredOrder(domainServices *domain_core.Container) {
 		log.Printf("Failed to get pending orders err : %v", err)
 	}
 
-	// Current time
 	now := time.Now()
 
 	for _, o := range orders.List {

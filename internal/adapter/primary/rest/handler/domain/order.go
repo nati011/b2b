@@ -280,6 +280,7 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 const (
 	CANCEL_COMMAND  = "cancel"
 	CONFIRM_COMMAND = "confirm"
+	REJECT_COMMAND  = "reject"
 )
 
 func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
@@ -309,6 +310,29 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		case CONFIRM_COMMAND:
+			err = p.service.ConfirmOrder(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+		case REJECT_COMMAND:
+			err = p.service.RejectOrder(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
 		default:
 			util.RequestErrorResponse(w, ErrUnknownCommand)
 			return
