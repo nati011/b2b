@@ -8,6 +8,7 @@ import (
 
 	factory "b2b.nati011.github.com/internal/adapter/secondary/application/payment/gateway"
 	payment "b2b.nati011.github.com/internal/core/application/payment"
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -15,13 +16,14 @@ import (
 )
 
 var (
-	ErrUserNotFound                    = errors.New("oopsy, user is found")
-	ErrAmountNotSupplied               = errors.New("oopsy, amount is mandatory")
-	ErrAmountLessThanZero              = errors.New("oopsy, amount must be greater than zero")
-	ErrPaymentPartnerNotSupported      = errors.New("oopsy, payment partner id is not supported")
-	ErrTransactionReferenceNotSupplied = errors.New("oopsy, transaction refrence is mandatory")
-	ErrUnknown                         = errors.New("oopsy, unknown error has occured")
-	ErrCannotProceedWithPaymentPartner = errors.New("oopsy, cannot proceed with payment partner")
+	ErrUserNotFound                    = errors.New("¯\\_(ツ)_/¯, user is found")
+	ErrAmountNotSupplied               = errors.New("¯\\_(ツ)_/¯, amount is mandatory")
+	ErrAmountLessThanZero              = errors.New("¯\\_(ツ)_/¯, amount must be greater than zero")
+	ErrPaymentPartnerNotSupported      = errors.New("¯\\_(ツ)_/¯, payment partner id is not supported")
+	ErrTransactionReferenceNotSupplied = errors.New("¯\\_(ツ)_/¯, transaction refrence is mandatory")
+	ErrUnknown                         = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
+	ErrCannotProceedWithPaymentPartner = errors.New("¯\\_(ツ)_/¯, cannot proceed with payment partner")
+	ErrCannotConfirmDigitalPayment     = errors.New("¯\\_(ツ)_/¯, cannot cofirm digital payment")
 )
 
 type CheckoutRequest struct {
@@ -45,6 +47,7 @@ type CheckoutResponse struct {
 type Provider interface {
 	Verify(ctx context.Context, txRef string) (bool, error)
 	Callback(ctx context.Context, PaymentPartnerId int, txRef string)
+	Confirm(ctx context.Context, txRef string) error
 }
 
 type PaymentVerificationService struct {
@@ -162,4 +165,44 @@ func (p *PaymentVerificationService) Callback(ctx context.Context, gatewayId int
 			log.Printf("Error Occured while updating payment status: %v", err)
 		}
 	}
+}
+
+func (p *PaymentVerificationService) Confirm(ctx context.Context, txRef string) error {
+	if txRef == "" {
+		return ErrTransactionReferenceNotSupplied
+	}
+	payment, err := p.getPayment(ctx, txRef)
+	if err != nil {
+		log.Printf("Error Occured while fetching payment: %v", err)
+	}
+
+	err = p.transaction.UpdateByTransactionRef(ctx, &transaction.UpdateByTransactionRefRequest{
+		TransactionRef: txRef,
+		Status:         transaction.COMPLETED_STATUS,
+	})
+	if err != nil {
+		log.Printf("Error Occured while updating transaction status: %v", err)
+	}
+
+	paymentPartner, err := p.paymentPartner.Get(ctx, payment.PartnerId)
+	if err != nil {
+		switch err {
+		case partner.ErrIdNotFound:
+			return ErrPaymentPartnerNotSupported
+		default:
+			return ErrUnknown
+		}
+	}
+	if paymentPartner.PaymentMethod == payment_partner.PAYMENT_METHOD_DIGITAL {
+		return ErrCannotConfirmDigitalPayment
+	}
+
+	_, err = p.order.UpdatePaymentStatus(ctx, &order.UpdateRequest{
+		Id:            payment.OrderId,
+		PaymentStatus: order.PAYMENT_ACCEPTED_STATUS,
+	})
+	if err != nil {
+		log.Printf("Error Occured while updating payment status: %v", err)
+	}
+	return nil
 }

@@ -5,19 +5,21 @@ import (
 )
 
 type CreateRequest struct {
-	Name    string
-	Icon    string
-	Status  string
-	BaseURL string
-	Secret  string
+	Name          string
+	Icon          string
+	Status        string
+	BaseURL       string
+	Secret        string
+	PaymentMethod string
 }
 
 type GetResponse struct {
-	Id      int
-	Name    string
-	Icon    string
-	Status  string
-	BaseURL string
+	Id            int
+	Name          string
+	Icon          string
+	Status        string
+	BaseURL       string
+	PaymentMethod string
 }
 
 type GetPartnerSecret struct {

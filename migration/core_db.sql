@@ -337,7 +337,6 @@ CREATE TABLE IF NOT EXISTS public."o_items"
 
 COMMENT ON TABLE public."o_items" IS 'stores order items';
 
-
 CREATE TABLE IF NOT EXISTS public."invoices" 
 (
   id SERIAL PRIMARY KEY,
@@ -349,7 +348,6 @@ CREATE TABLE IF NOT EXISTS public."invoices"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores invoices';
-
 
 CREATE TABLE IF NOT EXISTS public."invoice_line_items" 
 (
@@ -383,7 +381,8 @@ CREATE TABLE IF NOT EXISTS public."payment_partners"
   icon VARCHAR(255),
   status VARCHAR(255),
   base_url VARCHAR(255),
-  secret VARCHAR(255)
+  secret VARCHAR(255),
+  payment_method VARCHAR(255)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."invoices" IS 'stores payment processing partners';

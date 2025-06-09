@@ -19,7 +19,8 @@ var container test_container.TestContainer
 var db *sql.DB
 var retailerId int
 var productId int
-var paymentPartnerId int
+var manualPaymentPartnerId int
+var digitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -65,11 +66,20 @@ func setup() {
 		Amount: 100,
 	})
 
-	paymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
-		Name:    "chapa",
-		Icon:    "etst",
-		BaseURL: "https://api.chapa.co",
-		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+	manualPaymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:          "chapa",
+		Icon:          "etst",
+		BaseURL:       "https://api.chapa.co",
+		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_MANUAL,
+	})
+
+	digitalPaymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:          "chapa",
+		Icon:          "etst",
+		BaseURL:       "https://api.chapa.co",
+		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_MANUAL,
 	})
 }
 
@@ -78,13 +88,35 @@ func teardown() {
 	db_test_container.Teardown(db)
 }
 
-func Test_Checkout_url_generate(t *testing.T) {
-	t.Run("generate_checkout_url_upon_order_placement", func(t *testing.T) {
+func Test_Checkout(t *testing.T) {
+	t.Run("generate_checkout_url_upon_order_placement_digital", func(t *testing.T) {
 		t.Cleanup(teardown)
 		setup()
 		ctx := context.Background()
 		in := &order.PlaceRequest{
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
+			RetailerId:       retailerId,
+			Items: []order.Item{
+				{
+					ProductId: productId,
+					Quantity:  1},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		if strings.Split(order_resp.CheckoutUrl, " ") == nil {
+			t.Errorf("Expected checkoutUrl different from nil got: %v", order_resp.CheckoutUrl)
+		}
+	})
+
+	t.Run("checkout_upon_order_placement_manual", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			PaymentPartnerId: manualPaymentPartnerId,
 			RetailerId:       retailerId,
 			Items: []order.Item{
 				{
@@ -106,7 +138,7 @@ func Test_Checkout_url_generate(t *testing.T) {
 		setup()
 		ctx := context.Background()
 		in := &order.PlaceRequest{
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
 			RetailerId:       retailerId,
 			Items: []order.Item{
 				{

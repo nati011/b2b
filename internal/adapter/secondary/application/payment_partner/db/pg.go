@@ -31,7 +31,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.Name,
 		&response.Icon,
 		&response.Status,
-		&response.BaseURL}
+		&response.BaseURL,
+		&response.PaymentMethod}
 
 	args := []any{&id}
 
@@ -50,6 +51,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.Icon = *result[2].(*string)
 	response.Status = *result[3].(*string)
 	response.BaseURL = *result[4].(*string)
+	response.PaymentMethod = *result[5].(*string)
 
 	return response, nil
 }
@@ -109,6 +111,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Icon,
 		&responseBase.Status,
 		&responseBase.BaseURL,
+		&responseBase.PaymentMethod,
 	}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
@@ -124,11 +127,12 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:      int(res[0].(int64)),
-			Name:    res[1].(string),
-			Icon:    res[2].(string),
-			Status:  res[3].(string),
-			BaseURL: res[4].(string),
+			Id:            int(res[0].(int64)),
+			Name:          res[1].(string),
+			Icon:          res[2].(string),
+			Status:        res[3].(string),
+			BaseURL:       res[4].(string),
+			PaymentMethod: res[5].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -146,6 +150,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		&responseBase.Icon,
 		&responseBase.Status,
 		&responseBase.BaseURL,
+		&responseBase.PaymentMethod,
 	}
 	args := []any{&status}
 
@@ -161,11 +166,12 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:      int(res[0].(int64)),
-			Name:    res[1].(string),
-			Icon:    res[2].(string),
-			Status:  res[3].(string),
-			BaseURL: res[4].(string),
+			Id:            int(res[0].(int64)),
+			Name:          res[1].(string),
+			Icon:          res[2].(string),
+			Status:        res[3].(string),
+			BaseURL:       res[4].(string),
+			PaymentMethod: res[5].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -184,6 +190,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 		&responseBase.Icon,
 		&responseBase.Status,
 		&responseBase.BaseURL,
+		&responseBase.PaymentMethod,
 	}
 	args := []any{name}
 
@@ -199,11 +206,12 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:      int(res[0].(int64)),
-			Name:    res[1].(string),
-			Icon:    res[2].(string),
-			Status:  res[3].(string),
-			BaseURL: res[4].(string),
+			Id:            int(res[0].(int64)),
+			Name:          res[1].(string),
+			Icon:          res[2].(string),
+			Status:        res[3].(string),
+			BaseURL:       res[4].(string),
+			PaymentMethod: res[5].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -212,7 +220,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var partner_id int
-	query := "SELECT * FROM public.create_payment_partner($1, $2, $3, $4, $5);"
+	query := "SELECT * FROM public.create_payment_partner($1, $2, $3, $4, $5, $6);"
 
 	result := []any{&partner_id}
 	args := []any{
@@ -220,7 +228,8 @@ func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, er
 		req.Icon,
 		req.Status,
 		req.BaseURL,
-		req.Secret}
+		req.Secret,
+		req.PaymentMethod}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),

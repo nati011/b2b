@@ -27,3 +27,10 @@ func validateSecret(secret string) error {
 	}
 	return nil
 }
+
+func validatePaymentMethod(paymentMethod string) error {
+	if paymentMethod == "" {
+		return ErrPaymentMethodIsNotSupplied
+	}
+	return nil
+}
