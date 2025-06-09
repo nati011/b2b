@@ -2917,7 +2917,8 @@ CREATE OR REPLACE FUNCTION public.create_order(
   o_status VARCHAR(255),
   o_total DECIMAL(12,2),
   o_payment_status VARCHAR(255),
-  o_delivery_status VARCHAR(255)
+  o_delivery_status VARCHAR(255),
+  o_confirmation_status VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -2929,12 +2930,14 @@ BEGIN
                                status, 
                                total,
                                payment_status,
-                               delivery_status)
+                               delivery_status,
+                               confirmation_status)
     VALUES (o_retailer_id, 
             o_status, 
             o_total, 
             o_payment_status,
-            o_delivery_status)
+            o_delivery_status,
+            o_confirmation_status)
     RETURNING id INTO new_id;
     RETURN new_id;
 END;
@@ -2991,6 +2994,24 @@ BEGIN
     RETURN order_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION public.update_order_confirmation_status(
+    order_id INT,
+    new_confirmation_status VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.orders
+    SET confirmation_status = new_confirmation_status
+    WHERE id = order_id
+      AND is_deleted = FALSE;
+
+    RETURN order_id;
+END;
+$$;
+
     -- reader
 CREATE OR REPLACE FUNCTION public.get_orders_by_id(
     o_order_id INT
@@ -3001,7 +3022,8 @@ RETURNS TABLE(id INT,
               status VARCHAR(255),
               total DECIMAL(12,2),
               delivery_status VARCHAR(255),
-              payment_status VARCHAR(255))
+              payment_status VARCHAR(255),
+              confirmation_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -3012,7 +3034,8 @@ BEGIN
            o.status, 
            o.total,
            o.payment_status,
-           o.delivery_status
+           o.delivery_status,
+           o.confirmation_status
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
@@ -3032,7 +3055,8 @@ RETURNS TABLE(id INT,
               total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
-              created_date TIMESTAMP)
+              created_date TIMESTAMP,
+              confirmation_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -3044,7 +3068,8 @@ BEGIN
            o.total,
            o.payment_status,
            o.delivery_status,
-           o.created_date
+           o.created_date,
+           o.confirmation_status
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
@@ -3061,8 +3086,9 @@ RETURNS TABLE(id INT,
               retailer_name VARCHAR(255),
               status VARCHAR(255),
               total DECIMAL(12,2),
+              payment_status VARCHAR(255),
               delivery_status VARCHAR(255),
-              payment_status VARCHAR(255))
+              confirmation_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -3073,7 +3099,8 @@ BEGIN
            o.status, 
            o.total,
            o.payment_status,
-           o.delivery_status
+           o.delivery_status,
+           o.confirmation_status
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
@@ -3094,7 +3121,8 @@ RETURNS TABLE(id INT,
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
               created_date TIMESTAMP,
-              total_count BIGINT
+              total_count BIGINT,
+              confirmation_status VARCHAR(255)
     )
 LANGUAGE plpgsql
 AS $$
@@ -3109,7 +3137,8 @@ SELECT o.id,
         o.payment_status,
         o.delivery_status,
         o.created_date,
-        COUNT(*) OVER() AS total_count
+        COUNT(*) OVER() AS total_count,
+        o.confirmation_status
         FROM public.orders o
         JOIN public.retailer_business_info r
         ON r.retailer_id = o.retailer_id
