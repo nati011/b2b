@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrPathVariableNotFound = errors.New("oopsy, id not provided")
+	ErrPathVariableNotFound = errors.New("¯\\_(ツ)_/¯, id not provided")
 )
 
 type Envelope map[string]interface{}

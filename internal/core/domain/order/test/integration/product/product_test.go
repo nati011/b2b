@@ -14,7 +14,7 @@ import (
 var container order.TestContainer
 var retailerId int
 var productId int
-var paymentPartnerId int
+var digitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -66,11 +66,12 @@ func setup() {
 		Id:     productId,
 		Amount: 20,
 	})
-	paymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
-		Name:    "chapa",
-		Icon:    "etst",
-		BaseURL: "https://api.chapa.co",
-		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+	digitalPaymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:          "chapa",
+		Icon:          "etst",
+		BaseURL:       "https://api.chapa.co",
+		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		panic(err)
@@ -88,7 +89,7 @@ func Test_validate_Item_exists_upon_order_creation(t *testing.T) {
 					ProductId: productId,
 					Quantity:  100},
 			},
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		wantErr := order.ErrItemMemberProductQuantityNotFound
@@ -110,7 +111,7 @@ func Test_Reserve_Stock_Upon_order_creation(t *testing.T) {
 					ProductId: productId,
 					Quantity:  orderQty},
 			},
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		product, err := container.ProductService.Get(ctx, productId)
 		if err != nil {
@@ -145,7 +146,7 @@ func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
 					ProductId: productId,
 					Quantity:  orderQty},
 			},
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		product, err := container.ProductService.Get(ctx, productId)
 		if err != nil {
@@ -183,7 +184,7 @@ func Test_Free_Reserved_Stock_Upon_order_status_change(t *testing.T) {
 					ProductId: productId,
 					Quantity:  orderQty},
 			},
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		product, err := container.ProductService.Get(ctx, productId)
 		if err != nil {
@@ -222,7 +223,7 @@ func Test_Check_Stock_Availability_before_order_creation(t *testing.T) {
 					ProductId: productId,
 					Quantity:  1000},
 			},
-			PaymentPartnerId: paymentPartnerId,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		wantErr := order.ErrItemMemberProductQuantityNotFound
