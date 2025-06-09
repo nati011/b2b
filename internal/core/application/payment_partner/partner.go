@@ -16,11 +16,17 @@ const (
 	ACTIVE_STATUS   = "ACTIVE"
 )
 
+const (
+	PAYMENT_METHOD_DIGITAL = "DIGITAL_PAYMENT"
+	PAYMENT_METHOD_MANUAL  = "MANUAL_PAYMENT"
+)
+
 var (
 	ErrNameIsNotSupplied            = errors.New("oopsy, name is not supplied")
 	ErrIconIsNotSupplied            = errors.New("oopsy, icon is not supplied")
 	ErrSecretIsNotSupplied          = errors.New("oppsy, secret is not supplied")
 	ErrUrlIsNotSupplied             = errors.New("oopsy, init payment url is not supplied")
+	ErrPaymentMethodIsNotSupplied   = errors.New("oopsy, payment method is not supplied")
 	ErrIdNotFound                   = errors.New("oopsy, id not found")
 	ErrPaymentOptionaAlreadyActive  = errors.New("oopsy, payment option is already active")
 	ErrPaymentOptionAlreadyInactive = errors.New("oopsy, payment option is already inactive")
@@ -29,19 +35,21 @@ var (
 )
 
 type CreateRequest struct {
-	Name    string
-	Icon    string
-	Status  string
-	BaseURL string
-	Secret  string
+	Name          string
+	Icon          string
+	Status        string
+	BaseURL       string
+	Secret        string
+	PaymentMethod string
 }
 
 type GetResponse struct {
-	Id      int
-	Name    string
-	Icon    string
-	Status  string
-	BaseURL string
+	Id            int
+	Name          string
+	Icon          string
+	Status        string
+	BaseURL       string
+	PaymentMethod string
 }
 
 type GetSecretResponse struct {
@@ -107,11 +115,12 @@ func (p *PartnerService) Create(ctx context.Context, req *CreateRequest) (int, e
 	}
 
 	id, err := p.DB.Create(ctx, &port.CreateRequest{
-		Name:    req.Name,
-		Icon:    req.Icon,
-		Status:  ACTIVE_STATUS,
-		BaseURL: req.BaseURL,
-		Secret:  req.Secret,
+		Name:          req.Name,
+		Icon:          req.Icon,
+		Status:        ACTIVE_STATUS,
+		BaseURL:       req.BaseURL,
+		Secret:        req.Secret,
+		PaymentMethod: req.PaymentMethod,
 	})
 	if err != nil {
 		switch err {

@@ -28,7 +28,6 @@ type PlaceOrderRequest struct {
 	RetailerId       int         `json:"retailer_id"`
 	Items            []OrderItem `json:"items"`
 	PaymentPartnerId int         `json:"payment_partner_id"`
-	PaymentMethod    string      `json:"payment_method"`
 }
 
 type GetOrderResponse struct {
@@ -228,7 +227,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		resp, err := o.service.InitPayment(r.Context(), typedParamId)
+		init_resp, err := o.service.InitPayment(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case order.ErrUnknown:
@@ -239,7 +238,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": resp.CheckoutUrl})
+		util.OperationSuccessResponse(w, util.Envelope{"checkoutUrl": init_resp})
 	}
 }
 
@@ -260,11 +259,10 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	for _, i := range requestBody.Items {
 		orderItems = append(orderItems, (order.Item)(i))
 	}
-	id, err := o.service.Place(r.Context(), &order.PlaceRequest{
+	order_resp, err := o.service.Place(r.Context(), &order.PlaceRequest{
 		RetailerId:       requestBody.RetailerId,
 		Items:            orderItems,
 		PaymentPartnerId: requestBody.PaymentPartnerId,
-		PaymentMethod:    requestBody.PaymentMethod,
 	})
 	if err != nil {
 		switch err {
@@ -276,7 +274,7 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"order": id})
+	util.OperationSuccessResponse(w, util.Envelope{"order": order_resp})
 }
 
 const (

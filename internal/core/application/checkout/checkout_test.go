@@ -25,10 +25,11 @@ func setup() {
 	var err error
 	PaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:    "chapa",
-			Icon:    "etst",
-			BaseURL: "https://api.chapa.co",
-			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:          "chapa",
+			Icon:          "etst",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 		})
 	if err != nil {
 		panic("failed to create payment partner")
@@ -42,9 +43,8 @@ func Test_Checkout(t *testing.T) {
 		ctx := context.Background()
 
 		_, err := testContainer.CheckoutService.Checkout(ctx, &CheckoutRequest{
-			OrderId:       1,
-			Amount:        100,
-			PaymentMethod: PAYMENT_METHOD_DIGITAL,
+			OrderId: 1,
+			Amount:  100,
 		})
 		wantErr := ErrPaymentPartnerNotSupported
 		if err != wantErr {
@@ -60,7 +60,6 @@ func Test_Checkout(t *testing.T) {
 			OrderId:          1,
 			Amount:           400,
 			PaymentPartnerId: PaymentPartnerId,
-			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 		}
 
 		_, err := testContainer.CheckoutService.Checkout(ctx, in)
@@ -76,7 +75,6 @@ func Test_Checkout(t *testing.T) {
 		setup()
 		in := &CheckoutRequest{
 			PaymentPartnerId: PaymentPartnerId,
-			PaymentMethod:    PAYMENT_METHOD_DIGITAL,
 		}
 		_, err := testContainer.CheckoutService.Checkout(ctx, in)
 		log.Printf("Got Error: %v", err)
