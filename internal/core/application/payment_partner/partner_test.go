@@ -144,11 +144,10 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 		t.Cleanup(container.Teardown)
 		ctx := context.Background()
 		in := &CreateRequest{
-			Name:          "test",
-			Icon:          "test",
-			BaseURL:       "https://google.com",
-			Secret:        "test",
-			PaymentMethod: PAYMENT_METHOD_DIGITAL,
+			Name:    "test",
+			Icon:    "test",
+			BaseURL: "https://google.com",
+			Secret:  "test",
 		}
 
 		_, err := container.PartnerService.Create(ctx, in)
