@@ -1511,7 +1511,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount, created_date
+    SELECT i.id, i.status, i.external_id, i.order_id, i.subtotal, i.tax_amount, i.created_date
     FROM public.invoices i
     WHERE i.id = i_invoice_id
       AND i.is_deleted = FALSE
