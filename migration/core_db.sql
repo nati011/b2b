@@ -318,6 +318,7 @@ CREATE TABLE IF NOT EXISTS public."orders"
   status VARCHAR(255),
   payment_status VARCHAR(255),
   delivery_status VARCHAR(255),
+  confirmation_status VARCHAR(255),
   total DECIMAL(12,2),
 	FOREIGN KEY (retailer_id) REFERENCES public."users"(id) ON DELETE CASCADE
 
