@@ -11,6 +11,7 @@ SELECT public.create_payment_partner(
     'ACTIVE', 
     'https://api.chapa.co', 
     'CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5'
+    'DIGITAL_PAYMENT'
 );
 
 SELECT public.create_payment_partner(
@@ -18,7 +19,8 @@ SELECT public.create_payment_partner(
     'icon', 
     'ACTIVE', 
     'https://no.baseurl', 
-    'no-secret'
+    'no-secret',
+    'MANUAL_PAYMENT'
 );
 
 -- create email template

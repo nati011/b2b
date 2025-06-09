@@ -27,10 +27,11 @@ func Test_DisallowCheckOutIfPaymentProviderIsInactive(t *testing.T) {
 	var err error
 	PaymentPartnerId, err := testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:    "chapa",
-			Icon:    "test",
-			BaseURL: "https://api.chapa.co",
-			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:          "chapa",
+			Icon:          "test",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 		})
 
 	if err != nil {
@@ -57,10 +58,11 @@ func Test_AllowCheckOutIfPaymentProviderIsActive(t *testing.T) {
 	ctx := context.Background()
 	PaymentPartnerId, err := testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:    "chapa",
-			Icon:    "test",
-			BaseURL: "https://api.chapa.co",
-			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:          "chapa",
+			Icon:          "test",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 		})
 	if err != nil {
 		t.Fatalf("Failed to create payment partner: %v", err)

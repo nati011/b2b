@@ -9,12 +9,13 @@ import (
 )
 
 type MockPartner struct {
-	Id       int
-	Name     string
-	Icon     string
-	base_url string
-	Status   string
-	Secret   string
+	Id            int
+	Name          string
+	Icon          string
+	base_url      string
+	Status        string
+	Secret        string
+	PaymentMethod string
 }
 
 type Mock struct {
@@ -30,11 +31,12 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.resources {
 		if i.Id == id {
 			return port.GetResponse{
-				Id:      i.Id,
-				Name:    i.Name,
-				Status:  i.Status,
-				Icon:    i.Icon,
-				BaseURL: i.base_url,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				BaseURL:       i.base_url,
+				PaymentMethod: i.PaymentMethod,
 			}, nil
 		}
 	}
@@ -45,11 +47,12 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	response := []port.GetResponse{}
 	for _, i := range m.resources {
 		response = append(response, port.GetResponse{
-			Id:      i.Id,
-			Name:    i.Name,
-			Status:  i.Status,
-			Icon:    i.Icon,
-			BaseURL: i.base_url,
+			Id:            i.Id,
+			Name:          i.Name,
+			Status:        i.Status,
+			Icon:          i.Icon,
+			BaseURL:       i.base_url,
+			PaymentMethod: i.PaymentMethod,
 		})
 	}
 	if len(response) == 0 {
@@ -78,21 +81,23 @@ func (m *Mock) UpdatePartnerSecret(ctx context.Context, req port.UpdatePartnerSe
 	for _, i := range m.resources {
 		if i.Id == req.Id {
 			resp = append(resp, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   i.Status,
-				Icon:     i.Icon,
-				base_url: req.BaseURL,
-				Secret:   req.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				base_url:      req.BaseURL,
+				Secret:        req.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		} else {
 			resp = append(resp, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   i.Status,
-				Icon:     i.Icon,
-				base_url: i.base_url,
-				Secret:   i.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				base_url:      i.base_url,
+				Secret:        i.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		}
 	}
@@ -105,11 +110,12 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 	for _, i := range m.resources {
 		if i.Status == status {
 			response = append(response, port.GetResponse{
-				Id:      i.Id,
-				Name:    i.Name,
-				Status:  i.Status,
-				Icon:    i.Icon,
-				BaseURL: i.base_url,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				BaseURL:       i.base_url,
+				PaymentMethod: i.PaymentMethod,
 			})
 		}
 	}
@@ -126,11 +132,12 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 	for _, i := range m.resources {
 		if i.Name == name {
 			response = append(response, port.GetResponse{
-				Id:      i.Id,
-				Name:    i.Name,
-				Status:  i.Status,
-				Icon:    i.Icon,
-				BaseURL: i.base_url,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				BaseURL:       i.base_url,
+				PaymentMethod: i.PaymentMethod,
 			})
 		}
 	}
@@ -145,12 +152,13 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	newResourceId := len(m.resources) + 1
 	m.resources = append(m.resources, MockPartner{
-		Id:       newResourceId,
-		Name:     req.Name,
-		Icon:     req.Icon,
-		base_url: req.BaseURL,
-		Status:   req.Status,
-		Secret:   req.Secret,
+		Id:            newResourceId,
+		Name:          req.Name,
+		Icon:          req.Icon,
+		base_url:      req.BaseURL,
+		Status:        req.Status,
+		Secret:        req.Secret,
+		PaymentMethod: req.PaymentMethod,
 	})
 	return newResourceId, nil
 }
@@ -162,21 +170,23 @@ func (m *Mock) UpdateStatus(ctx context.Context, id int, status string) (int, er
 		if i.Id == id {
 			updatedResourceId = i.Id
 			updatedResources = append(updatedResources, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   status,
-				Icon:     i.Icon,
-				base_url: i.base_url,
-				Secret:   i.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        status,
+				Icon:          i.Icon,
+				base_url:      i.base_url,
+				Secret:        i.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   i.Status,
-				Icon:     i.Icon,
-				base_url: i.base_url,
-				Secret:   i.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				base_url:      i.base_url,
+				Secret:        i.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		}
 
@@ -192,21 +202,23 @@ func (m *Mock) UpdateName(ctx context.Context, id int, name string) (int, error)
 		if i.Id == id {
 			updatedResourceId = i.Id
 			updatedResources = append(updatedResources, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   i.Status,
-				Icon:     i.Icon,
-				base_url: i.base_url,
-				Secret:   i.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				base_url:      i.base_url,
+				Secret:        i.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   i.Status,
-				Icon:     i.Icon,
-				base_url: i.base_url,
-				Secret:   i.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				base_url:      i.base_url,
+				Secret:        i.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		}
 
@@ -220,12 +232,13 @@ func (m *Mock) Delete(ctx context.Context, id int) error {
 	for _, i := range m.resources {
 		if i.Id != id {
 			updatedResources = append(updatedResources, MockPartner{
-				Id:       i.Id,
-				Name:     i.Name,
-				Status:   i.Status,
-				Icon:     i.Icon,
-				base_url: i.base_url,
-				Secret:   i.Secret,
+				Id:            i.Id,
+				Name:          i.Name,
+				Status:        i.Status,
+				Icon:          i.Icon,
+				base_url:      i.base_url,
+				Secret:        i.Secret,
+				PaymentMethod: i.PaymentMethod,
 			})
 		}
 	}
