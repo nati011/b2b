@@ -133,6 +133,22 @@ func Test_Create_Payment_Option_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
 		}
 	})
+
+	t.Run("payment_method_mandatory", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:    "test",
+			Icon:    "test",
+			BaseURL: "https://google.com",
+		}
+
+		_, err := container.PartnerService.Create(ctx, in)
+		wantErr := ErrPaymentMethodIsNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
 }
 
 func Test_Activate_Payment_Option_happyPath(t *testing.T) {

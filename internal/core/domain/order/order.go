@@ -48,11 +48,6 @@ const (
 	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
 )
 
-const (
-	PAYMENT_METHOD_DIGITAL = "DIGITAL_PAYMENT"
-	PAYMENT_METHOD_MANUAL  = "MANUAL_PAYMENT"
-)
-
 type Item struct {
 	ProductId    int
 	ProductName  string
@@ -63,7 +58,6 @@ type Item struct {
 type PlaceRequest struct {
 	RetailerId       int
 	Items            []Item
-	PaymentMethod    string
 	PaymentPartnerId int
 }
 
@@ -98,6 +92,7 @@ type UpdateRequest struct {
 type OrderPlaceResponse struct {
 	Id          int    `json:"id"`
 	CheckoutUrl string `json:"checkout_url"`
+	TxRef       string `json:tx_ref`
 }
 
 type Provider interface {
@@ -222,7 +217,6 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 		OrderId:          order_id,
 		Amount:           itemsTotal,
 		PaymentPartnerId: req.PaymentPartnerId,
-		PaymentMethod:    req.PaymentMethod,
 	})
 	if err != nil {
 		o.Cancel(ctx, order_id)
@@ -282,6 +276,7 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 	*/
 	return OrderPlaceResponse{
 		Id:          order_id,
+		TxRef:       checkout_resp.TransactionRef,
 		CheckoutUrl: checkout_resp.CheckoutUrl,
 	}, nil
 }

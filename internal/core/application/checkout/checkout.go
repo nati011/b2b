@@ -35,7 +35,6 @@ type CheckoutRequest struct {
 	OrderId          int
 	Amount           float64
 	PaymentPartnerId int
-	PaymentMethod    string
 }
 
 type CheckoutResponse struct {
@@ -97,8 +96,19 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 	if req.Amount == 0 {
 		return CheckoutResponse{}, ErrAmountNotSupplied
 	}
-
-	if req.PaymentMethod == PAYMENT_METHOD_MANUAL {
+	paymentPartner, err := p.paymentPartner.Get(ctx, req.PaymentPartnerId)
+	if err != nil {
+		switch err {
+		case partner.ErrIdNotFound:
+			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+		default:
+			return CheckoutResponse{}, ErrUnknown
+		}
+	}
+	if paymentPartner.Status != partner.ACTIVE_STATUS {
+		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
+	}
+	if paymentPartner.PaymentMethod == PAYMENT_METHOD_MANUAL {
 		transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
 			Amount:           req.Amount,
 			PaymentPartnerId: req.PaymentPartnerId,
@@ -127,22 +137,8 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 
 		return CheckoutResponse{
 			TransactionRef: transaction_ref,
-			CheckoutUrl:    "not-null",
 		}, nil
-	} else if req.PaymentMethod == PAYMENT_METHOD_DIGITAL {
-		paymentPartner, err := p.paymentPartner.Get(ctx, req.PaymentPartnerId)
-		if err != nil {
-			switch err {
-			case partner.ErrIdNotFound:
-				return CheckoutResponse{}, ErrPaymentPartnerNotSupported
-			default:
-				return CheckoutResponse{}, ErrUnknown
-			}
-		}
-		if paymentPartner.Status != partner.ACTIVE_STATUS {
-			return CheckoutResponse{}, ErrPaymentPartnerNotSupported
-		}
-
+	} else if paymentPartner.PaymentMethod == PAYMENT_METHOD_DIGITAL {
 		paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 		if err != nil {
 			log.Printf("Error while fetching paymentPartnerSecret: %v", err.Error())
