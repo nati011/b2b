@@ -3336,8 +3336,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_transactions_by_tx_ref(
-    t_tx_ref VARCHAR(255),
+CREATE OR REPLACE FUNCTION public.get_transactions_by_transaction_ref(
+    transaction_ref VARCHAR(255),
     t_limit INT,
     t_offset INT
 )
@@ -3353,7 +3353,7 @@ BEGIN
     RETURN QUERY
     SELECT t.id, t.amount, t.partner_id, t.tx_ref, t.status, t.date
     FROM public.transactions t
-    WHERE t.tx_ref = t_tx_ref
+    WHERE t.tx_ref = transaction_ref
       AND t.is_deleted = FALSE
        LIMIT t_limit
     OFFSET t_offset;
