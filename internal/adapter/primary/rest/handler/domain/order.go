@@ -227,7 +227,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		init_resp, err := o.service.InitPayment(r.Context(), typedParamId)
+		init_response, err := o.service.InitPayment(r.Context(), typedParamId)
 		if err != nil {
 			switch err {
 			case order.ErrUnknown:
@@ -238,7 +238,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, init_resp)
+		util.OperationSuccessResponse(w, init_response)
 	}
 }
 
