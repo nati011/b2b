@@ -119,6 +119,7 @@ type Writer interface {
 	RemoveAssignedRole(ctx context.Context, id int, roleId int) error
 	GetAllAssignedRole(ctx context.Context, id int) (GetAllAssignedRoleResponse, error)
 	GetUserProvider(ctx context.Context, id int) (GetUserProviderResponse, error)
+	GetUserProviderByEmail(ctx context.Context, email string) (UserProvider, error)
 }
 
 type DB interface {

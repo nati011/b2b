@@ -206,15 +206,15 @@ func (a *AuthService) validateToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 func (s AuthService) InitClientCredentialsReset(ctx context.Context, req InitClientCredentialsResetRequest) error {
-	if req.UserId == "" {
-		return ErrUserIdNotSupplied
-	}
+	// if req.UserId == "" {
+	// 	return ErrUserIdNotSupplied
+	// }
 
 	if req.Email == "" {
 		return ErrUserIdNotSupplied
 	}
 
-	token, err := s.createToken(req.UserId, req.Email)
+	token, err := s.createToken(req.UserId)
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func (s AuthService) InitClientCredentialsReset(ctx context.Context, req InitCli
 	return nil
 }
 
-func (s AuthService) createToken(userId, userEmail string) (string, error) {
+func (s AuthService) createToken(userId string) (string, error) {
 	// Set token expiration time
 	expirationTime := time.Now().Add(30 * time.Minute)
 	claims := jwt.MapClaims{
