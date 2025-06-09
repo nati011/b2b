@@ -214,6 +214,23 @@ func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
+// FIX ME
+func (m *Mock) GetUserProviderByEmail(context.Context, string) (port.UserProvider, error) {
+	resp := []port.UserProvider{}
+	for _, i := range m.userProvider {
+
+		resp = append(resp, port.UserProvider{
+			UserId:     i.Id,
+			ProviderId: i.ProviderId,
+		})
+	}
+	if len(resp) == 0 {
+		return port.UserProvider{}, port_commons.ErrSysNoRows
+	}
+
+	return resp[0], nil
+}
+
 func (m *Mock) GetUserProvider(context.Context, int) (port.GetUserProviderResponse, error) {
 	resp := []port.UserProvider{}
 	for _, i := range m.userProvider {
