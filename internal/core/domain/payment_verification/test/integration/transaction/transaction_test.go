@@ -30,10 +30,11 @@ func setup() {
 	var err error
 	PaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
-			Name:    "chapa",
-			Icon:    "etst",
-			BaseURL: "https://api.chapa.co",
-			Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			Name:          "chapa",
+			Icon:          "etst",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 		},
 	)
 	if err != nil {
@@ -47,7 +48,6 @@ func Test_VerifyTransaction(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
-		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		t.Errorf("Failed to checkout err: %v", err)
@@ -69,7 +69,6 @@ func Test_StatusChangeUponSuccessfulVerification(t *testing.T) {
 		PaymentPartnerId: PaymentPartnerId,
 		OrderId:          1,
 		Amount:           100,
-		PaymentMethod:    checkout.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		t.Errorf("Failed to checkout err: %v", err)

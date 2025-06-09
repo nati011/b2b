@@ -18,7 +18,8 @@ var container test_container.TestContainer
 var db *sql.DB
 var retailer_id int
 var product_id int
-var payment_partner_id int
+var manualPaymentPartnerId int
+var digitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -64,11 +65,12 @@ func setup() {
 		Amount: 100,
 	})
 
-	payment_partner_id, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
-		Name:    "chapa",
-		Icon:    "etst",
-		BaseURL: "https://api.chapa.co",
-		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+	manualPaymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:          "chapa",
+		Icon:          "etst",
+		BaseURL:       "https://api.chapa.co",
+		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
 }
 
@@ -97,8 +99,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentMethod:    order.PAYMENT_METHOD_DIGITAL,
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -127,7 +128,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -157,7 +158,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -195,7 +196,7 @@ func Test_Read(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -225,7 +226,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -252,7 +253,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -290,7 +291,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
@@ -328,7 +329,7 @@ func Test_Write(t *testing.T) {
 					ProductId: product_id,
 					Quantity:  1},
 			},
-			PaymentPartnerId: payment_partner_id,
+			PaymentPartnerId: digitalPaymentPartnerId,
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
 		if err != nil {
