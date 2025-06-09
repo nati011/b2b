@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	test_container "b2b.nati011.github.com/internal/core/application/transaction/test"
@@ -31,10 +32,11 @@ func setup() {
 	ctx := context.Background()
 	var err error
 	PartnerId, err = container.PartnerService.Create(ctx, &partner.CreateRequest{
-		Name:    "test",
-		Icon:    "test",
-		BaseURL: "test",
-		Secret:  "test",
+		Name:          "test",
+		Icon:          "test",
+		BaseURL:       "test",
+		Secret:        "test",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		panic("failed to create err partner")

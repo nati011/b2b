@@ -13,24 +13,26 @@ type Item struct {
 	Price        float64
 }
 type CreateRequest struct {
-	RetailerId     int
-	Items          []Item
-	Status         string
-	PaymentStatus  string
-	DeliveryStatus string
-	Total          float64
+	RetailerId         int
+	Items              []Item
+	Status             string
+	PaymentStatus      string
+	DeliveryStatus     string
+	ConfirmationStatus string
+	Total              float64
 }
 
 type GetResponse struct {
-	Id             int
-	RetailerId     int
-	RetailerName   string
-	Items          []Item
-	Total          float64
-	Status         string
-	PaymentStatus  string
-	DeliveryStatus string
-	CreatedAt      time.Time
+	Id                 int
+	RetailerId         int
+	RetailerName       string
+	Items              []Item
+	Total              float64
+	Status             string
+	PaymentStatus      string
+	DeliveryStatus     string
+	ConfirmationStatus string
+	CreatedAt          time.Time
 }
 
 type GetAllResponse struct {
@@ -53,6 +55,11 @@ type UpdateOrderPaymentStatusRequest struct {
 	PaymentStatus string
 }
 
+type UpdateOrderConfirmationStatusRequest struct {
+	Id                 int
+	ConfirmationStatus string
+}
+
 type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetByRetailerID(context.Context, int) (GetAllResponse, error)
@@ -65,6 +72,7 @@ type Writer interface {
 	UpdateOrderStatus(context.Context, *UpdateOrderStatusRequest) error
 	UpdatePaymentStatus(context.Context, *UpdateOrderPaymentStatusRequest) error
 	UpdateDeliveryStatus(context.Context, *UpdateOrderDeliveryStatusRequest) error
+	UpdateConfirmationStatus(context.Context, *UpdateOrderConfirmationStatusRequest) error
 }
 
 type DB interface {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/config"
+	"github.com/go-co-op/gocron/v2"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
@@ -54,6 +55,13 @@ func main() {
 
 	mux := http.NewServeMux()
 	InitREST(mux, db_pool, application_container, domain_container)
+
+	s, err := gocron.NewScheduler()
+	if err != nil {
+		log.Fatal(err)
+	}
+	InitCron(s, application_container, domain_container)
+
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
@@ -65,7 +73,7 @@ func main() {
 	}
 	log.Printf("Ahoy! server running %s on %s ...", cfg.Env, srv.Addr)
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
