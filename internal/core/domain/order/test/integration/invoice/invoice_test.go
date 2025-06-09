@@ -15,7 +15,7 @@ import (
 var container order.TestContainer
 var retailer_id int
 var product_id int
-var payment_partner_id int
+var digitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -68,11 +68,12 @@ func setup() {
 		panic(err)
 	}
 
-	payment_partner_id, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
-		Name:    "chapa",
-		Icon:    "etst",
-		BaseURL: "https://api.chapa.co",
-		Secret:  "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+	digitalPaymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+		Name:          "chapa",
+		Icon:          "etst",
+		BaseURL:       "https://api.chapa.co",
+		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
 	if err != nil {
 		panic(err)
@@ -88,7 +89,7 @@ func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
 				ProductId: product_id,
 				Quantity:  19},
 		},
-		PaymentPartnerId: payment_partner_id,
+		PaymentPartnerId: digitalPaymentPartnerId,
 	}
 	order_resp, err := container.OrderService.Place(ctx, in)
 	if err != nil {
