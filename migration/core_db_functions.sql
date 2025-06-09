@@ -3394,12 +3394,13 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              base_url VARCHAR(255),
+              payment_method VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.base_url, p.payment_method
     FROM public.payment_partners p
     WHERE p.id = p_id
       AND p.is_deleted = FALSE
@@ -3415,12 +3416,13 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              base_url VARCHAR(255),
+              payment_method VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.base_url, p.payment_method
     FROM public.payment_partners p
     WHERE p.is_deleted = FALSE
     LIMIT p_limit
@@ -3453,12 +3455,13 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              base_url VARCHAR(255),
+              payment_method VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.base_url, p.payment_method
     FROM public.payment_partners p
     WHERE p.name = p_name
       AND p.is_deleted = FALSE;
@@ -3472,12 +3475,13 @@ RETURNS TABLE(id int,
               name VARCHAR(255),
               icon VARCHAR(255),
               status VARCHAR(255),
-              base_url VARCHAR(255))
+              base_url VARCHAR(255),
+              payment_method VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.name, p.icon, p.status, p.base_url
+    SELECT p.id, p.name, p.icon, p.status, p.base_url, p.payment_method
     FROM public.payment_partners p
     WHERE p.status = p_status
       AND p.is_deleted = FALSE;
@@ -3491,7 +3495,8 @@ CREATE OR REPLACE FUNCTION public.create_payment_partner(
     p_icon VARCHAR(255),
     p_status VARCHAR(255),
     p_base_url VARCHAR(255),
-    p_secret VARCHAR(255)
+    p_secret VARCHAR(255),
+    p_payment_method VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -3504,12 +3509,14 @@ BEGIN
                             icon, 
                             status, 
                             base_url,
-                            secret)
+                            secret, 
+                            payment_method)
     VALUES (p_name, 
             p_icon, 
             p_status,
             p_base_url,
-            p_secret
+            p_secret,
+            p_payment_method
             )
     RETURNING id INTO new_id;
 

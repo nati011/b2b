@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrAlreadyApproved  = errors.New("oopsy, already approved")
-	ErrAlreadyRejected  = errors.New("oopsy, already rejected")
-	ErrCommentMandatory = errors.New("oopsy, comment mandatory")
-	ErrUnknown          = errors.New("oopsy, unknown error")
-	ErrNoReview         = errors.New("oopsy, no reviews")
+	ErrAlreadyApproved  = errors.New("¯\\_(ツ)_/¯, already approved")
+	ErrAlreadyRejected  = errors.New("¯\\_(ツ)_/¯, already rejected")
+	ErrCommentMandatory = errors.New("¯\\_(ツ)_/¯, comment mandatory")
+	ErrUnknown          = errors.New("¯\\_(ツ)_/¯, unknown error")
+	ErrNoReview         = errors.New("¯\\_(ツ)_/¯, no reviews")
 )
 
 type ApprovalRequest struct {

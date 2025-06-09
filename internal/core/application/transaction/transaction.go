@@ -10,16 +10,16 @@ import (
 )
 
 var (
-	ErrUserIdNotSupplied           = errors.New("oopsy, user id mandatory")
-	ErrPartnerIdNotSupplied        = errors.New("oopsy, partnerId mandatory")
-	ErrAmountIsNotSupplied         = errors.New("oopsy, amount mandatory")
-	ErrAmountMustBeGreaterThanZero = errors.New("oopsy, amount must be greater than zero")
-	ErrIdNotFound                  = errors.New("oopsy, id not found")
-	ErrEmptyGetContent             = errors.New("oopsy, empty get content")
-	ErrUnknown                     = errors.New("oopsy, unkown error")
-	ErrPartnerDoesNotExist         = errors.New("oopsy, partner does not exist")
-	ErrUserDoesNotExist            = errors.New("oopsy, user does not exist")
-	ErrTransactionRefNotSupplied   = errors.New("oopsy, txRef mandatory")
+	ErrUserIdNotSupplied           = errors.New("¯\\_(ツ)_/¯, user id mandatory")
+	ErrPartnerIdNotSupplied        = errors.New("¯\\_(ツ)_/¯, partnerId mandatory")
+	ErrAmountIsNotSupplied         = errors.New("¯\\_(ツ)_/¯, amount mandatory")
+	ErrAmountMustBeGreaterThanZero = errors.New("¯\\_(ツ)_/¯, amount must be greater than zero")
+	ErrIdNotFound                  = errors.New("¯\\_(ツ)_/¯, id not found")
+	ErrEmptyGetContent             = errors.New("¯\\_(ツ)_/¯, empty get content")
+	ErrUnknown                     = errors.New("¯\\_(ツ)_/¯, unkown error")
+	ErrPartnerDoesNotExist         = errors.New("¯\\_(ツ)_/¯, partner does not exist")
+	ErrUserDoesNotExist            = errors.New("¯\\_(ツ)_/¯, user does not exist")
+	ErrTransactionRefNotSupplied   = errors.New("¯\\_(ツ)_/¯, txRef mandatory")
 )
 
 var (

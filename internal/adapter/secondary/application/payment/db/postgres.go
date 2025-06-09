@@ -178,11 +178,11 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		v, _ := strconv.ParseFloat(res[4].(string), 64)
 		responseBase := port.GetResponse{
 			Id:             int(res[0].(int64)),
-			OrderId:        responseBase.OrderId,
-			PartnerId:      responseBase.PartnerId,
-			TransactionRef: responseBase.TransactionRef,
+			OrderId:        int(res[1].(int64)),
+			PartnerId:      int(res[2].(int64)),
+			TransactionRef: res[3].(string),
 			Amount:         v,
-			Date:           responseBase.Date,
+			Date:           res[5].(time.Time),
 		}
 		response.List = append(response.List, responseBase)
 	}

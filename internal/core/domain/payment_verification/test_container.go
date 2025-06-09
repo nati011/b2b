@@ -1,13 +1,16 @@
 package payment_verification
 
 import (
+	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
-	checkout_test "b2b.nati011.github.com/internal/core/application/checkout/test"
 	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
+	"b2b.nati011.github.com/internal/core/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 type TestContainer struct {
@@ -16,15 +19,24 @@ type TestContainer struct {
 	PartnerService             partner.Provider
 	CheckoutService            checkout.Provider
 	OrderService               order.Provider
+	RetailerService            retailer.Provider
+	ProductService             product.Provider
+	InvoiceService             invoice.Provider
+	PaymentService             payment.Provider
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	orderTestContainer := order.NewPackageIntegrationTestContainer()
+	container.ProductService = product.NewPackageIntegrationTestContainer().ProductService
+	container.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
+	container.InvoiceService = invoice.NewInvoice(
+		invoice_db.NewMock(),
+	)
+	container.PaymentService = payment.NewTestContainer().Service
 	container.CheckoutService = checkout.NewCheckoutService(
-		payment.NewTestContainer().Service,
+		container.PaymentService,
 		container.PartnerService,
 		container.TransactionService,
 		"https://example.com",
@@ -32,13 +44,13 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	)
 	container.OrderService = order.NewOrderService(
 		order_db.NewMock(),
-		orderTestContainer.InvoiceService,
-		orderTestContainer.ProductService,
-		orderTestContainer.RetailerService,
-		container.CheckoutService,
-	)
+		container.InvoiceService,
+		container.ProductService,
+		container.RetailerService,
+		container.CheckoutService)
+
 	container.PaymentVerificationService = NewPaymentVerificationService(
-		payment.NewTestContainer().Service,
+		container.PaymentService,
 		container.PartnerService,
 		container.TransactionService,
 		container.OrderService,
@@ -48,14 +60,17 @@ func NewPackageIntegrationTestContainer() TestContainer {
 }
 
 func (t *TestContainer) TearDown() {
-	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
-	t.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	t.OrderService = order.NewPackageIntegrationTestContainer().OrderService
+	t.OrderService = order.NewOrderService(
+		order_db.NewMock(),
+		t.InvoiceService,
+		t.ProductService,
+		t.RetailerService,
+		t.CheckoutService)
+
 	t.PaymentVerificationService = NewPaymentVerificationService(
-		payment.NewTestContainer().Service,
+		t.PaymentService,
 		t.PartnerService,
 		t.TransactionService,
 		t.OrderService,
 	)
-	t.CheckoutService = checkout_test.NewPackageIntegrationTestContainer().CheckoutService
 }
