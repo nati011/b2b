@@ -93,7 +93,7 @@ type UpdateRequest struct {
 type OrderPlaceResponse struct {
 	Id          int    `json:"id"`
 	CheckoutUrl string `json:"checkout_url"`
-	TxRef       string `json:tx_ref`
+	TxRef       string `json:"tx_ref"`
 }
 
 type Provider interface {
