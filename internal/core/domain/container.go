@@ -12,7 +12,6 @@ import (
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	retailer_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	application_core "b2b.nati011.github.com/internal/core/application"
-	"b2b.nati011.github.com/internal/core/application/payment"
 	"b2b.nati011.github.com/internal/core/domain/catalogue"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
@@ -147,7 +146,7 @@ func (m *Container) InitOrderService() {
 
 func (m *Container) InitPaymentVerificationService() {
 	m.PaymentVerificationService = payment_verification.NewPaymentVerificationService(
-		payment.NewTestContainer().Service,
+		m.ApplicationServices.PaymentService,
 		m.ApplicationServices.PaymentPartnerService,
 		m.ApplicationServices.TransactionService,
 		m.OrderService)
