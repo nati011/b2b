@@ -4,10 +4,15 @@ import (
 	"database/sql"
 
 	"b2b.nati011.github.com/config"
+	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
+	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/category"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
+	distributor_test "b2b.nati011.github.com/internal/core/domain/distributor/test"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -17,12 +22,13 @@ import (
 )
 
 type TestContainer struct {
-	OrderService    order.Provider
-	InvoiceService  invoice.Provider
-	ProductService  product.Provider
-	RetailerService retailer.Provider
-	CheckoutService checkout.Provider
-	PartnerService  partner.Provider
+	OrderService       order.Provider
+	InvoiceService     invoice.Provider
+	ProductService     product.Provider
+	RetailerService    retailer.Provider
+	CheckoutService    checkout.Provider
+	PartnerService     partner.Provider
+	DistributorService distributor.Provider
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
@@ -32,11 +38,15 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	)
 
 	checkout_container := checkout.NewPackageIntegrationTestContainer()
-
+	container.DistributorService = distributor_test.NewDBIntegrationTestContainer(db).DistributorService
 	container.PartnerService = checkout_container.PartnerService
 	container.RetailerService = retailer_test.NewDBIntegrationTestContainer(db).RetailerService
 	container.CheckoutService = checkout_container.CheckoutService
-	container.ProductService = product_test.NewDBIntegrationTestContainer(db).ProductService
+	container.ProductService = product.NewProduct(
+		product_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		category.NewCategory(category_db.NewMock()),
+		container.DistributorService,
+	)
 	container.OrderService = order.NewOrderService(
 		order_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		container.InvoiceService,

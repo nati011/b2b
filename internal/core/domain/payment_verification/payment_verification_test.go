@@ -8,6 +8,7 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
@@ -16,9 +17,9 @@ import (
 var testContainer TestContainer
 var DigitalPaymentPartnerId int
 var ManualPaymentPartnerId int
-var retailer_id int
-var distributor_id int
-var product_id int
+var retailerId int
+var distributorId int
+var productId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -30,7 +31,7 @@ func setup() {
 	testContainer = NewPackageIntegrationTestContainer()
 	ctx := context.Background()
 	var err error
-	retailer_id, err = testContainer.RetailerService.Create(ctx, &retailer.CreateRequest{
+	retailerId, err = testContainer.RetailerService.Create(ctx, &retailer.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
 		Longitude:   "38.7525° E",
@@ -46,8 +47,22 @@ func setup() {
 	if err != nil {
 		panic("failed to create product")
 	}
-	distributor_id = 1
-	product_id, err = testContainer.ProductService.Create(ctx, &product.CreateRequest{
+	distributorId, err = testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
+	productId, err = testContainer.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
@@ -59,13 +74,13 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
-		DistributorId: distributor_id,
+		DistributorId: distributorId,
 	})
 	if err != nil {
 		panic("failed to create product")
 	}
 	testContainer.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
-		Id:     product_id,
+		Id:     productId,
 		Amount: 10000,
 	})
 
@@ -115,10 +130,10 @@ func Test_Verify_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &order.PlaceRequest{
 		PaymentPartnerId: DigitalPaymentPartnerId,
-		RetailerId:       retailer_id,
+		RetailerId:       retailerId,
 		Items: []order.Item{
 			{
-				ProductId: product_id,
+				ProductId: productId,
 				Quantity:  1},
 		},
 	}
@@ -153,10 +168,10 @@ func Test_Confirm_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		in := &order.PlaceRequest{
 			PaymentPartnerId: DigitalPaymentPartnerId,
-			RetailerId:       retailer_id,
+			RetailerId:       retailerId,
 			Items: []order.Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -178,10 +193,10 @@ func Test_Confirm_happyPath(t *testing.T) {
 	ctx := context.Background()
 	in := &order.PlaceRequest{
 		PaymentPartnerId: ManualPaymentPartnerId,
-		RetailerId:       retailer_id,
+		RetailerId:       retailerId,
 		Items: []order.Item{
 			{
-				ProductId: product_id,
+				ProductId: productId,
 				Quantity:  1},
 		},
 	}

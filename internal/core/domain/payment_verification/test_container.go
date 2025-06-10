@@ -1,12 +1,16 @@
 package payment_verification
 
 import (
+	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
+	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/transaction"
+	"b2b.nati011.github.com/internal/core/domain/category"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -20,6 +24,7 @@ type TestContainer struct {
 	CheckoutService            checkout.Provider
 	OrderService               order.Provider
 	RetailerService            retailer.Provider
+	DistributorService         distributor.Provider
 	ProductService             product.Provider
 	InvoiceService             invoice.Provider
 	PaymentService             payment.Provider
@@ -29,8 +34,15 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
-	container.ProductService = product.NewPackageIntegrationTestContainer().ProductService
 	container.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
+	container.DistributorService = distributor.NewPackageIntegrationTestContainer().DistributorService
+	container.ProductService = product.NewProduct(
+		product_db.NewMock(),
+		category.NewCategory(
+			category_db.NewMock(),
+		),
+		container.DistributorService,
+	)
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewMock(),
 	)

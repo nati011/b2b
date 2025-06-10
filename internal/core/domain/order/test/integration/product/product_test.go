@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
@@ -15,6 +16,7 @@ var container order.TestContainer
 var retailerId int
 var productId int
 var digitalPaymentPartnerId int
+var distributorId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -46,6 +48,21 @@ func setup() {
 	if err != nil {
 		panic(err)
 	}
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 	productId, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -58,6 +75,7 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	})
 	if err != nil {
 		panic(err)
