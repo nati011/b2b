@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/domain/category"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	test_container "b2b.nati011.github.com/internal/core/domain/product/test"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
@@ -17,6 +18,7 @@ import (
 var container test_container.TestContainer
 var db *sql.DB
 var categoryId int
+var distributorId int
 
 func TestMain(m *testing.M) {
 
@@ -34,10 +36,27 @@ func setup() {
 	categoryId, _ = container.CategoryService.Create(ctx, &category.CreateRequest{
 		Name: "test",
 	})
+	var err error
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 }
 
 func teardown() {
 	db_test_container.Teardown(db)
+	setup()
 }
 
 func Test_Timeout(t *testing.T) {
@@ -61,6 +80,7 @@ func Test_read(t *testing.T) {
 				"test": "test",
 				"tet":  "tets",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -114,6 +134,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		_, err := container.ProductService.Create(ctx, in)
@@ -133,6 +154,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		_, err = container.ProductService.Create(ctx, in_two)
@@ -167,6 +189,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to create product")
@@ -211,6 +234,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to create product")
@@ -255,6 +279,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		_, err := container.ProductService.Create(ctx, in)
@@ -290,6 +315,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		_, err := container.ProductService.Create(ctx, in)
@@ -325,7 +351,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
-			DistributorId: 1,
+			DistributorId: distributorId,
 		}
 
 		_, err := container.ProductService.Create(ctx, in)
@@ -334,7 +360,7 @@ func Test_read(t *testing.T) {
 		}
 
 		got, err := container.ProductService.GetByParam(ctx, &product.GetByParamRequest{
-			DistributorId: 1,
+			DistributorId: distributorId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to get product err: %v", err)
@@ -361,7 +387,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
-			DistributorId: 1,
+			DistributorId: distributorId,
 			CategoryId:    []int{categoryId},
 		}
 
@@ -398,7 +424,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
-			DistributorId: 1,
+			DistributorId: distributorId,
 			CategoryId:    []int{categoryId},
 		}
 
@@ -436,6 +462,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		_, err := container.ProductService.Create(ctx, in)
@@ -471,6 +498,7 @@ func Test_write(t *testing.T) {
 				"test": "test",
 				"tet":  "tst",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -525,6 +553,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -568,6 +597,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -611,6 +641,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -653,6 +684,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -695,6 +727,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -742,6 +775,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -794,6 +828,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -840,6 +875,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -882,6 +918,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		id, err := container.ProductService.Create(ctx, in)
@@ -933,6 +970,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		product_id, err := container.ProductService.Create(ctx, in)
@@ -981,6 +1019,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		}
 
 		product_id, err := container.ProductService.Create(ctx, in)

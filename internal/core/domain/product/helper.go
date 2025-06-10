@@ -70,6 +70,9 @@ func validateAttributes(attributes map[string]string) error {
 }
 
 func (p *ProductService) validateDistributor(ctx context.Context, id int) error {
+	if id == 0 {
+		return ErrDistributorIdMandatory
+	}
 	_, err := p.DistrbutorService.Get(ctx, id)
 	if err == distributor.ErrIdNotFound {
 		return ErrDistributorNotFound
