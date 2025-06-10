@@ -206,23 +206,24 @@ func (a *AuthService) validateToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 func (s AuthService) InitClientCredentialsReset(ctx context.Context, req InitClientCredentialsResetRequest) error {
-	// if req.UserId == "" {
-	// 	return ErrUserIdNotSupplied
-	// }
+	if req.UserId == "" {
+		return ErrUserIdNotSupplied
+	}
 
 	if req.Email == "" {
 		return ErrUserIdNotSupplied
 	}
 
-	token, err := s.createToken(req.UserId)
+	_, err := s.createToken(req.UserId)
 	if err != nil {
 		return err
 	}
 
-	err = s.sendResetEmail(token, req.Email)
-	if err != nil {
-		return err
-	}
+	// Temp
+	// err = s.sendResetEmail(token, req.Email)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -243,6 +244,8 @@ func (s AuthService) createToken(userId string) (string, error) {
 	if err != nil {
 		return "", err // Return error if signing fails
 	}
+
+	log.Printf("Tokens %v,", signedToken)
 
 	return signedToken, nil
 }
