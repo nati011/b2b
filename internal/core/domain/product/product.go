@@ -37,6 +37,7 @@ var (
 	ErrStockReservationQtyMustBeLessThanOrEqualToAvailableQty = errors.New("¯\\_(ツ)_/¯, reserved quantity cannot be more than available quantity")
 	ErrFreeReservationQtyMustBeLessThanOrEqualToReservedQty   = errors.New("¯\\_(ツ)_/¯, free reservation quantity cannot be more than reserved quantity")
 	ErrDistributorNotFound                                    = errors.New("¯\\_(ツ)_/¯, distributor not found")
+	ErrDistributorIdMandatory                                 = errors.New("¯\\_(ツ)_/¯, distributor id not supplied")
 )
 
 type Image struct {

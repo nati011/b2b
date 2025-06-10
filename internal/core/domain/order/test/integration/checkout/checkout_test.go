@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	test_container "b2b.nati011.github.com/internal/core/domain/order/test"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -21,6 +22,7 @@ var retailerId int
 var productId int
 var manualPaymentPartnerId int
 var digitalPaymentPartnerId int
+var distributorId int
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -33,7 +35,7 @@ func setup() {
 	container = test_container.NewDBIntegrationTestContainer(
 		db,
 	)
-	// setup
+	var err error
 	retailerId, _ = container.RetailerService.Create(ctx, &retailer.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
@@ -47,7 +49,21 @@ func setup() {
 		Phone:       "+251949184879",
 		Email:       "test@gmail.com",
 	})
-
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 	productId, _ = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -60,6 +76,7 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	})
 	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     productId,
