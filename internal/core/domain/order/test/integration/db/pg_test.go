@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	test_container "b2b.nati011.github.com/internal/core/domain/order/test"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -20,6 +21,7 @@ var retailer_id int
 var product_id int
 var manualPaymentPartnerId int
 var digitalPaymentPartnerId int
+var distributorId int
 
 func TestMain(m *testing.M) {
 	code := m.Run()
@@ -32,8 +34,8 @@ func setup() {
 	container = test_container.NewDBIntegrationTestContainer(
 		db,
 	)
-	// setup
-	retailer_id, _ = container.RetailerService.Create(ctx, &retailer.CreateRequest{
+	var err error
+	retailer_id, err = container.RetailerService.Create(ctx, &retailer.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
 		Longitude:   "38.7525° E",
@@ -46,8 +48,25 @@ func setup() {
 		Phone:       "+251949184879",
 		Email:       "test@gmail.com",
 	})
-
-	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
+	if err != nil {
+		panic("failed to create retailer")
+	}
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
+	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
@@ -59,27 +78,38 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	})
+	if err != nil {
+		panic("failed to create product")
+	}
+
 	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     product_id,
 		Amount: 100,
 	})
 
-	manualPaymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+	manualPaymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
 		Name:          "chapa",
 		Icon:          "etst",
 		BaseURL:       "https://api.chapa.co",
 		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		PaymentMethod: payment_partner.PAYMENT_METHOD_MANUAL,
 	})
+	if err != nil {
+		panic("failed to create product")
+	}
 
-	digitalPaymentPartnerId, _ = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
+	digitalPaymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
 		Name:          "chapa",
 		Icon:          "etst",
 		BaseURL:       "https://api.chapa.co",
 		Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 		PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
 	})
+	if err != nil {
+		panic("failed to create product")
+	}
 }
 
 func teardown() {

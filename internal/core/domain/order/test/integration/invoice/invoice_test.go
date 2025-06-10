@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -15,6 +16,7 @@ import (
 var container order.TestContainer
 var retailer_id int
 var product_id int
+var distributorId int
 var digitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
@@ -43,6 +45,21 @@ func setup() {
 	if err != nil {
 		panic(err)
 	}
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -55,6 +72,7 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	})
 	if err != nil {
 		panic(err)
@@ -87,7 +105,7 @@ func Test_Create_Invoice_Upon_Order_Placement(t *testing.T) {
 		Items: []order.Item{
 			{
 				ProductId: product_id,
-				Quantity:  19},
+				Quantity:  1},
 		},
 		PaymentPartnerId: digitalPaymentPartnerId,
 	}

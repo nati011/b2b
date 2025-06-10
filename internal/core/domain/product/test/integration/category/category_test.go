@@ -6,10 +6,12 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/domain/category"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	product "b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var testContainer product.TestContainer
+var distributorId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -19,6 +21,23 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	testContainer = product.NewPackageIntegrationTestContainer()
+	ctx := context.Background()
+	var err error
+	distributorId, err = testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 }
 
 func teardown() {
@@ -52,6 +71,7 @@ func Test_Add_Category_To_Product_happyPath(t *testing.T) {
 		CategoryId: []int{
 			category_id,
 		},
+		DistributorId: distributorId,
 	}
 	product_id, err := testContainer.ProductService.Create(ctx, in_product)
 	if err != nil {
@@ -94,6 +114,7 @@ func Test_Add_Category_To_Product_unhappyPath(t *testing.T) {
 			CategoryId: []int{
 				99,
 			},
+			DistributorId: distributorId,
 		}
 		wantErr := product.ErrCategoryNotFound
 		_, err := testContainer.ProductService.Create(ctx, in_product)
@@ -131,6 +152,7 @@ func Test_Update_product_Category_happyPath(t *testing.T) {
 		CategoryId: []int{
 			category_id,
 		},
+		DistributorId: distributorId,
 	}
 	product_id, err := testContainer.ProductService.Create(ctx, in_product)
 	if err != nil {
@@ -217,6 +239,7 @@ func Test_Update_Product_Category_unhappyPath(t *testing.T) {
 		CategoryId: []int{
 			category_id,
 		},
+		DistributorId: distributorId,
 	}
 	product_id, err := testContainer.ProductService.Create(ctx, in_product)
 	if err != nil {
@@ -274,6 +297,7 @@ func Test_Get_Products_By_Category_happyPath(t *testing.T) {
 		CategoryId: []int{
 			category_id,
 		},
+		DistributorId: distributorId,
 	}
 	product_id, err := testContainer.ProductService.Create(ctx, in_product)
 	if err != nil {
@@ -296,6 +320,7 @@ func Test_Get_Products_By_Category_happyPath(t *testing.T) {
 		CategoryId: []int{
 			category_id,
 		},
+		DistributorId: distributorId,
 	}
 	new_product_id, err := testContainer.ProductService.Create(ctx, new_in_product)
 	if err != nil {
@@ -345,6 +370,7 @@ func Test_Get_Products_By_Category_unhappyPath(t *testing.T) {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	}
 	_, err := testContainer.ProductService.Create(ctx, in_product)
 	if err != nil {
@@ -388,6 +414,7 @@ func Test_Get_Categories_of_product_happyPath(t *testing.T) {
 		CategoryId: []int{
 			category_id,
 		},
+		DistributorId: distributorId,
 	}
 	product_id, err := testContainer.ProductService.Create(ctx, in_product)
 	if err != nil {
@@ -402,5 +429,4 @@ func Test_Get_Categories_of_product_happyPath(t *testing.T) {
 	if product.CategoryId[0] != category_id {
 		t.Errorf("Expected categoryId: %v got: %v", category_id, product.CategoryId[0])
 	}
-
 }

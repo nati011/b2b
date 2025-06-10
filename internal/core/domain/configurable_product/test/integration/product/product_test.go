@@ -6,19 +6,39 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var container configurable_product.TestContainer
+var distributorId int
 
 func TestMain(m *testing.M) {
+	setup()
 	code := m.Run()
 	os.Exit(code)
 }
 
 func setup() {
+	ctx := context.Background()
 	container = configurable_product.NewPackageIntegrationTestContainer()
+	var err error
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 }
 
 func Test_Create_ValidateProduct_happyPath(t *testing.T) {
@@ -38,6 +58,7 @@ func Test_Create_ValidateProduct_happyPath(t *testing.T) {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	}
 
 	id, err := container.ProductService.Create(ctx, in)
@@ -111,6 +132,7 @@ func Test_Create_ValidateAttribute_keys_happyPath(t *testing.T) {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	}
 
 	id, err := container.ProductService.Create(ctx, in)
@@ -157,6 +179,7 @@ func Test_Create_ValidateAttribute_keys_unhappyPath(t *testing.T) {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	}
 
 	id, err := container.ProductService.Create(ctx, in)
@@ -262,6 +285,7 @@ func Test_Update_ValidateProduct_happyPath(t *testing.T) {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	}
 
 	id, err := container.ProductService.Create(ctx, in)
@@ -319,6 +343,7 @@ func Test_Update_ValidateProduct_unhappyPath(t *testing.T) {
 		Attributes: map[string]string{
 			"test": "test",
 		},
+		DistributorId: distributorId,
 	}
 
 	id, err := container.ProductService.Create(ctx, in)
