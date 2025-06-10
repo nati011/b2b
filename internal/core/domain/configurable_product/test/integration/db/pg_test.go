@@ -8,12 +8,14 @@ import (
 
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	test_container "b2b.nati011.github.com/internal/core/domain/configurable_product/test/integration"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var container test_container.TestContainer
+var distributorId int
 var db *sql.DB
 
 func TestMain(m *testing.M) {
@@ -25,10 +27,28 @@ func TestMain(m *testing.M) {
 func setup() {
 	db = db_test_container.Setup()
 	container = test_container.NewDBIntegrationTestContainer(db)
+	ctx := context.Background()
+	var err error
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 }
 
 func teardown() {
 	db_test_container.Teardown(db)
+	setup()
 }
 
 func Test_Timeout(t *testing.T) {
@@ -51,6 +71,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -101,6 +122,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -151,6 +173,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -200,6 +223,7 @@ func Test_read(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -252,6 +276,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 
 		in := &configurable_product.CreateRequest{
@@ -300,6 +325,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		if err != nil {
 			t.Fatalf("Failed to update name %v", err)
@@ -362,6 +388,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -420,6 +447,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -478,6 +506,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",
@@ -537,6 +566,7 @@ func Test_write(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		in := &configurable_product.CreateRequest{
 			Name:       "test",

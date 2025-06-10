@@ -3,23 +3,31 @@ package test_container
 import (
 	"database/sql"
 
+	"b2b.nati011.github.com/config"
+	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
+	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
+	distributor_test "b2b.nati011.github.com/internal/core/domain/distributor/test"
 	"b2b.nati011.github.com/internal/core/domain/product"
-	product_test_container "b2b.nati011.github.com/internal/core/domain/product/test"
-
-	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 )
 
 type TestContainer struct {
 	CategoryService            category.Provider
 	ProductService             product.Provider
 	ConfigurableProductService configurable_product.Provider
+	DistributorService         distributor.Provider
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
-	container.ProductService = product_test_container.NewDBIntegrationTestContainer(db).ProductService
+	container.DistributorService = distributor_test.NewDBIntegrationTestContainer(db).DistributorService
+	container.ProductService = product.NewProduct(
+		product_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		container.CategoryService,
+		container.DistributorService,
+	)
 	container.ConfigurableProductService = configurable_product.NewConfigurableProductService(
 		configurableProduct_db.NewPostgres(db),
 		container.ProductService,
