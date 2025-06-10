@@ -407,4 +407,4 @@ CREATE TABLE IF NOT EXISTS public."email_templates"
     html TEXT
 ) INHERITS (public."base");
 
-COMMENT ON TABLE public."invoices" IS 'stores email templates';
+COMMENT ON TABLE public."email_templates" IS 'stores email templates';
