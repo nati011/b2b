@@ -5,10 +5,12 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var product_id int
+var distributorId int
 var container TestContainer
 
 func TestMain(m *testing.M) {
@@ -19,6 +21,22 @@ func TestMain(m *testing.M) {
 func setup() {
 	ctx := context.Background()
 	container = NewPackageIntegrationTestContainer()
+	var err error
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
 	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -32,7 +50,9 @@ func setup() {
 			"test":         "test",
 			"another_test": "another_test",
 		},
+		DistributorId: distributorId,
 	})
+
 }
 
 func Test_Create_happyPath(t *testing.T) {

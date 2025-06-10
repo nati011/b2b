@@ -7,6 +7,7 @@ import (
 	"time"
 
 	category "b2b.nati011.github.com/internal/core/domain/category"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/product"
 )
@@ -35,6 +36,8 @@ var (
 	ErrStockUnavailable                                       = errors.New("¯\\_(ツ)_/¯, requested quantity greater than stock")
 	ErrStockReservationQtyMustBeLessThanOrEqualToAvailableQty = errors.New("¯\\_(ツ)_/¯, reserved quantity cannot be more than available quantity")
 	ErrFreeReservationQtyMustBeLessThanOrEqualToReservedQty   = errors.New("¯\\_(ツ)_/¯, free reservation quantity cannot be more than reserved quantity")
+	ErrDistributorNotFound                                    = errors.New("¯\\_(ツ)_/¯, distributor not found")
+	ErrDistributorIdMandatory                                 = errors.New("¯\\_(ツ)_/¯, distributor id not supplied")
 )
 
 type Image struct {
@@ -138,14 +141,18 @@ type Provider interface {
 }
 
 type ProductService struct {
-	DB              port.DB
-	CategoryService category.Provider
+	DB                port.DB
+	CategoryService   category.Provider
+	DistrbutorService distributor.Provider
 }
 
-func NewProduct(db port.DB, categoryService category.Provider) Provider {
+func NewProduct(db port.DB,
+	categoryService category.Provider,
+	distributorService distributor.Provider) Provider {
 	return &ProductService{
-		DB:              db,
-		CategoryService: categoryService,
+		DB:                db,
+		CategoryService:   categoryService,
+		DistrbutorService: distributorService,
 	}
 }
 
@@ -187,24 +194,23 @@ func (p *ProductService) GetAllStockLedger(ctx context.Context) (GetAllStockLedg
 
 func (p *ProductService) Create(ctx context.Context, req *CreateRequest) (int, error) {
 	//validate
-	err := p.validateName(ctx, req.Name)
-	if err != nil {
+
+	if err := p.validateName(ctx, req.Name); err != nil {
 		return 0, err
 	}
-	err = validateDesc(req.Desc)
-	if err != nil {
+	if err := validateDesc(req.Desc); err != nil {
 		return 0, err
 	}
-	err = validateImages(req.Images)
-	if err != nil {
+	if err := validateImages(req.Images); err != nil {
 		return 0, err
 	}
-	err = create_validatePrice(int(req.Price))
-	if err != nil {
+	if err := create_validatePrice(int(req.Price)); err != nil {
 		return 0, err
 	}
-	err = validateAttributes(req.Attributes)
-	if err != nil {
+	if err := validateAttributes(req.Attributes); err != nil {
+		return 0, err
+	}
+	if err := p.validateDistributor(ctx, req.DistributorId); err != nil {
 		return 0, err
 	}
 
@@ -721,7 +727,6 @@ func (p *ProductService) Update(ctx context.Context, req *UpdateRequest) (int, e
 			default:
 				return 0, ErrUnknown
 			}
-
 		}
 	}
 

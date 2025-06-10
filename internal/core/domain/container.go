@@ -74,12 +74,12 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	// ORDER ORDER!!
 	//  messing up the order creates chaos
 	container.InitCategoryService()
-	container.InitProductService()
 	container.InitConfigrableProductService()
 	container.InitInvoiceService()
 	container.InitRetailerService()
 	container.InitDistributorApprovalService()
 	container.InitDistributorService()
+	container.InitProductService()
 	container.InitOrderService()
 	container.InitCatalogueService()
 	container.InitPaymentVerificationService()
@@ -100,7 +100,8 @@ func (m *Container) InitCatalogueService() {
 func (m *Container) InitProductService() {
 	m.ProductService = product.NewProduct(
 		product_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination),
-		m.CategoryService)
+		m.CategoryService,
+		m.DistributorService)
 }
 
 func (m *Container) InitConfigrableProductService() {

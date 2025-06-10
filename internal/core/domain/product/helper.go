@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	port "b2b.nati011.github.com/internal/port/domain/product"
 	"github.com/buckket/go-blurhash"
 )
@@ -64,6 +65,17 @@ func validateAttributes(attributes map[string]string) error {
 		if value == "" {
 			return ErrAttributeValuesCannotBeEmpty
 		}
+	}
+	return nil
+}
+
+func (p *ProductService) validateDistributor(ctx context.Context, id int) error {
+	if id == 0 {
+		return ErrDistributorIdMandatory
+	}
+	_, err := p.DistrbutorService.Get(ctx, id)
+	if err == distributor.ErrIdNotFound {
+		return ErrDistributorNotFound
 	}
 	return nil
 }
