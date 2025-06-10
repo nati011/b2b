@@ -26,6 +26,8 @@ var (
 	ErrItemMemberProductNotFound          = errors.New("¯\\_(ツ)_/¯, product not found")
 	ErrItemMemberProductQuantityNotFound  = errors.New("¯\\_(ツ)_/¯, product quantity not found")
 	ErrDuplicateOrderNotAllowed           = errors.New("¯\\_(ツ)_/¯, duplicate order not allowed")
+	ErrOrderAlreadyConfirmed              = errors.New("¯\\_(ツ)_/¯, order already confirmed")
+	ErrOrderAlreadyRejected               = errors.New("¯\\_(ツ)_/¯, order already rejected")
 )
 
 // order status
@@ -92,10 +94,11 @@ type GetByParamRequest struct {
 }
 
 type UpdateRequest struct {
-	Id             int
-	Status         string
-	PaymentStatus  string
-	DeliveryStatus string
+	Id                 int
+	Status             string
+	PaymentStatus      string
+	DeliveryStatus     string
+	ConfirmationStatus string
 }
 
 type OrderPlaceResponse struct {
@@ -116,7 +119,7 @@ type Provider interface {
 	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
-	UpdateManualConfirmationStatus(ctx context.Context, id int, status string) (int, error)
+	UpdateConfirmationStatus(ctx context.Context, id int, status string) (int, error)
 	ConfirmOrder(ctx context.Context, id int) error
 	RejectOrder(ctx context.Context, id int) error
 }
@@ -359,14 +362,15 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		})
 	}
 	return GetResponse{
-		Id:             resp.Id,
-		RetailerId:     resp.RetailerId,
-		RetailerName:   resp.RetailerName,
-		Total:          float32(resp.Total),
-		Items:          items,
-		Status:         resp.Status,
-		DeliveryStatus: resp.DeliveryStatus,
-		PaymentStatus:  resp.PaymentStatus,
+		Id:                 resp.Id,
+		RetailerId:         resp.RetailerId,
+		RetailerName:       resp.RetailerName,
+		Total:              float32(resp.Total),
+		Items:              items,
+		Status:             resp.Status,
+		DeliveryStatus:     resp.DeliveryStatus,
+		PaymentStatus:      resp.PaymentStatus,
+		ConfirmationStatus: resp.ConfirmationStatus,
 	}, nil
 }
 
@@ -692,15 +696,17 @@ func (o *OrderService) UpdateDeliveryStatus(ctx context.Context, req *UpdateRequ
 	return resp.Id, nil
 }
 
-func (o *OrderService) UpdateManualConfirmationStatus(ctx context.Context, id int, status string) (int, error) {
+func (o *OrderService) UpdateConfirmationStatus(ctx context.Context, id int, status string) (int, error) {
 	resp, err := o.Get(ctx, id)
+	log.Printf("Order Confirmation Status, %v", resp)
 	if err != nil {
-		switch err {
-		case port_commons.ErrSysNoRows:
-			return 0, ErrIdNotFound
-		default:
-			return 0, ErrUnknown
-		}
+		return 0, err
+	}
+	if resp.ConfirmationStatus == ORDER_REJECTED {
+		return 0, ErrOrderAlreadyRejected
+	}
+	if resp.ConfirmationStatus == ORDER_CONFIRMED {
+		return 0, ErrOrderAlreadyConfirmed
 	}
 	err = o.DB.UpdateConfirmationStatus(ctx, &port.UpdateOrderConfirmationStatusRequest{
 		Id:                 id,
@@ -718,20 +724,19 @@ func (o *OrderService) UpdateManualConfirmationStatus(ctx context.Context, id in
 }
 
 func (m *OrderService) ConfirmOrder(ctx context.Context, id int) error {
-	id, err := m.UpdateManualConfirmationStatus(ctx, id, ORDER_CONFIRMED)
+	id, err := m.UpdateConfirmationStatus(ctx, id, ORDER_CONFIRMED)
 	if err != nil {
 		log.Printf("Failed to confirm order %v", err)
-		return ErrUnknown
+		return err
 	}
 	log.Printf("confirm order id: %v", id)
 	return nil
 }
 
 func (m *OrderService) RejectOrder(ctx context.Context, id int) error {
-	id, err := m.UpdateManualConfirmationStatus(ctx, id, ORDER_REJECTED)
+	id, err := m.UpdateConfirmationStatus(ctx, id, ORDER_REJECTED)
 	if err != nil {
-		log.Printf("Failed to reject order %v", err)
-		return ErrUnknown
+		return err
 	}
 	log.Printf("reject order id: %v", id)
 	return nil
