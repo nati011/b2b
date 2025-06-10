@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"log"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -16,6 +17,7 @@ var retailer_id int
 var distributor_id int
 var product_id int
 var DigitalPaymentPartnerId int
+var ManualPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -72,6 +74,18 @@ func setup() {
 			BaseURL:       "https://api.chapa.co",
 			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
 			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
+		})
+	if err != nil {
+		panic("failed to create payment partner")
+	}
+
+	ManualPaymentPartnerId, err = container.PartnerService.Create(ctx,
+		&payment_partner.CreateRequest{
+			Name:          "chapa",
+			Icon:          "etst",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_MANUAL,
 		})
 	if err != nil {
 		panic("failed to create payment partner")
@@ -631,25 +645,102 @@ func Test_confirm_order_happyPath(t *testing.T) {
 func Test_confirm_order_unhappyPath(t *testing.T) {
 	t.Run("orderNotFound", func(t *testing.T) {
 		t.Cleanup(teardown)
+		ctx := context.Background()
+		wantErr := ErrIdNotFound
+		gotErr := container.OrderService.ConfirmOrder(ctx, rand.Int())
+		if wantErr != gotErr {
+			t.Errorf("Expected error: %v got: %v", wantErr, gotErr)
+		}
 	})
 
 	t.Run("orderAlreadyConfirmed", func(t *testing.T) {
 		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: ManualPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  19},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		err = container.OrderService.ConfirmOrder(ctx, order_resp.Id)
+		if err != nil {
+			t.Errorf("Failed to confirm order %v", err)
+		}
+		err = container.OrderService.ConfirmOrder(ctx, order_resp.Id)
+		if ErrOrderAlreadyConfirmed != err {
+			t.Errorf("Expected error: %v got: %v", ErrOrderAlreadyConfirmed, err)
+		}
+
 	})
 }
 
 func Test_reject_order_happyPath(t *testing.T) {
 	t.Run("changeOrderConfirmationStatusToRejected", func(t *testing.T) {
 		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: ManualPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  19},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		err = container.OrderService.RejectOrder(ctx, order_resp.Id)
+		if err != nil {
+			t.Errorf("Failed to reject order %v", err)
+		}
+
 	})
 }
 
 func Test_reject_order_unhappyPath(t *testing.T) {
 	t.Run("orderNotFound", func(t *testing.T) {
 		t.Cleanup(teardown)
+		ctx := context.Background()
+		wantErr := ErrIdNotFound
+		gotErr := container.OrderService.RejectOrder(ctx, rand.Int())
+		if wantErr != gotErr {
+			t.Errorf("Expected error: %v got: %v", wantErr, gotErr)
+		}
 	})
 
 	t.Run("orderAlreadyRejected", func(t *testing.T) {
 		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: ManualPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  19},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		err = container.OrderService.RejectOrder(ctx, order_resp.Id)
+		if err != nil {
+			t.Errorf("Failed to confirm order %v", err)
+		}
+		err = container.OrderService.RejectOrder(ctx, order_resp.Id)
+		if ErrOrderAlreadyRejected != err {
+			t.Errorf("Expected error: %v got: %v", ErrOrderAlreadyRejected, err)
+		}
+
 	})
 }

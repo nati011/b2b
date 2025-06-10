@@ -383,7 +383,7 @@ func Test_Write(t *testing.T) {
 		}
 
 		//update
-		_, err = container.OrderService.UpdateManualConfirmationStatus(ctx, order_resp.Id, order.ORDER_CONFIRMED)
+		_, err = container.OrderService.UpdateConfirmationStatus(ctx, order_resp.Id, order.ORDER_CONFIRMED)
 		if err != nil {
 			t.Fatalf("Failed to update err: %v", err)
 		}
