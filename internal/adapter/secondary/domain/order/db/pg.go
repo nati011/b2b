@@ -290,7 +290,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			PaymentStatus:      res[5].(string),
 			DeliveryStatus:     res[6].(string),
 			CreatedAt:          res[7].(time.Time),
-			ConfirmationStatus: res[8].(string),
+			ConfirmationStatus: res[9].(string),
 		}
 		totalCount = res[8].(int64)
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
