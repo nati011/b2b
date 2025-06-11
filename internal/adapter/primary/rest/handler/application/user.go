@@ -92,6 +92,7 @@ func InitUser() {
 	handler.RegisterResource("/api/v1/user")
 	handler.RegisterResource("/api/v1/user/{id}/status")
 	handler.RegisterResource("/api/v1/user/{id}/role/{role_id}")
+	handler.RegisterResource("/api/v1/user/init_auth_reset")
 }
 
 func (a *UserHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {

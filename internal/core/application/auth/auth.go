@@ -21,13 +21,14 @@ var (
 	ErrUnknown              = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
 	ErrEmailNotSupplied     = errors.New("¯\\_(ツ)_/¯, email mandatory")
 	ErrUsernameNotSupplied  = errors.New("¯\\_(ツ)_/¯, username mandatory")
-	ErrInvalidEmail         = errors.New("¯\\_(ツ)_/¯, Invalid Email")
+	ErrInvalidEmail         = errors.New("¯\\_(ツ)_/¯, invalid Email")
 	ErrPasswordNotSupplied  = errors.New("¯\\_(ツ)_/¯, password mandatory")
-	ErrFirstNameNotSupplied = errors.New("¯\\_(ツ)_/¯, First Name mandatory")
-	ErrLastNameNotSupplied  = errors.New("¯\\_(ツ)_/¯, Last Name mandatory")
-	ErrTokenNotSupplied     = errors.New("¯\\_(ツ)_/¯, Token is mandatory")
-	ErrTokenHasExpired      = errors.New("¯\\_(ツ)_/¯, Token has expired")
+	ErrFirstNameNotSupplied = errors.New("¯\\_(ツ)_/¯, firstname mandatory")
+	ErrLastNameNotSupplied  = errors.New("¯\\_(ツ)_/¯, lastname mandatory")
+	ErrTokenNotSupplied     = errors.New("¯\\_(ツ)_/¯, token is mandatory")
+	ErrTokenHasExpired      = errors.New("¯\\_(ツ)_/¯, token has expired")
 	ErrUserIdNotSupplied    = errors.New("¯\\_(ツ)_/¯, userId mandatory")
+	ErrFailedToDecodeToken  = errors.New("¯\\_(ツ)_/¯, failed to decode token")
 )
 
 type RegisterUserRequest struct {
@@ -95,8 +96,18 @@ type RetrospectionResult struct {
 	Active bool `json:"active"`
 }
 
+type Claims struct {
+	ExpirationTime time.Time
+	IssuedAt       time.Time
+	NotBefore      time.Time
+	Issuer         string
+	Subject        string
+	Audience       string
+	Email          string
+}
+
 type DecodeResult struct {
-	Claims string `json:"claims"`
+	Claims Claims `json:"claims"`
 }
 
 type ResourceAccess struct {
@@ -135,7 +146,13 @@ func NewAuthService(
 }
 
 func (a AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
-	return DecodeResult{}, nil
+	res, err := a.authProvider.DecodeToken(ctx, token)
+	if err != nil {
+		return DecodeResult{}, ErrFailedToDecodeToken
+	}
+	return DecodeResult{
+		Claims: Claims(res.Claims),
+	}, nil
 }
 
 func (a AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {
