@@ -1,5 +1,6 @@
 -- v 0.1
 -- Resources ----------------------------------------
+   
     -- writers
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
@@ -53,7 +54,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION public.delete_resource(
    r_id INT
 )
@@ -68,7 +68,6 @@ END;
 $$;
 
     --readers
-
 CREATE OR REPLACE FUNCTION public.get_resources_by_id(
     resource_id INT
 )
@@ -124,58 +123,6 @@ AS $$
         OFFSET r_offset;
     END;
     $$;
-
-create or replace function public.update_resource_action (
-    resource_id INT, 
-    new_action VARCHAR(255)) 
-RETURNS INT 
-LANGUAGE plpgsql 
-AS $$
-    BEGIN
-        UPDATE public.resources
-        SET action = new_action
-        WHERE id = resource_id
-        AND is_deleted = FALSE;
-
-        RETURN resource_id;
-    END;
-    $$;
-
-
---readers
-create or replace function public.get_resources_by_id (
-    resource_id INT) 
-RETURNS table (id INT, 
-               action VARCHAR(255), 
-               name VARCHAR(255)) 
-LANGUAGE plpgsql 
-AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT r.id, r.action, r.name
-        FROM public.resources r
-        WHERE r.id = resource_id
-        AND r.is_deleted = FALSE
-        LIMIT 1;
-    END;
-$$;
-
-create or replace function public.get_resources_by_name (
-    resource_name VARCHAR(255)) 
-RETURNS table (id INT, 
-               action VARCHAR(255), 
-               name VARCHAR(255)) 
-LANGUAGE plpgsql 
-AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT r.id, r.action, r.name
-        FROM public.resources r
-        WHERE r.name = resource_name
-        AND r.is_deleted = FALSE
-        LIMIT 1; 
-    END;
-$$;
 
 
 -- Roles ----------------------------------------
@@ -327,7 +274,7 @@ AS $$
     END;
 $$;
 
--- readers
+    -- readers
 create or replace function public.get_all_resource_by_role (
     role_identifier INT) 
 RETURNS table (resource_id INT) 
@@ -658,7 +605,6 @@ AS $$
         u_username, 
         u_dob, 
         u_external_id)
-
         RETURNING id INTO new_id;
 
         RETURN new_id;
@@ -674,14 +620,9 @@ AS $$
         new_id INT;
     BEGIN
         INSERT INTO public.user_providers
-        (
-        user_id, 
-        provider_id)
-        
-        VALUES 	
-        (
-        u_id, 
-        p_id);
+        (user_id, 
+         provider_id) VALUES(u_id, 
+                             p_id);
 
         RETURN new_id;
     END;
@@ -713,8 +654,7 @@ BEGIN
         external_id,
         is_active
     )
-    VALUES 	
-    (
+    VALUES(
         u_firstname, 
         u_lastname,
         u_email, 

@@ -2,31 +2,53 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	auth "b2b.nati011.github.com/internal/core/application/auth"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/role"
+	"b2b.nati011.github.com/internal/core/application/user"
 )
 
+type Claims struct {
+	ExpirationTime time.Time
+	IssuedAt       time.Time
+	NotBefore      time.Time
+	Issuer         string
+	Subject        string
+	Audience       string
+	Email          string
+}
+
 type Auth struct {
-	auth auth.Provider
-	role role.Provider
+	authService     auth.Provider
+	roleService     role.Provider
+	ResourceService resource.Provider
+	userService     user.Provider
 }
 
 type Option func(*Auth)
 
-func NewAuthMiddleware(auth_service auth.Provider) *Auth {
+func NewAuthMiddleware(
+	authService auth.Provider,
+	roleService role.Provider,
+	ResourceService resource.Provider,
+	userService user.Provider,
+) *Auth {
 	return &Auth{
-		auth: auth_service,
+		authService:     authService,
+		roleService:     roleService,
+		ResourceService: ResourceService,
+		userService:     userService,
 	}
 }
 
 func WithRole(roles []string) Option {
-	return func(a *Auth) {
-
-	}
+	return func(a *Auth) {}
 }
 
 func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http.Handler {
@@ -49,7 +71,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			return
 		}
 
-		result, err := am.auth.RetrospectToken(r.Context(), token)
+		result, err := am.authService.RetrospectToken(r.Context(), token)
 		if err != nil {
 			util.UnauthorizedResponse(w)
 			return
@@ -60,23 +82,50 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			return
 		}
 
-		decodedToken, err := am.auth.DecodeToken(
-			r.Context(),
-			token)
-
-		claims := decodedToken.Claims
-
+		decodedToken, err := am.authService.DecodeToken(r.Context(), token)
 		if err != nil {
 			util.UnauthorizedResponse(w)
 			return
 		}
+		var claims = Claims(decodedToken.Claims)
 
-		//get roleIds from permissions
-		//get resource route := r.URL.Path
-		//check in role if roleHasResource
+		u, err := am.userService.GetByParam(r.Context(), &user.GetByParam{
+			Email: claims.Email,
+		})
+		if err != nil {
+			log.Printf("failed to get claims: %v", err)
+			return
+		}
+		assignedRoles, err := am.userService.GetAllAssignedRoles(r.Context(), u.List[0].Id)
+		if err != nil {
+			log.Printf("failed to get assigned roles: %v", err)
+			return
+		}
 
-		ctx := context.WithValue(r.Context(), "claims", claims)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		resource, err := am.ResourceService.GetByName(r.Context(), r.RequestURI)
+		if err != nil {
+			log.Printf("failed to get resource: %v", err)
+			return
+		}
+
+		var hasResource bool
+		for _, ro := range assignedRoles.List {
+			hasResource, err = am.roleService.HasResource(r.Context(), &role.HasResourceRequest{
+				ResourceId: resource.Id,
+				RoleId:     ro.Id,
+			})
+			if err != nil {
+				log.Printf("failed to get assigned roles: %v", err)
+				return
+			}
+		}
+		if hasResource {
+			ctx := context.WithValue(r.Context(), "claims", claims)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			util.UnauthorizedResponse(w)
+			return
+		}
 	})
 }
 
