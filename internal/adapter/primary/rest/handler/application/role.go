@@ -92,7 +92,7 @@ func (ro *Role) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/role", func(w http.ResponseWriter, r *http.Request) {
-		ro.authMiddleware.RequireAuthentication(http.HandlerFunc(ro.CreateHandler)).ServeHTTP(w, r)
+		ro.authMiddleware.RequireNoAuthentication(http.HandlerFunc(ro.CreateHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PATCH /api/v1/role/{id}", func(w http.ResponseWriter, r *http.Request) {
