@@ -47,7 +47,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	for _, r := range handler.GetRoutes() {
 		_, err := applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
 			Name:   r,
-			Action: "ALL",
+			Action: resource.ALL,
 		})
 		if err != nil {
 			log.Printf("Failed to create resource err: %v", err)
