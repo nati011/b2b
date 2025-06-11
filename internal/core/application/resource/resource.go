@@ -19,6 +19,12 @@ var (
 	ErrEmptyGetContent    = errors.New("¯\\_(ツ)_/¯, get content empty")
 )
 
+const (
+	ALL   = "ALL"
+	READ  = "READ"
+	WRITE = "WRITE"
+)
+
 type CreateRequest struct {
 	Action string
 	Name   string
