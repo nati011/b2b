@@ -79,6 +79,7 @@ func InitRole() {
 
 func (r *Role) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.ApplicationServices.RoleService
+	r.authMiddleware = *authMiddleWare
 	return nil
 }
 
