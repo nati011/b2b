@@ -16,14 +16,14 @@ import (
 )
 
 var (
-	ErrUserNotFound                    = errors.New("¯\\_(ツ)_/¯, user is found")
-	ErrAmountNotSupplied               = errors.New("¯\\_(ツ)_/¯, amount is mandatory")
-	ErrAmountLessThanZero              = errors.New("¯\\_(ツ)_/¯, amount must be greater than zero")
-	ErrPaymentPartnerNotSupported      = errors.New("¯\\_(ツ)_/¯, payment partner id is not supported")
-	ErrTransactionReferenceNotSupplied = errors.New("¯\\_(ツ)_/¯, transaction refrence is mandatory")
-	ErrUnknown                         = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
-	ErrCannotProceedWithPaymentPartner = errors.New("¯\\_(ツ)_/¯, cannot proceed with payment partner")
-	ErrCannotConfirmDigitalPayment     = errors.New("¯\\_(ツ)_/¯, cannot cofirm digital payment")
+	ErrUserNotFound                    = errors.New("¯\\_(•_•)_/¯, user is found")
+	ErrAmountNotSupplied               = errors.New("¯\\_(•_•)_/¯, amount is mandatory")
+	ErrAmountLessThanZero              = errors.New("¯\\_(•_•)_/¯, amount must be greater than zero")
+	ErrPaymentPartnerNotSupported      = errors.New("¯\\_(•_•)_/¯, payment partner id is not supported")
+	ErrTransactionReferenceNotSupplied = errors.New("¯\\_(•_•)_/¯, transaction refrence is mandatory")
+	ErrUnknown                         = errors.New("¯\\_(•_•)_/¯, unknown error has occured")
+	ErrCannotProceedWithPaymentPartner = errors.New("¯\\_(•_•)_/¯, cannot proceed with payment partner")
+	ErrCannotConfirmDigitalPayment     = errors.New("¯\\_(•_•)_/¯, cannot cofirm digital payment")
 )
 
 type CheckoutRequest struct {

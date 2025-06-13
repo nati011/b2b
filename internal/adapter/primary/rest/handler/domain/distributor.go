@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	ErrIdNotFound = errors.New("¯\\_(ツ)_/¯, distributor id not provided")
-	ErrIdNotValid = errors.New("¯\\_(ツ)_/¯, distributor id not valid")
+	ErrIdNotFound = errors.New("¯\\_(•_•)_/¯, distributor id not provided")
+	ErrIdNotValid = errors.New("¯\\_(•_•)_/¯, distributor id not valid")
 )
 
 type CreateDistributorRequest struct {

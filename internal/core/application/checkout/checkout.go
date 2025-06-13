@@ -16,14 +16,14 @@ import (
 )
 
 var (
-	ErrUserNotFound                    = errors.New("¯\\_(ツ)_/¯, user is found")
-	ErrAmountNotSupplied               = errors.New("¯\\_(ツ)_/¯, amount is mandatory")
-	ErrAmountLessThanZero              = errors.New("¯\\_(ツ)_/¯, amount must be greater than zero")
-	ErrPaymentPartnerNotSupported      = errors.New("¯\\_(ツ)_/¯, payment partner id is not supported")
-	ErrTransactionReferenceNotSupplied = errors.New("¯\\_(ツ)_/¯, transaction refrence is mandatory")
-	ErrOrderIdNotSupplied              = errors.New("¯\\_(ツ)_/¯, order id not supplied")
-	ErrInvalidPaymentMethod            = errors.New("¯\\_(ツ)_/¯, invalid payment method")
-	ErrUnknown                         = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
+	ErrUserNotFound                    = errors.New("¯\\_(•_•)_/¯, user is found")
+	ErrAmountNotSupplied               = errors.New("¯\\_(•_•)_/¯, amount is mandatory")
+	ErrAmountLessThanZero              = errors.New("¯\\_(•_•)_/¯, amount must be greater than zero")
+	ErrPaymentPartnerNotSupported      = errors.New("¯\\_(•_•)_/¯, payment partner id is not supported")
+	ErrTransactionReferenceNotSupplied = errors.New("¯\\_(•_•)_/¯, transaction refrence is mandatory")
+	ErrOrderIdNotSupplied              = errors.New("¯\\_(•_•)_/¯, order id not supplied")
+	ErrInvalidPaymentMethod            = errors.New("¯\\_(•_•)_/¯, invalid payment method")
+	ErrUnknown                         = errors.New("¯\\_(•_•)_/¯, unknown error has occured")
 )
 
 const (
