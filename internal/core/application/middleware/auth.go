@@ -119,8 +119,12 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 				RoleId:     ro.Id,
 			})
 			if err != nil {
-				log.Printf("failed to get assigned roles: %v", err)
-				return
+				switch err {
+				case role.ErrEmptyGetContent:
+				default:
+					log.Printf("failed to get assigned roles: %v", err)
+					return
+				}
 			}
 		}
 		if hasResource {
