@@ -98,8 +98,12 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 		}
 		assignedRoles, err := am.userService.GetAllAssignedRoles(r.Context(), u.List[0].Id)
 		if err != nil {
-			log.Printf("failed to get assigned roles: %v", err)
-			return
+			switch err {
+			case user.ErrNoRoleAssigned:
+			default:
+				log.Printf("failed to get assigned roles: %v", err)
+				return
+			}
 		}
 
 		resource, err := am.ResourceService.GetByName(r.Context(), r.RequestURI)
