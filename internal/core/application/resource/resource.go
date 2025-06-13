@@ -9,14 +9,14 @@ import (
 )
 
 var (
-	ErrDuplicateName      = errors.New("¯\\_(•_•)_/¯, duplicate name")
-	ErrEmptyAction        = errors.New("¯\\_(•_•)_/¯, empty action")
-	ErrEmptyName          = errors.New("¯\\_(•_•)_/¯, empty name")
-	ErrIdNotFound         = errors.New("¯\\_(•_•)_/¯, id not found")
-	ErrNameNotFound       = errors.New("¯\\_(•_•)_/¯, name not found")
-	ErrUnknown            = errors.New("¯\\_(•_•)_/¯, unknown error has occured")
-	ErrEmptyUpdateContent = errors.New("¯\\_(•_•)_/¯, update content empty")
-	ErrEmptyGetContent    = errors.New("¯\\_(•_•)_/¯, get content empty")
+	ErrDuplicateName      = errors.New("¯\\_(o_o)_/¯, duplicate name")
+	ErrEmptyAction        = errors.New("¯\\_(o_o)_/¯, empty action")
+	ErrEmptyName          = errors.New("¯\\_(o_o)_/¯, empty name")
+	ErrIdNotFound         = errors.New("¯\\_(o_o)_/¯, id not found")
+	ErrNameNotFound       = errors.New("¯\\_(o_o)_/¯, name not found")
+	ErrUnknown            = errors.New("¯\\_(o_o)_/¯, unknown error has occured")
+	ErrEmptyUpdateContent = errors.New("¯\\_(o_o)_/¯, update content empty")
+	ErrEmptyGetContent    = errors.New("¯\\_(o_o)_/¯, get content empty")
 )
 
 const (

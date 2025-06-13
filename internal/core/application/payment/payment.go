@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	ErrIdNotFound      = errors.New("¯\\_(•_•)_/¯, id not found")
-	ErrEmptyGetContent = errors.New("¯\\_(•_•)_/¯, empty get content")
-	ErrTxRefNotFound   = errors.New("¯\\_(•_•)_/¯, txRef not found")
-	ErrOrderIdNotFound = errors.New("¯\\_(•_•)_/¯, orderId not found")
-	ErrUnknown         = errors.New("¯\\_(•_•)_/¯, unknown error")
+	ErrIdNotFound      = errors.New("¯\\_(o_o)_/¯, id not found")
+	ErrEmptyGetContent = errors.New("¯\\_(o_o)_/¯, empty get content")
+	ErrTxRefNotFound   = errors.New("¯\\_(o_o)_/¯, txRef not found")
+	ErrOrderIdNotFound = errors.New("¯\\_(o_o)_/¯, orderId not found")
+	ErrUnknown         = errors.New("¯\\_(o_o)_/¯, unknown error")
 )
 
 type GetAllResponse struct {

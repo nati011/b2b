@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrFailedToBuildCrons = errors.New("¯\\_(•_•)_/¯, failed to init cron jobs")
+	ErrFailedToBuildCrons = errors.New("¯\\_(o_o)_/¯, failed to init cron jobs")
 )
 
 func InitCron(s gocron.Scheduler, applicationServices *application_core.Container, domainServices *domain_core.Container) {

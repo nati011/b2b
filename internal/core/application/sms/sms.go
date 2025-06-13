@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	ErrPhoneInvalid = errors.New("¯\\_(•_•)_/¯, phone is invalid")
-	ErrTextInvalid  = errors.New("¯\\_(•_•)_/¯, text is invalid")
-	ErrUnknown      = errors.New("¯\\_(•_•)_/¯, unknown error")
+	ErrPhoneInvalid = errors.New("¯\\_(o_o)_/¯, phone is invalid")
+	ErrTextInvalid  = errors.New("¯\\_(o_o)_/¯, text is invalid")
+	ErrUnknown      = errors.New("¯\\_(o_o)_/¯, unknown error")
 )
 
 const (
