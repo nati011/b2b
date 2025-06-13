@@ -105,7 +105,6 @@ func NewContainer(
 	container.InitTransactionService()
 	container.InitResourceService()
 	container.InitRoleService()
-	container.InitUserService()
 	container.InitAuthService(
 		cfg.KeycloakInstanceURL,
 		cfg.KeycloakUsername,
@@ -114,6 +113,7 @@ func NewContainer(
 		cfg.KeycloakApplicationRealm,
 		cfg.KeycloakClientId,
 		cfg.KeycloakClientSecret)
+	container.InitUserService()
 	container.InitPaymentService()
 	container.InitCheckoutService(cfg.BaseUrl, cfg.FrontendUrl)
 	container.InitAuthMiddleware()
