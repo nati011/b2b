@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	ErrInvalidTemplate = errors.New("¯\\_(ツ)_/¯, invalid template")
-	ErrInvalidName     = errors.New("¯\\_(ツ)_/¯, invalid name")
-	ErrUnknown         = errors.New("¯\\_(ツ)_/¯, unknown error")
-	ErrDuplicateName   = errors.New("¯\\_(ツ)_/¯, duplicate name")
-	ErrIdNotFound      = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrNameNotFound    = errors.New("¯\\_(ツ)_/¯, name not found")
-	ErrEmptyGetContent = errors.New("¯\\_(ツ)_/¯, empty get content")
+	ErrInvalidTemplate = errors.New("¯\\_(•_•)_/¯, invalid template")
+	ErrInvalidName     = errors.New("¯\\_(•_•)_/¯, invalid name")
+	ErrUnknown         = errors.New("¯\\_(•_•)_/¯, unknown error")
+	ErrDuplicateName   = errors.New("¯\\_(•_•)_/¯, duplicate name")
+	ErrIdNotFound      = errors.New("¯\\_(•_•)_/¯, id not found")
+	ErrNameNotFound    = errors.New("¯\\_(•_•)_/¯, name not found")
+	ErrEmptyGetContent = errors.New("¯\\_(•_•)_/¯, empty get content")
 )
 
 type CreateRequest struct {

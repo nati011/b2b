@@ -3,8 +3,8 @@ package payment
 import "errors"
 
 var (
-	ErrUnknown            = errors.New("¯\\_(ツ)_/¯, Unknown error has occured")
-	ErrInvalidTransaction = errors.New("¯\\_(ツ)_/¯, error invalid transaction")
+	ErrUnknown            = errors.New("¯\\_(•_•)_/¯, Unknown error has occured")
+	ErrInvalidTransaction = errors.New("¯\\_(•_•)_/¯, error invalid transaction")
 )
 
 type InitiateRequest struct {
