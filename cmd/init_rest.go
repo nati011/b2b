@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrFailedToBuildRoutes = errors.New("¯\\_(ツ)_/¯, failed to build routes")
+	ErrFailedToBuildRoutes = errors.New("¯\\_(•_•)_/¯, failed to build routes")
 )
 
 func InitREST(mux *http.ServeMux, db *sql.DB, applicationServices *application_core.Container, domainServices *domain_core.Container) *http.ServeMux {

@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	ErrDuplicateName               = errors.New("¯\\_(ツ)_/¯, duplicate name")
-	ErrEmptyName                   = errors.New("¯\\_(ツ)_/¯, empty name")
-	ErrIdNotFound                  = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrUnknown                     = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
-	ErrEmptyUpdateContent          = errors.New("¯\\_(ツ)_/¯, update content empty")
-	ErrEmptyGetContent             = errors.New("¯\\_(ツ)_/¯, get content empty")
-	ErrResourceAlreadyExistsInRole = errors.New("¯\\_(ツ)_/¯, resource already exists in role")
-	ErrResourceNotFound            = errors.New("¯\\_(ツ)_/¯, resource not found")
-	ErrResourceNotFoundInRole      = errors.New("¯\\_(ツ)_/¯, resource not found in role")
+	ErrDuplicateName               = errors.New("¯\\_(•_•)_/¯, duplicate name")
+	ErrEmptyName                   = errors.New("¯\\_(•_•)_/¯, empty name")
+	ErrIdNotFound                  = errors.New("¯\\_(•_•)_/¯, id not found")
+	ErrUnknown                     = errors.New("¯\\_(•_•)_/¯, unknown error has occured")
+	ErrEmptyUpdateContent          = errors.New("¯\\_(•_•)_/¯, update content empty")
+	ErrEmptyGetContent             = errors.New("¯\\_(•_•)_/¯, get content empty")
+	ErrResourceAlreadyExistsInRole = errors.New("¯\\_(•_•)_/¯, resource already exists in role")
+	ErrResourceNotFound            = errors.New("¯\\_(•_•)_/¯, resource not found")
+	ErrResourceNotFoundInRole      = errors.New("¯\\_(•_•)_/¯, resource not found in role")
 )
 
 type CreateRequest struct {
