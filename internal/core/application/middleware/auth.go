@@ -106,16 +106,20 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			}
 		}
 
-		resource, err := am.ResourceService.GetByName(r.Context(), r.RequestURI)
+		rsrce, err := am.ResourceService.GetByName(r.Context(), r.RequestURI)
 		if err != nil {
-			log.Printf("failed to get resource: %v", err)
-			return
+			switch err {
+			case resource.ErrNameNotFound:
+			default:
+				log.Printf("failed to get resource: %v", err)
+				return
+			}
 		}
 
 		var hasResource bool
 		for _, ro := range assignedRoles.List {
 			hasResource, err = am.roleService.HasResource(r.Context(), &role.HasResourceRequest{
-				ResourceId: resource.Id,
+				ResourceId: rsrce.Id,
 				RoleId:     ro.Id,
 			})
 			if err != nil {
