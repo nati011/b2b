@@ -119,11 +119,11 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", func(w http.ResponseWriter, r *http.Request) {
-		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
+		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/user/{id}/role", func(w http.ResponseWriter, r *http.Request) {
-		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.GetRoleHandler)).ServeHTTP(w, r)
+		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.GetRoleHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/user/init_reset", func(w http.ResponseWriter, r *http.Request) {
@@ -238,28 +238,25 @@ func (a *UserHandler) RoleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *UserHandler) GetRoleHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	paramValues := r.URL.Query()
-	paramIdValue := paramValues.Get(ParamId)
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
-		if err != nil {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	resp, err := a.service.GetAllAssignedRoles(r.Context(), typedParamId)
+	if err != nil {
+		switch err {
+		case user.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := a.service.GetAllAssignedRoles(r.Context(), typedParamId)
-		if err != nil {
-			switch err {
-			case user.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"roles": resp})
 	}
+	util.OperationSuccessResponse(w, util.Envelope{"roles": resp})
+
 }
 
 func (a *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
