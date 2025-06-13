@@ -6,9 +6,9 @@ import (
 )
 
 var (
-	ErrInvalidRequestBody = errors.New("¯\\_(•_•)_/¯, invalid request data")
-	ErrFailedToAuthorize  = errors.New("¯\\_(•_•)_/¯, failed to authorize user")
-	ErrIdRequired         = errors.New("¯\\_(•_•)_/¯, Id is required")
+	ErrInvalidRequestBody = errors.New("¯\\_(o_o)_/¯, invalid request data")
+	ErrFailedToAuthorize  = errors.New("¯\\_(o_o)_/¯, failed to authorize user")
+	ErrIdRequired         = errors.New("¯\\_(o_o)_/¯, Id is required")
 )
 
 func errorResponse(w http.ResponseWriter, status int, message interface{}) {
