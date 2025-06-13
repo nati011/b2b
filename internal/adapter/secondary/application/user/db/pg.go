@@ -586,9 +586,13 @@ func (p *Postgres) GetAllAssignedRole(ctx context.Context, id int) (port.GetAllA
 	}
 
 	for _, res := range result {
-		response.List = append(response.List, port.GetAssignedRoleResponse{
-			Id: *res[0].(*int),
-		})
+		if id, ok := res[0].(int64); ok {
+			response.List = append(response.List, port.GetAssignedRoleResponse{
+				Id: int(id),
+			})
+		} else {
+			log.Println("Error: expected int64 type")
+		}
 	}
 	return response, nil
 }
