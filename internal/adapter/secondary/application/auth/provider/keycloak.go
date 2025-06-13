@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	ErrUnknown = errors.New("¯\\_(ツ)_/¯, unknown error")
+	ErrUnknown = errors.New(" unknown error")
 )
 
 type KeycloakProvider struct {
