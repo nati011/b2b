@@ -39,7 +39,6 @@ func main() {
 	validateFlags(cfg)
 
 	db_pool := InitDB(&cfg)
-
 	InitAuth(&cfg)
 	// InitEmail(cfg.Email, cfg.SMTP, cfg.EmailPassword)
 	// InitSMS(cfg.Email, cfg.SMTP)
