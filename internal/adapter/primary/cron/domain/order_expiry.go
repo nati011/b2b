@@ -14,7 +14,7 @@ import (
 func InitOrderExpiry(s gocron.Scheduler, domainServices *domain_core.Container) {
 	j, err := s.NewJob(
 		gocron.DurationJob(
-			10*time.Second,
+			12*time.Hour,
 		),
 		gocron.NewTask(
 			CancelExpiredOrders,
