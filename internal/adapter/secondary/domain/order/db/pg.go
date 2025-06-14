@@ -57,7 +57,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		query_handler.WithSingleRowResultSet(args, result),
 	).DoSingleQuery()
 	if err != nil {
-		return port.GetResponse{}, nil
+		return port.GetResponse{}, err
 	}
 
 	response.Id = *result[0].(*int)
