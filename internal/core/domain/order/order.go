@@ -175,7 +175,7 @@ func (o *OrderService) checkOrderDuplicacyEligibility(ctx context.Context, retai
 
 	var isEligible bool = true
 	for _, o := range retailer_orders.List {
-		if o.Status == PENDING_STATUS {
+		if o.PaymentStatus == PAYMENT_PENDING_STATUS {
 			isEligible = false
 			break
 		}
@@ -371,6 +371,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		DeliveryStatus:     resp.DeliveryStatus,
 		PaymentStatus:      resp.PaymentStatus,
 		ConfirmationStatus: resp.ConfirmationStatus,
+		CreatedAt:          resp.CreatedAt,
 	}, nil
 }
 
