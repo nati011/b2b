@@ -66,7 +66,7 @@ func setup() {
 func Test_Render_happyPath(t *testing.T) {
 	in := Request{
 		TemplateId: 1,
-		Args: map[string]string{
+		Args: map[string]interface{}{
 			"username":   "John Doe",
 			"reset_link": "https://example.com/reset?token=abc123"},
 	}
@@ -121,7 +121,7 @@ func Test_Render_unhappyPath(t *testing.T) {
 	t.Run("templateNotFound", func(t *testing.T) {
 		in := Request{
 			TemplateId: 99,
-			Args: map[string]string{
+			Args: map[string]interface{}{
 				"a": "test",
 				"b": "test",
 			},
