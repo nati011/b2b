@@ -10,16 +10,16 @@ import (
 )
 
 var (
-	ErrUserIdNotSupplied           = errors.New("¯\\_(ツ)_/¯, user id mandatory")
-	ErrPartnerIdNotSupplied        = errors.New("¯\\_(ツ)_/¯, partnerId mandatory")
-	ErrAmountIsNotSupplied         = errors.New("¯\\_(ツ)_/¯, amount mandatory")
-	ErrAmountMustBeGreaterThanZero = errors.New("¯\\_(ツ)_/¯, amount must be greater than zero")
-	ErrIdNotFound                  = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrEmptyGetContent             = errors.New("¯\\_(ツ)_/¯, empty get content")
-	ErrUnknown                     = errors.New("¯\\_(ツ)_/¯, unkown error")
-	ErrPartnerDoesNotExist         = errors.New("¯\\_(ツ)_/¯, partner does not exist")
-	ErrUserDoesNotExist            = errors.New("¯\\_(ツ)_/¯, user does not exist")
-	ErrTransactionRefNotSupplied   = errors.New("¯\\_(ツ)_/¯, txRef mandatory")
+	ErrUserIdNotSupplied           = errors.New(" user id mandatory")
+	ErrPartnerIdNotSupplied        = errors.New(" partnerId mandatory")
+	ErrAmountIsNotSupplied         = errors.New(" amount mandatory")
+	ErrAmountMustBeGreaterThanZero = errors.New(" amount must be greater than zero")
+	ErrIdNotFound                  = errors.New(" id not found")
+	ErrEmptyGetContent             = errors.New(" empty get content")
+	ErrUnknown                     = errors.New(" unkown error")
+	ErrPartnerDoesNotExist         = errors.New(" partner does not exist")
+	ErrUserDoesNotExist            = errors.New(" user does not exist")
+	ErrTransactionRefNotSupplied   = errors.New(" txRef mandatory")
 )
 
 var (
