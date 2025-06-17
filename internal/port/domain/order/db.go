@@ -32,6 +32,7 @@ type GetResponse struct {
 	PaymentStatus      string
 	DeliveryStatus     string
 	ConfirmationStatus string
+	PaymentMethod      string
 	CreatedAt          time.Time
 }
 
