@@ -45,8 +45,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.RetailerName,
 		&response.Status,
 		&response.Total,
-		&response.PaymentStatus,
 		&response.DeliveryStatus,
+		&response.PaymentStatus,
 		&response.ConfirmationStatus,
 	}
 
@@ -65,8 +65,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.RetailerName = *result[2].(*string)
 	response.Status = *result[3].(*string)
 	response.Total = *result[4].(*float64)
-	response.PaymentStatus = *result[5].(*string)
-	response.DeliveryStatus = *result[6].(*string)
+	response.DeliveryStatus = *result[5].(*string)
+	response.PaymentStatus = *result[6].(*string)
 	response.ConfirmationStatus = *result[7].(*string)
 
 	allOrderItems, err := p.GetAllOrderItems(ctx, response.Id)
@@ -139,8 +139,8 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
-		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
+		&responseBase.PaymentStatus,
 		&responseBase.CreatedAt,
 		&responseBase.ConfirmationStatus,
 		&responseBase.PaymentMethod,
@@ -165,8 +165,8 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			PaymentStatus:      res[5].(string),
-			DeliveryStatus:     res[6].(string),
+			DeliveryStatus:     res[5].(string),
+			PaymentStatus:      res[6].(string),
 			CreatedAt:          res[7].(time.Time),
 			ConfirmationStatus: res[8].(string),
 			PaymentMethod:      res[9].(string),
@@ -264,8 +264,8 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
-		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
+		&responseBase.PaymentStatus,
 		&responseBase.CreatedAt,
 		&totalCount,
 		&responseBase.ConfirmationStatus,
@@ -289,8 +289,8 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			PaymentStatus:      res[5].(string),
-			DeliveryStatus:     res[6].(string),
+			DeliveryStatus:     res[5].(string),
+			PaymentStatus:      res[6].(string),
 			CreatedAt:          res[7].(time.Time),
 			ConfirmationStatus: res[9].(string),
 		}
