@@ -8,6 +8,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -19,6 +20,7 @@ import (
 
 type TestContainer struct {
 	PaymentVerificationService Provider
+	RenderService              render.Provider
 	TransactionService         transaction.Provider
 	PartnerService             partner.Provider
 	CheckoutService            checkout.Provider
@@ -43,8 +45,10 @@ func NewPackageIntegrationTestContainer() TestContainer {
 		),
 		container.DistributorService,
 	)
+	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewMock(),
+		container.RenderService,
 	)
 	container.PaymentService = payment.NewTestContainer().Service
 	container.CheckoutService = checkout.NewCheckoutService(

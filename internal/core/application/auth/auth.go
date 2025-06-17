@@ -255,7 +255,7 @@ func (s AuthService) sendResetEmail(token, recepientEmail string) error {
 		To:         recepientEmail,
 		Subject:    "Welcome to EfoytaStore!",
 		TemplateId: 1,
-		Args: map[string]string{
+		Args: map[string]interface{}{
 			"username":   recepientEmail,
 			"reset_link": token,
 		}})

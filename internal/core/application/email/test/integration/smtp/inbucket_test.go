@@ -110,7 +110,7 @@ func Test_Send_Email(t *testing.T) {
 	in := email.SendRequest{
 		To:      VALID_EMAIL_RECEPIENT,
 		Subject: VALID_SUBJECT,
-		Args: map[string]string{
+		Args: map[string]interface{}{
 			"username":   "John Doe",
 			"reset_link": "https://example.com/reset?token=abc123"},
 		TemplateId: temp_id,
