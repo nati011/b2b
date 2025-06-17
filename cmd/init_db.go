@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	ErrFailedToExecuteMigration  = errors.New("¯\\_(o_o)_/¯, failed to execute migration")
-	ErrFailedToReadMigrationFile = errors.New("¯\\_(o_o)_/¯, failed to read migration file")
-	ErrFailedToOpenDB            = errors.New("¯\\_(o_o)_/¯, failed to open database connection")
-	ErrFailedToConnectDB         = errors.New("¯\\_(o_o)_/¯, failed to connect with db")
+	ErrFailedToExecuteMigration  = errors.New(" failed to execute migration")
+	ErrFailedToReadMigrationFile = errors.New(" failed to read migration file")
+	ErrFailedToOpenDB            = errors.New(" failed to open database connection")
+	ErrFailedToConnectDB         = errors.New(" failed to connect with db")
 )
 
 func InitDB(cfg *config.Config) *sql.DB {
