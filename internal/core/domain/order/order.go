@@ -80,6 +80,7 @@ type GetResponse struct {
 	DeliveryStatus     string
 	PaymentStatus      string
 	ConfirmationStatus string
+	PaymentMethod      string
 	CreatedAt          time.Time
 }
 
@@ -478,7 +479,6 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			return GetAllResponse{}, ErrUnknown
 		}
 	}
-
 	return_response := GetAllResponse{}
 	for _, i := range resp.List {
 		items := []Item{}
@@ -500,6 +500,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			DeliveryStatus: i.DeliveryStatus,
 			CreatedAt:      i.CreatedAt,
 			PaymentStatus:  i.PaymentStatus,
+			PaymentMethod:  i.PaymentMethod,
 		})
 	}
 	return return_response, nil
