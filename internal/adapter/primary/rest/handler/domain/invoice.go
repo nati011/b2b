@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -33,6 +34,10 @@ func (i *Invoice) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/invoice", func(w http.ResponseWriter, r *http.Request) {
 		i.authMiddleware.RequireAuthentication(http.HandlerFunc(i.GetHandler)).ServeHTTP(w, r)
 	})
+
+	mux.HandleFunc("GET /api/v1/invoice/html", func(w http.ResponseWriter, r *http.Request) {
+		i.authMiddleware.RequireAuthentication(http.HandlerFunc(i.GetHtmlHandlerHtml)).ServeHTTP(w, r)
+	})
 }
 
 func (i *Invoice) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,5 +69,38 @@ func (i *Invoice) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"invoice": resp})
+	}
+}
+
+func (i *Invoice) GetHtmlHandlerHtml(w http.ResponseWriter, r *http.Request) {
+	const ParamOrderId = "order_id"
+	paramValues := r.URL.Query()
+	paramOrderIdValue := paramValues.Get(ParamOrderId)
+	if paramOrderIdValue != "" {
+		var typedOrderId int
+		var err error
+		if paramOrderIdValue != "" {
+			typedOrderId, err = strconv.Atoi(paramOrderIdValue)
+			if err != nil {
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		resp, err := i.Service.GetInvoiceHtml(r.Context(), typedOrderId)
+
+		if err != nil {
+			switch err {
+			case invoice.ErrSysUnknown:
+				util.ServerErrorResponse(w, err)
+				return
+			case invoice.ErrSysEmptyGetContent:
+			default:
+				util.RequestErrorResponse(w, err)
+				return
+			}
+		}
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, resp.HTML)
+		return
 	}
 }
