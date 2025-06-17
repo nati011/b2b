@@ -143,6 +143,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		&responseBase.DeliveryStatus,
 		&responseBase.CreatedAt,
 		&responseBase.ConfirmationStatus,
+		&responseBase.PaymentMethod,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -168,6 +169,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 			DeliveryStatus:     res[6].(string),
 			CreatedAt:          res[7].(time.Time),
 			ConfirmationStatus: res[8].(string),
+			PaymentMethod:      res[9].(string),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
