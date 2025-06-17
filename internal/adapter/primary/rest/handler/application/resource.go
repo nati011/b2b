@@ -54,7 +54,7 @@ func (r *Resource) Init(authMiddleWare *middleware.Auth, applicationServices *ap
 
 func (re *Resource) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/resource", func(w http.ResponseWriter, r *http.Request) {
-		re.authMiddleware.RequireAuthentication(http.HandlerFunc(re.GetResourceHandler)).ServeHTTP(w, r)
+		re.authMiddleware.RequireNoAuthentication(http.HandlerFunc(re.GetResourceHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/resource", func(w http.ResponseWriter, r *http.Request) {
