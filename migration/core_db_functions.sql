@@ -3063,31 +3063,39 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
     o_retailer_id INT
 )
-RETURNS TABLE(id INT, 
-              retailer_id INT,
-              retailer_name VARCHAR(255),
-              status VARCHAR(255),
-              total DECIMAL(12,2),
-              delivery_status VARCHAR(255),
-              payment_status VARCHAR(255),
-              created_date TIMESTAMP,
-              confirmation_status VARCHAR(255))
+RETURNS TABLE(
+    id INT, 
+    retailer_id INT,
+    retailer_name VARCHAR(255),
+    status VARCHAR(255),
+    total DECIMAL(12,2),
+    delivery_status VARCHAR(255),
+    payment_status VARCHAR(255),
+    created_date TIMESTAMP,
+    confirmation_status VARCHAR(255),
+    payment_method VARCHAR(255)
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT o.id, 
+    SELECT DISTINCT o.id, 
            o.retailer_id,
-           r.name,
+           r.name AS retailer_name,
            o.status, 
            o.total,
-           o.payment_status,
            o.delivery_status,
+           o.payment_status,
            o.created_date,
-           o.confirmation_status
+           o.confirmation_status,
+           pp.payment_method
     FROM public.orders o
     JOIN public.retailer_business_info r
-    ON r.retailer_id = o.retailer_id
+        ON r.retailer_id = o.retailer_id
+    JOIN public.payments p
+        ON p.order_id = o.id
+    JOIN public.payment_partners pp
+        ON pp.id = p.partner_id
     WHERE o.retailer_id = o_retailer_id
       AND o.is_deleted = FALSE;
 END;
