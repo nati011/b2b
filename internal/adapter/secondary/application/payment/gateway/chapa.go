@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrPartnerUrlIsMandatory = errors.New("¯\\_(o_o)_/¯, partner url is mandatory")
+	ErrPartnerUrlIsMandatory = errors.New(" partner url is mandatory")
 )
 
 type InitatePaymentChapaResponseData struct {

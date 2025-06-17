@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	ErrDuplicateName               = errors.New("¯\\_(o_o)_/¯, duplicate name")
-	ErrEmptyName                   = errors.New("¯\\_(o_o)_/¯, empty name")
-	ErrIdNotFound                  = errors.New("¯\\_(o_o)_/¯, id not found")
-	ErrUnknown                     = errors.New("¯\\_(o_o)_/¯, unknown error has occured")
-	ErrEmptyUpdateContent          = errors.New("¯\\_(o_o)_/¯, update content empty")
-	ErrEmptyGetContent             = errors.New("¯\\_(o_o)_/¯, get content empty")
-	ErrResourceAlreadyExistsInRole = errors.New("¯\\_(o_o)_/¯, resource already exists in role")
-	ErrResourceNotFound            = errors.New("¯\\_(o_o)_/¯, resource not found")
-	ErrResourceNotFoundInRole      = errors.New("¯\\_(o_o)_/¯, resource not found in role")
+	ErrDuplicateName               = errors.New(" duplicate name")
+	ErrEmptyName                   = errors.New(" empty name")
+	ErrIdNotFound                  = errors.New(" id not found")
+	ErrUnknown                     = errors.New(" unknown error has occured")
+	ErrEmptyUpdateContent          = errors.New(" update content empty")
+	ErrEmptyGetContent             = errors.New(" get content empty")
+	ErrResourceAlreadyExistsInRole = errors.New(" resource already exists in role")
+	ErrResourceNotFound            = errors.New(" resource not found")
+	ErrResourceNotFoundInRole      = errors.New(" resource not found in role")
 )
 
 type CreateRequest struct {

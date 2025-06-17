@@ -31,9 +31,9 @@ type Email struct {
 }
 
 var (
-	ErrReceiverAddressNotValid = errors.New("¯\\_(o_o)_/¯, receiver email is not valid")
-	ErrContentEmpty            = errors.New("¯\\_(o_o)_/¯, email content is empty")
-	ErrUnknown                 = errors.New("¯\\_(o_o)_/¯, unknown error")
+	ErrReceiverAddressNotValid = errors.New(" receiver email is not valid")
+	ErrContentEmpty            = errors.New(" email content is empty")
+	ErrUnknown                 = errors.New(" unknown error")
 )
 
 type Provider interface {
