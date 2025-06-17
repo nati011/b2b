@@ -9,14 +9,14 @@ import (
 )
 
 var (
-	ErrDuplicateName      = errors.New("¯\\_(o_o)_/¯, duplicate name")
-	ErrEmptyAction        = errors.New("¯\\_(o_o)_/¯, empty action")
-	ErrEmptyName          = errors.New("¯\\_(o_o)_/¯, empty name")
-	ErrIdNotFound         = errors.New("¯\\_(o_o)_/¯, id not found")
-	ErrNameNotFound       = errors.New("¯\\_(o_o)_/¯, name not found")
-	ErrUnknown            = errors.New("¯\\_(o_o)_/¯, unknown error has occured")
-	ErrEmptyUpdateContent = errors.New("¯\\_(o_o)_/¯, update content empty")
-	ErrEmptyGetContent    = errors.New("¯\\_(o_o)_/¯, get content empty")
+	ErrDuplicateName      = errors.New(" duplicate name")
+	ErrEmptyAction        = errors.New(" empty action")
+	ErrEmptyName          = errors.New(" empty name")
+	ErrIdNotFound         = errors.New(" id not found")
+	ErrNameNotFound       = errors.New(" name not found")
+	ErrUnknown            = errors.New(" unknown error has occured")
+	ErrEmptyUpdateContent = errors.New(" update content empty")
+	ErrEmptyGetContent    = errors.New(" get content empty")
 )
 
 const (
