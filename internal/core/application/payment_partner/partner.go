@@ -22,16 +22,16 @@ const (
 )
 
 var (
-	ErrNameIsNotSupplied            = errors.New("¯\\_(ツ)_/¯, name is not supplied")
-	ErrIconIsNotSupplied            = errors.New("¯\\_(ツ)_/¯, icon is not supplied")
-	ErrSecretIsNotSupplied          = errors.New("¯\\_(ツ)_/¯, secret is not supplied")
-	ErrUrlIsNotSupplied             = errors.New("¯\\_(ツ)_/¯, init payment url is not supplied")
-	ErrPaymentMethodIsNotSupplied   = errors.New("¯\\_(ツ)_/¯, payment method is not supplied")
-	ErrIdNotFound                   = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrPaymentOptionaAlreadyActive  = errors.New("¯\\_(ツ)_/¯, payment option is already active")
-	ErrPaymentOptionAlreadyInactive = errors.New("¯\\_(ツ)_/¯, payment option is already inactive")
-	ErrEmptyGetContent              = errors.New("¯\\_(ツ)_/¯, empty get content")
-	ErrUnknown                      = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
+	ErrNameIsNotSupplied            = errors.New(" name is not supplied")
+	ErrIconIsNotSupplied            = errors.New(" icon is not supplied")
+	ErrSecretIsNotSupplied          = errors.New(" secret is not supplied")
+	ErrUrlIsNotSupplied             = errors.New(" init payment url is not supplied")
+	ErrPaymentMethodIsNotSupplied   = errors.New(" payment method is not supplied")
+	ErrIdNotFound                   = errors.New(" id not found")
+	ErrPaymentOptionaAlreadyActive  = errors.New(" payment option is already active")
+	ErrPaymentOptionAlreadyInactive = errors.New(" payment option is already inactive")
+	ErrEmptyGetContent              = errors.New(" empty get content")
+	ErrUnknown                      = errors.New(" unknown error has occured")
 )
 
 type CreateRequest struct {
