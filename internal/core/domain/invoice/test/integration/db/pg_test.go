@@ -8,6 +8,7 @@ import (
 
 	"b2b.nati011.github.com/config"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
+	"b2b.nati011.github.com/internal/core/application/render"
 	invoice "b2b.nati011.github.com/internal/core/domain/invoice"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -25,8 +26,10 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	db = db_test_container.Setup()
+	renderService := render.NewMock()
 	invoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
+		renderService,
 	)
 	//create order
 	// orderService := order.NewOrderService(

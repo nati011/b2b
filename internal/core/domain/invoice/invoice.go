@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	render "b2b.nati011.github.com/internal/core/application/render"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/invoice/db"
 )
@@ -47,6 +48,11 @@ type GetResponse struct {
 	SubTotal     float64
 	LineItems    []Item
 	TaxAmount    float64
+	Total        float64
+}
+
+type GetByHtml struct {
+	HTML string `json:"html"`
 }
 
 type GetAllResponse struct {
@@ -72,15 +78,18 @@ type Provider interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
+	GetInvoiceHtml(ctx context.Context, id int) (GetByHtml, error)
 }
 
 type InvoiceService struct {
-	DB port.DB
+	DB            port.DB
+	RenderService render.Provider
 }
 
-func NewInvoice(db port.DB) Provider {
+func NewInvoice(db port.DB, renderService render.Provider) Provider {
 	return &InvoiceService{
-		DB: db,
+		DB:            db,
+		RenderService: renderService,
 	}
 }
 
@@ -340,4 +349,53 @@ func (i *InvoiceService) GetByParam(ctx context.Context, req *GetByParamRequest)
 	return GetAllResponse{
 		List: resp,
 	}, nil
+}
+
+func (i *InvoiceService) GetInvoiceHtml(ctx context.Context, id int) (GetByHtml, error) {
+	// Get data from DB
+	db_resp, err := i.DB.GetByOrderId(ctx, id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetByHtml{}, ErrSysIdNotFound
+		default:
+			return GetByHtml{}, ErrSysUnknown
+		}
+	}
+
+	if db_resp.Id == 0 {
+		return GetByHtml{}, ErrSysEmptyGetContent
+	}
+
+	items := make([]Item, 0, len(db_resp.LineItems))
+	for _, item := range db_resp.LineItems {
+		items = append(items, Item{
+			ProductId:       item.ProductId,
+			ProductName:     item.ProductName,
+			ProductQuantity: item.ProductQuantity,
+			ProductPrice:    item.ProductPrice,
+		})
+	}
+
+	invoice_data := map[string]any{
+		"Id":           db_resp.Id,
+		"Created_Date": db_resp.Created_Date,
+		"ExternalId":   db_resp.ExternalId,
+		"Status":       db_resp.Status,
+		"OrderId":      db_resp.OrderId,
+		"SubTotal":     db_resp.SubTotal,
+		"LineItems":    items,
+		"TaxAmount":    db_resp.TaxAmount,
+		"Total":        db_resp.SubTotal + db_resp.TaxAmount,
+	}
+
+	renderResponse, err := i.RenderService.Create(&render.Request{
+		TemplateId: 2,
+		Args:       invoice_data,
+	})
+	if err != nil {
+		return GetByHtml{}, err
+	}
+
+	return GetByHtml{HTML: renderResponse.Text}, nil
 }

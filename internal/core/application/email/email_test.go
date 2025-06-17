@@ -75,7 +75,7 @@ func Test_SendEmail_happyPath(t *testing.T) {
 	in := SendRequest{
 		To:      VALID_EMAIL_RECEPIENT,
 		Subject: VALID_SUBJECT,
-		Args: map[string]string{
+		Args: map[string]interface{}{
 			"username":   "John Doe",
 			"reset_link": "https://example.com/reset?token=abc123"},
 		TemplateId: temp_id,
@@ -92,7 +92,7 @@ func Test_SendEmail_unhappyPath(t *testing.T) {
 		in := SendRequest{
 			To:      INVALID_EMAIL_ADDR,
 			Subject: VALID_SUBJECT,
-			Args: map[string]string{
+			Args: map[string]interface{}{
 				"username":   "John Doe",
 				"reset_link": "https://example.com/reset?token=abc123"},
 			TemplateId: temp_id,
