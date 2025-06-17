@@ -3079,7 +3079,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT o.id, 
+    SELECT DISTINCT o.id, 
            o.retailer_id,
            r.name AS retailer_name,
            o.status, 
