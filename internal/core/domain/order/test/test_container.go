@@ -10,6 +10,7 @@ import (
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	distributor_test "b2b.nati011.github.com/internal/core/domain/distributor/test"
@@ -23,6 +24,7 @@ import (
 
 type TestContainer struct {
 	OrderService       order.Provider
+	RenderService      render.Provider
 	InvoiceService     invoice.Provider
 	ProductService     product.Provider
 	RetailerService    retailer.Provider
@@ -33,8 +35,10 @@ type TestContainer struct {
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
+	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
+		container.RenderService,
 	)
 
 	checkout_container := checkout.NewPackageIntegrationTestContainer()
@@ -59,8 +63,10 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 }
 
 func (t *TestContainer) Teardown(db *sql.DB) {
+	t.RenderService = render.NewMock()
 	t.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
+		t.RenderService,
 	)
 	t.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
 	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
