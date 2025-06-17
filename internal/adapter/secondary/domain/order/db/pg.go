@@ -3,7 +3,6 @@ package order
 import (
 	"context"
 	"database/sql"
-	"log"
 	"strconv"
 	"time"
 
@@ -122,7 +121,6 @@ func (p *Postgres) GetAllOrderItems(ctx context.Context, orderId int) (GetAllOrd
 			Quantity:    int(res[3].(int64)),
 			Price:       v,
 		})
-		log.Printf("Order Items %v", response.Items)
 	}
 
 	return response, nil
@@ -249,7 +247,6 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		}
 
 		response.List = append(response.List, val)
-		log.Printf("Response: %v", val.Items)
 	}
 
 	return response, nil
@@ -294,8 +291,8 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			DeliveryStatus:     res[5].(string),
-			PaymentStatus:      res[6].(string),
+			DeliveryStatus:     res[6].(string),
+			PaymentStatus:      res[5].(string),
 			CreatedAt:          res[7].(time.Time),
 			ConfirmationStatus: res[9].(string),
 		}
