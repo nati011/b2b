@@ -9,14 +9,14 @@ import (
 )
 
 var (
-	ErrDuplicateName      = errors.New("¯\\_(ツ)_/¯, duplicate name")
-	ErrEmptyAction        = errors.New("¯\\_(ツ)_/¯, empty action")
-	ErrEmptyName          = errors.New("¯\\_(ツ)_/¯, empty name")
-	ErrIdNotFound         = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrNameNotFound       = errors.New("¯\\_(ツ)_/¯, name not found")
-	ErrUnknown            = errors.New("¯\\_(ツ)_/¯, unknown error has occured")
-	ErrEmptyUpdateContent = errors.New("¯\\_(ツ)_/¯, update content empty")
-	ErrEmptyGetContent    = errors.New("¯\\_(ツ)_/¯, get content empty")
+	ErrDuplicateName      = errors.New(" duplicate name")
+	ErrEmptyAction        = errors.New(" empty action")
+	ErrEmptyName          = errors.New(" empty name")
+	ErrIdNotFound         = errors.New(" id not found")
+	ErrNameNotFound       = errors.New(" name not found")
+	ErrUnknown            = errors.New(" unknown error has occured")
+	ErrEmptyUpdateContent = errors.New(" update content empty")
+	ErrEmptyGetContent    = errors.New(" get content empty")
 )
 
 type CreateRequest struct {
