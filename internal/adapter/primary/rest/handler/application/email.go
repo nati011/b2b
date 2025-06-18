@@ -15,11 +15,11 @@ import (
 )
 
 type SendEmailRequest struct {
-	To         string            `json:"to"`
-	Subject    string            `json:"subject"`
-	TemplateId int               `json:"template_id"`
-	Args       map[string]string `json:"args"`
-	ExternalId string            `json:"ext_id"`
+	To         string                 `json:"to"`
+	Subject    string                 `json:"subject"`
+	TemplateId int                    `json:"template_id"`
+	Args       map[string]interface{} `json:"args"`
+	ExternalId string                 `json:"ext_id"`
 }
 
 type Email struct {

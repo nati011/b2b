@@ -15,19 +15,19 @@ import (
 )
 
 var (
-	ErrIdNotFound                         = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrRetailerIdNotSupplied              = errors.New("¯\\_(ツ)_/¯, retailer id mandatory")
-	ErrRetailerIdNotFound                 = errors.New("¯\\_(ツ)_/¯, retailer does not exist")
-	ErrAtleastOneOrderItemNeeded          = errors.New("¯\\_(ツ)_/¯, order items cannot be empty")
-	ErrItemMemberProductIdOrQuantityEmpty = errors.New("¯\\_(ツ)_/¯, either order item member productId or quantity missing")
-	ErrUnknown                            = errors.New("¯\\_(ツ)_/¯, unknown error")
-	ErrEmptyGetResponse                   = errors.New("¯\\_(ツ)_/¯, empty get response")
-	ErrAlreadyCanceled                    = errors.New("¯\\_(ツ)_/¯, order already canceled")
-	ErrItemMemberProductNotFound          = errors.New("¯\\_(ツ)_/¯, product not found")
-	ErrItemMemberProductQuantityNotFound  = errors.New("¯\\_(ツ)_/¯, product quantity not found")
-	ErrDuplicateOrderNotAllowed           = errors.New("¯\\_(ツ)_/¯, duplicate order not allowed")
-	ErrOrderAlreadyConfirmed              = errors.New("¯\\_(ツ)_/¯, order already confirmed")
-	ErrOrderAlreadyRejected               = errors.New("¯\\_(ツ)_/¯, order already rejected")
+	ErrIdNotFound                         = errors.New(" id not found")
+	ErrRetailerIdNotSupplied              = errors.New(" retailer id mandatory")
+	ErrRetailerIdNotFound                 = errors.New(" retailer does not exist")
+	ErrAtleastOneOrderItemNeeded          = errors.New(" order items cannot be empty")
+	ErrItemMemberProductIdOrQuantityEmpty = errors.New(" either order item member productId or quantity missing")
+	ErrUnknown                            = errors.New(" unknown error")
+	ErrEmptyGetResponse                   = errors.New(" empty get response")
+	ErrAlreadyCanceled                    = errors.New(" order already canceled")
+	ErrItemMemberProductNotFound          = errors.New(" product not found")
+	ErrItemMemberProductQuantityNotFound  = errors.New(" product quantity not found")
+	ErrDuplicateOrderNotAllowed           = errors.New(" duplicate order not allowed")
+	ErrOrderAlreadyConfirmed              = errors.New(" order already confirmed")
+	ErrOrderAlreadyRejected               = errors.New(" order already rejected")
 )
 
 // order status
@@ -80,6 +80,7 @@ type GetResponse struct {
 	DeliveryStatus     string
 	PaymentStatus      string
 	ConfirmationStatus string
+	PaymentMethod      string
 	CreatedAt          time.Time
 }
 
@@ -478,7 +479,6 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			return GetAllResponse{}, ErrUnknown
 		}
 	}
-
 	return_response := GetAllResponse{}
 	for _, i := range resp.List {
 		items := []Item{}
@@ -500,6 +500,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			DeliveryStatus: i.DeliveryStatus,
 			CreatedAt:      i.CreatedAt,
 			PaymentStatus:  i.PaymentStatus,
+			PaymentMethod:  i.PaymentMethod,
 		})
 	}
 	return return_response, nil
