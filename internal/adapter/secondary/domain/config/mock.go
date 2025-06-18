@@ -7,7 +7,7 @@ import (
 )
 
 type MockConfigs struct {
-	OrderExpiryDurationInHours int
+	OrderExpiryDurationInMinutes int
 }
 
 type Mock struct {
@@ -20,11 +20,11 @@ func NewMock() port.DB {
 
 func (m *Mock) GetOrderExpiry(ctx context.Context) (port.GetOrderExpiryResponse, error) {
 	return port.GetOrderExpiryResponse{
-		ExpiryDurationInHours: m.configs.OrderExpiryDurationInHours,
+		ExpiryDurationInMinues: m.configs.OrderExpiryDurationInMinutes,
 	}, nil
 }
 
 func (m *Mock) SetOrderExpiryConfig(ctx context.Context, req *port.SetOrderExpiryRequest) error {
-	m.configs.OrderExpiryDurationInHours = req.ExpiryDurationInHours
+	m.configs.OrderExpiryDurationInMinutes = req.ExpiryDurationInMinues
 	return nil
 }

@@ -381,7 +381,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		PaymentStatus:      resp.PaymentStatus,
 		ConfirmationStatus: resp.ConfirmationStatus,
 		CreatedAt:          resp.CreatedAt,
-		ExpiresAt:          resp.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInHours)),
+		ExpiresAt:          resp.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
 	}, nil
 }
 
@@ -425,7 +425,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			DeliveryStatus: i.DeliveryStatus,
 			PaymentStatus:  i.PaymentStatus,
 			CreatedAt:      i.CreatedAt,
-			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInHours)),
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
 		})
 	}
 	return_response.TotalCount = resp.TotalCount
@@ -483,7 +483,7 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 				DeliveryStatus: i.DeliveryStatus,
 				PaymentStatus:  i.PaymentStatus,
 				CreatedAt:      i.CreatedAt,
-				ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInHours)),
+				ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
 			})
 		}
 	}
@@ -532,7 +532,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			DeliveryStatus: i.DeliveryStatus,
 			PaymentStatus:  i.PaymentStatus,
 			CreatedAt:      i.CreatedAt,
-			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInHours)),
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
 		})
 	}
 	return return_response, nil
@@ -583,7 +583,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
 					CreatedAt:      i.CreatedAt,
-					ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInHours)),
+					ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
 				})
 			}
 		}
@@ -626,7 +626,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
 					CreatedAt:      i.CreatedAt,
-					ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInHours)),
+					ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
 				})
 			}
 		}

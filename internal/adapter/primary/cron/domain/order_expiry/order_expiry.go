@@ -27,7 +27,7 @@ func InitOrderExpiry(s gocron.Scheduler, domainServices *domain_core.Container) 
 	log.Printf("init order expiry cron id: %v", j.ID())
 }
 
-const EXPIRE_AFTER time.Duration = 10 * time.Hour
+const EXPIRE_AFTER time.Duration = 600 * time.Minute
 
 func CancelExpiredOrders(domainServices *domain_core.Container) {
 	//get all orders
