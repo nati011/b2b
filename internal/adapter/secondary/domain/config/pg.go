@@ -34,14 +34,14 @@ func (p *Postgres) GetOrderExpiry(ctx context.Context) (port.GetOrderExpiryRespo
 		return port.GetOrderExpiryResponse{}, err
 	}
 	return port.GetOrderExpiryResponse{
-		ExpiryDurationInHours: response,
+		ExpiryDurationInMinues: response,
 	}, nil
 }
 
 func (p *Postgres) SetOrderExpiryConfig(ctx context.Context, req *port.SetOrderExpiryRequest) error {
 	query := "SELECT * FROM public.set_order_expiry_duration_config($1);"
 	args := []any{
-		req.ExpiryDurationInHours,
+		req.ExpiryDurationInMinues,
 	}
 	result := []any{}
 	err := query_handler.NewQuery(

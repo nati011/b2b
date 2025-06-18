@@ -3,11 +3,11 @@ package config
 import "context"
 
 type GetOrderExpiryResponse struct {
-	ExpiryDurationInHours int
+	ExpiryDurationInMinues int
 }
 
 type SetOrderExpiryRequest struct {
-	ExpiryDurationInHours int
+	ExpiryDurationInMinues int
 }
 
 type Reader interface {

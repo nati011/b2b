@@ -60,7 +60,7 @@ func (c *Config) SetOrderExpiryConfig(w http.ResponseWriter, r *http.Request) {
 	paramValues := r.URL.Query()
 	paramExpiryDurationValue := paramValues.Get(ParamOrderExpiryConfig)
 	if paramExpiryDurationValue != "" {
-		typedParamExpirationDurationInHours, err := strconv.Atoi(paramExpiryDurationValue)
+		typedParamExpirationDurationInMinutes, err := strconv.Atoi(paramExpiryDurationValue)
 		if err != nil {
 			switch err {
 			case config.ErrUnknown:
@@ -73,7 +73,7 @@ func (c *Config) SetOrderExpiryConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = c.service.SetOrderExpiryConfig(r.Context(), &config.SetOrderExpiryRequest{
-			ExpiryDurationInHours: typedParamExpirationDurationInHours,
+			ExpiryDurationInMinues: typedParamExpirationDurationInMinutes,
 		})
 		if err != nil {
 			switch err {

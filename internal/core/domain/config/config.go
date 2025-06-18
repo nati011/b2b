@@ -13,11 +13,11 @@ var (
 )
 
 type GetOrderExpiryResponse struct {
-	ExpiryDurationInHours int
+	ExpiryDurationInMinues int
 }
 
 type SetOrderExpiryRequest struct {
-	ExpiryDurationInHours int
+	ExpiryDurationInMinues int
 }
 
 type Provider interface {
@@ -43,12 +43,12 @@ func NewConfig(DB port.DB) Provider {
 }
 
 const (
-	DEFAULT_ORDER_EXPIRY_HOURS = 12
+	DEFAULT_ORDER_EXPIRY_MINUTES = 7200
 )
 
 func (c *ConfigService) SetDefaults(ctx context.Context) error {
 	err := c.SetOrderExpiryConfig(ctx, &SetOrderExpiryRequest{
-		ExpiryDurationInHours: DEFAULT_ORDER_EXPIRY_HOURS,
+		ExpiryDurationInMinues: DEFAULT_ORDER_EXPIRY_MINUTES,
 	})
 	if err != nil {
 		log.Printf("failed to set default order expiry err: %v", err)
@@ -64,13 +64,13 @@ func (c *ConfigService) GetOrderExpiryConfig(ctx context.Context) (GetOrderExpir
 		return GetOrderExpiryResponse{}, ErrUnknown
 	}
 	return GetOrderExpiryResponse{
-		ExpiryDurationInHours: resp.ExpiryDurationInHours,
+		ExpiryDurationInMinues: resp.ExpiryDurationInMinues,
 	}, nil
 }
 
 func (c *ConfigService) SetOrderExpiryConfig(ctx context.Context, req *SetOrderExpiryRequest) error {
 	err := c.DB.SetOrderExpiryConfig(ctx, &port.SetOrderExpiryRequest{
-		ExpiryDurationInHours: req.ExpiryDurationInHours,
+		ExpiryDurationInMinues: req.ExpiryDurationInMinues,
 	})
 	if err != nil {
 		log.Printf("failed to set order expiry err: %v", err)
