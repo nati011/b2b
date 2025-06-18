@@ -29,8 +29,8 @@ func Test_GetOrderExpiryConfig_happypath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get order expiry config err:%v", err)
 	}
-	if resp.ExpiryDurationInHours != DEFAULT_ORDER_EXPIRY_HOURS {
-		t.Errorf("Expected ExpiryDurationInHours: %v Got: %v", DEFAULT_ORDER_EXPIRY_HOURS, resp.ExpiryDurationInHours)
+	if resp.ExpiryDurationInMinues != DEFAULT_ORDER_EXPIRY_MINUTES {
+		t.Errorf("Expected ExpiryDurationInHours: %v Got: %v", DEFAULT_ORDER_EXPIRY_MINUTES, resp.ExpiryDurationInMinues)
 	}
 }
 
@@ -39,7 +39,7 @@ func Test_SetOrderExpiryConfig_unhappypath(t *testing.T) {
 	t.Cleanup(teardown)
 	expiryHours := 11
 	err := container.ConfigService.SetOrderExpiryConfig(ctx, &SetOrderExpiryRequest{
-		ExpiryDurationInHours: expiryHours,
+		ExpiryDurationInMinues: expiryHours,
 	})
 	if err != nil {
 		t.Errorf("Failed to set order expiry config err:%v", err)
@@ -48,7 +48,7 @@ func Test_SetOrderExpiryConfig_unhappypath(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get order expiry config err:%v", err)
 	}
-	if resp.ExpiryDurationInHours != expiryHours {
-		t.Errorf("Expected ExpiryDurationInHours: %v Got: %v", expiryHours, resp.ExpiryDurationInHours)
+	if resp.ExpiryDurationInMinues != expiryHours {
+		t.Errorf("Expected ExpiryDurationInHours: %v Got: %v", expiryHours, resp.ExpiryDurationInMinues)
 	}
 }
