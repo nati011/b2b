@@ -2,9 +2,14 @@ package config
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	port "b2b.nati011.github.com/internal/port/domain/config"
+)
+
+var (
+	ErrUnknown = errors.New(" unknown error")
 )
 
 type GetOrderExpiryResponse struct {
@@ -47,7 +52,7 @@ func (c *ConfigService) SetDefaults(ctx context.Context) error {
 	})
 	if err != nil {
 		log.Printf("failed to set default order expiry err: %v", err)
-		return err
+		return ErrUnknown
 	}
 	return nil
 }
@@ -56,7 +61,7 @@ func (c *ConfigService) GetOrderExpiryConfig(ctx context.Context) (GetOrderExpir
 	resp, err := c.DB.GetOrderExpiry(ctx)
 	if err != nil {
 		log.Printf("failed to set order expiry err: %v", err)
-		return GetOrderExpiryResponse{}, err
+		return GetOrderExpiryResponse{}, ErrUnknown
 	}
 	return GetOrderExpiryResponse{
 		ExpiryDurationInHours: resp.ExpiryDurationInHours,
@@ -69,14 +74,14 @@ func (c *ConfigService) SetOrderExpiryConfig(ctx context.Context, req *SetOrderE
 	})
 	if err != nil {
 		log.Printf("failed to set order expiry err: %v", err)
-		return err
+		return ErrUnknown
 	}
 	return nil
 }
 
 func (c *ConfigService) ResetOrderExpiryConfig(ctx context.Context) error {
 	if err := c.SetDefaults(ctx); err != nil {
-		return err
+		return ErrUnknown
 	}
 	return nil
 }
