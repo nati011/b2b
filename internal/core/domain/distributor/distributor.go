@@ -12,13 +12,13 @@ import (
 )
 
 var (
-	ErrUnknown                    = errors.New("¯\\_(ツ)_/¯, unknown error")
-	ErrInvalidTin                 = errors.New("¯\\_(ツ)_/¯, tin invalid")
-	ErrDuplicateTin               = errors.New("¯\\_(ツ)_/¯, tin already in use")
-	ErrIdNotFound                 = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrEmptyGetContent            = errors.New("¯\\_(ツ)_/¯, empty get content")
-	ErrDistributorAlreadyInactive = errors.New("¯\\_(ツ)_/¯, distributor already inactive")
-	ErrDistributorAlreadyActive   = errors.New("¯\\_(ツ)_/¯, distributor already active")
+	ErrUnknown                    = errors.New(" unknown error")
+	ErrInvalidTin                 = errors.New(" tin invalid")
+	ErrDuplicateTin               = errors.New(" tin already in use")
+	ErrIdNotFound                 = errors.New(" id not found")
+	ErrEmptyGetContent            = errors.New(" empty get content")
+	ErrDistributorAlreadyInactive = errors.New(" distributor already inactive")
+	ErrDistributorAlreadyActive   = errors.New(" distributor already active")
 )
 
 type CreateRequest struct {
