@@ -408,3 +408,11 @@ CREATE TABLE IF NOT EXISTS public."email_templates"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."email_templates" IS 'stores email templates';
+
+
+CREATE TABLE IF NOT EXISTS public."order_expiry_duration_config"
+(
+    duration_in_hours INT
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."order_expiry_duration_config" IS 'stores order expiry duration in hours';
