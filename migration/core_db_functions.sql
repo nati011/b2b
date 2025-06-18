@@ -3857,8 +3857,8 @@ $$;
 
 -- order_expiry_configuration ---------------
     
-    
     -- Read
+
 CREATE OR REPLACE FUNCTION public.get_order_expiry_duration_config()
 RETURNS INT
 LANGUAGE plpgsql
@@ -3866,7 +3866,7 @@ AS $$
 DECLARE
     expiry_duration INT;
 BEGIN
-    SELECT duration_in_hours INTO expiry_duration
+    SELECT duration_in_minutes INTO expiry_duration
     FROM public."order_expiry_duration_config"
     LIMIT 1;
 
@@ -3875,6 +3875,7 @@ END;
 $$;
     
     -- Write
+
 CREATE OR REPLACE FUNCTION public.set_order_expiry_duration_config(new_duration INT)
 RETURNS VOID
 LANGUAGE plpgsql
@@ -3882,9 +3883,9 @@ AS $$
 BEGIN
     IF EXISTS (SELECT 1 FROM public."order_expiry_duration_config") THEN
         UPDATE public."order_expiry_duration_config"
-        SET duration_in_hours = new_duration;
+        SET duration_in_minutes = new_duration;
     ELSE
-        INSERT INTO public."order_expiry_duration_config" (duration_in_hours)
+        INSERT INTO public."order_expiry_duration_config" (duration_in_minutes)
         VALUES (new_duration);
     END IF;
 END;
