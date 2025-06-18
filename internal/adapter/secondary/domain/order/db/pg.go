@@ -45,8 +45,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.RetailerName,
 		&response.Status,
 		&response.Total,
-		&response.PaymentStatus,
 		&response.DeliveryStatus,
+		&response.PaymentStatus,
 		&response.ConfirmationStatus,
 	}
 
@@ -65,8 +65,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.RetailerName = *result[2].(*string)
 	response.Status = *result[3].(*string)
 	response.Total = *result[4].(*float64)
-	response.PaymentStatus = *result[5].(*string)
-	response.DeliveryStatus = *result[6].(*string)
+	response.DeliveryStatus = *result[5].(*string)
+	response.PaymentStatus = *result[6].(*string)
 	response.ConfirmationStatus = *result[7].(*string)
 
 	allOrderItems, err := p.GetAllOrderItems(ctx, response.Id)
@@ -139,10 +139,11 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
-		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
+		&responseBase.PaymentStatus,
 		&responseBase.CreatedAt,
 		&responseBase.ConfirmationStatus,
+		&responseBase.PaymentMethod,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -164,10 +165,11 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			PaymentStatus:      res[5].(string),
-			DeliveryStatus:     res[6].(string),
+			DeliveryStatus:     res[5].(string),
+			PaymentStatus:      res[6].(string),
 			CreatedAt:          res[7].(time.Time),
 			ConfirmationStatus: res[8].(string),
+			PaymentMethod:      res[9].(string),
 		}
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
@@ -218,7 +220,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	}
 
 	for _, res := range result {
-		v, _ := strconv.ParseFloat(res[3].(string), 64)
+		v, _ := strconv.ParseFloat(res[4].(string), 64)
 		val := port.GetResponse{
 			Id:                 int(res[0].(int64)),
 			RetailerId:         int(res[1].(int64)),
@@ -236,9 +238,11 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 
 		for _, s := range allOrderItems.Items {
 			val.Items = append(val.Items, port.Item{
-				ProductId: s.ProductId,
-				Quantity:  s.Quantity,
-				Price:     s.Price,
+				ProductId:    s.ProductId,
+				ProductName:  s.ProductName,
+				ProductPrice: s.Price,
+				Quantity:     s.Quantity,
+				Price:        s.Price,
 			})
 		}
 
@@ -262,8 +266,8 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.RetailerName,
 		&responseBase.Status,
 		&responseBase.Total,
-		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
+		&responseBase.PaymentStatus,
 		&responseBase.CreatedAt,
 		&totalCount,
 		&responseBase.ConfirmationStatus,
@@ -287,8 +291,8 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			PaymentStatus:      res[5].(string),
 			DeliveryStatus:     res[6].(string),
+			PaymentStatus:      res[5].(string),
 			CreatedAt:          res[7].(time.Time),
 			ConfirmationStatus: res[9].(string),
 		}

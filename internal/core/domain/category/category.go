@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	ErrNameIsNotSupplied = errors.New("¯\\_(ツ)_/¯, name is mandatory")
-	ErrDescIsNotSupplied = errors.New("¯\\_(ツ)_/¯, desc is mandatory")
-	ErrIdNotFound        = errors.New("¯\\_(ツ)_/¯, id not found")
-	ErrEmptyGetContent   = errors.New("¯\\_(ツ)_/¯, empty content")
-	ErrDuplicateName     = errors.New("¯\\_(ツ)_/¯, name already taken")
-	ErrUnknown           = errors.New("¯\\_(ツ)_/¯, unknown error")
+	ErrNameIsNotSupplied = errors.New(" name is mandatory")
+	ErrDescIsNotSupplied = errors.New(" desc is mandatory")
+	ErrIdNotFound        = errors.New(" id not found")
+	ErrEmptyGetContent   = errors.New(" empty content")
+	ErrDuplicateName     = errors.New(" name already taken")
+	ErrUnknown           = errors.New(" unknown error")
 )
 
 type CreateRequest struct {
