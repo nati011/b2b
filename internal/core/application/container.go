@@ -13,7 +13,10 @@ import (
 	role_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/role/db"
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
 	user_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
+	config_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/config"
+
 	payment "b2b.nati011.github.com/internal/core/application/payment"
+	config_module "b2b.nati011.github.com/internal/core/domain/config"
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
 
@@ -86,6 +89,7 @@ type Container struct {
 	PaymentVerificationService payment_verification.Provider
 	MobileClient               mobileclient.Provider
 	PaymentService             payment.Provider
+	ConfigService              config_module.Provider
 }
 
 func NewContainer(
@@ -111,6 +115,7 @@ func NewContainer(
 	container.InitMobileClientService(cfg.MinMobileClientCompatibleVersion)
 	container.InitPaymentService()
 	container.InitCheckoutService(cfg.BaseUrl, cfg.FrontendUrl)
+	container.InitConfigService()
 	// container.InitSMSService()
 
 	return &container
@@ -172,4 +177,8 @@ func (m *Container) InitPaymentService() {
 
 func (m *Container) InitCheckoutService(baseUrl, frontendUrl string) {
 	m.CheckoutService = checkout.NewCheckoutService(m.PaymentService, m.PaymentPartnerService, m.TransactionService, frontendUrl, baseUrl)
+}
+
+func (m *Container) InitConfigService() {
+	m.ConfigService = config_module.NewConfig(config_db_adapter.NewPostgres(m.db))
 }
