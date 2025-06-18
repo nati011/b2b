@@ -48,6 +48,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.DeliveryStatus,
 		&response.PaymentStatus,
 		&response.ConfirmationStatus,
+		&response.CreatedAt,
 	}
 
 	err := query_handler.NewQuery(
@@ -68,6 +69,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.DeliveryStatus = *result[5].(*string)
 	response.PaymentStatus = *result[6].(*string)
 	response.ConfirmationStatus = *result[7].(*string)
+	response.CreatedAt = *result[8].(*time.Time)
 
 	allOrderItems, err := p.GetAllOrderItems(ctx, response.Id)
 	if err != nil {
