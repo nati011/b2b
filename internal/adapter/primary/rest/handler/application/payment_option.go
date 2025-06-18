@@ -184,7 +184,7 @@ func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, 
 	for _, i := range resp.List {
 		response.List = append(response.List, GetPaymentPartnerResponse(i))
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
+	util.OperationSuccessResponse(w, response)
 }
 
 func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *http.Request) {
