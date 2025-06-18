@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
+	config_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/config"
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	distributor_approval_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor_approval/db"
@@ -14,6 +15,7 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/domain/catalogue"
 	"b2b.nati011.github.com/internal/core/domain/category"
+	config_module "b2b.nati011.github.com/internal/core/domain/config"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
@@ -64,6 +66,7 @@ type Container struct {
 	CatalogueService           catalogue.Provider
 	PaymentVerificationService payment_verification.Provider
 	DistributorApprovalService distributorApproval.Provider
+	ConfigService              config_module.Provider
 }
 
 func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
@@ -83,6 +86,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitOrderService()
 	container.InitCatalogueService()
 	container.InitPaymentVerificationService()
+	container.InitConfigService()
 	return &container
 }
 
@@ -154,4 +158,8 @@ func (m *Container) InitPaymentVerificationService() {
 		m.ApplicationServices.PaymentPartnerService,
 		m.ApplicationServices.TransactionService,
 		m.OrderService)
+}
+
+func (m *Container) InitConfigService() {
+	m.ConfigService = config_module.NewConfig(config_db_adapter.NewPostgres(m.db))
 }
