@@ -141,15 +141,16 @@ func NewOrderService(
 	ps product.Provider,
 	rs retailer.Provider,
 	pays checkout.Provider,
+	config config.Provider,
 
 ) Provider {
-
 	return &OrderService{
 		DB:              db,
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
 		CheckoutService: pays,
+		Config:          config,
 	}
 }
 
