@@ -60,7 +60,7 @@ func (c *ConfigService) SetDefaults(ctx context.Context) error {
 func (c *ConfigService) GetOrderExpiryConfig(ctx context.Context) (GetOrderExpiryResponse, error) {
 	resp, err := c.DB.GetOrderExpiry(ctx)
 	if err != nil {
-		log.Printf("failed to set order expiry err: %v", err)
+		log.Printf("failed to get order expiry err: %v", err)
 		return GetOrderExpiryResponse{}, ErrUnknown
 	}
 	return GetOrderExpiryResponse{

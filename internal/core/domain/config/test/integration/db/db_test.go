@@ -35,7 +35,7 @@ func Test_GetOrderExpiryConfig_happypath(t *testing.T) {
 	t.Cleanup(teardown)
 	resp, err := container.ConfigService.GetOrderExpiryConfig(ctx)
 	if err != nil {
-		t.Errorf("Failed to get order expiry config err:%v", err)
+		t.Fatalf("Failed to get order expiry config err: %v", err)
 	}
 	if resp.ExpiryDurationInMinues != config.DEFAULT_ORDER_EXPIRY_MINUTES {
 		t.Errorf("Expected ExpiryDurationInHours: %v Got: %v", config.DEFAULT_ORDER_EXPIRY_MINUTES, resp.ExpiryDurationInMinues)

@@ -13,7 +13,9 @@ type Postgres struct {
 }
 
 func NewPostgres(DB *sql.DB) port.DB {
-	return &Mock{}
+	return &Postgres{
+		Pool: DB,
+	}
 }
 
 func (p *Postgres) GetOrderExpiry(ctx context.Context) (port.GetOrderExpiryResponse, error) {
@@ -43,12 +45,11 @@ func (p *Postgres) SetOrderExpiryConfig(ctx context.Context, req *port.SetOrderE
 	args := []any{
 		req.ExpiryDurationInMinues,
 	}
-	result := []any{}
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.Pool),
 		query_handler.WithQuery(query),
-		query_handler.WithSingleRowResultSet(args, result),
+		query_handler.WithSingleRowResultSet(args, nil),
 	).DoSingleQuery()
 	if err != nil {
 		return err

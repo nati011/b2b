@@ -83,10 +83,11 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitDistributorApprovalService()
 	container.InitDistributorService()
 	container.InitProductService()
+	container.InitConfigService()
 	container.InitOrderService()
 	container.InitCatalogueService()
 	container.InitPaymentVerificationService()
-	container.InitConfigService()
+
 	return &container
 }
 
@@ -149,7 +150,8 @@ func (m *Container) InitOrderService() {
 		m.InvoiceService,
 		m.ProductService,
 		m.RetailerService,
-		m.ApplicationServices.CheckoutService)
+		m.ApplicationServices.CheckoutService,
+		m.ConfigService)
 }
 
 func (m *Container) InitPaymentVerificationService() {
