@@ -2,6 +2,7 @@ package payment_verification
 
 import (
 	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
+	config_db "b2b.nati011.github.com/internal/adapter/secondary/domain/config"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
@@ -11,6 +12,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/domain/category"
+	config_module "b2b.nati011.github.com/internal/core/domain/config"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -30,6 +32,7 @@ type TestContainer struct {
 	ProductService             product.Provider
 	InvoiceService             invoice.Provider
 	PaymentService             payment.Provider
+	ConfigService              config_module.Provider
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
@@ -63,7 +66,8 @@ func NewPackageIntegrationTestContainer() TestContainer {
 		container.InvoiceService,
 		container.ProductService,
 		container.RetailerService,
-		container.CheckoutService)
+		container.CheckoutService,
+		config_module.NewConfig(config_db.NewMock()))
 
 	container.PaymentVerificationService = NewPaymentVerificationService(
 		container.PaymentService,
@@ -81,7 +85,8 @@ func (t *TestContainer) TearDown() {
 		t.InvoiceService,
 		t.ProductService,
 		t.RetailerService,
-		t.CheckoutService)
+		t.CheckoutService,
+		t.ConfigService)
 
 	t.PaymentVerificationService = NewPaymentVerificationService(
 		t.PaymentService,

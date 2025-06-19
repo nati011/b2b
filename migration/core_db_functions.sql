@@ -3038,7 +3038,8 @@ RETURNS TABLE(id INT,
               total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
-              confirmation_status VARCHAR(255))
+              confirmation_status VARCHAR(255),
+              created_date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -3050,7 +3051,8 @@ BEGIN
            o.total,
            o.payment_status,
            o.delivery_status,
-           o.confirmation_status
+           o.confirmation_status,
+           o.created_date
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
@@ -3849,5 +3851,42 @@ BEGIN
     FROM public.email_templates t
     WHERE t.name = template_name
       AND t.is_deleted = FALSE;
+END;
+$$;
+
+
+-- order_expiry_configuration ---------------
+    
+    -- Read
+
+CREATE OR REPLACE FUNCTION public.get_order_expiry_duration_config()
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    expiry_duration INT;
+BEGIN
+    SELECT duration_in_minutes INTO expiry_duration
+    FROM public."order_expiry_duration_config"
+    LIMIT 1;
+
+    RETURN COALESCE(expiry_duration, 0);
+END;
+$$;
+    
+    -- Write
+
+CREATE OR REPLACE FUNCTION public.set_order_expiry_duration_config(new_duration INT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM public."order_expiry_duration_config") THEN
+        UPDATE public."order_expiry_duration_config"
+        SET duration_in_minutes = new_duration;
+    ELSE
+        INSERT INTO public."order_expiry_duration_config" (duration_in_minutes)
+        VALUES (new_duration);
+    END IF;
 END;
 $$;

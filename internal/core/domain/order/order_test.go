@@ -123,7 +123,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			Items: []Item{
 				{
 					ProductId: product_id,
-					Quantity:  19},
+					Quantity:  1},
 			},
 		}
 		log.Printf("Partner id %v", DigitalPaymentPartnerId)
