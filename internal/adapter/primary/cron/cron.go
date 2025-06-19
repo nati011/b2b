@@ -8,6 +8,12 @@ import (
 )
 
 func BuildCrons(scheduler gocron.Scheduler, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
-	order_expiry.InitOrderExpiry(scheduler, domainServices)
+	order_expiry.InitOrderExpiry(
+		scheduler,
+		&domainServices.OrderService,
+		&domainServices.ConfigService,
+		&domainServices.ApplicationServices.PaymentService,
+		&domainServices.ApplicationServices.PaymentPartnerService,
+	)
 	return nil
 }
