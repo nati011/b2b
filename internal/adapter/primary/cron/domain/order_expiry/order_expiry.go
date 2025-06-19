@@ -52,14 +52,14 @@ func CancelExpiredOrders(
 		switch err {
 		case order.ErrEmptyGetResponse:
 		default:
-			panic("Failed to get pending orders list")
+			log.Printf("Failed to get pending orders list")
 		}
 	}
 
 	now := time.Now()
 	configResp, err := configService.GetOrderExpiryConfig(ctx)
 	if err != nil {
-		panic("Failed to get expire after duration config")
+		log.Printf("Failed to get expire after duration config")
 	}
 
 	expireAfterDurationInMinutes := configResp.ExpiryDurationInMinues
