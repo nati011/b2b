@@ -23,7 +23,7 @@ type SetOrderExpiryRequest struct {
 type Provider interface {
 	SetDefaults(ctx context.Context) error
 
-	//order expiry
+	// order expiry
 	GetOrderExpiryConfig(ctx context.Context) (GetOrderExpiryResponse, error)
 	SetOrderExpiryConfig(ctx context.Context, req *SetOrderExpiryRequest) error
 	ResetOrderExpiryConfig(ctx context.Context) error
@@ -43,7 +43,7 @@ func NewConfig(DB port.DB) Provider {
 }
 
 const (
-	DEFAULT_ORDER_EXPIRY_MINUTES = 7200
+	DEFAULT_ORDER_EXPIRY_MINUTES = 720
 )
 
 func (c *ConfigService) SetDefaults(ctx context.Context) error {
