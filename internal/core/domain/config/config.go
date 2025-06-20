@@ -43,7 +43,7 @@ func NewConfig(DB port.DB) Provider {
 }
 
 const (
-	DEFAULT_ORDER_EXPIRY_MINUTES = 7200
+	DEFAULT_ORDER_EXPIRY_MINUTES = 720
 )
 
 func (c *ConfigService) SetDefaults(ctx context.Context) error {
