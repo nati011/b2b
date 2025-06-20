@@ -382,7 +382,7 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		PaymentStatus:      resp.PaymentStatus,
 		ConfirmationStatus: resp.ConfirmationStatus,
 		CreatedAt:          resp.CreatedAt,
-		ExpiresAt:          resp.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
+		ExpiresAt:          i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 	}, nil
 }
 
@@ -533,7 +533,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			DeliveryStatus: i.DeliveryStatus,
 			PaymentStatus:  i.PaymentStatus,
 			CreatedAt:      i.CreatedAt,
-			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 		})
 	}
 	return return_response, nil
@@ -627,7 +627,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
 					CreatedAt:      i.CreatedAt,
-					ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues)),
+					ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 				})
 			}
 		}
