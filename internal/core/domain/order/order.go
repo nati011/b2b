@@ -427,7 +427,6 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			PaymentStatus:  i.PaymentStatus,
 			CreatedAt:      i.CreatedAt,
 			ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
-			
 		})
 	}
 	return_response.TotalCount = resp.TotalCount
@@ -485,7 +484,7 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 				DeliveryStatus: i.DeliveryStatus,
 				PaymentStatus:  i.PaymentStatus,
 				CreatedAt:      i.CreatedAt,
-				ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),,
+				ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 			})
 		}
 	}
