@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
@@ -8,6 +10,7 @@ import (
 	domain_handler "b2b.nati011.github.com/internal/adapter/primary/rest/handler/domain"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
@@ -39,6 +42,16 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 			return err
 		}
 		h.Routes(mux)
+	}
+	ctx := context.Background()
+	for _, r := range handler.GetRoutes() {
+		_, err := applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
+			Name:   r,
+			Action: "ALL",
+		})
+		if err != nil {
+			log.Printf("Failed to create resource err: %v", err)
+		}
 	}
 	return nil
 }

@@ -8,12 +8,17 @@ import (
 
 	port "b2b.nati011.github.com/internal/port/application/auth/provider"
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/golang-jwt/jwt"
 )
 
 const (
 	MessageErrKeyCloakEmailTaken    = "User exists with same email"
 	MessageErrKeyCloakUsernameTaken = "User exists with same username"
 	MessageErrFailedLogin           = "Invalid user credentials"
+)
+
+var (
+	ErrUnknown = errors.New("¯\\_(ツ)_/¯, unknown error")
 )
 
 type KeycloakProvider struct {
@@ -67,9 +72,28 @@ func (k *KeycloakProvider) RetrospectToken(ctx context.Context, token string) (p
 	}, err
 }
 
+func GetEmail(c jwt.MapClaims) (string, error) {
+	var cs []string
+	switch v := c["email"].(type) {
+	case string:
+		cs = append(cs, v)
+	case []string:
+		cs = v
+	case []interface{}:
+		for _, a := range v {
+			vs, ok := a.(string)
+			if !ok {
+				return "", ErrUnknown
+			}
+			cs = append(cs, vs)
+		}
+	}
+	return strings.Join(cs, ""), nil
+}
+
 func (k *KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.DecodedResult, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
-	decodedToken, _, err := client.DecodeAccessToken(
+	decodedToken, mapClaims, err := client.DecodeAccessToken(
 		ctx,
 		token,
 		k.KeycloakApplicationRealm,
@@ -78,13 +102,46 @@ func (k *KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.
 		log.Printf("failed to decode token: %v", err)
 		return port.DecodedResult{}, port.ErrSysUnknown
 	}
-	return port.DecodedResult{
+	res := port.DecodedResult{
 		Raw:       decodedToken.Raw,
 		Header:    decodedToken.Header,
 		Signature: decodedToken.Signature,
-		Valid:     decodedToken.Valid}, nil
+		Valid:     decodedToken.Valid}
+	claims := decodedToken.Claims
+	expirationTime, err := claims.GetExpirationTime()
+	if err != nil {
+		log.Printf("failed to decode token: %v", err)
+		return port.DecodedResult{}, port.ErrSysUnknown
+	}
+	issueDate, err := claims.GetIssuedAt()
+	if err != nil {
+		log.Printf("failed to decode token: %v", err)
+		return port.DecodedResult{}, port.ErrSysUnknown
+	}
+	subject, err := claims.GetSubject()
+	if err != nil {
+		log.Printf("failed to decode token: %v", err)
+		return port.DecodedResult{}, port.ErrSysUnknown
+	}
+	issuer, err := claims.GetIssuer()
+	if err != nil {
+		log.Printf("failed to decode token: %v", err)
+		return port.DecodedResult{}, port.ErrSysUnknown
+	}
+	email, err := GetEmail(jwt.MapClaims(*mapClaims))
+	if err != nil {
+		log.Printf("failed to decode token: %v", err)
+		return port.DecodedResult{}, port.ErrSysUnknown
+	}
+	res.Claims = port.Claims{
+		ExpirationTime: expirationTime.Time,
+		IssuedAt:       issueDate.Time,
+		Issuer:         issuer,
+		Subject:        subject,
+		Email:          email,
+	}
+	return res, nil
 }
-
 func (k *KeycloakProvider) CreateNewClient(ctx context.Context, req *port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
