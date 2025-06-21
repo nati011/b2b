@@ -110,7 +110,7 @@ COMMENT ON TABLE public."distributor_users" IS 'stores distributor agents(always
 CREATE TABLE IF NOT EXISTS public."distributor_reviews"
 (
   distributor_id INT PRIMARY KEY,
-	verdict BOOLEAN,
+	verdict VARCHAR(255) DEFAULT 'PENDING',
   comment VARCHAR(255),
   reviewed_by VARCHAR(255)
   -- FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,

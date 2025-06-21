@@ -16,6 +16,12 @@ var (
 	ErrNoReview         = errors.New(" no reviews")
 )
 
+var (
+	REJECTED_STATUS = "REJECTED"
+	PENDING_STATUS  = "PENDING"
+	APPROVED_STATUS = "APPROVED"
+)
+
 type ApprovalRequest struct {
 	DistributorId int
 }
@@ -25,10 +31,14 @@ type RejectionRequest struct {
 	Comment       string
 }
 
+type ApprovalStatusResponse struct {
+	Status string
+}
+
 type Provider interface {
 	Approve(ctx context.Context, req *ApprovalRequest) error
 	Reject(ctx context.Context, req *RejectionRequest) error
-	GetApprovalStatus(ctx context.Context, distributorId int) (bool, error)
+	GetApprovalStatus(ctx context.Context, distributorId int) (ApprovalStatusResponse, error)
 }
 
 type DistributorApprovalService struct {
@@ -42,7 +52,7 @@ func NewDistributorApprovalService(db port.DB) Provider {
 }
 
 func (d *DistributorApprovalService) Approve(ctx context.Context, req *ApprovalRequest) error {
-	isApproved, err := d.DB.GetApprovalStatus(ctx, req.DistributorId)
+	status, err := d.DB.GetApprovalStatus(ctx, req.DistributorId)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
@@ -50,7 +60,7 @@ func (d *DistributorApprovalService) Approve(ctx context.Context, req *ApprovalR
 			return ErrUnknown
 		}
 	}
-	if isApproved {
+	if status == APPROVED_STATUS {
 		return ErrAlreadyApproved
 	}
 	err = d.DB.Approve(ctx, port.ApprovalRequest{
@@ -67,7 +77,7 @@ func (d *DistributorApprovalService) Reject(ctx context.Context, req *RejectionR
 		return ErrCommentMandatory
 	}
 
-	isApproved, err := d.DB.GetApprovalStatus(ctx, req.DistributorId)
+	status, err := d.DB.GetApprovalStatus(ctx, req.DistributorId)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
@@ -75,7 +85,7 @@ func (d *DistributorApprovalService) Reject(ctx context.Context, req *RejectionR
 			return ErrUnknown
 		}
 	} else {
-		if !isApproved && err != port_commons.ErrSysNoRows {
+		if status == REJECTED_STATUS && err != port_commons.ErrSysNoRows {
 			return ErrAlreadyRejected
 		}
 	}
@@ -90,18 +100,15 @@ func (d *DistributorApprovalService) Reject(ctx context.Context, req *RejectionR
 	return nil
 }
 
-func (d *DistributorApprovalService) GetApprovalStatus(ctx context.Context, distributorId int) (bool, error) {
+func (d *DistributorApprovalService) GetApprovalStatus(ctx context.Context, distributorId int) (ApprovalStatusResponse, error) {
 	resp, err := d.DB.GetApprovalStatus(ctx, distributorId)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
-			return false, ErrNoReview
+			return ApprovalStatusResponse{}, ErrNoReview
 		default:
-			return false, ErrUnknown
+			return ApprovalStatusResponse{}, ErrUnknown
 		}
 	}
-	if resp {
-		return true, nil
-	}
-	return false, nil
+	return ApprovalStatusResponse{Status: resp}, nil
 }

@@ -997,7 +997,7 @@ RETURNS TABLE (
   region VARCHAR(255),
   woreda VARCHAR(255),
   is_active BOOLEAN,
-  verdict BOOLEAN
+  verdict VARCHAR(255)
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1175,7 +1175,7 @@ AS $$
 BEGIN
     IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
         UPDATE public.distributor_reviews
-        SET verdict = TRUE,
+        SET verdict = 'APPROVED',
             comment = d_comment,
             reviewed_by = d_reviewed_by
         WHERE distributor_id = d_distributor_id;
@@ -1185,7 +1185,7 @@ BEGIN
                                                comment,
                                                reviewed_by)
         VALUES(d_distributor_id,
-               TRUE,
+               'APPROVED',
                d_comment,
                d_reviewed_by);
     END IF;
@@ -1203,7 +1203,7 @@ AS $$
 BEGIN
     IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
         UPDATE public.distributor_reviews
-        SET verdict = FALSE,
+        SET verdict = 'REJECTED',
             comment = d_comment,
             reviewed_by = d_reviewed_by
         WHERE distributor_id = d_distributor_id;
@@ -1213,7 +1213,7 @@ BEGIN
                                                comment,
                                                reviewed_by)
         VALUES(d_distributor_id,
-               FALSE,
+               'REJECTED',
                d_comment,
                d_reviewed_by);
     END IF;
@@ -1224,11 +1224,11 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_approval_status_by_distributor_id (
     d_id INT
 ) 
-RETURNS BOOLEAN
+RETURNS VARCHAR(255)
 LANGUAGE plpgsql 
 AS $$
 DECLARE
-    approval_status BOOLEAN;
+    approval_status VARCHAR(255);
 BEGIN   
     SELECT verdict
     INTO approval_status

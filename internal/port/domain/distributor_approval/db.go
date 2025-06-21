@@ -5,9 +5,13 @@ import (
 	"time"
 )
 
+type ApprovalResult struct {
+	Status string
+}
+
 type GetVerdictResponse struct {
 	DistributorId int
-	Verdict       bool
+	Verdict       string
 	Comment       string
 	ReviewedBy    string
 	ReviewedAt    time.Time
@@ -30,7 +34,7 @@ type ApprovalRequest struct {
 }
 
 type Reader interface {
-	GetApprovalStatus(ctx context.Context, distributorId int) (bool, error)
+	GetApprovalStatus(ctx context.Context, distributorId int) (string, error)
 	GetReviewReport(ctx context.Context, distributorId int) (GetAuditReportResponse, error)
 }
 
