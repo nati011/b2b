@@ -21,13 +21,14 @@ var (
 	ErrUnknown              = errors.New(" unknown error has occured")
 	ErrEmailNotSupplied     = errors.New(" email mandatory")
 	ErrUsernameNotSupplied  = errors.New(" username mandatory")
-	ErrInvalidEmail         = errors.New(" Invalid Email")
+	ErrInvalidEmail         = errors.New(" invalid Email")
 	ErrPasswordNotSupplied  = errors.New(" password mandatory")
-	ErrFirstNameNotSupplied = errors.New(" First Name mandatory")
-	ErrLastNameNotSupplied  = errors.New(" Last Name mandatory")
-	ErrTokenNotSupplied     = errors.New(" Token is mandatory")
-	ErrTokenHasExpired      = errors.New(" Token has expired")
+	ErrFirstNameNotSupplied = errors.New(" firstname mandatory")
+	ErrLastNameNotSupplied  = errors.New(" lastname mandatory")
+	ErrTokenNotSupplied     = errors.New(" token is mandatory")
+	ErrTokenHasExpired      = errors.New(" token has expired")
 	ErrUserIdNotSupplied    = errors.New(" userId mandatory")
+	ErrFailedToDecodeToken  = errors.New(" failed to decode token")
 )
 
 type RegisterUserRequest struct {
@@ -95,8 +96,18 @@ type RetrospectionResult struct {
 	Active bool `json:"active"`
 }
 
+type Claims struct {
+	ExpirationTime time.Time
+	IssuedAt       time.Time
+	NotBefore      time.Time
+	Issuer         string
+	Subject        string
+	Audience       string
+	Email          string
+}
+
 type DecodeResult struct {
-	Claims string `json:"claims"`
+	Claims Claims `json:"claims"`
 }
 
 type ResourceAccess struct {
@@ -135,7 +146,13 @@ func NewAuthService(
 }
 
 func (a AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
-	return DecodeResult{}, nil
+	res, err := a.authProvider.DecodeToken(ctx, token)
+	if err != nil {
+		return DecodeResult{}, ErrFailedToDecodeToken
+	}
+	return DecodeResult{
+		Claims: Claims(res.Claims),
+	}, nil
 }
 
 func (a AuthService) RetrospectToken(ctx context.Context, token string) (RetrospectionResult, error) {

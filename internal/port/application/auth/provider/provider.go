@@ -66,11 +66,22 @@ type RetrospectionResult struct {
 	Type     *string
 }
 
+type Claims struct {
+	ExpirationTime time.Time
+	IssuedAt       time.Time
+	NotBefore      time.Time
+	Issuer         string
+	Subject        string
+	Audience       string
+	Email          string
+}
+
 type DecodedResult struct {
 	Raw       string
 	Header    map[string]interface{}
 	Signature []byte
 	Valid     bool
+	Claims    Claims
 }
 
 type AssignRoleRequest struct {

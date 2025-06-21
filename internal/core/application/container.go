@@ -102,16 +102,23 @@ func NewContainer(
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(cfg.Email, cfg.SMTP, cfg.EmailPassword)
-	container.InitAuthService(cfg.KeycloakInstanceURL, cfg.KeycloakUsername, cfg.KeycloakPassword, cfg.KeycloakRealm, cfg.KeycloakApplicationRealm, cfg.KeycloakClientId, cfg.KeycloakClientSecret)
-	container.InitUserService()
 	container.InitPaymentPartnerService()
 	container.InitTransactionService()
 	container.InitResourceService()
 	container.InitRoleService()
 	container.InitUserService()
-	container.InitMobileClientService(cfg.MinMobileClientCompatibleVersion)
+	container.InitAuthService(
+		cfg.KeycloakInstanceURL,
+		cfg.KeycloakUsername,
+		cfg.KeycloakPassword,
+		cfg.KeycloakRealm,
+		cfg.KeycloakApplicationRealm,
+		cfg.KeycloakClientId,
+		cfg.KeycloakClientSecret)
 	container.InitPaymentService()
 	container.InitCheckoutService(cfg.BaseUrl, cfg.FrontendUrl)
+	container.InitAuthMiddleware()
+	container.InitMobileClientService(cfg.MinMobileClientCompatibleVersion)
 	// container.InitSMSService()
 
 	return &container
@@ -127,8 +134,14 @@ func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername
 		auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
 		m.EmailService,
 		m.RoleService)
+}
 
-	m.AuthMiddleware = middleware.NewAuthMiddleware(m.AuthService)
+func (m *Container) InitAuthMiddleware() {
+	m.AuthMiddleware = middleware.NewAuthMiddleware(
+		m.AuthService,
+		m.RoleService,
+		m.ResourceService,
+		m.UserService)
 }
 
 func (m *Container) InitEmailService(email_address, smtp_port, email_password string) {
