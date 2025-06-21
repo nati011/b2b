@@ -35,6 +35,7 @@ type GetResponse struct {
 	Region      string
 	Woreda      string
 	IsActive    bool
+	Verdict     bool
 }
 
 type GetAllResponse struct {
