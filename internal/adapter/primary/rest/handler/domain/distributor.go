@@ -56,6 +56,7 @@ type GetDistributorResponse struct {
 	Woreda      string `json:"woreda"`
 	IsActive    bool   `json:"is_active"`
 	Users       []int  `json:"user"`
+	Verdict     bool   `json:"verdict"`
 }
 
 type GetAllDistributorResponse struct {
@@ -246,6 +247,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Woreda:      resp.Woreda,
 				IsActive:    resp.IsActive,
 				Users:       users_resp.List,
+				Verdict:     resp.Verdict,
 			}})
 		}
 	} else if paramNameValue != "" || paramTinValue != "" {
