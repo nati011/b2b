@@ -16,7 +16,7 @@ var (
 
 type Request struct {
 	TemplateId int
-	Args       map[string]string
+	Args       map[string]interface{}
 }
 
 type Response struct {

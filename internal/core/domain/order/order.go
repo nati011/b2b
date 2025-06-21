@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/domain/config"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
@@ -81,6 +82,7 @@ type GetResponse struct {
 	PaymentStatus      string
 	ConfirmationStatus string
 	CreatedAt          time.Time
+	ExpiresAt          time.Time
 }
 
 type GetAllResponse struct {
@@ -113,12 +115,12 @@ type Provider interface {
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
+	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
+	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdateDeliveryStatus(ctx context.Context, req *UpdateRequest) (int, error)
-	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
-	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
 	UpdateConfirmationStatus(ctx context.Context, id int, status string) (int, error)
 	ConfirmOrder(ctx context.Context, id int) error
 	RejectOrder(ctx context.Context, id int) error
@@ -130,6 +132,7 @@ type OrderService struct {
 	ProductService  product.Provider
 	RetailerService retailer.Provider
 	CheckoutService checkout.Provider
+	Config          config.Provider
 }
 
 func NewOrderService(
@@ -138,15 +141,16 @@ func NewOrderService(
 	ps product.Provider,
 	rs retailer.Provider,
 	pays checkout.Provider,
+	config config.Provider,
 
 ) Provider {
-
 	return &OrderService{
 		DB:              db,
 		InvoiceService:  is,
 		ProductService:  ps,
 		RetailerService: rs,
 		CheckoutService: pays,
+		Config:          config,
 	}
 }
 
@@ -361,6 +365,12 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 			Quantity:     i.Quantity,
 		})
 	}
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetResponse{}, ErrUnknown
+	}
+
 	return GetResponse{
 		Id:                 resp.Id,
 		RetailerId:         resp.RetailerId,
@@ -371,6 +381,8 @@ func (o *OrderService) Get(ctx context.Context, id int) (GetResponse, error) {
 		DeliveryStatus:     resp.DeliveryStatus,
 		PaymentStatus:      resp.PaymentStatus,
 		ConfirmationStatus: resp.ConfirmationStatus,
+		CreatedAt:          resp.CreatedAt,
+		ExpiresAt:          resp.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 	}, nil
 }
 
@@ -385,6 +397,12 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 		}
 	}
 
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetAllResponse{}, ErrUnknown
+	}
+
 	return_response := GetAllResponse{}
 	for _, i := range resp.List {
 		items := []Item{}
@@ -397,6 +415,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			})
 
 		}
+
 		return_response.List = append(return_response.List, GetResponse{
 			Id:             i.Id,
 			RetailerId:     i.RetailerId,
@@ -407,6 +426,7 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			DeliveryStatus: i.DeliveryStatus,
 			PaymentStatus:  i.PaymentStatus,
 			CreatedAt:      i.CreatedAt,
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 		})
 	}
 	return_response.TotalCount = resp.TotalCount
@@ -422,6 +442,12 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
+	}
+
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetAllResponse{}, ErrUnknown
 	}
 
 	return_response := GetAllResponse{}
@@ -457,6 +483,8 @@ func (o *OrderService) GetDistributorOrders(ctx context.Context, distributor_id 
 				Status:         i.Status,
 				DeliveryStatus: i.DeliveryStatus,
 				PaymentStatus:  i.PaymentStatus,
+				CreatedAt:      i.CreatedAt,
+				ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 			})
 		}
 	}
@@ -478,6 +506,12 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 		}
 	}
 
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetAllResponse{}, ErrUnknown
+	}
+
 	return_response := GetAllResponse{}
 	for _, i := range resp.List {
 		items := []Item{}
@@ -497,8 +531,9 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 			Total:          float32(i.Total),
 			Status:         i.Status,
 			DeliveryStatus: i.DeliveryStatus,
-			CreatedAt:      i.CreatedAt,
 			PaymentStatus:  i.PaymentStatus,
+			CreatedAt:      i.CreatedAt,
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 		})
 	}
 	return return_response, nil
@@ -506,6 +541,13 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 
 func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	return_response := GetAllResponse{}
+
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetAllResponse{}, ErrUnknown
+	}
+
 	if req.RetailerId != 0 {
 		resp, err := o.DB.GetByRetailerID(ctx, req.RetailerId)
 		if err != nil {
@@ -541,6 +583,8 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					Status:         i.Status,
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
+					CreatedAt:      i.CreatedAt,
+					ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 				})
 			}
 		}
@@ -582,6 +626,8 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 					Status:         i.Status,
 					DeliveryStatus: i.DeliveryStatus,
 					PaymentStatus:  i.PaymentStatus,
+					CreatedAt:      i.CreatedAt,
+					ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 				})
 			}
 		}

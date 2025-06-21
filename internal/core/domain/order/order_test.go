@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
@@ -45,7 +46,22 @@ func setup() {
 	if err != nil {
 		panic("failed to create product")
 	}
-	distributor_id = 1
+
+	distributor_id, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor")
+	}
 	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -107,7 +123,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			Items: []Item{
 				{
 					ProductId: product_id,
-					Quantity:  19},
+					Quantity:  1},
 			},
 		}
 		log.Printf("Partner id %v", DigitalPaymentPartnerId)
