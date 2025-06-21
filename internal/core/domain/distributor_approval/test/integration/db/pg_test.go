@@ -48,13 +48,13 @@ func Test_Read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to approve distributor: %v", err)
 		}
-		isApproved, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
+		resp, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
 		if err != nil {
 			t.Fatalf("failed to get approval status err: %v", err)
 		}
-		wantStatus := false
-		if isApproved != wantStatus {
-			t.Errorf("Expected status: %v Got: %v", wantStatus, isApproved)
+		wantStatus := "REJECTED"
+		if resp.Status != wantStatus {
+			t.Errorf("Expected status: %v Got: %v", wantStatus, resp)
 		}
 	})
 }
@@ -69,13 +69,13 @@ func Test_Write(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to approve distributor: %v", err)
 		}
-		isApproved, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
+		resp, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
 		if err != nil {
 			t.Fatalf("failed to get approval status err: %v", err)
 		}
-		wantStatus := true
-		if isApproved != wantStatus {
-			t.Errorf("Expected status: %v Got: %v", wantStatus, isApproved)
+		wantStatus := "APPROVED"
+		if resp.Status != wantStatus {
+			t.Errorf("Expected status: %v Got: %v", wantStatus, resp.Status)
 		}
 	})
 
@@ -89,13 +89,13 @@ func Test_Write(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to approve distributor: %v", err)
 		}
-		isApproved, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
+		resp, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
 		if err != nil {
 			t.Fatalf("failed to get approval status err: %v", err)
 		}
-		wantStatus := false
-		if isApproved != wantStatus {
-			t.Errorf("Expected status: %v Got: %v", wantStatus, isApproved)
+		wantStatus := "REJECTED"
+		if resp.Status != wantStatus {
+			t.Errorf("Expected status: %v Got: %v", wantStatus, resp.Status)
 		}
 	})
 }
