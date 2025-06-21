@@ -71,7 +71,9 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 		&response.GeneralZone,
 		&response.Region,
 		&response.Woreda,
-		&response.IsActive}
+		&response.IsActive,
+		&response.Verdict,
+	}
 
 	args := []any{&id}
 
@@ -93,6 +95,8 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.GeneralZone = *result[5].(*string)
 	response.Region = *result[6].(*string)
 	response.Woreda = *result[7].(*string)
+	response.IsActive = *result[8].(*bool)
+	response.Verdict = *result[9].(*bool)
 
 	return response, nil
 }
