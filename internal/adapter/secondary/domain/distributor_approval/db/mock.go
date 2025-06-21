@@ -10,7 +10,7 @@ import (
 
 type MockDistributorApproval struct {
 	DistributorId int
-	Verdict       bool
+	Verdict       string
 	Comment       string
 	ReviewedAt    time.Time
 	ReviewedBy    string
@@ -24,13 +24,13 @@ func NewMock() port.DB {
 	return &Mock{}
 }
 
-func (m *Mock) GetApprovalStatus(ctx context.Context, distributorId int) (bool, error) {
+func (m *Mock) GetApprovalStatus(ctx context.Context, distributorId int) (string, error) {
 	for _, i := range m.List {
 		if i.DistributorId == distributorId {
 			return i.Verdict, nil
 		}
 	}
-	return false, port_commons.ErrSysNoRows
+	return "", port_commons.ErrSysNoRows
 }
 
 func (m *Mock) GetReviewReport(ctx context.Context, distributorId int) (port.GetAuditReportResponse, error) {
@@ -55,7 +55,7 @@ func (m *Mock) GetReviewReport(ctx context.Context, distributorId int) (port.Get
 func (m *Mock) Approve(ctx context.Context, req port.ApprovalRequest) error {
 	m.List = append(m.List, MockDistributorApproval{
 		DistributorId: req.DistributorId,
-		Verdict:       true,
+		Verdict:       "APPROVED",
 		Comment:       req.Comment,
 		ReviewedAt:    time.Now(),
 		ReviewedBy:    req.ReviewedBy,
@@ -66,7 +66,7 @@ func (m *Mock) Approve(ctx context.Context, req port.ApprovalRequest) error {
 func (m *Mock) Reject(ctx context.Context, req port.RejectRequest) error {
 	m.List = append(m.List, MockDistributorApproval{
 		DistributorId: req.DistributorId,
-		Verdict:       false,
+		Verdict:       "REJECTED",
 		Comment:       req.Comment,
 		ReviewedAt:    time.Now(),
 		ReviewedBy:    req.ReviewedBy,
