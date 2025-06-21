@@ -39,8 +39,8 @@ func Test_Approve_HappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
-	wantApprovalStatus := true
-	if approvalStatus != wantApprovalStatus {
+	wantApprovalStatus := "APPROVED"
+	if approvalStatus.Status != wantApprovalStatus {
 		t.Errorf("Expected approval status: %v Got: %v", wantApprovalStatus, approvalStatus)
 	}
 }
@@ -82,8 +82,8 @@ func Test_Reject_HappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
-	wantApprovalStatus := false
-	if approvalStatus != wantApprovalStatus {
+	wantApprovalStatus := "REJECTED"
+	if approvalStatus.Status != wantApprovalStatus {
 		t.Errorf("Expected approval status: %v Got: %v", wantApprovalStatus, approvalStatus)
 	}
 }
@@ -135,13 +135,13 @@ func Test_GetApprovalStatus_HappyPath(t *testing.T) {
 		t.Fatalf("failed to approve distributor: %v", err)
 	}
 
-	isApproved, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
+	status, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
 	if err != nil {
 		t.Fatalf("failed to get approval status err: %v", err)
 	}
-	wantStatus := false
-	if isApproved != wantStatus {
-		t.Errorf("Expected status: %v Got: %v", wantStatus, isApproved)
+	wantStatus := "REJECTED"
+	if status.Status != wantStatus {
+		t.Errorf("Expected status: %v Got: %v", wantStatus, status.Status)
 	}
 }
 
