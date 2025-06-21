@@ -30,7 +30,6 @@ func InitAuth() {
 	handler.RegisterResource("/api/v1/auth/logout")
 	handler.RegisterResource("/api/v1/auth/refresh")
 	handler.RegisterResource("/api/v1/auth/reset/{token}")
-	handler.RegisterResource("/api/v1/auth/init_reset")
 }
 
 func (a *AuthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
