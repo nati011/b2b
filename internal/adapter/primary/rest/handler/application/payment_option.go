@@ -123,7 +123,7 @@ func (p *PaymentPartner) GetPaymentPartnersHandler(w http.ResponseWriter, r *htt
 				return
 			}
 		}
-		util.OperationSuccessResponse(w, util.Envelope{"payment_option": GetPaymentPartnerResponse(resp)})
+		util.OperationSuccessResponse(w, GetPaymentPartnerResponse(resp))
 	} else if paramNameValue != "" || paramStatusValue != "" {
 		var response GetAllPaymentPartnerResponse
 		params := &payment_partner.GetByParamRequest{
@@ -184,7 +184,7 @@ func (p *PaymentPartner) GetActivePaymentPartnersHandler(w http.ResponseWriter, 
 	for _, i := range resp.List {
 		response.List = append(response.List, GetPaymentPartnerResponse(i))
 	}
-	util.OperationSuccessResponse(w, util.Envelope{"payment_options": response})
+	util.OperationSuccessResponse(w, response)
 }
 
 func (p *PaymentPartner) CreatePaymentPartnerHandler(w http.ResponseWriter, r *http.Request) {

@@ -110,7 +110,7 @@ COMMENT ON TABLE public."distributor_users" IS 'stores distributor agents(always
 CREATE TABLE IF NOT EXISTS public."distributor_reviews"
 (
   distributor_id INT PRIMARY KEY,
-	verdict BOOLEAN,
+	verdict VARCHAR(255) DEFAULT 'PENDING',
   comment VARCHAR(255),
   reviewed_by VARCHAR(255)
   -- FOREIGN KEY (user_id) REFERENCES public."users"(id) ON DELETE CASCADE,
@@ -408,3 +408,11 @@ CREATE TABLE IF NOT EXISTS public."email_templates"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."email_templates" IS 'stores email templates';
+
+
+CREATE TABLE IF NOT EXISTS public."order_expiry_duration_config"
+(
+    duration_in_minutes INT
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."order_expiry_duration_config" IS 'stores order expiry duration in hours';

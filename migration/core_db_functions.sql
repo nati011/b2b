@@ -936,7 +936,8 @@ RETURNS TABLE (
   generalZone VARCHAR(255),
   region VARCHAR(255),
   woreda VARCHAR(255),
-  is_active BOOLEAN
+  is_active BOOLEAN,
+  verdict VARCHAR(255)
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -944,12 +945,14 @@ AS $$
         RETURN QUERY
 
         SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
+        JOIN distributor_reviews dr
+        ON dr.distributor_id = d.id
         WHERE d.id = d_distributor_id 
         AND d.is_deleted = FALSE
         LIMIT 1;
@@ -1112,7 +1115,7 @@ AS $$
 BEGIN
     IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
         UPDATE public.distributor_reviews
-        SET verdict = TRUE,
+        SET verdict = 'APPROVED',
             comment = d_comment,
             reviewed_by = d_reviewed_by
         WHERE distributor_id = d_distributor_id;
@@ -1122,7 +1125,7 @@ BEGIN
                                                comment,
                                                reviewed_by)
         VALUES(d_distributor_id,
-               TRUE,
+               'APPROVED',
                d_comment,
                d_reviewed_by);
     END IF;
@@ -1140,7 +1143,7 @@ AS $$
 BEGIN
     IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
         UPDATE public.distributor_reviews
-        SET verdict = FALSE,
+        SET verdict = 'REJECTED',
             comment = d_comment,
             reviewed_by = d_reviewed_by
         WHERE distributor_id = d_distributor_id;
@@ -1150,7 +1153,7 @@ BEGIN
                                                comment,
                                                reviewed_by)
         VALUES(d_distributor_id,
-               FALSE,
+               'REJECTED',
                d_comment,
                d_reviewed_by);
     END IF;
@@ -1161,11 +1164,11 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_approval_status_by_distributor_id (
     d_id INT
 ) 
-RETURNS BOOLEAN
+RETURNS VARCHAR(255)
 LANGUAGE plpgsql 
 AS $$
 DECLARE
-    approval_status BOOLEAN;
+    approval_status VARCHAR(255);
 BEGIN   
     SELECT verdict
     INTO approval_status
@@ -2978,7 +2981,8 @@ RETURNS TABLE(id INT,
               total DECIMAL(12,2),
               delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
-              confirmation_status VARCHAR(255))
+              confirmation_status VARCHAR(255),
+              created_date TIMESTAMP)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -2990,7 +2994,8 @@ BEGIN
            o.total,
            o.payment_status,
            o.delivery_status,
-           o.confirmation_status
+           o.confirmation_status,
+           o.created_date
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
@@ -3003,31 +3008,39 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
     o_retailer_id INT
 )
-RETURNS TABLE(id INT, 
-              retailer_id INT,
-              retailer_name VARCHAR(255),
-              status VARCHAR(255),
-              total DECIMAL(12,2),
-              delivery_status VARCHAR(255),
-              payment_status VARCHAR(255),
-              created_date TIMESTAMP,
-              confirmation_status VARCHAR(255))
+RETURNS TABLE(
+    id INT, 
+    retailer_id INT,
+    retailer_name VARCHAR(255),
+    status VARCHAR(255),
+    total DECIMAL(12,2),
+    delivery_status VARCHAR(255),
+    payment_status VARCHAR(255),
+    created_date TIMESTAMP,
+    confirmation_status VARCHAR(255),
+    payment_method VARCHAR(255)
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT o.id, 
+    SELECT DISTINCT o.id, 
            o.retailer_id,
-           r.name,
+           r.name AS retailer_name,
            o.status, 
            o.total,
-           o.payment_status,
            o.delivery_status,
+           o.payment_status,
            o.created_date,
-           o.confirmation_status
+           o.confirmation_status,
+           pp.payment_method
     FROM public.orders o
     JOIN public.retailer_business_info r
-    ON r.retailer_id = o.retailer_id
+        ON r.retailer_id = o.retailer_id
+    JOIN public.payments p
+        ON p.order_id = o.id
+    JOIN public.payment_partners pp
+        ON pp.id = p.partner_id
     WHERE o.retailer_id = o_retailer_id
       AND o.is_deleted = FALSE;
 END;
@@ -3781,5 +3794,42 @@ BEGIN
     FROM public.email_templates t
     WHERE t.name = template_name
       AND t.is_deleted = FALSE;
+END;
+$$;
+
+
+-- order_expiry_configuration ---------------
+    
+    -- Read
+
+CREATE OR REPLACE FUNCTION public.get_order_expiry_duration_config()
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    expiry_duration INT;
+BEGIN
+    SELECT duration_in_minutes INTO expiry_duration
+    FROM public."order_expiry_duration_config"
+    LIMIT 1;
+
+    RETURN COALESCE(expiry_duration, 0);
+END;
+$$;
+    
+    -- Write
+
+CREATE OR REPLACE FUNCTION public.set_order_expiry_duration_config(new_duration INT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM public."order_expiry_duration_config") THEN
+        UPDATE public."order_expiry_duration_config"
+        SET duration_in_minutes = new_duration;
+    ELSE
+        INSERT INTO public."order_expiry_duration_config" (duration_in_minutes)
+        VALUES (new_duration);
+    END IF;
 END;
 $$;

@@ -13,7 +13,7 @@ type SendRequest struct {
 	To         string
 	Subject    string
 	TemplateId int
-	Args       map[string]string
+	Args       map[string]interface{}
 	ExternalId string
 }
 

@@ -20,6 +20,7 @@ type MockOrder struct {
 	PaymentStatus      string
 	DeliveryStatus     string
 	ConfirmationStatus string
+	PaymentMethod      string
 }
 
 type Mock struct {
@@ -48,6 +49,7 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			}, nil
 		}
 	}
@@ -73,6 +75,7 @@ func (m *Mock) GetByRetailerID(ctx context.Context, id int) (port.GetAllResponse
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		}
 	}
@@ -103,6 +106,7 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		}
 	}
@@ -132,6 +136,7 @@ func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 			PaymentStatus:      i.PaymentStatus,
 			DeliveryStatus:     i.DeliveryStatus,
 			ConfirmationStatus: i.ConfirmationStatus,
+			PaymentMethod:      i.PaymentMethod,
 		})
 	}
 	if len(resp) == 0 {
@@ -175,6 +180,7 @@ func (m *Mock) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderStatu
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockOrder{
@@ -185,6 +191,7 @@ func (m *Mock) UpdateOrderStatus(ctx context.Context, req *port.UpdateOrderStatu
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		}
 	}
@@ -204,6 +211,7 @@ func (m *Mock) UpdatePaymentStatus(ctx context.Context, req *port.UpdateOrderPay
 				PaymentStatus:      req.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockOrder{
@@ -214,9 +222,9 @@ func (m *Mock) UpdatePaymentStatus(ctx context.Context, req *port.UpdateOrderPay
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		}
-
 	}
 	m.orders = updatedResources
 	return nil
@@ -234,6 +242,7 @@ func (m *Mock) UpdateDeliveryStatus(ctx context.Context, req *port.UpdateOrderDe
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     req.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockOrder{
@@ -244,9 +253,9 @@ func (m *Mock) UpdateDeliveryStatus(ctx context.Context, req *port.UpdateOrderDe
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		}
-
 	}
 	m.orders = updatedResources
 	return nil
@@ -264,6 +273,7 @@ func (m *Mock) UpdateConfirmationStatus(ctx context.Context, req *port.UpdateOrd
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: req.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		} else {
 			updatedResources = append(updatedResources, MockOrder{
@@ -274,9 +284,9 @@ func (m *Mock) UpdateConfirmationStatus(ctx context.Context, req *port.UpdateOrd
 				PaymentStatus:      i.PaymentStatus,
 				DeliveryStatus:     i.DeliveryStatus,
 				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
 			})
 		}
-
 	}
 	m.orders = updatedResources
 	return nil
