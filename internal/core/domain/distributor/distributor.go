@@ -46,6 +46,7 @@ type GetResponse struct {
 	Region      string
 	Woreda      string
 	IsActive    bool
+	Verdict     bool
 }
 
 type GetAllResponse struct {
@@ -211,6 +212,7 @@ func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, erro
 		Region:      resp.Region,
 		Woreda:      resp.Woreda,
 		IsActive:    resp.IsActive,
+		Verdict:     resp.Verdict,
 	}, nil
 }
 func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
