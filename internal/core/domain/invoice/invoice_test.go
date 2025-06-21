@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
+	"b2b.nati011.github.com/internal/core/application/render"
 )
 
 var invoiceService Provider
@@ -17,14 +18,18 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	renderService := render.NewMock()
 	invoiceService = NewInvoice(
 		db.NewMock(),
+		renderService,
 	)
 }
 
 func teardown() {
+	renderService := render.NewMock()
 	invoiceService = NewInvoice(
 		db.NewMock(),
+		renderService,
 	)
 }
 

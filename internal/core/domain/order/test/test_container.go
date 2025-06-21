@@ -5,12 +5,15 @@ import (
 
 	"b2b.nati011.github.com/config"
 	category_db "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
+	config_db "b2b.nati011.github.com/internal/adapter/secondary/domain/config"
 	invoice_db "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/domain/category"
+	config_module "b2b.nati011.github.com/internal/core/domain/config"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	distributor_test "b2b.nati011.github.com/internal/core/domain/distributor/test"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
@@ -23,18 +26,22 @@ import (
 
 type TestContainer struct {
 	OrderService       order.Provider
+	RenderService      render.Provider
 	InvoiceService     invoice.Provider
 	ProductService     product.Provider
 	RetailerService    retailer.Provider
 	CheckoutService    checkout.Provider
 	PartnerService     partner.Provider
 	DistributorService distributor.Provider
+	ConfigService      config_module.Provider
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
+	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
+		container.RenderService,
 	)
 
 	checkout_container := checkout.NewPackageIntegrationTestContainer()
@@ -47,20 +54,24 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 		category.NewCategory(category_db.NewMock()),
 		container.DistributorService,
 	)
+	container.ConfigService = config_module.NewConfig(config_db.NewPostgres(db))
 	container.OrderService = order.NewOrderService(
 		order_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		container.InvoiceService,
 		container.ProductService,
 		container.RetailerService,
 		container.CheckoutService,
+		container.ConfigService,
 	)
 
 	return container
 }
 
 func (t *TestContainer) Teardown(db *sql.DB) {
+	t.RenderService = render.NewMock()
 	t.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
+		t.RenderService,
 	)
 	t.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
 	t.PartnerService = partner.NewIntegrationTestContainer().PartnerService
@@ -71,5 +82,6 @@ func (t *TestContainer) Teardown(db *sql.DB) {
 		t.ProductService,
 		t.RetailerService,
 		t.CheckoutService,
+		t.ConfigService,
 	)
 }
