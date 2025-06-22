@@ -197,8 +197,8 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_orders_by_status($1);"
-	args := []any{&status}
+	query := "SELECT * FROM public.get_orders_by_status($1, $2, $3);"
+	args := []any{&status, p.Pagination.Limit, p.Pagination.Offset}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
@@ -208,6 +208,7 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
 		&responseBase.ConfirmationStatus,
+		&response.TotalCount,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -233,6 +234,9 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			DeliveryStatus:     res[6].(string),
 			ConfirmationStatus: res[7].(string),
 		}
+
+		response.TotalCount = res[8].(int64)
+
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
 			return port.GetAllResponse{}, err
