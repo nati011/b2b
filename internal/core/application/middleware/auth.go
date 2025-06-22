@@ -105,8 +105,8 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 				return
 			}
 		}
-
-		rsrce, err := am.ResourceService.GetByName(r.Context(), r.RequestURI)
+		// Temporary: For requests with query param
+		rsrce, err := am.ResourceService.GetByName(r.Context(), strings.Split(r.RequestURI, "?")[0])
 		if err != nil {
 			switch err {
 			case resource.ErrNameNotFound:
@@ -135,7 +135,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			ctx := context.WithValue(r.Context(), "claims", claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
-			util.UnauthorizedResponse(w)
+			util.ForbiddenResponse(w)
 			return
 		}
 	})
