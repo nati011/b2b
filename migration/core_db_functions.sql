@@ -1038,7 +1038,8 @@ RETURNS TABLE (
   generalZone VARCHAR(255),
   region VARCHAR(255),
   woreda VARCHAR(255),
-  is_active BOOLEAN
+  is_active BOOLEAN,
+  verdict VARCHAR(255)
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1046,12 +1047,14 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
+        JOIN distributor_reviews dr
+        ON dr.distributor_id = d.id
         WHERE d.is_deleted = FALSE
         LIMIT t_limit
         OFFSET t_offset;
@@ -3047,7 +3050,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_orders_by_status(
-    o_status VARCHAR(255)
+    o_status VARCHAR(255),
+    o_limit INT,
+    o_offset INT
 )
 RETURNS TABLE(id INT, 
               retailer_id INT,
@@ -3056,7 +3061,10 @@ RETURNS TABLE(id INT,
               total DECIMAL(12,2),
               payment_status VARCHAR(255),
               delivery_status VARCHAR(255),
-              confirmation_status VARCHAR(255))
+              confirmation_status VARCHAR(255),
+              total_count BIGINT
+              
+              )
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -3068,12 +3076,15 @@ BEGIN
            o.total,
            o.payment_status,
            o.delivery_status,
-           o.confirmation_status
+           o.confirmation_status,
+           COUNT(*) OVER() AS total_count
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
     WHERE o.status = o_status
-      AND o.is_deleted = FALSE;
+      AND o.is_deleted = FALSE
+    LIMIT o_limit
+    OFFSET o_offset;
 END;
 $$;
 
