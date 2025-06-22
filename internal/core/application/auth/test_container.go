@@ -69,7 +69,9 @@ func NewTestContainer() TestContainer {
 	container.Service = NewAuthService(
 		provider.NewMockAuthProvider(),
 		emailTestContainer.EmailService,
-		role.NewTestContainer().RoleService)
+		role.NewTestContainer().RoleService,
+		"randomPlaceHolder",
+	)
 	return container
 }
 
