@@ -260,6 +260,8 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequ
 			GeneralZone: i.GeneralZone,
 			Region:      i.Region,
 			Woreda:      i.Woreda,
+			IsActive:    i.IsActive,
+			Verdict:     i.Verdict,
 		})
 	}
 	if len(service_resp.List) == 0 {
@@ -293,6 +295,8 @@ func (d *DistributorService) GetAll(ctx context.Context) (GetAllResponse, error)
 			GeneralZone: i.GeneralZone,
 			Region:      i.Region,
 			Woreda:      i.Woreda,
+			Verdict:     i.Verdict,
+			IsActive:    i.IsActive,
 		})
 	}
 	if len(service_resp.List) == 0 {

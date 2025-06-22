@@ -171,7 +171,8 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var responseBase port.GetResponse
 	query := "SELECT * FROM public.get_all_distributors($1, $2);"
 
-	dest := []any{&responseBase.Id,
+	dest := []any{
+		&responseBase.Id,
 		&responseBase.Name,
 		&responseBase.Tin,
 		&responseBase.Latitude,
@@ -179,7 +180,9 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.GeneralZone,
 		&responseBase.Region,
 		&responseBase.Woreda,
-		&responseBase.IsActive}
+		&responseBase.IsActive,
+		&responseBase.Verdict,
+	}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -203,6 +206,8 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			GeneralZone: res[5].(string),
 			Region:      res[6].(string),
 			Woreda:      res[7].(string),
+			IsActive:    res[8].(bool),
+			Verdict:     res[9].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}

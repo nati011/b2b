@@ -288,6 +288,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Region:      i.Region,
 				Woreda:      i.Woreda,
 				IsActive:    i.IsActive,
+				Verdict:     i.Verdict,
 				Users:       users_resp.List,
 			})
 		}
@@ -328,6 +329,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Woreda:      i.Woreda,
 				IsActive:    i.IsActive,
 				Users:       users_resp.List,
+				Verdict:     i.Verdict,
 			})
 		}
 		util.OperationSuccessResponse(w, handler_resp)
