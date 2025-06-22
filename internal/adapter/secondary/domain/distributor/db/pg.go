@@ -96,7 +96,7 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.Region = *result[6].(*string)
 	response.Woreda = *result[7].(*string)
 	response.IsActive = *result[8].(*bool)
-	response.Verdict = *result[9].(*bool)
+	response.Verdict = *result[9].(*string)
 
 	return response, nil
 }
