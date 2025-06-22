@@ -58,7 +58,7 @@ func CancelExpiredOrders(domainServices *domain_core.Container) {
 			if now.Sub(o.CreatedAt) > EXPIRE_AFTER {
 				err = domainServices.OrderService.Cancel(ctx, o.Id)
 				if err != nil {
-					log.Printf("Failed to cancel order err: %v", err)
+					log.Printf("Failed to cancel order err: %v Order ID: %v", err, o.Id)
 				}
 			}
 		} else if partner.PaymentMethod == payment_partner.PAYMENT_METHOD_MANUAL {
@@ -67,7 +67,7 @@ func CancelExpiredOrders(domainServices *domain_core.Container) {
 			if now.Sub(o.CreatedAt) > EXPIRE_AFTER && o.ConfirmationStatus != order.ORDER_CONFIRMED {
 				err = domainServices.OrderService.Cancel(ctx, o.Id)
 				if err != nil {
-					log.Printf("Failed to cancel order err: %v", err)
+					log.Printf("Failed to cancel order err: %v Order ID: %v", err, o.Id)
 				}
 			}
 		}
