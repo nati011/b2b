@@ -80,7 +80,7 @@ func CancelExpiredOrders(
 			if now.Sub(o.CreatedAt) > time.Duration(expireAfterDurationInMinutes) {
 				err = orderService.Cancel(ctx, o.Id)
 				if err != nil {
-					log.Printf("Failed to cancel order err: %v", err)
+					log.Printf("Failed to cancel order err: %v Order ID: %v", err, o.Id)
 				}
 			}
 		} else if partner.PaymentMethod == payment_partner.PAYMENT_METHOD_MANUAL {
@@ -89,7 +89,7 @@ func CancelExpiredOrders(
 			if now.Sub(o.CreatedAt) > time.Duration(expireAfterDurationInMinutes) && o.ConfirmationStatus != order.ORDER_CONFIRMED {
 				err = orderService.Cancel(ctx, o.Id)
 				if err != nil {
-					log.Printf("Failed to cancel order err: %v", err)
+					log.Printf("Failed to cancel order err: %v Order ID: %v", err, o.Id)
 				}
 			}
 		}
