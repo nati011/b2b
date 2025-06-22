@@ -2,17 +2,17 @@ package application
 
 import (
 	"net/http"
-	"time"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/health"
 	"b2b.nati011.github.com/internal/core/application/middleware"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type HealthResponse struct {
+type HealthReportResponse struct {
 	Status       string            `json:"status"`
 	Timestamp    string            `json:"timestamp"`
 	Service      string            `json:"service"`
@@ -21,6 +21,7 @@ type HealthResponse struct {
 }
 
 type HealthHandler struct {
+	service health.Provider
 }
 
 func InitHealth() {
@@ -41,15 +42,16 @@ func (h *HealthHandler) Routes(mux *http.ServeMux) {
 
 func (h *HealthHandler) healthHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: implement proper check health !!!
-	response := HealthResponse{
-		Status:    "healthy",
-		Timestamp: time.Now().UTC().Format(time.RFC3339),
-		Service:   "b2b-backend",
-		Version:   "1.0.0",
-		Dependencies: map[string]string{
-			"postgres": "connected",
-			"keycloak": "connected",
-		},
+	response, err := h.service.GetSystemHealth()
+	if err != nil {
+		switch err {
+		case health.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
 	}
-	util.OperationSuccessMessageResponse(w, response)
+	util.OperationSuccessMessageResponse(w, HealthReportResponse(response))
 }
