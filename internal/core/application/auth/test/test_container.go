@@ -108,7 +108,9 @@ func NewIntegrationTestContainer() TestContainer {
 	container.Service = auth.NewAuthService(
 		KeycloakProvider,
 		emailTestContainer.EmailService,
-		role.NewTestContainer().RoleService)
+		role.NewTestContainer().RoleService,
+		"secureJWTKEY",
+	)
 	return container
 }
 

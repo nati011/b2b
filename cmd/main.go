@@ -29,11 +29,13 @@ func main() {
 	flag.StringVar(&cfg.KeycloakClientSecret, "keycloak_client_secret", "", "authServer client secret")
 	flag.StringVar(&cfg.Email, "email", "", "email server address")
 	flag.StringVar(&cfg.SMTP, "smtp", "", "email server address smtp")
+	flag.StringVar(&cfg.EmailPassword, "email_password", "", "email server password")
 	flag.StringVar(&cfg.FileLocation, "migration_file_dir", "", "migration file location dir")
 	flag.StringVar(&cfg.CoreDBConnectionString, "db", "", "coreDB connection string (eg. postgres://postgres:1234@localhost:5432/b2b_1136)")
 	flag.StringVar(&cfg.MinMobileClientCompatibleVersion, "min_compatible_client_version", "1.0.0", "Min Mobile client version")
 	flag.StringVar(&cfg.BaseUrl, "base_url", "http://localhost:8080", "backend base url")
 	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "http://localhost:8080", "frontend base url")
+	flag.StringVar(&cfg.JWTSecret, "jwt_secret", "", "JWT Secret Keys")
 
 	flag.Parse()
 	validateFlags(cfg)

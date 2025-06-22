@@ -133,16 +133,21 @@ type AuthService struct {
 	authProvider  port.Provider
 	emailProvider email.Provider
 	roleService   role.Provider
+	jwtSecret     string
 }
 
 func NewAuthService(
 	AP port.Provider,
 	EP email.Provider,
-	RP role.Provider) Provider {
+	RP role.Provider,
+	Secret string,
+) Provider {
 	return &AuthService{
 		authProvider:  AP,
 		emailProvider: EP,
-		roleService:   RP}
+		roleService:   RP,
+		jwtSecret:     Secret,
+	}
 }
 
 func (a AuthService) DecodeToken(ctx context.Context, token string) (DecodeResult, error) {
@@ -206,7 +211,7 @@ func (a *AuthService) validateToken(tokenString string) (jwt.MapClaims, error) {
 			log.Print("unexpected signing method")
 			return nil, ErrUnknown
 		}
-		return []byte("s3cureR@nd0mK3y1234567890!"), nil
+		return []byte(a.jwtSecret), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -231,16 +236,15 @@ func (s AuthService) InitClientCredentialsReset(ctx context.Context, req InitCli
 		return ErrUserIdNotSupplied
 	}
 
-	_, err := s.createToken(req.UserId)
+	token, err := s.createToken(req.UserId)
 	if err != nil {
 		return err
 	}
 
-	// Temp
-	// err = s.sendResetEmail(token, req.Email)
-	// if err != nil {
-	// 	return err
-	// }
+	err = s.sendResetEmail(token, req.Email)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -257,7 +261,7 @@ func (s AuthService) createToken(userId string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign the token using a secret key
-	signedToken, err := token.SignedString([]byte("s3cureR@nd0mK3y1234567890!"))
+	signedToken, err := token.SignedString([]byte(s.jwtSecret))
 	if err != nil {
 		return "", err // Return error if signing fails
 	}

@@ -169,7 +169,9 @@ func setup() {
 	authService = auth.NewAuthService(
 		KeycloakProvider,
 		email.NewTestContainer().EmailService,
-		role.NewTestContainer().RoleService)
+		role.NewTestContainer().RoleService,
+		"secureKey",
+	)
 }
 
 func shutDown() {

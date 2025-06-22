@@ -30,4 +30,7 @@ type Config struct {
 
 	//mobile client version
 	MinMobileClientCompatibleVersion string
+
+	// JWT
+	JWTSecret string
 }

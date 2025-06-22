@@ -113,7 +113,9 @@ func NewContainer(
 		cfg.KeycloakRealm,
 		cfg.KeycloakApplicationRealm,
 		cfg.KeycloakClientId,
-		cfg.KeycloakClientSecret)
+		cfg.KeycloakClientSecret,
+		cfg.JWTSecret,
+	)
 	container.InitUserService()
 	container.InitPaymentService()
 	container.InitCheckoutService(cfg.BaseUrl, cfg.FrontendUrl)
@@ -129,11 +131,13 @@ func (m *Container) InitMobileClientService(minMobileClientCompatibleVersion str
 		minMobileClientCompatibleVersion)
 }
 
-func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string) {
+func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string, jwtSecret string) {
 	m.AuthService = auth.NewAuthService(
 		auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret),
 		m.EmailService,
-		m.RoleService)
+		m.RoleService,
+		jwtSecret,
+	)
 }
 
 func (m *Container) InitAuthMiddleware() {
