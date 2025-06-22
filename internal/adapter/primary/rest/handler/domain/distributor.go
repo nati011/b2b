@@ -56,7 +56,7 @@ type GetDistributorResponse struct {
 	Woreda      string `json:"woreda"`
 	IsActive    bool   `json:"is_active"`
 	Users       []int  `json:"user"`
-	Verdict     bool   `json:"verdict"`
+	Verdict     string `json:"verdict"`
 }
 
 type GetAllDistributorResponse struct {
