@@ -24,6 +24,8 @@ services:
       - BASE_URL
       - FRONTEND_URL
       - CLIENT_VERSION
+      - JWT_SECRET
+      - EMAIL_PASSWORD
     networks:
       - backend
 
