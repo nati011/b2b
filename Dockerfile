@@ -26,6 +26,8 @@ CMD ./main \
     --env $ENV \
     --base_url $BASE_URL \
     --frontend_base_url $FRONTEND_URL \
-    --min_compatible_client_version $CLIENT_VERSION
+    --min_compatible_client_version $CLIENT_VERSION \
+    --jwt_secret $JWT_SECRET \
+    --email_password $EMAIL_PASSWORD
 
 EXPOSE 8080
