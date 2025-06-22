@@ -631,6 +631,7 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 				})
 			}
 		}
+		return_response.TotalCount = resp.TotalCount
 	}
 	if len(return_response.List) == 0 {
 		return return_response, ErrEmptyGetResponse
