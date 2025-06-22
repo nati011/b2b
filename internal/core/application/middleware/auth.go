@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -49,6 +50,17 @@ func NewAuthMiddleware(
 
 func WithRole(roles []string) Option {
 	return func(a *Auth) {}
+}
+
+// TODO: find a way to match strings despite the var names
+func normalizeResourcePath(path string) string {
+	segments := strings.Split(path, "/")
+	for i, seg := range segments {
+		if seg != "" && regexp.MustCompile(`^\d+$`).MatchString(seg) {
+			segments[i] = "{id}"
+		}
+	}
+	return strings.Join(segments, "/")
 }
 
 func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http.Handler {
@@ -106,7 +118,9 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			}
 		}
 		// Temporary: For requests with query param
-		rsrce, err := am.ResourceService.GetByName(r.Context(), strings.Split(r.RequestURI, "?")[0])
+		rawPath := strings.Split(r.RequestURI, "?")[0]
+		normalizedPath := normalizeResourcePath(rawPath)
+		rsrce, err := am.ResourceService.GetByName(r.Context(), normalizedPath)
 		if err != nil {
 			switch err {
 			case resource.ErrNameNotFound:
