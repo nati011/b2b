@@ -104,7 +104,7 @@ func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := o.service.GetRetailerOrdersByUserId(r.Context(), userId)
+	resp, err := o.service.GetRetailerOrdersWithUserContext(r.Context(), userId)
 	if err != nil {
 		switch err {
 		case order.ErrUnknown:
@@ -235,6 +235,12 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
+	userId, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		util.ServerErrorResponse(w, errors.New("retailer_id not found in context or is not an integer"))
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
@@ -251,8 +257,8 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	for _, i := range requestBody.Items {
 		orderItems = append(orderItems, (order.Item)(i))
 	}
-	order_resp, err := o.service.Place(r.Context(), &order.PlaceRequest{
-		RetailerId:       requestBody.RetailerId,
+	order_resp, err := o.service.PlaceWithUserContext(r.Context(), &order.PlaceAsUserRequest{
+		UserId:           userId,
 		Items:            orderItems,
 		PaymentPartnerId: requestBody.PaymentPartnerId,
 	})

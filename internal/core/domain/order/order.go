@@ -71,6 +71,12 @@ type PlaceRequest struct {
 	PaymentPartnerId int
 }
 
+type PlaceAsUserRequest struct {
+	UserId           int
+	Items            []Item
+	PaymentPartnerId int
+}
+
 type GetResponse struct {
 	Id                 int
 	RetailerId         int
@@ -111,13 +117,14 @@ type OrderPlaceResponse struct {
 
 type Provider interface {
 	Place(ctx context.Context, req *PlaceRequest) (OrderPlaceResponse, error)
+	PlaceWithUserContext(ctx context.Context, req *PlaceAsUserRequest) (OrderPlaceResponse, error)
 	InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error)
 	Cancel(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
-	GetRetailerOrdersByUserId(ctx context.Context, userId int) (GetAllResponse, error)
+	GetRetailerOrdersWithUserContext(ctx context.Context, userId int) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
@@ -223,6 +230,129 @@ func (o *OrderService) Place(ctx context.Context, req *PlaceRequest) (OrderPlace
 
 	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
 		RetailerId:         req.RetailerId,
+		Items:              items,
+		Status:             PENDING_STATUS,
+		PaymentStatus:      PAYMENT_PENDING_STATUS,
+		DeliveryStatus:     DELIVERY_PENDING_STATUS,
+		ConfirmationStatus: ORDER_PENDING,
+		Total:              itemsTotal,
+	})
+	if err != nil {
+		return OrderPlaceResponse{}, ErrUnknown
+	}
+
+	checkout_resp, err := o.CheckoutService.Checkout(ctx, &checkout.CheckoutRequest{
+		OrderId:          order_id,
+		Amount:           itemsTotal,
+		PaymentPartnerId: req.PaymentPartnerId,
+	})
+	if err != nil {
+		o.Cancel(ctx, order_id)
+		return OrderPlaceResponse{}, err
+	}
+
+	// create invoice
+	lineItems := make([]invoice.Item, 0, len(req.Items))
+	for _, i := range req.Items {
+		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
+		if err != nil {
+			switch err {
+			default:
+				return OrderPlaceResponse{}, ErrUnknown
+			}
+		}
+		lineItems = append(lineItems, invoice.Item{
+			ProductId:       i.ProductId,
+			ProductName:     prod_resp.Name,
+			ProductQuantity: i.Quantity,
+			ProductPrice:    prod_resp.Price,
+		})
+	}
+
+	if _, err = o.InvoiceService.Create(ctx, &invoice.CreateRequest{
+		Status:    invoice.DRAFT_STATUS,
+		OrderId:   order_id,
+		SubTotal:  itemsTotal,
+		LineItems: lineItems,
+		TaxAmount: 0, //default
+	}); err != nil {
+		o.Cancel(ctx, order_id)
+		return OrderPlaceResponse{}, ErrUnknown
+	}
+
+	//reserve stock
+	for _, i := range req.Items {
+		if err = o.ProductService.Reserve(ctx, i.ProductId, i.Quantity); err != nil {
+			o.Cancel(ctx, order_id)
+			log.Printf("order placement failed due to inability to reserve stock qty: %v for productId: %v", i.Quantity, i.ProductId)
+			return OrderPlaceResponse{}, ErrUnknown
+		}
+	}
+
+	// o.InvoiceService.Cancel(ctx, order_id)
+	// o.Cancel(ctx, order_id)
+	// o.ReserveStpc
+
+	//TODO
+	/*
+		send sms
+	*/
+
+	//TODO
+	/*
+		send email
+	*/
+	return OrderPlaceResponse{
+		Id:          order_id,
+		TxRef:       checkout_resp.TransactionRef,
+		CheckoutUrl: checkout_resp.CheckoutUrl,
+	}, nil
+}
+
+func (o *OrderService) PlaceWithUserContext(ctx context.Context, req *PlaceAsUserRequest) (OrderPlaceResponse, error) {
+	retailer, err := o.getUserRetailer(ctx, req.UserId)
+	if err != nil {
+		log.Printf("Failed to get user's retailer")
+		return OrderPlaceResponse{}, ErrRetailerIdNotFound
+	}
+	err = o.validate_placement(ctx, &PlaceRequest{
+		RetailerId:       retailer.Id,
+		Items:            req.Items,
+		PaymentPartnerId: req.PaymentPartnerId,
+	})
+	if err != nil {
+		return OrderPlaceResponse{}, err
+	}
+
+	isEligible, err := o.checkOrderDuplicacyEligibility(ctx, retailer.Id)
+	if err != nil {
+		return OrderPlaceResponse{}, ErrUnknown
+	}
+	if !isEligible {
+		return OrderPlaceResponse{}, ErrDuplicateOrderNotAllowed
+	}
+
+	items := make([]port.Item, 0, len(req.Items))
+	var itemsTotal float64
+	for _, i := range req.Items {
+		prod_resp, err := o.ProductService.Get(ctx, i.ProductId)
+		if err != nil {
+			switch err {
+			default:
+				return OrderPlaceResponse{}, ErrUnknown
+			}
+		}
+		items = append(items, port.Item{
+			ProductId:   i.ProductId,
+			Quantity:    i.Quantity,
+			Price:       prod_resp.Price,
+			ProductName: i.ProductName,
+		})
+		itemsTotal += prod_resp.Price * float64(i.Quantity)
+	}
+
+	order_id, err := o.DB.Create(ctx, &port.CreateRequest{
+		RetailerId:         retailer.Id,
 		Items:              items,
 		Status:             PENDING_STATUS,
 		PaymentStatus:      PAYMENT_PENDING_STATUS,
@@ -540,7 +670,7 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 	return return_response, nil
 }
 
-func (o *OrderService) GetRetailerOrdersByUserId(ctx context.Context, user_id int) (GetAllResponse, error) {
+func (o *OrderService) GetRetailerOrdersWithUserContext(ctx context.Context, user_id int) (GetAllResponse, error) {
 	retailer_resp, err := o.getUserRetailer(ctx, user_id)
 	if err != nil {
 		return GetAllResponse{}, err
