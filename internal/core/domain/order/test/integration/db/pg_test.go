@@ -212,7 +212,7 @@ func Test_Read(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
-		got, err := container.OrderService.GetRetailerOrdersByUserId(ctx, retailerUserId)
+		got, err := container.OrderService.GetRetailerOrdersWithUserContext(ctx, retailerUserId)
 		if err != nil {
 			switch err {
 			case order.ErrEmptyGetResponse:
