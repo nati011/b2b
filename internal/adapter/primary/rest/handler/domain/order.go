@@ -98,35 +98,27 @@ func (o *Order) Routes(mux *http.ServeMux) {
 }
 
 func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
-	const ParamRetailerId = "retailer_id"
-
-	paramValues := r.URL.Query()
-	paramRetailerIdValue := paramValues.Get(ParamRetailerId)
-	if paramRetailerIdValue != "" {
-		// get by param
-		var typedRetailerId int
-		var err error
-		if paramRetailerIdValue != "" {
-			typedRetailerId, err = strconv.Atoi(paramRetailerIdValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		resp, err := o.service.GetRetailerOrders(r.Context(), typedRetailerId)
-		if err != nil {
-			switch err {
-			case order.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			case order.ErrEmptyGetResponse:
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+	userId, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		util.ServerErrorResponse(w, errors.New("retailer_id not found in context or is not an integer"))
+		return
 	}
+
+	resp, err := o.service.GetRetailerOrdersWithUserContext(r.Context(), userId)
+	if err != nil {
+		switch err {
+		case order.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		case order.ErrEmptyGetResponse:
+			// This case is handled by returning an empty array
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 }
 
 func (o *Order) GetDistributorOrders(w http.ResponseWriter, r *http.Request) {
@@ -243,6 +235,12 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
+	userId, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		util.ServerErrorResponse(w, errors.New("retailer_id not found in context or is not an integer"))
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
@@ -259,8 +257,8 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	for _, i := range requestBody.Items {
 		orderItems = append(orderItems, (order.Item)(i))
 	}
-	order_resp, err := o.service.Place(r.Context(), &order.PlaceRequest{
-		RetailerId:       requestBody.RetailerId,
+	order_resp, err := o.service.PlaceWithUserContext(r.Context(), &order.PlaceAsUserRequest{
+		UserId:           userId,
 		Items:            orderItems,
 		PaymentPartnerId: requestBody.PaymentPartnerId,
 	})

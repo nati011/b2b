@@ -45,7 +45,8 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 	})
 
 	err := m.CreateRetailerUser(ctx, &port.CreateUserAgentRequest{
-		User_id: req.UserId,
+		User_id:     req.UserId,
+		Retailer_id: newId,
 	})
 	if err != nil {
 		return 0, port_commons.ErrSysUnknown
@@ -54,7 +55,7 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 	return newId, nil
 }
 
-func (m Mock) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
+func (m *Mock) CreateRetailerUser(ctx context.Context, req *port.CreateUserAgentRequest) error {
 	m.userAgents = append(m.userAgents, MockUserAgent{
 		Id: req.User_id,
 	})
@@ -126,6 +127,24 @@ func (m *Mock) UpdateTin(ctx context.Context, req *port.UpdateTinRequest) error 
 func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	for _, i := range m.retailers {
 		if i.Id == id {
+			return port.GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+			}, nil
+		}
+	}
+	return port.GetResponse{}, port_commons.ErrSysNoRows
+}
+
+func (m *Mock) GetByUserId(ctx context.Context, userId int) (port.GetResponse, error) {
+	for _, i := range m.retailers {
+		if m.userAgents[0].Id == userId {
 			return port.GetResponse{
 				Id:          i.Id,
 				Name:        i.Name,

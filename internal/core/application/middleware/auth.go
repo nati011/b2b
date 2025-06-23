@@ -108,7 +108,8 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 			log.Printf("failed to get claims: %v", err)
 			return
 		}
-		assignedRoles, err := am.userService.GetAllAssignedRoles(r.Context(), u.List[0].Id)
+		userId := u.List[0].Id
+		assignedRoles, err := am.userService.GetAllAssignedRoles(r.Context(), userId)
 		if err != nil {
 			switch err {
 			case user.ErrNoRoleAssigned:
@@ -147,6 +148,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 		}
 		if hasResource {
 			ctx := context.WithValue(r.Context(), "claims", claims)
+			ctx = context.WithValue(ctx, "userId", userId)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			util.ForbiddenResponse(w)
