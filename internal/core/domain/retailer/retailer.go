@@ -72,6 +72,7 @@ type Provider interface {
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
+	GetByUserId(ctx context.Context, userId int) (GetResponse, error)
 }
 
 type RetailerService struct {
@@ -318,5 +319,28 @@ func (r *RetailerService) GetAllUsers(ctx context.Context, id int) (GetAllUsers,
 	}
 	return GetAllUsers{
 		List: response_ids,
+	}, nil
+}
+
+func (r *RetailerService) GetByUserId(ctx context.Context, userId int) (GetResponse, error) {
+	resp, err := r.DB.GetByUserId(ctx, userId)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, ErrUnknown
+		}
+	}
+
+	return GetResponse{
+		Id:          resp.Id,
+		Name:        resp.Name,
+		Tin:         resp.Tin,
+		Latitude:    resp.Latitude,
+		Longitude:   resp.Longitude,
+		GeneralZone: resp.GeneralZone,
+		Region:      resp.Region,
+		Woreda:      resp.Woreda,
 	}, nil
 }

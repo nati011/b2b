@@ -5,10 +5,19 @@ import (
 	"os"
 	"testing"
 
+	"math/rand"
+
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/order"
+	"b2b.nati011.github.com/internal/core/domain/product"
+	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 var testContainer order.TestContainer
+var retailerId int
+var retailerUserId int
+var productId int
+var distributorId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -18,16 +27,78 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	testContainer = order.NewPackageIntegrationTestContainer()
+	ctx := context.Background()
+	var err error
+	retailerId, err = testContainer.RetailerService.Create(ctx, &retailer.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "order_test",
+		FirstName:   "test",
+		LastName:    "test",
+		Phone:       "+251949184879",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create product")
+	}
+
+	restailerUsers, err := testContainer.RetailerService.GetAllUsers(ctx, retailerId)
+	if err != nil {
+		panic("failed to get all retailer users")
+	}
+	retailerUserId = restailerUsers.List[0]
+
+	distributorId, err = testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor")
+	}
+
+	productId, err = testContainer.ProductService.Create(ctx, &product.CreateRequest{
+		Name:       "testProduct",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"https://picsum.photos/200",
+			"https://picsum.photos/200",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+		DistributorId: distributorId,
+	})
+	if err != nil {
+		panic("failed to create product")
+	}
 }
 
-func Test_validate_retailer_upon_registration(t *testing.T) {
-	ctx := context.Background()
+func teardown() {
+	testContainer.Teardown()
+}
 
+func Test_validate_retailer_upon_order_placement(t *testing.T) {
+	ctx := context.Background()
+	randomRetailerId := rand.Int()
 	in := &order.PlaceRequest{
-		RetailerId: 1,
+		RetailerId: randomRetailerId,
 		Items: []order.Item{
 			{
-				ProductId: 1,
+				ProductId: productId,
 				Quantity:  1},
 		},
 	}
@@ -36,4 +107,38 @@ func Test_validate_retailer_upon_registration(t *testing.T) {
 	if err != wantErr {
 		t.Errorf("Expected err : %v Got: %v", wantErr, err)
 	}
+}
+
+func Test_Get_By_UserId_happyPath(t *testing.T) {
+	t.Run("getByUserId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+
+		got, err := testContainer.OrderService.GetRetailerOrdersByUserId(ctx, retailerUserId)
+		if err != nil {
+			switch err {
+			case order.ErrEmptyGetResponse:
+			default:
+				t.Fatalf("Failed to fetch order err: err %v", err)
+			}
+		}
+		wantLen := 0
+		if len(got.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+}
+
+func Test_Get_By_UserId_unhappyPath(t *testing.T) {
+	t.Run("getByUserId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//check
+		randomRetailerUserId := rand.Int()
+		_, err := testContainer.OrderService.GetRetailerOrdersByUserId(ctx, randomRetailerUserId)
+		wantErr := order.ErrRetailerIdNotFound
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got: %v", wantErr, err)
+		}
+	})
 }

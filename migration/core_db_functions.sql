@@ -1282,6 +1282,44 @@ AS $$
     END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_retailer_by_user_id (
+    r_user_id INT
+) 
+RETURNS TABLE (
+  id INT,
+  name VARCHAR(255),
+  tin VARCHAR(255),
+  lat VARCHAR(255),
+  long VARCHAR(255),
+  generalZone VARCHAR(255),
+  region VARCHAR(255),
+  woreda VARCHAR(255)
+) 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT  r.id, 
+            rb.name, 
+            rb.tin, 
+            rb_loc.lat, 
+            rb_loc.long, 
+            rb_loc.general_zone AS generalZone,
+            rb_loc.region, 
+            rb_loc.woreda
+    FROM public.retailers r
+    JOIN public.retailer_business_info rb 
+        ON rb.retailer_id = r.id
+    JOIN public.rb_locations rb_loc 
+        ON rb_loc.business_id = rb.id
+    JOIN public.retailer_users rb_rus
+        ON rb_rus.retailer_id = r.id
+    WHERE rb_rus.user_id = r_user_id
+        AND r.is_deleted = FALSE
+    LIMIT 1;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.get_retailer_by_name (
     r_retailer_name VARCHAR(255)
 ) 

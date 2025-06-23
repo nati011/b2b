@@ -18,6 +18,7 @@ import (
 var container test_container.TestContainer
 var db *sql.DB
 var retailer_id int
+var retailerUserId int
 var product_id int
 var manualPaymentPartnerId int
 var digitalPaymentPartnerId int
@@ -31,9 +32,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	ctx := context.Background()
 	db = db_test_container.Setup()
-	container = test_container.NewDBIntegrationTestContainer(
-		db,
-	)
+	container = test_container.NewDBIntegrationTestContainer(db)
 	var err error
 	retailer_id, err = container.RetailerService.Create(ctx, &retailer.CreateRequest{
 		Tin:         "1111111111",
@@ -51,6 +50,14 @@ func setup() {
 	if err != nil {
 		panic("failed to create retailer")
 	}
+
+	restailerUsers, err := container.RetailerService.GetAllUsers(ctx, retailer_id)
+	if err != nil {
+		panic("failed to get all retailer users")
+	}
+
+	retailerUserId = restailerUsers.List[0]
+
 	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
@@ -84,10 +91,13 @@ func setup() {
 		panic("failed to create product")
 	}
 
-	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+	err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     product_id,
 		Amount: 100,
 	})
+	if err != nil {
+		panic("failed to receive goods")
+	}
 
 	manualPaymentPartnerId, err = container.PartnerService.Create(ctx, &payment_partner.CreateRequest{
 		Name:          "chapa",
@@ -178,6 +188,37 @@ func Test_Read(t *testing.T) {
 		})
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantLen := 1
+		if len(got.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
+	t.Run("getByUserId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []order.Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+			PaymentPartnerId: digitalPaymentPartnerId,
+		}
+		_, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		got, err := container.OrderService.GetRetailerOrdersByUserId(ctx, retailerUserId)
+		if err != nil {
+			switch err {
+			case order.ErrEmptyGetResponse:
+			default:
+				t.Fatalf("Failed to fetch order err: err %v", err)
+			}
 		}
 		wantLen := 1
 		if len(got.List) != wantLen {
