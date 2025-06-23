@@ -22,6 +22,7 @@ func InitInvoice() {
 	handler.Register(new(Invoice))
 
 	handler.RegisterResource("/api/v1/invoice")
+	handler.RegisterResource("/api/v1/invoice/html")
 }
 
 func (i *Invoice) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
