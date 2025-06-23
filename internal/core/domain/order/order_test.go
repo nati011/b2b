@@ -79,10 +79,13 @@ func setup() {
 	if err != nil {
 		panic("failed to create product")
 	}
-	container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
+	err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
 		Id:     product_id,
 		Amount: 10000,
 	})
+	if err != nil {
+		panic("failed to recieve goods")
+	}
 	DigitalPaymentPartnerId, err = container.PartnerService.Create(ctx,
 		&payment_partner.CreateRequest{
 			Name:          "chapa",
