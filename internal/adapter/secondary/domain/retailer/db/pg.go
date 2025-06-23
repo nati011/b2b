@@ -112,6 +112,42 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	return response, nil
 }
 
+func (r *Postgres) GetByUserId(ctx context.Context, userId int) (port.GetResponse, error) {
+	var response port.GetResponse
+	query := "SELECT * FROM public.get_retailer_by_user_id($1);"
+	result := []any{&response.Id,
+		&response.Name,
+		&response.Tin,
+		&response.Latitude,
+		&response.Longitude,
+		&response.GeneralZone,
+		&response.Region,
+		&response.Woreda}
+
+	args := []any{userId}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+
+	response.Id = *result[0].(*int)
+	response.Name = *result[1].(*string)
+	response.Tin = *result[2].(*string)
+	response.Latitude = *result[3].(*string)
+	response.Longitude = *result[4].(*string)
+	response.GeneralZone = *result[5].(*string)
+	response.Region = *result[6].(*string)
+	response.Woreda = *result[7].(*string)
+
+	return response, nil
+}
+
 func (r *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) error {
 	query := "SELECT * FROM public.update_retailer_name($1, $2);"
 	args := []any{&req.Id, &req.Name}
