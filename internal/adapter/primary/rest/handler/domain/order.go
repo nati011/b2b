@@ -98,9 +98,9 @@ func (o *Order) Routes(mux *http.ServeMux) {
 }
 
 func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
-	userId, ok := r.Context().Value("user_id").(int)
+	userId, ok := r.Context().Value("userId").(int)
 	if !ok {
-		util.ServerErrorResponse(w, errors.New("retailer_id not found in context or is not an integer"))
+		util.ServerErrorResponse(w, errors.New("userId not found in context or is not an integer"))
 		return
 	}
 
