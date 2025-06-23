@@ -117,6 +117,7 @@ type Provider interface {
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
+	GetRetailerOrdersByUserId(ctx context.Context, userId int) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
@@ -497,6 +498,54 @@ func (o *OrderService) GetRetailerOrders(ctx context.Context, retailer_id int) (
 	}
 
 	resp, err := o.DB.GetByRetailerID(ctx, retailer_id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetResponse
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetAllResponse{}, ErrUnknown
+	}
+
+	return_response := GetAllResponse{}
+	for _, i := range resp.List {
+		items := []Item{}
+		for _, i := range i.Items {
+			items = append(items, Item{
+				ProductId:    i.ProductId,
+				ProductName:  i.ProductName,
+				ProductPrice: i.Price,
+				Quantity:     i.Quantity,
+			})
+		}
+		return_response.List = append(return_response.List, GetResponse{
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			RetailerName:   i.RetailerName,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentStatus:  i.PaymentStatus,
+			CreatedAt:      i.CreatedAt,
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
+		})
+	}
+	return return_response, nil
+}
+
+func (o *OrderService) GetRetailerOrdersByUserId(ctx context.Context, user_id int) (GetAllResponse, error) {
+	retailer_resp, err := o.getUserRetailer(ctx, user_id)
+	if err != nil {
+		return GetAllResponse{}, err
+	}
+	resp, err := o.DB.GetByRetailerID(ctx, retailer_resp.Id)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
