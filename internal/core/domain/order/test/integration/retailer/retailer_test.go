@@ -7,6 +7,7 @@ import (
 
 	"math/rand"
 
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/product"
@@ -18,6 +19,7 @@ var retailerId int
 var retailerUserId int
 var productId int
 var distributorId int
+var DigitalPaymentPartnerId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -85,6 +87,18 @@ func setup() {
 	if err != nil {
 		panic("failed to create product")
 	}
+
+	DigitalPaymentPartnerId, err = testContainer.PartnerService.Create(ctx,
+		&payment_partner.CreateRequest{
+			Name:          "chapa",
+			Icon:          "etst",
+			BaseURL:       "https://api.chapa.co",
+			Secret:        "CHASECK_TEST-KUZmLnnAPtwFg8hQPqCx7mc4o7TUbIe5",
+			PaymentMethod: payment_partner.PAYMENT_METHOD_DIGITAL,
+		})
+	if err != nil {
+		panic("failed to create payment partner")
+	}
 }
 
 func teardown() {
@@ -114,7 +128,7 @@ func Test_Get_By_UserId_happyPath(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
 
-		got, err := testContainer.OrderService.GetRetailerOrdersByUserId(ctx, retailerUserId)
+		got, err := testContainer.OrderService.GetRetailerOrdersWithUserContext(ctx, retailerUserId)
 		if err != nil {
 			switch err {
 			case order.ErrEmptyGetResponse:
@@ -135,10 +149,57 @@ func Test_Get_By_UserId_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		//check
 		randomRetailerUserId := rand.Int()
-		_, err := testContainer.OrderService.GetRetailerOrdersByUserId(ctx, randomRetailerUserId)
+		_, err := testContainer.OrderService.GetRetailerOrdersWithUserContext(ctx, randomRetailerUserId)
 		wantErr := order.ErrRetailerIdNotFound
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
+}
+
+func Test_Place_By_UserId_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	in := &order.PlaceAsUserRequest{
+		PaymentPartnerId: DigitalPaymentPartnerId,
+		UserId:           retailerUserId,
+		Items: []order.Item{
+			{
+				ProductId: productId,
+				Quantity:  1},
+		},
+	}
+	order_resp, err := testContainer.OrderService.PlaceWithUserContext(ctx, in)
+	if err != nil {
+		t.Fatalf("Failed to fetch order err: err %v", err)
+	}
+
+	//check
+	resp, err := testContainer.OrderService.Get(ctx, order_resp.Id)
+	if err != nil {
+		t.Fatalf("Failed to fetch order err: err %v", err)
+	}
+	if resp.Id != order_resp.Id {
+		t.Errorf("Expected Id: %v Got Id: %v", order_resp.Id, resp.Id)
+	}
+}
+
+func Test_Place_By_UserId_unhappyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	randomRetailerUserId := rand.Int()
+	in := &order.PlaceAsUserRequest{
+		PaymentPartnerId: DigitalPaymentPartnerId,
+		UserId:           randomRetailerUserId,
+		Items: []order.Item{
+			{
+				ProductId: productId,
+				Quantity:  1},
+		},
+	}
+	_, err := testContainer.OrderService.PlaceWithUserContext(ctx, in)
+	wantErr := order.ErrRetailerIdNotFound
+	if err != wantErr {
+		t.Errorf("Expected err: %v Got: %v", wantErr, err)
+	}
 }
