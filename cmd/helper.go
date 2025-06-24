@@ -22,6 +22,7 @@ var (
 	ErrCoreDBConnectionStringMissing             = errors.New(" core db conn string missing")
 	ErrEmailDBConnectionStringMissing            = errors.New(" email db conn string missing")
 	ErrMinMobileClientCompatibleVersionMandatory = errors.New(" min mobile client version string missing")
+	ErrDefaultSuperAdminUserEmailMandatory       = errors.New(" default superadmin user email mandatory")
 )
 
 func validateFlags(cfg config.Config) {
@@ -60,5 +61,8 @@ func validateFlags(cfg config.Config) {
 	}
 	if cfg.MinMobileClientCompatibleVersion == "" {
 		panic(ErrMinMobileClientCompatibleVersionMandatory)
+	}
+	if cfg.DefaultSuperAdminUserEmail == "" {
+		panic(ErrDefaultSuperAdminUserEmailMandatory)
 	}
 }
