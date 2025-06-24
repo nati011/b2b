@@ -182,6 +182,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Woreda,
 		&responseBase.IsActive,
 		&responseBase.Verdict,
+		&response.TotalCount,
 	}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
@@ -210,6 +211,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Verdict:     res[9].(string),
 		}
 		response.List = append(response.List, responseBase)
+		response.TotalCount = res[10].(int64)
 	}
 
 	return response, nil
