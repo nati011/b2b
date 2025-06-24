@@ -39,7 +39,8 @@ type GetOrderResponse struct {
 }
 
 type GetAllOrderResponse struct {
-	List []GetOrderResponse `json:"orders"`
+	List       []GetOrderResponse `json:"orders"`
+	TotalCount int64              `json:"total_count"`
 }
 
 type GetOrderByParamRequest struct {
