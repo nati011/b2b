@@ -64,7 +64,7 @@ func main() {
 	InitCron(s, application_container, domain_container)
 	s.Start()
 
-	// InitDefaultConfig(cfg, application_container)
+	InitDefaultConfig(cfg, application_container)
 
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
