@@ -63,8 +63,8 @@ func InitPaymentPartner() {
 	handler.RegisterResource("/api/v1/payment_option")
 	handler.RegisterResource("/api/v1/payment_option/active")
 	handler.RegisterResource("/api/v1/payment_option")
-	handler.RegisterResource("/api/v1/payment_option/{id}/status")
-	handler.RegisterResource("/api/v1/payment_option/{id}/secret")
+	handler.RegisterResource("/api/v1/payment_option/{param}/status")
+	handler.RegisterResource("/api/v1/payment_option/{param}/secret")
 }
 
 func (r *PaymentPartner) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

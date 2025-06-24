@@ -90,8 +90,8 @@ func InitUser() {
 	handler.Register(new(UserHandler))
 
 	handler.RegisterResource("/api/v1/user")
-	handler.RegisterResource("/api/v1/user/{id}/status")
-	handler.RegisterResource("/api/v1/user/{id}/role/{role_id}")
+	handler.RegisterResource("/api/v1/user/{param}/status")
+	handler.RegisterResource("/api/v1/user/{param}/role/{param}")
 	handler.RegisterResource("/api/v1/user/init_auth_reset")
 }
 
