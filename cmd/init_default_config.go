@@ -36,6 +36,10 @@ func InitSuperAdminUser(roleId int, cfg config.Config, applicationService *appli
 	}
 
 	err = applicationService.UserService.AssignRole(ctx, userId, roleId)
+	if err != nil {
+		panic(" failed to assign role to superadmin")
+	}
+
 	switch cfg.Env {
 	case "development":
 	case "staging", "production":
@@ -70,6 +74,7 @@ func InitSuperadminRole(cfg config.Config, applicationService *application_core.
 			RoleId:     roleId,
 		})
 	}
+	return roleId
 }
 
 func generateRandomPassword(length int) (string, error) {
