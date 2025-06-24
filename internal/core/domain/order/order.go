@@ -715,6 +715,7 @@ func (o *OrderService) GetRetailerOrdersWithUserContext(ctx context.Context, use
 			ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
 		})
 	}
+	return_response.TotalCount = resp.TotalCount
 	return return_response, nil
 }
 

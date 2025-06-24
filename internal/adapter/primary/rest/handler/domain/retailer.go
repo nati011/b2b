@@ -46,7 +46,8 @@ type GetRetailerResponse struct {
 }
 
 type GetAllRetailerResponse struct {
-	List []GetRetailerResponse `json:"list"`
+	List       []GetRetailerResponse `json:"list"`
+	TotalCount int64                 `json:"total_count"`
 }
 
 type GetRetailerByParamRequest struct {
@@ -289,6 +290,7 @@ func (re *Retailer) GetHandler(w http.ResponseWriter, r *http.Request) {
 				Users:       (application_handler.GetUserResponse)(resp_user),
 			})
 		}
+		handler_resp.TotalCount = resp.TotalCount
 		util.WriteJSON(w, util.Envelope{"retailers": handler_resp}, http.StatusAccepted)
 	}
 }
