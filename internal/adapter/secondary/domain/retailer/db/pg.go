@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -192,7 +193,9 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Longitude,
 		&responseBase.GeneralZone,
 		&responseBase.Region,
-		&responseBase.Woreda}
+		&responseBase.Woreda,
+		&response.TotalCount,
+	}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -218,8 +221,10 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Woreda:      res[7].(string),
 		}
 		response.List = append(response.List, responseBase)
+		response.TotalCount = res[8].(int64)
 	}
 
+	log.Printf("Total Count response %v", response.TotalCount)
 	return response, nil
 }
 
