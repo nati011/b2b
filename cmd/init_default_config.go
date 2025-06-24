@@ -13,6 +13,7 @@ import (
 )
 
 func InitDefaultConfig(cfg config.Config, applicationService *application_core.Container) {
+
 	log.Print("# initializing default configs...")
 	roleId := InitSuperadminRole(cfg, applicationService)
 	InitSuperAdminUser(roleId, cfg, applicationService)
