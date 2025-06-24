@@ -39,7 +39,8 @@ type GetOrderResponse struct {
 }
 
 type GetAllOrderResponse struct {
-	List []GetOrderResponse `json:"orders"`
+	List       []GetOrderResponse `json:"orders"`
+	TotalCount int64              `json:"total_count"`
 }
 
 type GetOrderByParamRequest struct {
@@ -235,9 +236,9 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
-	userId, ok := r.Context().Value("user_id").(int)
+	userId, ok := r.Context().Value("userId").(int)
 	if !ok {
-		util.ServerErrorResponse(w, errors.New("retailer_id not found in context or is not an integer"))
+		util.ServerErrorResponse(w, errors.New("user_id not found in context or is not an integer"))
 		return
 	}
 
