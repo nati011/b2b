@@ -119,15 +119,15 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("PATCH /api/v1/user/{id}/role/{role_id}", func(w http.ResponseWriter, r *http.Request) {
-		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.RoleHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/user/{id}/role", func(w http.ResponseWriter, r *http.Request) {
-		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.GetRoleHandler)).ServeHTTP(w, r)
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.GetRoleHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/user/init_reset", func(w http.ResponseWriter, r *http.Request) {
-		u.authMiddleware.RequireNoAuthentication(http.HandlerFunc(u.InitResetTokenHandler)).ServeHTTP(w, r)
+		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.InitResetTokenHandler)).ServeHTTP(w, r)
 	})
 }
 
