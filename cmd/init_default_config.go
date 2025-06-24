@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"log"
 	"math/big"
 
 	"b2b.nati011.github.com/config"
@@ -12,11 +13,13 @@ import (
 )
 
 func InitDefaultConfig(cfg config.Config, applicationService *application_core.Container) {
+	log.Print("# initializing default configs...")
 	roleId := InitSuperadminRole(cfg, applicationService)
-	InitSuperAdmin(roleId, cfg, applicationService)
+	InitSuperAdminUser(roleId, cfg, applicationService)
 }
 
-func InitSuperAdmin(roleId int, cfg config.Config, applicationService *application_core.Container) {
+func InitSuperAdminUser(roleId int, cfg config.Config, applicationService *application_core.Container) {
+	log.Print("# creating superadmin user...")
 	ctx := context.Background()
 	randomPassword, err := generateRandomPassword(10)
 	if err != nil {
@@ -46,6 +49,7 @@ func InitSuperAdmin(roleId int, cfg config.Config, applicationService *applicati
 }
 
 func InitSuperadminRole(cfg config.Config, applicationService *application_core.Container) int {
+	log.Print("# creating superadmin role...")
 	ctx := context.Background()
 	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
 		Name: "superadmin",
