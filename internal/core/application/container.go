@@ -31,8 +31,6 @@ import (
 	"b2b.nati011.github.com/internal/core/application/template"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/application/user"
-	"b2b.nati011.github.com/internal/core/domain/distributor"
-	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
 /* Dependency Tree */
@@ -70,8 +68,6 @@ type Container struct {
 	db                    *sql.DB
 	AuthService           auth.Provider
 	AuthMiddleware        *middleware.Auth
-	DistributorService    distributor.Provider
-	RetailerService       retailer.Provider
 	EmailService          email.Provider
 	PaymentPartnerService payment_partner.Provider
 	RenderService         render.Provider
