@@ -121,7 +121,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 		// Temporary: For requests with query param
 		rawPath := strings.Split(r.RequestURI, "?")[0]
 		re := regexp.MustCompile(`/\d+`)
-		normalizedPath := normalizeResourcePath(re.ReplaceAllString(rawPath, "/<number>"))
+		normalizedPath := normalizeResourcePath(re.ReplaceAllString(rawPath, "/{param}"))
 		rsrce, err := am.ResourceService.GetByName(r.Context(), normalizedPath)
 		if err != nil {
 			switch err {
