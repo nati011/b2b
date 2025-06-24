@@ -32,7 +32,6 @@ import (
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
-	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
 
@@ -68,25 +67,24 @@ import (
 // ├── SMS-Service
 
 type Container struct {
-	db                         *sql.DB
-	AuthService                auth.Provider
-	AuthMiddleware             *middleware.Auth
-	DistributorService         distributor.Provider
-	RetailerService            retailer.Provider
-	EmailService               email.Provider
-	PaymentPartnerService      payment_partner.Provider
-	RenderService              render.Provider
-	ResourceService            resource.Provider
-	RoleService                role.Provider
-	SmsService                 sms.Provider
-	TemplateService            template.Provider
-	TransactionService         transaction.Provider
-	UserService                user.Provider
-	Pagination                 *config.Pagination
-	CheckoutService            checkout.Provider
-	PaymentVerificationService payment_verification.Provider
-	MobileClient               mobileclient.Provider
-	PaymentService             payment.Provider
+	db                    *sql.DB
+	AuthService           auth.Provider
+	AuthMiddleware        *middleware.Auth
+	DistributorService    distributor.Provider
+	RetailerService       retailer.Provider
+	EmailService          email.Provider
+	PaymentPartnerService payment_partner.Provider
+	RenderService         render.Provider
+	ResourceService       resource.Provider
+	RoleService           role.Provider
+	SmsService            sms.Provider
+	TemplateService       template.Provider
+	TransactionService    transaction.Provider
+	UserService           user.Provider
+	Pagination            *config.Pagination
+	CheckoutService       checkout.Provider
+	MobileClient          mobileclient.Provider
+	PaymentService        payment.Provider
 }
 
 func NewContainer(
