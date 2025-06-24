@@ -10,7 +10,8 @@ COPY . .
 
 RUN go build -o main ./cmd/
 
-CMD ./main \
+
+CMD env && ./main \
     --port $PORT \
     --keycloak_base_url $KEYCLOAK_BASE_URL \
     --keycloak_user_name $KEYCLOAK_USER_NAME \
@@ -22,12 +23,12 @@ CMD ./main \
     --migration_file_dir /app/migration \
     --smtp $SMTP \
     --email $EMAIL \
+    --default_superadmin_email $DEFAULT_SUPERADMIN_EMAIL \
     --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET \
     --env $ENV \
     --base_url $BASE_URL \
     --frontend_base_url $FRONTEND_URL \
     --min_compatible_client_version $CLIENT_VERSION \
     --jwt_secret $JWT_SECRET \
-    --email_password $EMAIL_PASSWORD \
-    --default_superadmin_email $DEFAULT_SUPERADMIN_EMAIL
+    --email_password $EMAIL_PASSWORD 
 EXPOSE 8080
