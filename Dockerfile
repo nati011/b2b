@@ -28,6 +28,6 @@ CMD ./main \
     --frontend_base_url $FRONTEND_URL \
     --min_compatible_client_version $CLIENT_VERSION \
     --jwt_secret $JWT_SECRET \
-    --email_password $EMAIL_PASSWORD
+    --email_password $EMAIL_PASSWORD \
     --default_superadmin_email $DEFAULT_SUPERADMIN_EMAIL
 EXPOSE 8080
