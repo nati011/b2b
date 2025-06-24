@@ -71,7 +71,7 @@ func InitRetailer() {
 	handler.Register(new(Retailer))
 
 	handler.RegisterResource("/api/v1/retailer")
-	handler.RegisterResource("/api/v1/retailer/{id}/user")
+	handler.RegisterResource("/api/v1/retailer/{param}/user")
 }
 
 func (r *Retailer) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {

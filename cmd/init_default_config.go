@@ -33,32 +33,47 @@ func InitSuperAdminUser(roleId int, cfg config.Config, applicationService *appli
 	if err != wantErr {
 		switch err {
 		case nil:
-			log.Print("# superadmin already created...")
+			log.Print("# superadmin user already created...")
 			return
 		default:
 			panic("failed to get user")
 		}
 	}
-
+	var userId int
 	log.Print("# creating superadmin user...")
-	userId, err := applicationService.UserService.Create(ctx, &user.CreateRequest{
-		FirstName: "superadmin",
-		Username:  "superadmin",
-		Email:     cfg.DefaultSuperAdminUserEmail,
-		Password:  randomPassword,
-	})
-	if err != nil {
-		panic(" failed to create superadmin user")
-	}
-
-	err = applicationService.UserService.AssignRole(ctx, userId, roleId)
-	if err != nil {
-		panic(" failed to assign role to superadmin")
-	}
-
 	switch cfg.Env {
 	case "development":
+		userId, err = applicationService.UserService.Create(ctx, &user.CreateRequest{
+			FirstName: "superadmin",
+			LastName:  "superadmin",
+			Username:  "superadmin",
+			Email:     cfg.DefaultSuperAdminUserEmail,
+			Password:  "superadmin",
+		})
+		if err != nil {
+			panic(" failed to create superadmin user")
+		}
+		err = applicationService.UserService.AssignRole(ctx, userId, roleId)
+		if err != nil {
+			panic(" failed to assign role to superadmin")
+		}
 	case "staging", "production":
+		userId, err = applicationService.UserService.Create(ctx, &user.CreateRequest{
+			FirstName: "superadmin",
+			LastName:  "superadmin",
+			Username:  "superadmin",
+			Email:     cfg.DefaultSuperAdminUserEmail,
+			Password:  randomPassword,
+		})
+		if err != nil {
+			panic(" failed to create superadmin user")
+		}
+
+		err = applicationService.UserService.AssignRole(ctx, userId, roleId)
+		if err != nil {
+			panic(" failed to assign role to superadmin")
+		}
+
 		err = applicationService.UserService.ResetPassword(ctx, cfg.DefaultSuperAdminUserEmail)
 		if err != nil {
 			panic("failed to perform reset password on superadmin")
