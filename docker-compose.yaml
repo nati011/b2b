@@ -26,6 +26,7 @@ services:
       - CLIENT_VERSION
       - JWT_SECRET
       - EMAIL_PASSWORD
+      - DEFAULT_SUPERADMIN_EMAIL
     networks:
       - backend
 
