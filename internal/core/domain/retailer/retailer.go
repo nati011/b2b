@@ -47,7 +47,8 @@ type GetResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type GetByParamRequest struct {
@@ -244,6 +245,7 @@ func (r *RetailerService) GetAll(ctx context.Context) (GetAllResponse, error) {
 			Woreda:      i.Woreda,
 		})
 	}
+	service_resp.TotalCount = resp_name.TotalCount
 	if len(service_resp.List) == 0 {
 		return GetAllResponse{}, ErrEmptyGetContent
 	}
