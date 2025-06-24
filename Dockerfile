@@ -29,5 +29,5 @@ CMD ./main \
     --min_compatible_client_version $CLIENT_VERSION \
     --jwt_secret $JWT_SECRET \
     --email_password $EMAIL_PASSWORD
-
+    --default_superadmin_email $DEFAULT_SUPERADMIN_EMAIL
 EXPOSE 8080

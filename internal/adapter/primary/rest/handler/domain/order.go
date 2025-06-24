@@ -101,7 +101,7 @@ func (o *Order) Routes(mux *http.ServeMux) {
 func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
 	userId, ok := r.Context().Value("userId").(int)
 	if !ok {
-		util.ServerErrorResponse(w, errors.New("userId not found in context or is not an integer"))
+		util.ServerErrorResponse(w, errors.New("userId not found in context"))
 		return
 	}
 
@@ -112,7 +112,6 @@ func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
 			util.ServerErrorResponse(w, err)
 			return
 		case order.ErrEmptyGetResponse:
-			// This case is handled by returning an empty array
 		default:
 			util.RequestErrorResponse(w, err)
 			return
@@ -238,7 +237,7 @@ func (o *Order) InitPaymentHandler(w http.ResponseWriter, r *http.Request) {
 func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 	userId, ok := r.Context().Value("userId").(int)
 	if !ok {
-		util.ServerErrorResponse(w, errors.New("user_id not found in context or is not an integer"))
+		util.ServerErrorResponse(w, errors.New("userId not found in context or is not an integer"))
 		return
 	}
 

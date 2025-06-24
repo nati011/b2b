@@ -33,4 +33,7 @@ type Config struct {
 
 	// JWT
 	JWTSecret string
+
+	//Default SuperAdmin Email
+	DefaultSuperAdminUserEmail string
 }
