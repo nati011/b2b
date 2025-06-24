@@ -82,9 +82,7 @@ func teardown() {
 	}
 }
 
-// TestServiceInitializationOrder validates that all services are initialized
-// and their dependencies are satisfied
-func TestServiceInitializationOrder(t *testing.T) {
+func Test_ServiceInitializationOrder(t *testing.T) {
 	t.Parallel()
 
 	// Helper function to get service from container
@@ -111,7 +109,7 @@ func TestServiceInitializationOrder(t *testing.T) {
 	}
 }
 
-func TestContainerValidity(t *testing.T) {
+func Test_ContainerValidity(t *testing.T) {
 	t.Parallel()
 
 	v := reflect.ValueOf(application_container)
