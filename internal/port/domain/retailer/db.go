@@ -37,7 +37,8 @@ type GetResponse struct {
 }
 
 type GetAllResponse struct {
-	List []GetResponse
+	List       []GetResponse
+	TotalCount int64
 }
 
 type CreateUserAgentRequest struct {

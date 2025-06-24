@@ -132,9 +132,9 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 
-	query := "SELECT * FROM public.get_orders_by_retailer_id($1);"
+	query := "SELECT * FROM public.get_orders_by_retailer_id($1, $2, $3);"
 
-	args := []any{&retailerId}
+	args := []any{&retailerId, &p.Pagination.Limit, &p.Pagination.Offset}
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.RetailerId,
@@ -146,6 +146,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 		&responseBase.CreatedAt,
 		&responseBase.ConfirmationStatus,
 		&responseBase.PaymentMethod,
+		&response.TotalCount,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -186,7 +187,7 @@ func (p *Postgres) GetByRetailerID(ctx context.Context, retailerId int) (port.Ge
 				Price:       s.Price,
 			})
 		}
-
+		response.TotalCount = res[10].(int64)
 		response.List = append(response.List, val)
 	}
 

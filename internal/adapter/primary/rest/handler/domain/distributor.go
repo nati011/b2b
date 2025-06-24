@@ -60,7 +60,8 @@ type GetDistributorResponse struct {
 }
 
 type GetAllDistributorResponse struct {
-	List []GetDistributorResponse `json:"distributors"`
+	List       []GetDistributorResponse `json:"distributors"`
+	TotalCount int64                    `json:"total_count"`
 }
 
 type GetDistributorByParamRequest struct {
@@ -332,6 +333,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Verdict:     i.Verdict,
 			})
 		}
+		handler_resp.TotalCount = resp.TotalCount
 		util.OperationSuccessResponse(w, handler_resp)
 	}
 }
