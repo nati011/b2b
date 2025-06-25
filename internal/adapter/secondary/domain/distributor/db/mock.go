@@ -198,6 +198,36 @@ func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse,
 	}, nil
 }
 
+func (m *Mock) GetByStatus(ctx context.Context, status bool) (port.GetAllResponse, error) {
+	resp := []port.GetResponse{}
+	for _, i := range m.distributors {
+		if i.IsActive == status {
+			resp = append(resp, port.GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+				IsActive:    i.IsActive,
+			})
+		}
+	}
+
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (m *Mock) GetByApprovalStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	return port.GetAllResponse{}, nil
+}
+
 func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	for _, i := range m.distributors {
 		if i.Tin == tin {

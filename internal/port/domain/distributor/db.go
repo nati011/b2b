@@ -61,7 +61,9 @@ type Reader interface {
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByName(ctx context.Context, name string) (GetAllResponse, error)
 	GetByTin(ctx context.Context, tin string) (GetResponse, error)
+	GetByStatus(ctx context.Context, status bool) (GetAllResponse, error)
 	GetAllUserAgents(ctx context.Context, id int) (GetAllUserResponse, error)
+	GetByApprovalStatus(ctx context.Context, status string) (GetAllResponse, error)
 }
 
 type Writer interface {
