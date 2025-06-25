@@ -171,6 +171,45 @@ func Test_Read(t *testing.T) {
 		}
 	})
 
+	t.Run("get_by_status", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		// setup
+		in := distributor.CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "dist_test",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		err = testContainer.DistributorService.Activate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to activate err: %v", err)
+		}
+		resp, err := testContainer.DistributorService.GetByParam(ctx, &distributor.GetByParamRequest{
+			Status: "ACTIVE",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
+		}
+		if resp.List[0].Id != id {
+			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
+		}
+	})
+
 	t.Run("get_all_user_agents", func(t *testing.T) {
 		t.Cleanup(teardown)
 		//setup
