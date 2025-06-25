@@ -20,7 +20,7 @@ var (
 )
 
 const (
-	ALL   = "ALL"
+	ANY   = "ANY"
 	READ  = "READ"
 	WRITE = "WRITE"
 )
