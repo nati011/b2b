@@ -65,8 +65,10 @@ type GetAllDistributorResponse struct {
 }
 
 type GetDistributorByParamRequest struct {
-	Name string `json:"name"`
-	Tin  string `json:"tin"`
+	Name    string `json:"name"`
+	Tin     string `json:"tin"`
+	Status  string `json:"status"`
+	Verdict string `json:"verdict"`
 }
 
 type UpdateDistributorRequest struct {
@@ -202,10 +204,14 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 	const ParamId = "id"
 	const ParamName = "name"
 	const ParamTin = "tin"
+	const ParamStatus = "status"
+	const ParamApprovalStatus = "verdict"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
 	paramTinValue := paramValues.Get(ParamTin)
+	paramStatusValue := paramValues.Get(ParamStatus)
+	paramApprovalStatusValue := paramValues.Get(ParamApprovalStatus)
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -251,10 +257,12 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Verdict:     resp.Verdict,
 			}})
 		}
-	} else if paramNameValue != "" || paramTinValue != "" {
+	} else if paramNameValue != "" || paramTinValue != "" || paramStatusValue != "" || paramApprovalStatusValue != "" {
 		resp, err := de.service.GetByParam(r.Context(), &distributor.GetByParamRequest{
-			Name: strings.Trim(paramNameValue, `"`),
-			Tin:  strings.Trim(paramTinValue, `"`),
+			Name:           strings.Trim(paramNameValue, `"`),
+			Tin:            strings.Trim(paramTinValue, `"`),
+			Status:         strings.Trim(paramStatusValue, `"`),
+			ApprovalStatus: strings.Trim(paramApprovalStatusValue, `"`),
 		})
 		if err != nil {
 			switch err {
@@ -292,7 +300,9 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Verdict:     i.Verdict,
 				Users:       users_resp.List,
 			})
+
 		}
+		handler_resp.TotalCount = resp.TotalCount
 		util.OperationSuccessResponse(w, handler_resp)
 	} else {
 		resp, err := de.service.GetAll(r.Context())
