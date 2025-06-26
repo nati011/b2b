@@ -23,6 +23,13 @@ export type Retailer = {
   user: UserAccount;
 };
 
+export enum DistributorVerdict {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED"
+}
+
+
 export type Distributor = {
   id: number;
   name: string;
@@ -34,6 +41,7 @@ export type Distributor = {
   woreda: string;
   user: number[];
   is_active: boolean;
+  verdict: DistributorVerdict;
 };
 
 export type Image = {

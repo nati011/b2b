@@ -2,16 +2,26 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import ProductAttributeForm from "./attribute-form";
 import ProductImagesForm from "@/components/product-image-form";
 import { MultiSelect } from "@/components/multiselect";
 import useProductsStore from "@/app/libs/store/useProductStore";
 import useCategoryStore from "@/app/libs/store/useCategories";
+import useDistributorsStore from "@/app/libs/store/useDistributorStore";
 
 interface ProductFormProps {
     initialData?: Partial<any>;
@@ -40,6 +50,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
         categories,
         fetchCategories,
     } = useCategoryStore()
+
+    const {
+        distributors,
+        fetchDistributors
+    } = useDistributorsStore()
+
+    useEffect(() => {
+        fetchDistributors();
+    }, []);
     useEffect(() => {
         fetchCategories();
         if (isEdit && initialData?.Id) {
@@ -186,6 +205,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                         />
                                     </div>
 
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="Distributor">Distributor</Label>
+                                        <Select>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select a distributor" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectLabel>Distributor</SelectLabel>
+                                                    {
+                                                        distributors.map((d) => (
+                                                            <SelectItem value={d.id.toString()}>{d.name}</SelectItem>
+
+                                                        ))
+                                                    }
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                     <div className="grid gap-2">
                                         <Label>Categories</Label>
                                         <MultiSelect

@@ -29,7 +29,6 @@ export default function DistributorApprovals() {
   }, []);
 
   useEffect(() => {
-    // Filter distributors that are pending approval
     const pending = distributors.filter(dist => dist.verdict === DistributorVerdict.PENDING);
     setPendingDistributors(pending);
   }, [distributors]);
@@ -62,7 +61,6 @@ export default function DistributorApprovals() {
 
   const handleQuickReject = async (id: number) => {
     try {
-      // For quick reject, we'll use a default message
       await rejectDistributor(id, "Application rejected by admin");
       toast.success("Distributor rejected successfully");
     } catch (error: any) {

@@ -2,11 +2,13 @@
 import axiosIns from '@/app/libs/axios'
 import { Retailer } from '@/app/libs/types';
 
-export async function GetAll(url?: string) {
+export async function GetAll(page: number) {
   try {
-    const response = await axiosIns.get('/retailer');
-    return response.data.body.Retailers
+    const response = await axiosIns.get(`/retailer?limit=10&offset=${page}`);
+    console.log(response.data)
+    return response.data.retailers
   } catch (error: any) {
+    console.log(error)
     throw error.data.message || "An error has occured while processing your request"
   }
 }

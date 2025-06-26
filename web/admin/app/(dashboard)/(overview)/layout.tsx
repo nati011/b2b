@@ -1,13 +1,19 @@
+"use client"
+import { PENDING_STATUS } from '@/app/libs/enums';
+import useOrdersStore from '@/app/libs/store/useOrderStore';
 import PageContainer from '@/components/page-container';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardAction,
-  CardFooter
+  CardContent,
 } from '@/components/ui/card';
+import { 
+  Users, 
+  Package, 
+  ShoppingCart, 
+  DollarSign,
+} from 'lucide-react';
 import React from 'react';
 
 export default function OverViewLayout({
@@ -17,112 +23,84 @@ export default function OverViewLayout({
   sales: React.ReactNode;
   bar_stats: React.ReactNode;
 }) {
+  const {
+    loading,
+    orders,
+    fetchOrders,
+  } = useOrdersStore()
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.Total || 0), 0).toLocaleString();
+  const activeOrders = orders.filter(order => order.Status === PENDING_STATUS).length.toLocaleString();
+  
+  const stats = [
+    {
+      title: "Total Revenue",
+      value: `$ ${totalRevenue}`,
+      icon: DollarSign,
+      color: "text-emerald-600"
+    },
+    {
+      title: "Active Orders",
+      value: `${activeOrders}`,
+      icon: ShoppingCart,
+      color: "text-blue-600"
+    },
+    {
+      title: "Total Customers",
+      value: "12,234",
+      icon: Users,
+      color: "text-purple-600"
+    },
+    {
+      title: "Products Sold",
+      value: "573",
+      icon: Package,
+      color: "text-orange-600"
+    }
+  ];
+
   return (
     <PageContainer>
-      <div className='flex flex-1 flex-col space-y-2'>
-        <div className='flex items-center justify-between space-y-2'>
-          <h2 className='text-2xl font-bold tracking-tight'>
-            Hi, Welcome back
-          </h2>
+      <div className='flex flex-1 flex-col space-y-6 animate-fade-in'>
+        {/* Header */}
+        <div className='flex items-center justify-between'>
+          <div>
+            <h1 className='text-3xl font-bold tracking-tight'>
+              Dashboard Overview
+            </h1>
+            <p className='text-muted-foreground mt-1'>
+              Welcome back! Here's what's happening with your business today.
+            </p>
+          </div>
         </div>
 
-        <div className='grid grid-cols-1 gap-4   md:grid-cols-2 lg:grid-cols-4'>
-          <Card className='@container/card  rounded-sm shadow-none'>
-            <CardHeader>
-              <CardDescription>Total Revenue</CardDescription>
-              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                $1,250.00
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-                  +12.5%
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='line-clamp-1 flex gap-2 font-medium'>
-                Trending up this month
-              </div>
-              <div className='text-muted-foreground'>
-                Visitors for the last 6 months
-              </div>
-            </CardFooter>
-          </Card>
-          <Card className='@container/card  rounded-sm shadow-none'>
-            <CardHeader>
-              <CardDescription>New Customers</CardDescription>
-              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                1,234
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-
-                  -20%
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='line-clamp-1 flex gap-2 font-medium'>
-                Down 20% this period
-              </div>
-              <div className='text-muted-foreground'>
-                Acquisition needs attention
-              </div>
-            </CardFooter>
-          </Card>
-          <Card className='@container/card  rounded-sm shadow-none'>
-            <CardHeader>
-              <CardDescription>Active Accounts</CardDescription>
-              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                45,678
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-
-                  +12.5%
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='line-clamp-1 flex gap-2 font-medium'>
-                Strong user retention
-              </div>
-              <div className='text-muted-foreground'>
-                Engagement exceed targets
-              </div>
-            </CardFooter>
-          </Card>
-          <Card className='@container/card  rounded-sm shadow-none'>
-            <CardHeader>
-              <CardDescription>Growth Rate</CardDescription>
-              <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                4.5%
-              </CardTitle>
-              <CardAction>
-                <Badge variant='outline'>
-
-                  +4.5%
-                </Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className='flex-col items-start gap-1.5 text-sm'>
-              <div className='line-clamp-1 flex gap-2 font-medium'>
-                Steady performance increase{' '}
-
-              </div>
-              <div className='text-muted-foreground'>
-                Meets growth projections
-              </div>
-            </CardFooter>
-          </Card>
+        {/* Stats Cards */}
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          {stats.map((stat, index) => (
+            <Card key={index} className='card-hover border-0 shadow-sm bg-gradient-to-br from-card to-card/50'>
+              <CardHeader className='flex flex-row items-center justify-between space-y-0'>
+                <CardTitle className='text-sm font-medium text-muted-foreground'>
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className='text-2xl font-bold'>{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-          <div className='col-span-4'>{bar_stats}</div>
+
+        {/* Charts Section */}
+        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-7'>
+          <div className='col-span-4'>
+            {bar_stats}
+          </div>
           <div className='col-span-4 md:col-span-3'>
-            {/* sales arallel routes */}
             {sales}
           </div>
         </div>
+
+       
       </div>
     </PageContainer>
   );
