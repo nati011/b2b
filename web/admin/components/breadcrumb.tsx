@@ -1,48 +1,56 @@
-import React from "react"
-import Link from 'next/link'
+import React from 'react';
+import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 
-import { IoHomeOutline } from "react-icons/io5"
-import { Breadcrumb } from "antd"
-
-interface Props {
-    page: any[],
-    heading?: string
-    subheading?: string
+interface BreadcrumbItem {
+  title: string;
+  href: string;
 }
 
-const Heading: React.FC<Props> = ({ page, heading, subheading }) => {
-    return (
-        <div className="mb-4 print:hidden flex justify-between items-center">
-            <div className="">
-                {
-                    heading && (
-                        <div className="flex">
-                            <p className="text-xl font-semibold text-black">{heading}</p>
-                        </div>
-                    )
-                }
-                {subheading && (
-                    <p className="text-md font-medium text-gray-700">{subheading}</p>
-                )
-                }
-            </div>
-            <div className="flex items-center gap-2 text-cyan-900">
-                <div className="breadcrumb flex items-center text-sm sm:mb-2 my-4 ">
-                    <Link href="/">
-                        <IoHomeOutline />
-                    </Link>
-                    {page.map((p, index) => (
-                        <div key={index}>
-                            <span className="mx-2">/</span>
-                            <Link className='' href={`${p.href}`}>{p.title}</Link>
-                        </div>
-                    ))}
-                </div>
-
-            </div>
-        </div>
-
-    )
+interface BreadcrumbProps {
+  page: BreadcrumbItem[];
+  heading: string;
+  subheading?: string;
 }
 
-export default Heading
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ page, heading, subheading }) => {
+  return (
+    <div className="mb-6 space-y-2 print:hidden">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
+        <Link
+          href="/"
+          className="flex items-center hover:text-foreground transition-colors"
+        >
+          <Home className="h-4 w-4" />
+        </Link>
+        {page.map((item, index) => (
+          <React.Fragment key={index}>
+            <ChevronRight className="h-4 w-4" />
+            <Link
+              href={item.href}
+              className={`hover:text-foreground transition-colors ${index === page.length - 1 ? 'text-foreground font-medium' : ''
+                }`}
+            >
+              {item.title}
+            </Link>
+          </React.Fragment>
+        ))}
+      </nav>
+
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {heading}
+        </h1>
+        {subheading && (
+          <p className="text-muted-foreground">
+            {subheading}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Breadcrumb;
