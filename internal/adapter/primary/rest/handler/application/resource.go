@@ -15,20 +15,23 @@ import (
 )
 
 type CreateResourceRequest struct {
-	Action string `json:"action"`
-	Name   string `json:"name"`
+	Action   string `json:"action"`
+	Resource string `json:"resource"`
+	Name     string `json:"name"`
 }
 
 type UpdateResourceRequest struct {
-	Id     int    `json:"id"`
-	Action string `json:"action"`
-	Name   string `json:"name"`
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Resource string `json:"resource"`
+	Action   string `json:"action"`
 }
 
 type GetResourceResponse struct {
-	Id     int    `json:"id"`
-	Action string `json:"action"`
-	Name   string `json:"name"`
+	Id       int    `json:"id"`
+	Action   string `json:"action"`
+	Resource string `json:"resource"`
+	Name     string `json:"name"`
 }
 
 type GetAllResourceResponse struct {
@@ -157,7 +160,12 @@ func (rs *Resource) UpdateResourceHandler(w http.ResponseWriter, r *http.Request
 		util.RequestErrorResponse(w, err)
 		return
 	}
-	id, err := rs.service.Update(r.Context(), (*resource.UpdateRequest)(&requestBody))
+	id, err := rs.service.Update(r.Context(), &resource.UpdateRequest{
+		Id:       requestBody.Id,
+		Resource: requestBody.Resource,
+		Name:     requestBody.Name,
+		Action:   requestBody.Action,
+	})
 	if err != nil {
 		switch err {
 		case resource.ErrUnknown:

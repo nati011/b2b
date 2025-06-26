@@ -4,7 +4,8 @@
     -- writers
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
-   r_action VARCHAR(255)
+   r_action VARCHAR(255),
+   r_resource VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -12,8 +13,8 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.resources (name, action)
-    VALUES (r_name, r_action) 
+    INSERT INTO public.resources (name, action, resource)
+    VALUES (r_name, r_action, r_resource) 
     RETURNING id INTO new_id;
 
     RETURN new_id;
@@ -30,6 +31,23 @@ AS $$
 BEGIN
     UPDATE public.resources
     SET name = new_name
+    WHERE id = resource_id
+      AND is_deleted = FALSE;
+
+    RETURN resource_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_resource_resource(
+    resource_id INT,
+    new_resource VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.resources
+    SET resource = new_resource
     WHERE id = resource_id
       AND is_deleted = FALSE;
 
@@ -78,7 +96,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT r.id, r.action, r.name
+    SELECT r.id, r.action, r.name, r.resource
     FROM public.resources r
     WHERE r.id = resource_id
       AND r.is_deleted = FALSE
@@ -96,7 +114,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT r.id, r.action, r.name
+    SELECT r.id, r.action, r.name, r.resource
     FROM public.resources r
     WHERE r.name = resource_name
       AND r.is_deleted = FALSE
@@ -111,12 +129,13 @@ CREATE OR REPLACE FUNCTION public.get_all_resources(
 RETURNS TABLE(
     id INT, 
     action VARCHAR(255), 
-    name VARCHAR(255))
+    name VARCHAR(255),
+    resource VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.id, r.action, r.name
+        SELECT r.id, r.action, r.name, r.resource
         FROM public.resources r
         WHERE r.is_deleted = FALSE
         LIMIT r_limit
