@@ -262,6 +262,108 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	return response, nil
 }
 
+func (r *Postgres) GetByStatus(ctx context.Context, status bool) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+
+	query := "SELECT * FROM public.get_distributor_by_status($1,$2,$3);"
+
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Tin,
+		&responseBase.Latitude,
+		&responseBase.Longitude,
+		&responseBase.GeneralZone,
+		&responseBase.Region,
+		&responseBase.Woreda,
+		&responseBase.IsActive,
+		&responseBase.Verdict,
+		&response.TotalCount,
+	}
+	args := []any{status, r.Pagination.Limit, r.Pagination.Offset}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Tin:         res[2].(string),
+			Latitude:    res[3].(string),
+			Longitude:   res[4].(string),
+			GeneralZone: res[5].(string),
+			Region:      res[6].(string),
+			Woreda:      res[7].(string),
+			IsActive:    res[8].(bool),
+			Verdict:     res[9].(string),
+		}
+		response.List = append(response.List, responseBase)
+		response.TotalCount = res[10].(int64)
+	}
+
+	return response, nil
+}
+
+func (r *Postgres) GetByApprovalStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+
+	query := "SELECT * FROM public.get_distributor_by_approval_status($1,$2,$3);"
+
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Tin,
+		&responseBase.Latitude,
+		&responseBase.Longitude,
+		&responseBase.GeneralZone,
+		&responseBase.Region,
+		&responseBase.Woreda,
+		&responseBase.IsActive,
+		&responseBase.Verdict,
+		&response.TotalCount,
+	}
+	args := []any{status, r.Pagination.Limit, r.Pagination.Offset}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Tin:         res[2].(string),
+			Latitude:    res[3].(string),
+			Longitude:   res[4].(string),
+			GeneralZone: res[5].(string),
+			Region:      res[6].(string),
+			Woreda:      res[7].(string),
+			IsActive:    res[8].(bool),
+			Verdict:     res[9].(string),
+		}
+		response.List = append(response.List, responseBase)
+		response.TotalCount = res[10].(int64)
+	}
+
+	return response, nil
+}
+
 func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_distributor_by_tin($1);"
