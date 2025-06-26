@@ -26,20 +26,23 @@ const (
 )
 
 type CreateRequest struct {
-	Action string
-	Name   string
+	Action   string
+	Resource string
+	Name     string
 }
 
 type UpdateRequest struct {
-	Id     int
-	Action string
-	Name   string
+	Id       int
+	Action   string
+	Resource string
+	Name     string
 }
 
 type GetResponse struct {
-	Id     int
-	Action string
-	Name   string
+	Id       int
+	Action   string
+	Resource string
+	Name     string
 }
 
 type GetAllResponse struct {
@@ -135,6 +138,24 @@ func (r *ResourceProvider) Update(ctx context.Context, req *UpdateRequest) (int,
 		}
 	}
 
+	//update resource
+	if req.Resource != "" {
+		err = r.validateResource(ctx, req.Resource)
+		if err != nil {
+			return 0, err
+		}
+		_, err = r.db.UpdateResource(ctx, &port.UpdateResouceRequest{
+			Id:       req.Id,
+			Resource: req.Resource,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
 	return req.Id, nil
 }
 
@@ -156,6 +177,19 @@ func (r *ResourceProvider) Delete(ctx context.Context, id int) error {
 
 func (r *ResourceProvider) GetByName(ctx context.Context, name string) (GetResponse, error) {
 	resp, err := r.db.GetByName(ctx, name)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetResponse{}, ErrNameNotFound
+		default:
+			return GetResponse{}, ErrUnknown
+		}
+	}
+	return GetResponse(resp), nil
+}
+
+func (r *ResourceProvider) GetByResource(ctx context.Context, resource string) (GetResponse, error) {
+	resp, err := r.db.GetByResource(ctx, resource)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
