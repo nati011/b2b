@@ -8,25 +8,6 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - PORT
-      - KEYCLOAK_BASE_URL
-      - KEYCLOAK_USER_NAME
-      - KEYCLOAK_PASSWORD
-      - KEYCLOAK_REALM
-      - KEYCLOAK_CLIENT_ID
-      - KEYCLOAK_APPLICATION_REALM
-      - KEYCLOAK_CLIENT_SECRET
-      - DB_URL
-      - SMTP
-      - EMAIL
-      - ENV
-      - BASE_URL
-      - FRONTEND_URL
-      - CLIENT_VERSION
-      - JWT_SECRET
-      - EMAIL_PASSWORD
-      - DEFAULT_SUPERADMIN_EMAIL
     networks:
       - backend
 

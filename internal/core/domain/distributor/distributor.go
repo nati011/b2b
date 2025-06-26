@@ -55,8 +55,10 @@ type GetAllResponse struct {
 }
 
 type GetByParamRequest struct {
-	Name string
-	Tin  string
+	Name           string
+	Tin            string
+	Status         string
+	ApprovalStatus string
 }
 
 type UpdateRequest struct {
@@ -247,6 +249,41 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequ
 			resp.List = append(resp.List, resp_tin)
 		}
 	}
+
+	if req.ApprovalStatus != "" {
+		resp_status, err := d.DB.GetByApprovalStatus(ctx, req.ApprovalStatus)
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetAllResponse{}, ErrEmptyGetContent
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		if len(resp_status.List) != 0 {
+			resp.List = append(resp.List, resp_status.List...)
+			resp.TotalCount = resp_status.TotalCount
+		}
+	}
+
+	if req.Status != "" {
+		resp_status, err := d.DB.GetByStatus(ctx, req.Status == "ACTIVE")
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetAllResponse{}, ErrEmptyGetContent
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		if len(resp_status.List) != 0 {
+			resp.List = append(resp.List, resp_status.List...)
+			resp.TotalCount = resp_status.TotalCount
+		}
+
+	}
 	if len(resp.List) == 0 {
 		return GetAllResponse{}, ErrEmptyGetContent
 	}
@@ -265,6 +302,7 @@ func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequ
 			Verdict:     i.Verdict,
 		})
 	}
+	service_resp.TotalCount = resp.TotalCount
 	if len(service_resp.List) == 0 {
 		return GetAllResponse{}, ErrEmptyGetContent
 	}
