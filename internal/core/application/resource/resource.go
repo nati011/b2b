@@ -10,10 +10,13 @@ import (
 
 var (
 	ErrDuplicateName      = errors.New(" duplicate name")
+	ErrDuplicateResource  = errors.New(" duplicate resource")
 	ErrEmptyAction        = errors.New(" empty action")
 	ErrEmptyName          = errors.New(" empty name")
+	ErrEmptyResource      = errors.New(" empty resource")
 	ErrIdNotFound         = errors.New(" id not found")
 	ErrNameNotFound       = errors.New(" name not found")
+	ErrResourceNotFound   = errors.New(" resource not found")
 	ErrUnknown            = errors.New(" unknown error has occured")
 	ErrEmptyUpdateContent = errors.New(" update content empty")
 	ErrEmptyGetContent    = errors.New(" get content empty")
@@ -50,6 +53,7 @@ type GetAllResponse struct {
 }
 
 type Provider interface {
+	GetByResource(context.Context, string) (GetResponse, error)
 	GetByName(context.Context, string) (GetResponse, error)
 	Get(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
@@ -78,9 +82,13 @@ func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int,
 	if err != nil {
 		return 0, err
 	}
+	if err := r.validateResource(ctx, req.Resource); err != nil {
+		return 0, err
+	}
 	id, err := r.db.Create(ctx, &port.CreateRequest{
-		Action: req.Action,
-		Name:   req.Name,
+		Action:   req.Action,
+		Name:     req.Name,
+		Resource: req.Resource,
 	})
 	if err != nil {
 		switch err {
@@ -193,7 +201,7 @@ func (r *ResourceProvider) GetByResource(ctx context.Context, resource string) (
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
-			return GetResponse{}, ErrNameNotFound
+			return GetResponse{}, ErrResourceNotFound
 		default:
 			return GetResponse{}, ErrUnknown
 		}
