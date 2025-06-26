@@ -102,16 +102,6 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                 ],
             },
             {
-                title: "Payments",
-                url: "/payments",
-                icon: CreditCard,
-            },
-            {
-                title: "Reports",
-                url: "/reports",
-                icon: FileText,
-            },
-            {
                 title: "Settings",
                 url: "/settings",
                 icon: Settings,
@@ -120,10 +110,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         title: "Roles & Permissions",
                         url: "/role",
                     },
-                    {
-                        title: "System Config",
-                        url: "/settings/config",
-                    }
+                 
                 ],
             }
         ]
