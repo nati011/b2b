@@ -11,6 +11,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/role"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -72,9 +73,21 @@ type Role struct {
 func InitRole() {
 	handler.Register(new(Role))
 
-	handler.RegisterResource("/api/v1/role")
-	handler.RegisterResource("/api/v1/role/resource")
-	handler.RegisterResource("/api/v1/role/{param}")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "role",
+		Action:   "ALL",
+		Resource: "/api/v1/role",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "role_resource",
+		Action:   "ALL",
+		Resource: "/api/v1/role/resource",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "role_list",
+		Action:   "ALL",
+		Resource: "/api/v1/role/{id}",
+	})
 }
 
 func (r *Role) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

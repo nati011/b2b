@@ -10,6 +10,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/template"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -27,7 +28,11 @@ type EmailTemplate struct {
 func InitEmailTemplate() {
 	handler.Register(new(EmailTemplate))
 
-	handler.RegisterResource("/api/v1/email_template")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "email_template",
+		Action:   "ALL",
+		Resource: "/api/v1/email_template",
+	})
 }
 
 func (e *EmailTemplate) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

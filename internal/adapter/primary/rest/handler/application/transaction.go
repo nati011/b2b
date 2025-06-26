@@ -10,6 +10,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/transaction"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -42,7 +43,11 @@ type Transaction struct {
 func InitTransaction() {
 	handler.Register(new(Transaction))
 
-	handler.RegisterResource("/api/v1/transaction")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "transaction",
+		Action:   "ALL",
+		Resource: "/api/v1/transaction",
+	})
 }
 
 func (t *Transaction) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
