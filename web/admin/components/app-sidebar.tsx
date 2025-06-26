@@ -160,6 +160,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                     <SidebarMenu>
                         {data.navMain.map((item) => (
                             <SidebarMenuItem key={item.title}>
+                                <Link href={item.url}>
                                 <SidebarMenuButton
                                     tooltip={item.title}
                                     className="hover:bg-accent/50 transition-all duration-200 group"
@@ -167,6 +168,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                                     <item.icon className="h-5 w-5 transition-transform group-hover:scale-110" />
                                     <span className="font-medium">{item.title}</span>
                                 </SidebarMenuButton>
+                                </Link>
                                 {item.items?.length ? (
                                     <SidebarMenuSub>
                                         {item.items.map((subItem) => (
