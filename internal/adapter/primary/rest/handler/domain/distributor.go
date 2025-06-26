@@ -12,6 +12,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/user"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -86,10 +87,26 @@ type Distributor struct {
 func InitDistributor() {
 	handler.Register(new(Distributor))
 
-	handler.RegisterResource("/api/v1/distributor")
-	handler.RegisterResource("/api/v1/distributor/{param}/user")
-	handler.RegisterResource("/api/v1/distributor/{param}/status")
-	handler.RegisterResource("/api/v1/distributor/{param}/onboarding_review")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor_user",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor/{param}/user",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor_status",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor/{param}/status",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor_onboarding_review",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor/{param}/onboarding_review",
+	})
 }
 
 func (d *Distributor) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {

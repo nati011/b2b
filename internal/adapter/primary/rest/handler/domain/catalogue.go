@@ -7,6 +7,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/catalogue"
 )
@@ -81,7 +82,11 @@ type Catalogue struct {
 func InitCatalogue() {
 	handler.Register(new(Catalogue))
 
-	handler.RegisterResource("/api/v1/catalogue")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "catalogue",
+		Action:   "ALL",
+		Resource: "/api/v1/catalogue",
+	})
 }
 
 func (c *Catalogue) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

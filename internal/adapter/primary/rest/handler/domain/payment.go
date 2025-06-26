@@ -10,6 +10,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
 )
@@ -31,10 +32,26 @@ type Payment struct {
 func InitPayment() {
 	handler.Register(new(Payment))
 
-	handler.RegisterResource("/api/v1/payment/webhook/{param}/{param}")
-	handler.RegisterResource("/api/v1/payment/webhook/{param}")
-	handler.RegisterResource("/api/v1/payment/verify")
-	handler.RegisterResource("/api/v1/payment/confirm/{param}")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_webook_callback_var_1",
+		Action:   "ALL",
+		Resource: "/api/v1/payment/webhook/{gateway_id}/{tx_ref}",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_webook_callback_var_2",
+		Action:   "ALL",
+		Resource: "/api/v1/payment/webhook/{param}",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_verify",
+		Action:   "ALL",
+		Resource: "/api/v1/payment/verify",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_confirm",
+		Action:   "ALL",
+		Resource: "/api/v1/payment/confirm/{param}",
+	})
 }
 
 func (p *Payment) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
