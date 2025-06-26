@@ -1,10 +1,9 @@
 import { create } from "zustand";
-import axiosIns from "@/app/libs/axios";
 import { Category } from "@/app/libs/types";
 import { Create, Delete, GetAll, Update } from "@/app/actions/category";
 
 interface CategoryStore {
-    success: string;
+    success: string | null;
     loading: boolean;
     error: string | null;
     next: string | null;
@@ -20,7 +19,7 @@ interface CategoryStore {
 }
 
 const useCategoryStore = create<CategoryStore>((set) => ({
-    success: "",
+    success: null,
     loading: false,
     error: null,
     next: null,
@@ -68,8 +67,8 @@ const useCategoryStore = create<CategoryStore>((set) => ({
     editCategory: async (id: number, name: string) => {
         set({ categoriesLoading: true, categoriesError: null });
         try {
-            await Update(id, name)
-            set({ categoriesLoading: false });
+            const response = await Update(id, name)
+            set({ categoriesLoading: false, success: response });
             await useCategoryStore.getState().fetchCategories();
         } catch (error: any) {
             set({ categoriesLoading: false, categoriesError: error.message });

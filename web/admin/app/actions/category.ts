@@ -13,7 +13,7 @@ export const GetAll = async () => {
 export const Create = async (name: string) => {
     try {
         const response = await axiosIns.post(
-            "/api/category",
+            "/category",
             { name: name },
         );
         return response.data.detail
@@ -32,9 +32,10 @@ export const Delete = async (id: number) => {
 
 export const Update = async (id: number, name: string) => {
     try {
-        await axiosIns.patch(`/category/${id}`, {
+        const response = await axiosIns.patch(`/category/${id}`, {
             "name": name
         });
+        return response.data.message
     } catch (error: any) {
         throw error
     }
