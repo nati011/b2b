@@ -10,6 +10,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/category"
 )
@@ -39,8 +40,16 @@ type Category struct {
 func InitCategory() {
 	handler.Register(new(Category))
 
-	handler.RegisterResource("/api/v1/category")
-	handler.RegisterResource("/api/v1/category/{param}")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "category_list",
+		Action:   "ALL",
+		Resource: "/api/v1/category",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "category",
+		Action:   "ALL",
+		Resource: "/api/v1/category/{param}",
+	})
 }
 
 func (r *Category) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

@@ -37,7 +37,11 @@ type IdentityHandler struct {
 func InitIdentity() {
 	handler.Register(new(IdentityHandler))
 
-	handler.RegisterResource("/api/v1/identity/user")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "identity_user",
+		Action:   "ALL",
+		Resource: "/api/v1/identity/user",
+	})
 }
 
 func (i *IdentityHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {

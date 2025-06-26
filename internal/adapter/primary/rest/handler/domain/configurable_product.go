@@ -13,6 +13,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 )
@@ -77,8 +78,16 @@ type ConfigurableProduct struct {
 func InitConfigurableProduct() {
 	handler.Register(new(ConfigurableProduct))
 
-	handler.RegisterResource("/api/v1/configurable_product")
-	handler.RegisterResource("/api/v1/configurable_product/{param}/status")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "configurable_product",
+		Action:   "ALL",
+		Resource: "/api/v1/configurable_product",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "configurable_product_status",
+		Action:   "ALL",
+		Resource: "/api/v1/configurable_product/{param}/status",
+	})
 }
 
 func (c *ConfigurableProduct) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
