@@ -91,7 +91,8 @@ CREATE OR REPLACE FUNCTION public.get_resources_by_id(
 )
 RETURNS TABLE(id INT, 
               action VARCHAR(255), 
-              name VARCHAR(255))
+              name VARCHAR(255),
+              resource VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -109,7 +110,8 @@ CREATE OR REPLACE FUNCTION public.get_resources_by_name(
 )
 RETURNS TABLE(id INT, 
               action VARCHAR(255), 
-              name VARCHAR(255))
+              name VARCHAR(255),
+              resource VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -117,6 +119,25 @@ BEGIN
     SELECT r.id, r.action, r.name, r.resource
     FROM public.resources r
     WHERE r.name = resource_name
+      AND r.is_deleted = FALSE
+    LIMIT 1; 
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_resources_by_resource(
+    r_resource VARCHAR(255)
+)
+RETURNS TABLE(id INT, 
+              action VARCHAR(255), 
+              name VARCHAR(255),
+              resource VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT r.id, r.action, r.name, r.resource
+    FROM public.resources r
+    WHERE r.resource = r_resource
       AND r.is_deleted = FALSE
     LIMIT 1; 
 END;
@@ -140,8 +161,8 @@ AS $$
         WHERE r.is_deleted = FALSE
         LIMIT r_limit
         OFFSET r_offset;
-    END;
-    $$;
+END;
+$$;
 
 
 -- Roles ----------------------------------------
