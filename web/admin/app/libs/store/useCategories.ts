@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
 import { Category } from "@/app/libs/types";
-import { Create, Delete, GetAll, Update } from "@/actions/category";
+import { Create, Delete, GetAll, Update } from "@/app/actions/category";
 
 interface CategoryStore {
     success: string;

@@ -16,39 +16,44 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 
-import { AiOutlineProduct } from "react-icons/ai"
-import { PiUsersThreeLight } from "react-icons/pi"
-import { GoGear } from "react-icons/go"
+import {
+    Package,
+    Users,
+    ShoppingCart,
+    Settings,
+    BarChart3,
+    FileText,
+    Store,
+    UserCheck,
+    CreditCard,
+    Layers
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import getCurrentUser from "@/actions/getCurrentUser"
+import getCurrentUser from "@/app/actions/getCurrentUser"
 
 export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const user = await getCurrentUser()
-
-
 
     const data = {
         user: {
             name: user?.name || "",
             email: user?.email || "",
         },
-        singular: [
-            {
-                title: "Admin Users",
-                url: "/admin",
-                icon: PiUsersThreeLight,
-            }
-        ],
         navMain: [
             {
-                title: "Product",
-                url: "/products",
-                icon: AiOutlineProduct,
+                title: "Dashboard",
+                url: "/",
+                icon: BarChart3,
                 isActive: true,
+            },
+            {
+                title: "Products",
+                url: "/products",
+                icon: Package,
                 items: [
                     {
-                        title: "Simple Product",
+                        title: "Simple Products",
                         url: "/products",
                     },
                     {
@@ -56,28 +61,38 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         url: "/products/configurable",
                     },
                     {
-                        title: "Product Categories",
+                        title: "Categories",
                         url: "/products/category",
                     },
                 ],
             },
             {
-                title: "Customers",
+                title: "Retailers",
                 url: "/retailers",
-                icon: PiUsersThreeLight,
+                icon: Users,
             },
             {
                 title: "Distributors",
                 url: "/distributors",
-                icon: PiUsersThreeLight
-            },
-            {
-                title: "Order",
-                url: "/Order",
-                icon: PiUsersThreeLight,
+                icon: Store,
                 items: [
                     {
-                        title: "Orders",
+                        title: "All Distributors",
+                        url: "/distributors",
+                    },
+                    {
+                        title: "Distributor Agents",
+                        url: "/distributors/approvals",
+                    },
+                ],
+            },
+            {
+                title: "Orders",
+                url: "/orders",
+                icon: ShoppingCart,
+                items: [
+                    {
+                        title: "All Orders",
                         url: "/orders",
                     },
                     {
@@ -87,13 +102,27 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                 ],
             },
             {
-                title: "Configurations",
+                title: "Payments",
+                url: "/payments",
+                icon: CreditCard,
+            },
+            {
+                title: "Reports",
+                url: "/reports",
+                icon: FileText,
+            },
+            {
+                title: "Settings",
                 url: "/settings",
-                icon: GoGear,
+                icon: Settings,
                 items: [
                     {
-                        title: "Role",
+                        title: "Roles & Permissions",
                         url: "/role",
+                    },
+                    {
+                        title: "System Config",
+                        url: "/settings/config",
                     }
                 ],
             }
@@ -101,45 +130,51 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
     }
 
     return (
-        <Sidebar {...props}>
-            <SidebarHeader>
+        <Sidebar {...props} className="border-r border-border/40">
+            <SidebarHeader className="border-b border-border/40">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <Link href="/">
                             <SidebarMenuButton
                                 size="lg"
-                                className="data-[state=open]:bg-gray-800 text-white-accent data-[state=open]:text-sidebar-accent-foreground"
+                                className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground hover:bg-accent/50 transition-colors"
                             >
-
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gray-800 text-sidebar-primary-foreground">
-                                    <Image src='/logo.png' width={150} height={100} alt="logo" />
+                                <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
+                                    <Image src='/logo.png' width={32} height={32} alt="logo" className="rounded-lg" />
                                 </div>
                                 <div className="grid flex-1 text-left text-lg leading-tight">
-                                    <span className="truncate font-semibold">
+                                    <span className="truncate font-bold">
                                         Efoyeta Store
+                                    </span>
+                                    <span className="truncate text-xs text-muted-foreground">
+                                        Admin Dashboard
                                     </span>
                                 </div>
                             </SidebarMenuButton>
-
                         </Link>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="px-2 py-4">
                 <SidebarGroup>
                     <SidebarMenu>
                         {data.navMain.map((item) => (
                             <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton tooltip={item.title}>
-                                    {item.icon && <item.icon />}
-                                    <a href={item.url}>{item.title}</a>
+                                <SidebarMenuButton
+                                    tooltip={item.title}
+                                    className="hover:bg-accent/50 transition-all duration-200 group"
+                                >
+                                    <item.icon className="h-5 w-5 transition-transform group-hover:scale-110" />
+                                    <span className="font-medium">{item.title}</span>
                                 </SidebarMenuButton>
                                 {item.items?.length ? (
                                     <SidebarMenuSub>
-                                        {item.items.map((item) => (
-                                            <SidebarMenuSubItem key={item.title}>
+                                        {item.items.map((subItem) => (
+                                            <SidebarMenuSubItem key={subItem.title}>
                                                 <SidebarMenuSubButton asChild>
-                                                    <a href={item.url}>{item.title}</a>
+                                                    <Link href={subItem.url} className="hover:bg-accent/30 transition-colors">
+                                                        {subItem.title}
+                                                    </Link>
                                                 </SidebarMenuSubButton>
                                             </SidebarMenuSubItem>
                                         ))}
@@ -150,10 +185,11 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter>
+            <SidebarFooter className="border-t border-border/40 p-2">
                 <NavUser user={data.user} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
     )
 }
+

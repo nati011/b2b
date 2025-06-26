@@ -1,7 +1,6 @@
 import { create } from 'zustand'
-import axiosIns from '@/app/libs/axios'
 import { Retailer } from '@/app/libs/types';
-import { Create, GetAll, GetById } from '@/actions/retailer';
+import { Create, GetAll, GetById } from '@/app/actions/retailer';
 
 interface RetailersStore {
   success: string | null
@@ -11,8 +10,9 @@ interface RetailersStore {
   error: string | null;
   next: string | null;
   previous: string | null;
+  total: number | null;
 
-  fetchRetailers: (url?: string) => Promise<void>;
+  fetchRetailers: (page: number) => Promise<void>;
   fetchRetailer: (id: number) => Promise<void>;
   createRetailers: (RetailersData: Partial<Retailer>) => Promise<void>;
 }
@@ -30,7 +30,7 @@ const useRetailersStore = create<RetailersStore>((set) => ({
     woreda: '',
     user: {
       id: 0,
-      first_name: '',
+      first_name: '', 
       last_name: '',
       email: '',
       phone: '',
@@ -45,13 +45,15 @@ const useRetailersStore = create<RetailersStore>((set) => ({
   error: null,
   next: null,
   previous: null,
+  total: 0,
 
-  fetchRetailers: async (url?: string) => {
+  fetchRetailers: async (page: number) => {
     set({ loading: true, error: null });
     try {
-      const response = await GetAll();
+      const response = await GetAll(page);
       set({
-        retailers: response,
+        retailers: response.list,
+        total: response.total_count,
         loading: false
       });
     } catch (error: any) {

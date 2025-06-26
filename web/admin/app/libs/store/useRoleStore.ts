@@ -32,7 +32,7 @@ const useRoleStore = create<RoleStore>((set) => ({
     fetchRoles: async () => {
         set({ rolesLoading: true, rolesError: null });
         try {
-            const response = await axiosIns.get("/api/role");
+            const response = await axiosIns.get("/role");
             set({
                 roles: response.data.body.roles,
                 rolesLoading: false,
