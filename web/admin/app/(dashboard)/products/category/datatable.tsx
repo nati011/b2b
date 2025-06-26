@@ -222,24 +222,7 @@ export function DataTableLayout<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            {/* Add Category Dialog */}
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Add New Category</DialogTitle>
-                    </DialogHeader>
-                    <Input
-                        placeholder="Category Name"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        autoFocus
-                    />
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleAddCategory}>Add Category</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+
 
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
