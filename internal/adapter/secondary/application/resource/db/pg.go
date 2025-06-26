@@ -26,7 +26,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_resources_by_id($1);"
 
-	result := []any{&response.Id, &response.Action, &response.Name}
+	result := []any{&response.Id, &response.Action, &response.Name, &response.Resource}
 	args := []any{&id}
 
 	err := query_handler.NewQuery(
@@ -52,7 +52,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 
 	query := "SELECT * FROM public.get_resources_by_name($1);"
 
-	result := []any{&response.Id, &response.Action, &response.Name}
+	result := []any{&response.Id, &response.Action, &response.Name, &response.Resource}
 	args := []any{&name}
 
 	err := query_handler.NewQuery(
@@ -78,7 +78,7 @@ func (p *Postgres) GetByResource(ctx context.Context, resource string) (port.Get
 
 	query := "SELECT * FROM public.get_resources_by_resource($1);"
 
-	result := []any{&response.Id, &response.Action, &response.Name}
+	result := []any{&response.Id, &response.Action, &response.Name, &response.Resource}
 	args := []any{&resource}
 
 	err := query_handler.NewQuery(
@@ -105,7 +105,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_resources($1, $2);"
 
-	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Action}
+	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Action, &responseBase.Resource}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
