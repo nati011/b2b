@@ -5,12 +5,12 @@ import "context"
 func (r *ResourceProvider) validateResource(ctx context.Context, resource string) error {
 	//empty resource
 	if resource == "" {
-		return ErrEmptyName
+		return ErrEmptyResource
 	}
 	// Check for duplicate resource
-	if _, err := r.GetByName(ctx, resource); err == nil {
-		return ErrDuplicateName
-	} else if err != ErrNameNotFound {
+	if _, err := r.GetByResource(ctx, resource); err == nil {
+		return ErrDuplicateResource
+	} else if err != ErrResourceNotFound {
 		return err
 	}
 	return nil
