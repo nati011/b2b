@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DataTableLayout } from "@/components/ui/datatablelayout";
 import { Textarea } from "@/components/ui/textarea";
+import { Delete } from "lucide-react";
+import { MdDeleteOutline } from "react-icons/md";
 
 
 
@@ -83,6 +85,15 @@ export default function Roles() {
     fetchRoles();
   }, []);
 
+  useEffect(() => {
+    if (error != null) {
+      toast.error(error)
+    }
+    if (success != null) {
+        toast.success(success)
+    }
+  }, [success, error])
+
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -100,6 +111,7 @@ export default function Roles() {
         return (
           <div className="flex items-center gap-2">
             <LiaEdit className="text-gray-700 cursor-pointer" onClick={() => { setIsEditDialogOpen(true); setFormData(prev => ({ ...prev, id: row.original.id, name: row.original.name, desc: row.original.desc })) }} />
+            <MdDeleteOutline className="text-red-900 cursor-pointer" onClick={()=>{handleDeleteRole(row.original.id)}} />
           </div>
         );
       },

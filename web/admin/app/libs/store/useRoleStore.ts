@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
 import { Role } from "@/app/libs/types";
+import { Create, Delete, GetAll, Update } from "@/app/actions/roles";
 
 interface RoleStore {
     success: string;
@@ -32,9 +33,10 @@ const useRoleStore = create<RoleStore>((set) => ({
     fetchRoles: async () => {
         set({ rolesLoading: true, rolesError: null });
         try {
-            const response = await axiosIns.get("/role");
+            const response = await GetAll();
+            console.log(response.data)
             set({
-                roles: response.data.body.roles,
+                roles: response,
                 rolesLoading: false,
             });
         } catch (error) {
@@ -47,12 +49,9 @@ const useRoleStore = create<RoleStore>((set) => ({
     createRole: async (data: Partial<Role>) => {
         set({ rolesLoading: true, rolesError: null });
         try {
-            const response = await axiosIns.post(
-                "/api/role",
-                data,
-            );
+            const response = await Create(data)
             await useRoleStore.getState().fetchRoles();
-            set({ rolesLoading: false });
+            set({ rolesLoading: false, success: response });
         } catch (error: any) {
             set({ rolesLoading: false, rolesError: error.message });
         }
@@ -60,19 +59,18 @@ const useRoleStore = create<RoleStore>((set) => ({
     deleteRole: async (id: number) => {
         set({ rolesLoading: true, rolesError: null });
         try {
-            await axiosIns.delete(`/api/role?id=${id}`);
-            set({ rolesLoading: false });
+            await Delete(id)
+            set({ rolesLoading: false, success:"Role deleted successfully" });
             await useRoleStore.getState().fetchRoles();
         } catch (error: any) {
             set({ rolesLoading: false, rolesError: error.message });
-        } 0
+        } 
     },
     editRole: async (data: Partial<Role>) => {
         set({ rolesLoading: true, rolesError: null });
         try {
-            console.log(data)
-            await axiosIns.put(`/api/role`, data);
-            set({ rolesLoading: false });
+            await Update(data)
+            set({ rolesLoading: false,  success:"Role updated successfully" });
             await useRoleStore.getState().fetchRoles();
         } catch (error: any) {
             set({ rolesLoading: false, rolesError: error.message });
