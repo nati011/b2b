@@ -1,6 +1,6 @@
 'use server'
 import axiosIns from "@/lib/axios";
-import { RegisterRequest } from "@/lib/types";
+import { RegisterRequest, User } from "@/lib/types";
 
 export const RegisterRetailer = async (profile: RegisterRequest) => {
     try {
@@ -43,5 +43,18 @@ export const ResetPassword = async (token: string, password: string) => {
             throw error.response.data.message || "An error has occured while creating the product"
         }
         throw "An error has occured while creating the product"
+    }
+}
+
+
+export const UpdateProfile = async (data: Partial<User>) =>{
+    try{
+        const response = await axiosIns.put
+    }catch (error: any) {
+        console.log(error)
+        if (error.response) {
+            throw error.response.data.message || "An error has occured while updating the profile"
+        }
+        throw "An error has occured while updating the profile"
     }
 }

@@ -1,3 +1,4 @@
+"use server"
 import axios from 'axios'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
@@ -21,6 +22,10 @@ interface ExtendedSession {
   expires: string
 }
 
+type IdentityResponse  = {
+  user: UserIdentity
+}
+
 /**
  * Fetch user identity using a provided access token
  * This function can be used in NextAuth callbacks where session context is not available
@@ -28,7 +33,7 @@ interface ExtendedSession {
 export async function getUserIdentityWithToken(accessToken: string): Promise<UserIdentity | null> {
   try {
     console.log(accessToken)
-    const response = await axios.get<{ user: UserIdentity }>(
+    const response = await axios.get<{ body: IdentityResponse }>(
       `${API_BASE_URL}/api/v1/identity/user`,
       {
         headers: {
@@ -39,12 +44,12 @@ export async function getUserIdentityWithToken(accessToken: string): Promise<Use
       }
     )
 
-    if (!response.data?.user) {
+    if (!response.data?.body.user) {
       console.error("No user data received from API")
       return null
     }
 
-    return response.data.user
+    return response.data.body.user
   } catch (error: any) {
     console.error("Error fetching user identity with token:", error.response?.data || error.message)
     return null

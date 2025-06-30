@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { jwtDecode } from "jwt-decode"
 import axios, { AxiosError } from "axios"
+import { getUserIdentityWithToken } from "@/app/actions/getUserIdentity"
 
 // Environment variables
 const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
@@ -33,11 +34,28 @@ interface UserToken {
   roles: string[]
 }
 
+interface UserIdentity {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  username: string
+  dob: string
+  is_active: boolean
+  permissions: {
+    Id: number
+    Name: string
+    Action: string
+  }[]
+}
+
 interface AppToken extends TokenSet {
   accessToken: string
   refreshToken: string
   accessTokenExpires: number
   user: UserToken
+  userIdentity?: UserIdentity
   error?: "RefreshAccessTokenError" | "TokenExpiredError"
   refreshAttempts?: number
 }
@@ -111,12 +129,16 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
     const decoded = decodeToken(response.data.body.access_token)
     const user = createUserFromToken(decoded)
 
+    // Fetch user identity with the new token using the dedicated function
+    const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
+
     return {
       ...token,
       accessToken: response.data.body.access_token,
       refreshToken: response.data.body.refresh_token || token.refreshToken,
       accessTokenExpires: decoded.exp * 1000,
       user,
+      userIdentity: userIdentity || token.userIdentity,
       error: undefined,
       refreshAttempts: 0
     }
@@ -218,13 +240,17 @@ export const authOptions: AuthOptions = {
           const decoded = decodeToken(response.data.body.access_token)
           const user = createUserFromToken(decoded)
 
+          // Fetch user identity after successful authentication using the dedicated function
+          const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
+
           return {
             id: user.id,
             name: user.name,
             email: user.email,
             image: null,
             ...response.data,
-            user
+            user,
+            userIdentity
           }
         } catch (error) {
           if (axios.isAxiosError(error)) {
@@ -272,6 +298,7 @@ export const authOptions: AuthOptions = {
           refreshToken: userData.body.refresh_token,
           accessTokenExpires: decoded.exp * 1000,
           user: userData.user,
+          userIdentity: userData.userIdentity,
           refreshAttempts: 0
         }
       }
@@ -323,6 +350,7 @@ export const authOptions: AuthOptions = {
       // Set session data
       session.user = appToken.user
       ;(session as any).accessToken = appToken.accessToken
+      ;(session as any).userIdentity = appToken.userIdentity
       ;(session as any).error = appToken.error
       
       return session
