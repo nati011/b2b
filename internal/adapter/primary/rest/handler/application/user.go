@@ -382,6 +382,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 	var requestBody UpdateUserRequest
+	requestBody.Id = r.Context().Value("userId").(int)
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return

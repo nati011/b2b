@@ -277,13 +277,18 @@ $$;
     -- readers
 create or replace function public.get_all_resource_by_role (
     role_identifier INT) 
-RETURNS table (resource_id INT) 
+RETURNS table (
+resource_id INT,
+name VARCHAR(255),
+action VARCHAR(255)
+) 
 LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.resource_id
+        SELECT r.resource_id, re.name, re.action
         FROM public.role_resources r
+        JOIN resources re on re.id = r.resource_id
         WHERE r.role_id = role_identifier 
             AND r.is_deleted = FALSE;
     END;

@@ -794,11 +794,27 @@ func (u *UserService) Update(ctx context.Context, req *UpdateRequest) (GetRespon
 		}
 	}
 
+	if req.LastName != "" {
+		_, err := u.db.UpdateLastName(ctx,
+			&port.UpdateLastNameRequest{
+				Id:       req.Id,
+				LastName: req.LastName,
+			})
+		if err != nil {
+			switch err {
+			default:
+				return GetResponse{}, ErrUnknown
+			}
+		}
+	}
+
 	if req.Email != "" {
 		_, err := u.db.UpdateEmail(ctx, &port.UpdateEmailRequest{
 			Id:    req.Id,
 			Email: req.Email,
 		})
+		// TODO: Update email on auth service
+
 		if err != nil {
 			switch err {
 			default:
