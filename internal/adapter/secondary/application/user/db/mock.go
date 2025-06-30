@@ -11,6 +11,7 @@ import (
 type MockUser struct {
 	Id         int
 	FirstName  string
+	LastName   string
 	Email      string
 	Phone      string
 	Username   string
@@ -50,6 +51,7 @@ func (m *Mock) GetByID(ctx context.Context, id int) (port.GetResponse, error) {
 		resp = append(resp, port.GetResponse{
 			Id:         i.Id,
 			FirstName:  i.FirstName,
+			LastName:   i.LastName,
 			Email:      i.Email,
 			Phone:      i.Phone,
 			Username:   i.Username,
@@ -72,6 +74,7 @@ func (m *Mock) GetByEmail(ctx context.Context, email string) (port.GetAllRespons
 			resp = append(resp, port.GetResponse{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -97,6 +100,7 @@ func (m *Mock) GetByPhone(ctx context.Context, phone string) (port.GetAllRespons
 			resp = append(resp, port.GetResponse{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -122,6 +126,7 @@ func (m *Mock) GetByUsername(ctx context.Context, username string) (port.GetAllR
 			resp = append(resp, port.GetResponse{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -147,6 +152,7 @@ func (m *Mock) GetByActiveStatus(ctx context.Context, status bool) (port.GetAllR
 			resp = append(resp, port.GetResponse{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -172,6 +178,7 @@ func (m *Mock) GetByExternalId(ctx context.Context, extId string) (port.GetAllRe
 			resp = append(resp, port.GetResponse{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -197,6 +204,7 @@ func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 		resp = append(resp, port.GetResponse{
 			Id:         i.Id,
 			FirstName:  i.FirstName,
+			LastName:   i.LastName,
 			Email:      i.Email,
 			Phone:      i.Phone,
 			Username:   i.Username,
@@ -254,6 +262,7 @@ func (m *Mock) Create(ctx context.Context, req *port.CreateRequest) (int, error)
 	m.users = append(m.users, MockUser{
 		Id:         newUserId,
 		FirstName:  req.FirstName,
+		LastName:   req.LastName,
 		Email:      req.Email,
 		Phone:      req.Phone,
 		Username:   req.Username,
@@ -278,6 +287,7 @@ func (m *Mock) CreateAndActivate(ctx context.Context, req *port.CreateRequest) (
 	m.users = append(m.users, MockUser{
 		Id:         newUserId,
 		FirstName:  req.FirstName,
+		LastName:   req.LastName,
 		Email:      req.Email,
 		Phone:      req.Phone,
 		Username:   req.Username,
@@ -295,6 +305,7 @@ func (m *Mock) Delete(ctx context.Context, id int) error {
 			updatedResources = append(updatedResources, MockUser{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -316,6 +327,7 @@ func (m *Mock) UpdateFirstName(ctx context.Context, req *port.UpdateFirstNameReq
 			updatedResources = append(updatedResources, MockUser{
 				Id:         i.Id,
 				FirstName:  req.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -340,6 +352,40 @@ func (m *Mock) UpdateFirstName(ctx context.Context, req *port.UpdateFirstNameReq
 	return updatedResourceId, nil
 }
 
+func (m *Mock) UpdateLastName(ctx context.Context, req *port.UpdateLastNameRequest) (int, error) {
+	updatedResourceId := req.Id
+	updatedResources := []MockUser{}
+	for _, i := range m.users {
+		if i.Id == req.Id {
+			updatedResources = append(updatedResources, MockUser{
+				Id:         i.Id,
+				FirstName:  i.LastName,
+				LastName:   req.LastName,
+				Email:      i.Email,
+				Phone:      i.Phone,
+				Username:   i.Username,
+				DOB:        i.DOB,
+				IsActive:   i.IsActive,
+				ExternalId: i.ExternalId,
+			})
+		} else {
+			updatedResources = append(updatedResources, MockUser{
+				Id:         i.Id,
+				FirstName:  i.FirstName,
+				LastName:   i.LastName,
+				Email:      i.Email,
+				Phone:      i.Phone,
+				Username:   i.Username,
+				DOB:        i.DOB,
+				IsActive:   i.IsActive,
+				ExternalId: i.ExternalId,
+			})
+		}
+	}
+	m.users = updatedResources
+	return updatedResourceId, nil
+}
+
 func (m *Mock) UpdateEmail(ctx context.Context, req *port.UpdateEmailRequest) (int, error) {
 	updatedResourceId := req.Id
 	updatedResources := []MockUser{}
@@ -348,6 +394,7 @@ func (m *Mock) UpdateEmail(ctx context.Context, req *port.UpdateEmailRequest) (i
 			updatedResources = append(updatedResources, MockUser{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      req.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
@@ -359,6 +406,7 @@ func (m *Mock) UpdateEmail(ctx context.Context, req *port.UpdateEmailRequest) (i
 			updatedResources = append(updatedResources, MockUser{
 				Id:         i.Id,
 				FirstName:  i.FirstName,
+				LastName:   i.LastName,
 				Email:      i.Email,
 				Phone:      i.Phone,
 				Username:   i.Username,
