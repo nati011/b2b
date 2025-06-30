@@ -433,6 +433,26 @@ func (p *Postgres) UpdateFirstName(ctx context.Context, req *port.UpdateFirstNam
 	return resourceId, nil
 }
 
+func (p *Postgres) UpdateLastName(ctx context.Context, req *port.UpdateLastNameRequest) (int, error) {
+	var resourceId int
+	query := "SELECT * FROM public.update_user_lastName($1, $2);"
+
+	args := []any{req.Id, req.LastName}
+	result := []any{&resourceId}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.db),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return 0, err
+	}
+
+	return resourceId, nil
+}
+
 func (p *Postgres) UpdateEmail(ctx context.Context, req *port.UpdateEmailRequest) (int, error) {
 	var resourceId int
 	query := "SELECT * FROM public.update_user_email($1, $2);"

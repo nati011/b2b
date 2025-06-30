@@ -71,6 +71,11 @@ type UpdateFirstNameRequest struct {
 	FirstName string
 }
 
+type UpdateLastNameRequest struct {
+	Id       int
+	LastName string
+}
+
 type UpdateIsActiveRequest struct {
 	Id       int
 	IsActive bool
@@ -108,6 +113,7 @@ type Writer interface {
 	CreateUserProvider(context.Context, *CreateUserProviderRequest) error
 	CreateAndActivate(context.Context, *CreateRequest) (int, error)
 	UpdateFirstName(context.Context, *UpdateFirstNameRequest) (int, error)
+	UpdateLastName(context.Context, *UpdateLastNameRequest) (int, error)
 	UpdateEmail(context.Context, *UpdateEmailRequest) (int, error)
 	UpdatePhone(context.Context, *UpdatePhoneRequest) (int, error)
 	UpdateUsername(context.Context, *UpdateUsernameRequest) (int, error)
