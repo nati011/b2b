@@ -86,10 +86,13 @@ axiosInstance.interceptors.response.use(
       }
 
       // If refresh fails or max retries exceeded, sign out the user
-      await signOut({
-        callbackUrl: '/auth/signin',
-        redirect: true
-      });
+      // Only call signOut on the client side
+      if (typeof window !== 'undefined') {
+        await signOut({
+          callbackUrl: '/auth/signin',
+          redirect: true
+        });
+      }
     }
 
     // Handle other errors

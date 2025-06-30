@@ -138,3 +138,22 @@ export type Invoice = {
     LineItems: InvoiceItem[]
     TaxAmount: GLfloat
 }
+
+
+
+export type Permissions = {
+    Id: number
+    Name: string
+    Action: string
+}
+export type UserIdentity = {
+    id: number
+    first_name: string
+    last_name: string
+    email: string
+    phone: string
+    username: string
+    dob: string
+    is_active: boolean
+    permissions: Permissions[]
+}

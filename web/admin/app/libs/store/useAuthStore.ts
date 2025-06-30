@@ -1,6 +1,6 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import {UpdateProfile} from "@/app/actions/auth"
-import { UserIdentity} from "@/lib/types"
+import {UserAccount, UserIdentity} from "@/app/libs/types"
 import { create } from "zustand";
 
 
@@ -13,7 +13,7 @@ interface UserStore {
     previous: string | null;
 
     fetchUser: () => Promise<void>;
-    updateProfile:(data: Partial<UserIdentity>)=>Promise<void>
+    updateProfile:(data: Partial<UserAccount>)=>Promise<void>
 }
 
 export const useUserStore = create<UserStore>((set) => ({
