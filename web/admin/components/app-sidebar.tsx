@@ -71,7 +71,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                     },
                     {
                         title: "Distributor Agents",
-                        url: "/distributors/approvals",
+                        url: "/distributors/agents",
                     },
                 ],
             },

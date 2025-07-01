@@ -2,6 +2,19 @@
 import axiosIns from "@/app/libs/axios";
 import { UserIdentity } from "../libs/types";
 
+
+export const FetchUserDetail = async (id: number) => {
+    try {
+        const response = await axiosIns.get(`/user?id=${id}`);
+        console.log(response.data)
+        return response.data.body.user
+    } catch (error) {
+        console.log(error)
+        throw error
+    }
+}
+
+
 export const InitResetPassword = async (email: string) => {
     try {
         console.log(email)
