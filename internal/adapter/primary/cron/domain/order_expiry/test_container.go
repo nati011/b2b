@@ -67,6 +67,7 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.ConfigService = config_module.NewConfig(config_db.NewPostgres(db))
 	container.OrderService = order.NewOrderService(
 		order_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		container.DistributorService,
 		container.InvoiceService,
 		container.ProductService,
 		container.RetailerService,

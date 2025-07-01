@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log"
 
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
@@ -19,13 +20,24 @@ type MockDistributor struct {
 	IsActive    bool
 }
 
+type MockDistributorUser struct {
+	UserId        int
+	DistributorId int
+}
+
 type MockUserAgent struct {
-	Id int
+	Id        int
+	FirstName string
+	LastName  string
+	Email     string
+	Phone     string
+	Username  string
 }
 
 type Mock struct {
-	distributors []MockDistributor
-	userAgents   []MockUserAgent
+	distributors    []MockDistributor
+	userAgents      []MockUserAgent
+	distributorUser []MockDistributorUser
 }
 
 func NewMock() port.DB {
@@ -45,21 +57,28 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 		Woreda:      req.Woreda,
 	})
 
-	user_id, err := m.CreateDistributorUser(ctx, &port.CreateUserAgentRequest{
-		User_id: req.UserId,
-	})
-	if err != nil {
-		return 0, port_commons.ErrSysUnknown
-	}
 	m.userAgents = append(m.userAgents, MockUserAgent{
-		Id: user_id,
+		Id: req.UserId,
+	})
+	m.distributorUser = append(m.distributorUser, MockDistributorUser{
+		UserId:        req.UserId,
+		DistributorId: newId,
 	})
 	return newId, nil
 }
 
-func (m Mock) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
+func (m *Mock) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
 	m.userAgents = append(m.userAgents, MockUserAgent{
 		Id: req.User_id,
+	})
+
+	log.Printf("User Agents: %v", m.userAgents)
+	if m.distributorUser == nil {
+		m.distributorUser = make([]MockDistributorUser, 0)
+	}
+	m.distributorUser = append(m.distributorUser, MockDistributorUser{
+		UserId:        req.User_id,
+		DistributorId: req.Distributor_Id,
 	})
 	return req.User_id, nil
 }
@@ -172,6 +191,29 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
+func (m *Mock) GetAllUserDetail(ctx context.Context, distributor_id int) (port.GetAllUserDetailResponse, error) {
+	var distributorUsers []int
+	var resp []port.GetUserDetailResponse
+
+	for _, i := range m.distributorUser {
+		if i.DistributorId == distributor_id {
+			resp = append(
+				resp, port.GetUserDetailResponse{
+					Id: i.UserId,
+				},
+			)
+		}
+	}
+
+	if len(distributorUsers) == 0 {
+		return port.GetAllUserDetailResponse{}, port_commons.ErrSysNoRows
+	}
+
+	return port.GetAllUserDetailResponse{
+		List: resp,
+	}, nil
+}
+
 func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.distributors {
@@ -231,6 +273,30 @@ func (m *Mock) GetByApprovalStatus(ctx context.Context, status string) (port.Get
 func (m *Mock) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	for _, i := range m.distributors {
 		if i.Tin == tin {
+			return port.GetResponse{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+				IsActive:    i.IsActive,
+			}, nil
+		}
+	}
+	return port.GetResponse{}, port_commons.ErrSysNoRows
+}
+func (m *Mock) GetByUserId(ctx context.Context, user_id int) (port.GetResponse, error) {
+	var DistributorId int
+	for _, i := range m.distributorUser {
+		if i.UserId == user_id {
+			DistributorId = i.DistributorId
+		}
+	}
+	for _, i := range m.distributors {
+		if i.Id == DistributorId {
 			return port.GetResponse{
 				Id:          i.Id,
 				Name:        i.Name,
