@@ -147,6 +147,7 @@ func (m *Container) InitOrderService() {
 	m.OrderService = order.NewOrderService(
 		order_db_port.NewPostgres(
 			m.db, m.ApplicationServices.Pagination),
+		m.DistributorService,
 		m.InvoiceService,
 		m.ProductService,
 		m.RetailerService,

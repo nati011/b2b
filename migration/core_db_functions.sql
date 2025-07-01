@@ -277,13 +277,18 @@ $$;
     -- readers
 create or replace function public.get_all_resource_by_role (
     role_identifier INT) 
-RETURNS table (resource_id INT) 
+RETURNS table (
+resource_id INT,
+name VARCHAR(255),
+action VARCHAR(255)
+) 
 LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.resource_id
+        SELECT r.resource_id, re.name, re.action
         FROM public.role_resources r
+        JOIN resources re on re.id = r.resource_id
         WHERE r.role_id = role_identifier 
             AND r.is_deleted = FALSE;
     END;
@@ -422,8 +427,8 @@ $$;
 
 create or replace function public.get_users_by_active_status (
     user_active_status BOOLEAN,
-    r_limit INT,
-    r_offset INT
+    u_limit INT,
+    u_offset INT
 ) 
 RETURNS table (
   id INT,
@@ -512,8 +517,8 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION public.get_all_users(
-    t_limit INT,
-    t_offset INT
+    u_limit INT,
+    u_offset INT
 )
 RETURNS TABLE(
     id INT, 
@@ -959,6 +964,37 @@ AS $$
     END;
 $$;
 
+create or replace function public.get_distributor_by_user_id (
+    d_user_id INT
+) 
+RETURNS TABLE (
+  id INT,
+  name VARCHAR(255),
+  tin VARCHAR(255),
+  lat VARCHAR(255),
+  long VARCHAR(255),
+  generalZone VARCHAR(255),
+  region VARCHAR(255),
+  woreda VARCHAR(255),
+  is_active BOOLEAN,
+  verdict VARCHAR(255)
+) 
+LANGUAGE plpgsql 
+AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
+            db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, 
+            COALESCE(dr.verdict, 'PENDING') AS verdict
+        FROM public.distributors d
+        JOIN public.distributor_business_info db ON db.distributor_id = d.id
+        JOIN public.db_locations db_loc ON db_loc.business_id = db.id
+        LEFT JOIN distributor_reviews dr ON dr.distributor_id = d.id
+        JOIN distributor_users du ON du.distributor_id = d.id
+        WHERE du.user_id = 92 AND d.is_deleted = FALSE;
+    END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.get_distributor_by_name (
     d_distributor_name VARCHAR(255),
     t_limit INT,
@@ -1025,6 +1061,85 @@ AS $$
     END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_distributor_by_status (
+    d_status BOOLEAN,
+    t_limit INT,
+    t_offset INT
+) 
+RETURNS TABLE (
+    id INT,
+    name VARCHAR(255),
+    tin VARCHAR(255),
+    lat VARCHAR(255),
+    long VARCHAR(255),
+    generalZone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255),
+    is_active BOOLEAN,
+    verdict VARCHAR(255),
+    total_count BIGINT
+) 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    RETURN QUERY
+
+        SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
+        FROM  public.distributors d
+        JOIN public.distributor_business_info db 
+        ON db.distributor_id = d.id
+        JOIN public.db_locations db_loc 
+        ON db_loc.business_id = db.id
+        JOIN distributor_reviews dr
+        ON dr.distributor_id = d.id
+    WHERE d.is_active = d_status
+      AND d.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_distributor_by_approval_status (
+    d_status VARCHAR(255),
+    t_limit INT,
+    t_offset INT
+) 
+RETURNS TABLE (
+    id INT,
+    name VARCHAR(255),
+    tin VARCHAR(255),
+    lat VARCHAR(255),
+    long VARCHAR(255),
+    generalZone VARCHAR(255),
+    region VARCHAR(255),
+    woreda VARCHAR(255),
+    is_active BOOLEAN,
+    verdict VARCHAR(255),
+    total_count BIGINT
+) 
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    RETURN QUERY
+
+        SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
+        FROM  public.distributors d
+        JOIN public.distributor_business_info db 
+        ON db.distributor_id = d.id
+        JOIN public.db_locations db_loc 
+        ON db_loc.business_id = db.id
+        JOIN distributor_reviews dr
+        ON dr.distributor_id = d.id
+    WHERE dr.verdict = d_status
+      AND d.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
+END;
+$$;
+
+
 create or replace function public.get_all_distributors (
     t_limit INT,
     t_offset INT
@@ -1039,7 +1154,8 @@ RETURNS TABLE (
   region VARCHAR(255),
   woreda VARCHAR(255),
   is_active BOOLEAN,
-  verdict VARCHAR(255)
+  verdict VARCHAR(255),
+  total_count BIGINT
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1047,7 +1163,7 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1098,6 +1214,39 @@ BEGIN
     FROM public.distributor_users du
     WHERE du.distributor_id = d_id
      AND du.is_deleted = FALSE
+    LIMIT t_limit
+    OFFSET t_offset;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_distributor_user_details (
+    d_id INT,
+    t_limit INT,
+    t_offset INT
+) 
+RETURNS TABLE (
+  id INT,
+  firstName VARCHAR(255),
+  lastName VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(255),
+  username VARCHAR(255),
+  total_count BIGINT
+) LANGUAGE plpgsql 
+AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT u.id, 
+               u.firstName,
+               u.lastName,
+               u.email, 
+               u.phone_number, 
+               u.username, 
+               COUNT(*) OVER() AS total_count
+    FROM public.distributor_users du
+    JOIN users u ON du.user_id = u.id 
+    WHERE du.distributor_id = d_id
+    AND du.is_deleted = FALSE
     LIMIT t_limit
     OFFSET t_offset;
 END;
@@ -1392,7 +1541,8 @@ RETURNS TABLE (
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
-  woreda VARCHAR(255)
+  woreda VARCHAR(255),
+  total_count BIGINT
 ) 
 LANGUAGE plpgsql 
 AS $$
@@ -1400,7 +1550,7 @@ AS $$
         RETURN QUERY
 
         SELECT r.id, rb.name, rb.tin, rb_loc.lat, rb_loc.long, 
-        rb_loc.general_zone, rb_loc.region, rb_loc.woreda
+        rb_loc.general_zone, rb_loc.region, rb_loc.woreda, COUNT(*) OVER() AS total_count
         FROM  public.retailers r
         JOIN public.retailer_business_info rb 
         ON rb.retailer_id = r.id
@@ -3047,7 +3197,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_orders_by_retailer_id(
-    o_retailer_id INT
+    o_retailer_id INT,
+    o_limit INT,
+    o_offset INT
 )
 RETURNS TABLE(
     id INT, 
@@ -3059,7 +3211,8 @@ RETURNS TABLE(
     payment_status VARCHAR(255),
     created_date TIMESTAMP,
     confirmation_status VARCHAR(255),
-    payment_method VARCHAR(255)
+    payment_method VARCHAR(255),
+    total_count INT
 )
 LANGUAGE plpgsql
 AS $$
@@ -3074,7 +3227,8 @@ BEGIN
            o.payment_status,
            o.created_date,
            o.confirmation_status,
-           pp.payment_method
+           pp.payment_method,
+           COUNT(*) OVER() as total_count
     FROM public.orders o
     JOIN public.retailer_business_info r
         ON r.retailer_id = o.retailer_id
@@ -3083,7 +3237,9 @@ BEGIN
     JOIN public.payment_partners pp
         ON pp.id = p.partner_id
     WHERE o.retailer_id = o_retailer_id
-      AND o.is_deleted = FALSE;
+      AND o.is_deleted = FALSE
+    LIMIT o_limit
+    OFFSET o_offset;
 END;
 $$;
 

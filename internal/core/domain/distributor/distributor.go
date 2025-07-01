@@ -36,6 +36,15 @@ type CreateRequest struct {
 	Username  string
 }
 
+type GetUserDetailResponse struct {
+	Id        int
+	FirstName string
+	LastName  string
+	Email     string
+	Phone     string
+	Username  string
+}
+
 type GetResponse struct {
 	Id          int
 	Name        string
@@ -71,6 +80,11 @@ type GetAllUsers struct {
 	List []int
 }
 
+type GetAllUserDetailResponse struct {
+	List       []GetUserDetailResponse
+	TotalCount int
+}
+
 type CreateUserRequest struct {
 	DistributorId int
 	FirstName     string
@@ -83,10 +97,12 @@ type CreateUserRequest struct {
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
+	GetByUserId(ctx context.Context, userId int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	GetAllUsers(ctx context.Context, id int) (GetAllUsers, error)
+	GetAllUserDetail(ctx context.Context, id int) (GetAllUserDetailResponse, error)
 	CreateUser(ctx context.Context, req *CreateUserRequest) (int, error)
 	Activate(ctx context.Context, id int) error
 	Dectivate(ctx context.Context, id int) error
@@ -174,7 +190,7 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 	}
 
 	// create distributor
-	id, err := d.DB.Create(ctx, port.CreateRequest{
+	_, err = d.DB.Create(ctx, port.CreateRequest{
 		Name:        req.FirstName + req.LastName,
 		Tin:         req.Tin,
 		Latitude:    req.Latitude,
@@ -192,8 +208,33 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		}
 	}
 
-	return id, nil
+	return user_id, nil
 }
+func (d *DistributorService) GetByUserId(ctx context.Context, userId int) (GetResponse, error) {
+	resp, err := d.DB.GetByUserId(ctx, userId)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetResponse{}, ErrIdNotFound
+		default:
+			return GetResponse{}, ErrUnknown
+		}
+	}
+
+	return GetResponse{
+		Id:          resp.Id,
+		Name:        resp.Name,
+		Tin:         resp.Tin,
+		Latitude:    resp.Latitude,
+		Longitude:   resp.Longitude,
+		GeneralZone: resp.GeneralZone,
+		Region:      resp.Region,
+		Woreda:      resp.Woreda,
+		IsActive:    resp.IsActive,
+		Verdict:     resp.Verdict,
+	}, nil
+}
+
 func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, error) {
 	resp, err := d.DB.Get(ctx, id)
 	if err != nil {
@@ -218,6 +259,7 @@ func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, erro
 		Verdict:     resp.Verdict,
 	}, nil
 }
+
 func (d *DistributorService) GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error) {
 	resp := port.GetAllResponse{}
 
@@ -412,6 +454,36 @@ func (d *DistributorService) GetAllUsers(ctx context.Context, id int) (GetAllUse
 	}
 	return GetAllUsers{
 		List: response_ids,
+	}, nil
+}
+
+func (d *DistributorService) GetAllUserDetail(ctx context.Context, id int) (GetAllUserDetailResponse, error) {
+	var resp []GetUserDetailResponse
+
+	users, err := d.DB.GetAllUserDetail(ctx, id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllUserDetailResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllUserDetailResponse{}, ErrUnknown
+		}
+	}
+
+	for _, i := range users.List {
+		resp = append(resp, GetUserDetailResponse{
+			Id:        i.Id,
+			FirstName: i.FirstName,
+			LastName:  i.LastName,
+			Email:     i.Email,
+			Phone:     i.Phone,
+			Username:  i.Username,
+		})
+	}
+
+	return GetAllUserDetailResponse{
+		List:       resp,
+		TotalCount: users.TotalCount,
 	}, nil
 }
 

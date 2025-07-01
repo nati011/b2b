@@ -122,34 +122,26 @@ func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) GetDistributorOrders(w http.ResponseWriter, r *http.Request) {
-	const ParamDistributorId = "distributor_id"
-
-	paramValues := r.URL.Query()
-	paramDistributorIdValue := paramValues.Get(ParamDistributorId)
-	if paramDistributorIdValue != "" {
-		var typedDistributorId int
-		var err error
-		if paramDistributorIdValue != "" {
-			typedDistributorId, err = strconv.Atoi(paramDistributorIdValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		resp, err := o.service.GetDistributorOrders(r.Context(), typedDistributorId)
-		if err != nil {
-			switch err {
-			case order.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			case order.ErrEmptyGetResponse:
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+	userId, ok := r.Context().Value("userId").(int)
+	if !ok {
+		util.ServerErrorResponse(w, errors.New("userId not found in context"))
+		return
 	}
+
+	resp, err := o.service.GetDistributorOrdersWithUserContext(r.Context(), userId)
+	if err != nil {
+		switch err {
+		case order.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		case order.ErrEmptyGetResponse:
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 }
 
 func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
