@@ -127,7 +127,7 @@ func (u *UserHandler) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/user/init_reset", func(w http.ResponseWriter, r *http.Request) {
-		u.authMiddleware.RequireAuthentication(http.HandlerFunc(u.InitResetTokenHandler)).ServeHTTP(w, r)
+		(http.HandlerFunc(u.InitResetTokenHandler)).ServeHTTP(w, r)
 	})
 }
 
@@ -375,6 +375,7 @@ func (a *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	userId, _ := r.Context().Value("userId").(int)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		util.RequestErrorResponse(w, err)
@@ -387,6 +388,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
+	requestBody.Id = userId
 	id, err := u.service.Update(r.Context(), (*user.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
