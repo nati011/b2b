@@ -126,7 +126,6 @@ export function useAuth() {
       toast.success('Successfully signed out')
     } catch (error) {
       console.error('Sign out error:', error)
-      toast.error('Error signing out')
     }
   }, [extendedSession?.user?.id, refreshManager])
 
