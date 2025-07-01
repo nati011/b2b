@@ -63,6 +63,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 	)
 	container.OrderService = order.NewOrderService(
 		order_db.NewMock(),
+		container.DistributorService,
 		container.InvoiceService,
 		container.ProductService,
 		container.RetailerService,
@@ -82,6 +83,7 @@ func NewPackageIntegrationTestContainer() TestContainer {
 func (t *TestContainer) TearDown() {
 	t.OrderService = order.NewOrderService(
 		order_db.NewMock(),
+		t.DistributorService,
 		t.InvoiceService,
 		t.ProductService,
 		t.RetailerService,
