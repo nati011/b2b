@@ -38,6 +38,20 @@ type GetResponse struct {
 	Verdict     string
 }
 
+type GetUserDetailResponse struct {
+	Id        int
+	FirstName string
+	LastName  string
+	Email     string
+	Phone     string
+	Username  string
+}
+
+type GetAllUserDetailResponse struct {
+	List       []GetUserDetailResponse
+	TotalCount int
+}
+
 type GetAllResponse struct {
 	List       []GetResponse
 	TotalCount int64
@@ -58,11 +72,13 @@ type GetAllUserResponse struct {
 
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
+	GetByUserId(ctx context.Context, user_id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByName(ctx context.Context, name string) (GetAllResponse, error)
 	GetByTin(ctx context.Context, tin string) (GetResponse, error)
 	GetByStatus(ctx context.Context, status bool) (GetAllResponse, error)
 	GetAllUserAgents(ctx context.Context, id int) (GetAllUserResponse, error)
+	GetAllUserDetail(ctx context.Context, id int) (GetAllUserDetailResponse, error)
 	GetByApprovalStatus(ctx context.Context, status string) (GetAllResponse, error)
 }
 
