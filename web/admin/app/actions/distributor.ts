@@ -40,11 +40,11 @@ export const GetById = async (id: number) => {
         throw error
     }
 }
-export const GetDistributorUser = async (id: number) => {
+export const GetDistributorUser = async () => {
     try {
-        const response = await axiosIns.get(`/user?id=${id}`);
+        const response = await axiosIns.get(`/distributor/user`);
         console.log(response.data)
-        return response.data.body.user
+        return response.data.body.users
     } catch (error) {
         console.log(error)
         throw error

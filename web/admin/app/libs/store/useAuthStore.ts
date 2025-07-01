@@ -1,5 +1,5 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import {UpdateProfile} from "@/app/actions/auth"
+import {UpdateProfile, FetchUserDetail} from "@/app/actions/auth"
 import {UserAccount, UserIdentity} from "@/app/libs/types"
 import { create } from "zustand";
 
@@ -13,6 +13,7 @@ interface UserStore {
     previous: string | null;
 
     fetchUser: () => Promise<void>;
+    fetchUserById:(id: number)=>Promise<void>;
     updateProfile:(data: Partial<UserAccount>)=>Promise<void>
 }
 
@@ -33,6 +34,16 @@ export const useUserStore = create<UserStore>((set) => ({
         } catch (error: any) {
             set({ error: error.message, loading: false });
         }
+    },
+    fetchUserById: async (id: number) => {
+        set({loading: true, user: null})
+        try{
+            const user = await FetchUserDetail(id)
+            set({loading:false, user: user})
+        }catch (error: any) {
+            set({ error: error.message, loading: false });
+        }
+        
     },
     updateProfile: async(data: Partial<UserIdentity>)=>{
         set({loading: true})

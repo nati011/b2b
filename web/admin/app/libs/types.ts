@@ -212,36 +212,18 @@ export type UserIdentity = {
   last_name: string
   email: string
   phone: string
-  username: string
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
+  username: string  
   dob: string
   is_active: boolean
   permissions: Permissions[]
+}
+
+
+export type UserDetail = {
+	Id:        number
+	FirstName: string
+	LastName:  string
+	Email:     string
+	Phone:     string
+	Username:  string
 }
