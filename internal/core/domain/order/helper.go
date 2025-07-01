@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
@@ -35,6 +36,19 @@ func (o *OrderService) getUserRetailer(ctx context.Context, userId int) (retaile
 	}
 
 	return retailer_resp, nil
+}
+
+func (o *OrderService) getUserDistributor(ctx context.Context, userId int) (distributor.GetResponse, error) {
+	if userId == 0 {
+		return distributor.GetResponse{}, ErrRetailerIdNotFound
+	}
+	distributor_resp, err := o.DistributorService.GetByUserId(ctx, userId)
+	if err != nil {
+		log.Printf("failed to get distributor %v", err)
+		return distributor.GetResponse{}, ErrRetailerIdNotFound
+	}
+
+	return distributor_resp, nil
 }
 
 func (o *OrderService) validate_items(ctx context.Context, items []Item) error {
