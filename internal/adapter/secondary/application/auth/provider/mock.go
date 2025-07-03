@@ -33,6 +33,10 @@ func (m MockAuthProvider) RefreshToken(ctx context.Context, req *port.RefreshTok
 	return port.LoginAuthResponse{}, nil
 }
 
+func (m MockAuthProvider) GoogleSignOn(ctx context.Context, SubjectToken string) (port.LoginAuthResponse, error) {
+	return port.LoginAuthResponse{}, nil
+}
+
 func (m MockAuthProvider) RetrospectToken(ctx context.Context, token string) (port.RetrospectionResult, error) {
 	return port.RetrospectionResult{}, nil
 }

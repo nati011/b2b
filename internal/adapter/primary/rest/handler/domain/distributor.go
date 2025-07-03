@@ -65,8 +65,10 @@ type GetAllDistributorResponse struct {
 }
 
 type GetDistributorByParamRequest struct {
-	Name string `json:"name"`
-	Tin  string `json:"tin"`
+	Name    string `json:"name"`
+	Tin     string `json:"tin"`
+	Status  string `json:"status"`
+	Verdict string `json:"verdict"`
 }
 
 type UpdateDistributorRequest struct {
@@ -114,6 +116,10 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateUserHandler)).ServeHTTP(w, r)
 	})
 
+	mux.HandleFunc("GET /api/v1/distributor/user", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetDistributorUsersFromContext)).ServeHTTP(w, r)
+	})
+
 	mux.HandleFunc("GET /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetUserHandler)).ServeHTTP(w, r)
 	})
@@ -127,14 +133,10 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 	})
 }
 
-func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	typedParamId, err := util.GetPathParam(r, 4)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
+func (de *Distributor) GetDistributorUsersFromContext(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("userId").(int)
 
-	resp, err := de.service.Get(r.Context(), typedParamId)
+	resp, err := de.service.GetByUserId(r.Context(), id)
 	if err != nil {
 		switch err {
 		case distributor.ErrIdNotFound:
@@ -146,7 +148,39 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	users_resp, err := de.service.GetAllUsers(r.Context(), resp.Id)
+	users_resp, err := de.service.GetAllUserDetail(r.Context(), resp.Id)
+	if err != nil {
+		switch err {
+		case distributor.ErrIdNotFound:
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"users": users_resp})
+
+}
+
+func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	resp, err := de.service.GetByUserId(r.Context(), typedParamId)
+	if err != nil {
+		switch err {
+		case distributor.ErrIdNotFound:
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+
+	users_resp, err := de.service.GetAllUserDetail(r.Context(), resp.Id)
 	if err != nil {
 		switch err {
 		case distributor.ErrIdNotFound:
@@ -202,10 +236,14 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 	const ParamId = "id"
 	const ParamName = "name"
 	const ParamTin = "tin"
+	const ParamStatus = "status"
+	const ParamApprovalStatus = "verdict"
 
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
 	paramTinValue := paramValues.Get(ParamTin)
+	paramStatusValue := paramValues.Get(ParamStatus)
+	paramApprovalStatusValue := paramValues.Get(ParamApprovalStatus)
 
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
@@ -251,10 +289,12 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Verdict:     resp.Verdict,
 			}})
 		}
-	} else if paramNameValue != "" || paramTinValue != "" {
+	} else if paramNameValue != "" || paramTinValue != "" || paramStatusValue != "" || paramApprovalStatusValue != "" {
 		resp, err := de.service.GetByParam(r.Context(), &distributor.GetByParamRequest{
-			Name: strings.Trim(paramNameValue, `"`),
-			Tin:  strings.Trim(paramTinValue, `"`),
+			Name:           strings.Trim(paramNameValue, `"`),
+			Tin:            strings.Trim(paramTinValue, `"`),
+			Status:         strings.Trim(paramStatusValue, `"`),
+			ApprovalStatus: strings.Trim(paramApprovalStatusValue, `"`),
 		})
 		if err != nil {
 			switch err {
@@ -292,7 +332,9 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Verdict:     i.Verdict,
 				Users:       users_resp.List,
 			})
+
 		}
+		handler_resp.TotalCount = resp.TotalCount
 		util.OperationSuccessResponse(w, handler_resp)
 	} else {
 		resp, err := de.service.GetAll(r.Context())
