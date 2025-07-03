@@ -12,6 +12,7 @@ import (
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/user"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
@@ -89,10 +90,31 @@ type InitResetPasswordRequest struct {
 func InitUser() {
 	handler.Register(new(UserHandler))
 
-	handler.RegisterResource("/api/v1/user")
-	handler.RegisterResource("/api/v1/user/{param}/status")
-	handler.RegisterResource("/api/v1/user/{param}/role/{param}")
-	handler.RegisterResource("/api/v1/user/init_auth_reset")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "user",
+		Action:   "ALL",
+		Resource: "/api/v1/user",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "user_status",
+		Action:   "ALL",
+		Resource: "/api/v1/user/{param}/status",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "user_role",
+		Action:   "ALL",
+		Resource: "/api/v1/user/{param}/role/{param}",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "user_role_list",
+		Action:   "ALL",
+		Resource: "/api/v1/user/{param}/role",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "user_rest",
+		Action:   "ALL",
+		Resource: "/api/v1/user/init_reset",
+	})
 }
 
 func (a *UserHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
