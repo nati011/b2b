@@ -11,6 +11,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
@@ -76,10 +77,26 @@ type Product struct {
 func InitProduct() {
 	handler.Register(new(Product))
 
-	handler.RegisterResource("/api/v1/product")
-	handler.RegisterResource("/api/v1/stock_ledger")
-	handler.RegisterResource("/api/v1/product/{id}/status")
-	handler.RegisterResource("/api/v1/product/{id}/stock")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "product",
+		Action:   "ALL",
+		Resource: "/api/v1/product",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "stock_ledger",
+		Action:   "ALL",
+		Resource: "/api/v1/stock_ledger",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "product_status",
+		Action:   "ALL",
+		Resource: "/api/v1/product/{param}/status",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "product_stock",
+		Action:   "ALL",
+		Resource: "/api/v1/product/{param}/stock",
+	})
 }
 
 func (p *Product) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

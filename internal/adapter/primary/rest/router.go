@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
@@ -44,15 +43,31 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 		}
 		h.Routes(mux)
 	}
+
 	ctx := context.Background()
 	for _, r := range handler.GetRoutes() {
-		_, err := applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
-			Name:   r,
-			Action: resource.ALL,
+		_, err := applicationServices.ResourceService.GetByName(ctx, r.Name)
+		if err != nil {
+			switch err {
+			case resource.ErrNameNotFound:
+				continue
+			default:
+				panic("Failed to fetch resource")
+			}
+		}
+		_, err = applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
+			Name:     r.Name,
+			Resource: r.Resource,
+			Action:   resource.ANY,
 		})
 		if err != nil {
-			log.Printf("Failed to create resource err: %v", err)
+
+			if _, err = applicationServices.ResourceService.Create(ctx,
+				&resource.CreateRequest{
+					Name: r.Name, Resource: r.Resource, Action: resource.ANY}); err != nil {
+				panic("Failed to create resource err")
+			}
 		}
+		return nil
 	}
-	return nil
 }

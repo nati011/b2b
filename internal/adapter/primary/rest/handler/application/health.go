@@ -8,6 +8,7 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/health"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -27,8 +28,16 @@ type HealthHandler struct {
 func InitHealth() {
 	handler.Register(new(HealthHandler))
 
-	handler.RegisterResource("/health")
-	handler.RegisterResource("/metrics/promethus")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "health",
+		Action:   "ALL",
+		Resource: "/health",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "health",
+		Action:   "ALL",
+		Resource: "/metrics/promethus",
+	})
 }
 
 func (h *HealthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {

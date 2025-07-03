@@ -87,6 +87,7 @@ type GetResponse struct {
 	Status             string
 	DeliveryStatus     string
 	PaymentStatus      string
+	PaymentMethod      string
 	ConfirmationStatus string
 	CreatedAt          time.Time
 	ExpiresAt          time.Time
@@ -715,6 +716,7 @@ func (o *OrderService) GetRetailerOrdersWithUserContext(ctx context.Context, use
 			Total:          float32(i.Total),
 			Status:         i.Status,
 			DeliveryStatus: i.DeliveryStatus,
+			PaymentMethod:  i.PaymentMethod,
 			PaymentStatus:  i.PaymentStatus,
 			CreatedAt:      i.CreatedAt,
 			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues) * time.Minute),
