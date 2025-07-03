@@ -2,6 +2,7 @@ package distributor
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
 )
@@ -333,6 +334,81 @@ func Test_Get_happyPath(t *testing.T) {
 			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
 		}
 	})
+	t.Run("getByStatus", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		// setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		err = testContainer.DistributorService.Activate(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to activate err: %v", err)
+		}
+		resp, err := testContainer.DistributorService.GetByParam(ctx, &GetByParamRequest{
+			Status: "ACTIVE",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
+		}
+		if resp.List[0].Id != id {
+			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
+		}
+	})
+	t.Run("getByUserId", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test1@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		user_id, err := testContainer.DistributorService.CreateUser(ctx, &CreateUserRequest{
+			DistributorId: id,
+			FirstName:     "test_user",
+			LastName:      "test_user",
+			Email:         "test@gmail.com",
+			Username:      "test_user_dist",
+		})
+		if err != nil {
+			t.Fatalf("Failed to create user %v", err)
+		}
+		dist, err := testContainer.DistributorService.GetByUserId(ctx, user_id)
+		if err != nil {
+			t.Errorf("Failed to get distirbutor %v", err)
+		}
+		log.Printf("Distribtors %v", dist)
+		if dist.Id != id {
+			t.Fatalf("Want id %v got id %v", id, dist.Id)
+		}
+
+	})
 	t.Run("getAll", func(t *testing.T) {
 		t.Cleanup(testContainer.Teardown)
 		// setup
@@ -362,6 +438,35 @@ func Test_Get_happyPath(t *testing.T) {
 		}
 		if resp.List[0].Id != id {
 			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
+		}
+	})
+
+	t.Run("getAllDistributorUser", func(t *testing.T) {
+		t.Cleanup(testContainer.Teardown)
+		// setup
+		in := CreateRequest{
+			Tin:         "1111111111",
+			Latitude:    "9.0192° N",
+			Longitude:   "38.7525° E",
+			GeneralZone: "test",
+			Region:      "test",
+			Woreda:      "test",
+			Username:    "username",
+			FirstName:   "test",
+			LastName:    "test",
+			Email:       "test@gmail.com",
+		}
+		id, err := testContainer.DistributorService.Create(ctx, &in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+		resp, err := testContainer.DistributorService.GetAllUserDetail(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantLen := 1
+		if len(resp.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
 		}
 	})
 }

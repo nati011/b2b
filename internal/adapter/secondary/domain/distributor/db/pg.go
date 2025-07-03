@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	"b2b.nati011.github.com/config"
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
@@ -182,6 +183,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.Woreda,
 		&responseBase.IsActive,
 		&responseBase.Verdict,
+		&response.TotalCount,
 	}
 	args := []any{r.Pagination.Limit, r.Pagination.Offset}
 
@@ -210,6 +212,7 @@ func (r *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			Verdict:     res[9].(string),
 		}
 		response.List = append(response.List, responseBase)
+		response.TotalCount = res[10].(int64)
 	}
 
 	return response, nil
@@ -260,6 +263,108 @@ func (r *Postgres) GetByName(ctx context.Context, name string) (port.GetAllRespo
 	return response, nil
 }
 
+func (r *Postgres) GetByStatus(ctx context.Context, status bool) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+
+	query := "SELECT * FROM public.get_distributor_by_status($1,$2,$3);"
+
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Tin,
+		&responseBase.Latitude,
+		&responseBase.Longitude,
+		&responseBase.GeneralZone,
+		&responseBase.Region,
+		&responseBase.Woreda,
+		&responseBase.IsActive,
+		&responseBase.Verdict,
+		&response.TotalCount,
+	}
+	args := []any{status, r.Pagination.Limit, r.Pagination.Offset}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Tin:         res[2].(string),
+			Latitude:    res[3].(string),
+			Longitude:   res[4].(string),
+			GeneralZone: res[5].(string),
+			Region:      res[6].(string),
+			Woreda:      res[7].(string),
+			IsActive:    res[8].(bool),
+			Verdict:     res[9].(string),
+		}
+		response.List = append(response.List, responseBase)
+		response.TotalCount = res[10].(int64)
+	}
+
+	return response, nil
+}
+
+func (r *Postgres) GetByApprovalStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+
+	query := "SELECT * FROM public.get_distributor_by_approval_status($1,$2,$3);"
+
+	dest := []any{&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Tin,
+		&responseBase.Latitude,
+		&responseBase.Longitude,
+		&responseBase.GeneralZone,
+		&responseBase.Region,
+		&responseBase.Woreda,
+		&responseBase.IsActive,
+		&responseBase.Verdict,
+		&response.TotalCount,
+	}
+	args := []any{status, r.Pagination.Limit, r.Pagination.Offset}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	// convert
+	for _, res := range result {
+		responseBase := port.GetResponse{
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Tin:         res[2].(string),
+			Latitude:    res[3].(string),
+			Longitude:   res[4].(string),
+			GeneralZone: res[5].(string),
+			Region:      res[6].(string),
+			Woreda:      res[7].(string),
+			IsActive:    res[8].(bool),
+			Verdict:     res[9].(string),
+		}
+		response.List = append(response.List, responseBase)
+		response.TotalCount = res[10].(int64)
+	}
+
+	return response, nil
+}
+
 func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_distributor_by_tin($1);"
@@ -275,6 +380,45 @@ func (r *Postgres) GetByTin(ctx context.Context, tin string) (port.GetResponse, 
 		&response.IsActive}
 
 	args := []any{&tin}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+	response.Id = *result[0].(*int)
+	response.Name = *result[1].(*string)
+	response.Tin = *result[2].(*string)
+	response.Latitude = *result[3].(*string)
+	response.Longitude = *result[4].(*string)
+	response.GeneralZone = *result[5].(*string)
+	response.Region = *result[6].(*string)
+	response.Woreda = *result[7].(*string)
+
+	return response, nil
+}
+
+func (r *Postgres) GetByUserId(ctx context.Context, user_id int) (port.GetResponse, error) {
+	var response port.GetResponse
+	query := "SELECT * FROM public.get_distributor_by_user_id($1);"
+
+	result := []any{&response.Id,
+		&response.Name,
+		&response.Tin,
+		&response.Latitude,
+		&response.Longitude,
+		&response.GeneralZone,
+		&response.Region,
+		&response.Woreda,
+		&response.IsActive,
+		&response.Verdict,
+	}
+
+	args := []any{&user_id}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -320,6 +464,49 @@ func (r *Postgres) GetAllUserAgents(ctx context.Context, id int) (port.GetAllUse
 			Id: int(res[0].(int64)),
 		}
 		response.List = append(response.List, responseBase)
+	}
+	return response, nil
+}
+
+func (m *Postgres) GetAllUserDetail(ctx context.Context, distributor_id int) (port.GetAllUserDetailResponse, error) {
+	var response port.GetAllUserDetailResponse
+	var responseBase port.GetUserDetailResponse
+
+	query := "SELECT * FROM public.get_all_distributor_user_details($1, $2, $3);"
+
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.FirstName,
+		&responseBase.LastName,
+		&responseBase.Email,
+		&responseBase.Phone,
+		&responseBase.Username,
+		&response.TotalCount,
+	}
+	args := []any{distributor_id, m.Pagination.Limit, m.Pagination.Offset}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(m.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+
+	if err != nil {
+		return port.GetAllUserDetailResponse{}, err
+	}
+	log.Print(result[0]...)
+	for _, res := range result {
+		responseBase := port.GetUserDetailResponse{
+			Id:        int(res[0].(int64)),
+			FirstName: res[1].(string),
+			LastName:  res[2].(string),
+			Email:     res[3].(string),
+			Phone:     res[4].(string),
+			Username:  res[5].(string),
+		}
+		response.List = append(response.List, responseBase)
+		response.TotalCount = int(res[0].(int64))
 	}
 	return response, nil
 }

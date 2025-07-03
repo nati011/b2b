@@ -45,6 +45,7 @@ func InitCategory() {
 
 func (r *Category) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	r.service = domainService.CategoryService
+	r.authMiddleware = *authMiddleWare
 	return nil
 }
 
