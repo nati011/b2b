@@ -3291,8 +3291,9 @@ RETURNS TABLE(id INT,
               retailer_name VARCHAR(255),
               status VARCHAR(255),
               total DECIMAL(12,2),
-              delivery_status VARCHAR(255),
               payment_status VARCHAR(255),
+              delivery_status VARCHAR(255),
+              payment_method VARCHAR(255),
               created_date TIMESTAMP,
               total_count BIGINT,
               confirmation_status VARCHAR(255)
@@ -3309,12 +3310,17 @@ SELECT o.id,
         o.total,
         o.payment_status,
         o.delivery_status,
+        par.payment_method,
         o.created_date,
         COUNT(*) OVER() AS total_count,
         o.confirmation_status
         FROM public.orders o
         JOIN public.retailer_business_info r
         ON r.retailer_id = o.retailer_id
+        JOIN public.payments p 
+        ON p.order_id=o.id
+        JOIN payment_partners par
+        ON par.id = p.partner_id
         WHERE o.is_deleted = FALSE
         ORDER BY o.created_date DESC
         LIMIT t_limit
