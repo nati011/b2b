@@ -10,6 +10,7 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/email"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/template"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
@@ -30,7 +31,12 @@ type Email struct {
 func InitEmail() {
 	handler.Register(new(Email))
 
-	handler.RegisterResource("/api/v1/email")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "email",
+		Action:   "ALL",
+		Resource: "/api/v1/email",
+	})
+
 }
 
 func (e *Email) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

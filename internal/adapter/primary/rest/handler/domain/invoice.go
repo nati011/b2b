@@ -9,6 +9,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 )
@@ -21,8 +22,16 @@ type Invoice struct {
 func InitInvoice() {
 	handler.Register(new(Invoice))
 
-	handler.RegisterResource("/api/v1/invoice")
-	handler.RegisterResource("/api/v1/invoice/html")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "invoice",
+		Action:   "ALL",
+		Resource: "/api/v1/invoice",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "invoice_document",
+		Action:   "ALL",
+		Resource: "/api/v1/invoice/html",
+	})
 }
 
 func (i *Invoice) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
