@@ -74,7 +74,7 @@ func InitRole() {
 
 	handler.RegisterResource("/api/v1/role")
 	handler.RegisterResource("/api/v1/role/resource")
-	handler.RegisterResource("/api/v1/role/{id}")
+	handler.RegisterResource("/api/v1/role/{param}")
 }
 
 func (r *Role) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

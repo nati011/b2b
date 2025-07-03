@@ -40,7 +40,7 @@ func InitCategory() {
 	handler.Register(new(Category))
 
 	handler.RegisterResource("/api/v1/category")
-	handler.RegisterResource("/api/v1/category/{id}")
+	handler.RegisterResource("/api/v1/category/{param}")
 }
 
 func (r *Category) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
