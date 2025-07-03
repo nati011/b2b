@@ -87,10 +87,9 @@ func InitDistributor() {
 	handler.Register(new(Distributor))
 
 	handler.RegisterResource("/api/v1/distributor")
-	handler.RegisterResource("/api/v1/distributor/user")
-	handler.RegisterResource("/api/v1/distributor/{id}/user")
-	handler.RegisterResource("/api/v1/distributor/{id}/status")
-	handler.RegisterResource("/api/v1/distributor/{id}/onboarding_review")
+	handler.RegisterResource("/api/v1/distributor/{param}/user")
+	handler.RegisterResource("/api/v1/distributor/{param}/status")
+	handler.RegisterResource("/api/v1/distributor/{param}/onboarding_review")
 }
 
 func (d *Distributor) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
