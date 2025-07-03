@@ -74,12 +74,12 @@ func InitPaymentPartner() {
 	handler.RegisterResource(resource.CreateRequest{
 		Name:     "payment_option_status",
 		Action:   "ALL",
-		Resource: "/api/v1/payment_option/{id}/status",
+		Resource: "/api/v1/payment_option/{param}/status",
 	})
 	handler.RegisterResource(resource.CreateRequest{
 		Name:     "payment_option_secret",
 		Action:   "ALL",
-		Resource: "/api/v1/payment_option/{id}/secret",
+		Resource: "/api/v1/payment_option/{param}/secret",
 	})
 }
 
