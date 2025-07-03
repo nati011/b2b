@@ -86,7 +86,7 @@ func InitRole() {
 	handler.RegisterResource(resource.CreateRequest{
 		Name:     "role_list",
 		Action:   "ALL",
-		Resource: "/api/v1/role/{id}",
+		Resource: "/api/v1/role/{param}",
 	})
 }
 

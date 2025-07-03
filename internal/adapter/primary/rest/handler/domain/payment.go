@@ -35,7 +35,7 @@ func InitPayment() {
 	handler.RegisterResource(resource.CreateRequest{
 		Name:     "payment_webook_callback_var_1",
 		Action:   "ALL",
-		Resource: "/api/v1/payment/webhook/{gateway_id}/{tx_ref}",
+		Resource: "/api/v1/payment/webhook/{param}/{param}",
 	})
 	handler.RegisterResource(resource.CreateRequest{
 		Name:     "payment_webook_callback_var_2",
