@@ -48,7 +48,7 @@ func initRegisterResources() {
 	handler.RegisterResource(resource.CreateRequest{
 		Name:     "auth_reset",
 		Action:   "ALL",
-		Resource: "/api/v1/auth/reset/{token}",
+		Resource: "/api/v1/auth/reset/{param}",
 	})
 }
 
