@@ -11,6 +11,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -55,10 +56,26 @@ var (
 func InitOrder() {
 	handler.Register(new(Order))
 
-	handler.RegisterResource("/api/v1/order")
-	handler.RegisterResource("/api/v1/order/init_payment")
-	handler.RegisterResource("/api/v1/orders/retailer")
-	handler.RegisterResource("/api/v1/orders/distributor")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "order",
+		Action:   "ALL",
+		Resource: "/api/v1/order",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "order_init_payment",
+		Action:   "ALL",
+		Resource: "/api/v1/order/init_payment",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "orders_retailer",
+		Action:   "ALL",
+		Resource: "/api/v1/orders/retailer",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "orders_distributor",
+		Action:   "ALL",
+		Resource: "/api/v1/orders/distributor",
+	})
 }
 
 type Order struct {

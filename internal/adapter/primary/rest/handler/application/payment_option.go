@@ -13,6 +13,7 @@ import (
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 )
 
@@ -60,11 +61,26 @@ type PaymentPartner struct {
 func InitPaymentPartner() {
 	handler.Register(new(PaymentPartner))
 
-	handler.RegisterResource("/api/v1/payment_option")
-	handler.RegisterResource("/api/v1/payment_option/active")
-	handler.RegisterResource("/api/v1/payment_option")
-	handler.RegisterResource("/api/v1/payment_option/{id}/status")
-	handler.RegisterResource("/api/v1/payment_option/{id}/secret")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_option",
+		Action:   "ALL",
+		Resource: "/api/v1/payment_option",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "activate_payment_option",
+		Action:   "ALL",
+		Resource: "/api/v1/payment_option/activate",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_option_status",
+		Action:   "ALL",
+		Resource: "/api/v1/payment_option/{param}/status",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "payment_option_secret",
+		Action:   "ALL",
+		Resource: "/api/v1/payment_option/{param}/secret",
+	})
 }
 
 func (r *PaymentPartner) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {

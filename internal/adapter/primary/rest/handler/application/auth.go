@@ -9,6 +9,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	auth "b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
@@ -25,11 +26,30 @@ type ResetPasswordRequest struct {
 
 func InitAuth() {
 	handler.Register(new(AuthHandler))
+	initRegisterResources()
+}
 
-	handler.RegisterResource("/api/v1/auth/login")
-	handler.RegisterResource("/api/v1/auth/logout")
-	handler.RegisterResource("/api/v1/auth/refresh")
-	handler.RegisterResource("/api/v1/auth/reset/{token}")
+func initRegisterResources() {
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "auth_login",
+		Action:   "ALL",
+		Resource: "/api/v1/auth/login",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "auth_logout",
+		Action:   "ALL",
+		Resource: "/api/v1/auth/logout",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "auth_refresh",
+		Action:   "ALL",
+		Resource: "/api/v1/auth/refresh",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "auth_reset",
+		Action:   "ALL",
+		Resource: "/api/v1/auth/reset/{param}",
+	})
 }
 
 func (a *AuthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
