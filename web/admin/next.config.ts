@@ -15,16 +15,8 @@ module.exports = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: "https",
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: "https",
-        hostname: 'unsplash.com',
-      },
+        hostname: '*',
+      }
     ]
   }
 };

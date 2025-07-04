@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Invoice, Order, Transaction } from '@/app/libs/types';
-import { fetchOrders, getOrderById } from '@/actions/order';
+import { createOrder, fetchOrders, getOrderById } from '@/app/actions/order';
+import { fetchTransactions } from '@/app/actions/transaction';
+import { fetchInvoice } from '@/app/actions/invoice';
 
 interface OrdersStore {
     orders: Order[];
@@ -12,8 +14,9 @@ interface OrdersStore {
     error: string | null;
     next: string | null;
     previous: string | null;
+    total: number | null;
 
-    fetchOrders: (url?: string) => Promise<void>;
+    fetchOrders: (page: number) => Promise<void>;
     fetchOrder: (id: number) => Promise<void>;
     createOrders: (OrdersData: Partial<Order>) => Promise<void>;
     fetchTransactions: (url?: string) => Promise<void>
@@ -48,13 +51,15 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     error: null,
     next: null,
     previous: null,
+    total: 0,
 
-    fetchOrders: async (url?: string) => {
+    fetchOrders: async (page: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await fetchOrders();
+            const response = await fetchOrders(page);
             set({
-                orders: response,
+                orders: response.List,
+                total: response.TotalCount,
                 loading: false
             });
         } catch (error) {
@@ -77,20 +82,19 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     createOrders: async (OrdersData: Partial<Order>) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.post('/api/v1/order/', OrdersData);
-            set(state => ({
-                Orders: [...state.orders, response.data.detail],
+            const response = await createOrder(OrdersData)
+            set({
                 loading: false
-            }));
-        } catch (error) {
-
-            set({ error: 'Failed to create order', loading: false });
+            });
+            await useOrdersStore.getState().fetchOrders()
+        } catch (error: any) {
+            set({ error: error.message, loading: false });
         }
     },
     fetchTransactions: async (url?: string) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get('/api/transaction');
+            const response = await fetchTransactions()
             set({
                 transactions: response.data.body.transactions,
                 loading: false
@@ -102,14 +106,14 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchInvoice: async (order_id?: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await axiosIns.get(`/api/invoice?order_id=${order_id}`);
+            const response = await fetchInvoice(order_id)
             set({
-                invoice: response.data.body.invoice.List[0],
+                invoice: response,
                 loading: false
             });
             console.log(response.data)
-        } catch (error) {
-            set({ error: 'Failed to fetch transactions', loading: false });
+        } catch (error: any) {
+            set({ error: error.message, loading: false });
         }
     },
 }));

@@ -1,62 +1,48 @@
 import { create } from 'zustand'
-import axiosIns from '@/app/libs/axios'
-import { Distributor, DistributorRequest, UserAccount } from '@/app/libs/types';
-import { Create, GetAll, GetDistributorUser } from '@/actions/distributor';
-import { GetById } from '@/actions/retailer';
+import { Distributor, DistributorRequest, UserDetail } from '@/app/libs/types';
+import { Create, GetAll, GetDistributorUser, GetById, DistributorOnBoardingReview, UpdateDistributorStatus } from '@/app/actions/distributor';
 
 interface DistributorsStore {
     success: string | null
     distributors: Distributor[];
-    distributor: Distributor;
-    distributorUser: UserAccount
+    distributor: Distributor |  null;
+    distributorUser: UserDetail[];
     loading: boolean;
     error: string | null;
     next: string | null;
     previous: string | null;
+    totalCount: number | null;
+    userCount: number |null;
 
-    fetchDistributors: (url?: string) => Promise<void>;
+    fetchDistributors: (status?: string) => Promise<void>;
     createDistributors: (DistributorsData: DistributorRequest) => Promise<void>;
     fetchDistributorDetail: (id: number) => Promise<void>
-    fetchDistributorUser: (id: number) => Promise<void>
+    fetchDistributorUser: () => Promise<void>
+    approveDistributor: (id: number) => Promise<void>
+    rejectDistributor: (id: number, comment: string) => Promise<void>
+    activateDistributor: (id: number) => Promise<void>
+    deactivateDistributor: (id: number) => Promise<void>
 }
 
 const useDistributorsStore = create<DistributorsStore>((set) => ({
     distributors: [],
-    distributor: {
-        id: 0,
-        name: '',
-        tin: '',
-        latitude: "",
-        longitude: "",
-        general_zone: '',
-        region: '',
-        woreda: '',
-        user: [],
-        is_active: false
-    },
-    distributorUser: {
-        id: 0,
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        username: '',
-        dob: '',
-        is_active: false,
-        external_id: ''
-    },
+    distributor: null,
+    distributorUser: [],
     success: null,
     loading: false,
     error: null,
     next: null,
     previous: null,
+    totalCount: null,
+    userCount: null,
 
-    fetchDistributors: async (url?: string) => {
+    fetchDistributors: async (status?: string) => {
         set({ loading: true, error: null });
         try {
-            const response = await GetAll()
+            const response = await GetAll(status)
             set({
-                distributors: response,
+                distributors: response.distributors,
+                totalCount: response.total_count,
                 loading: false
             });
         } catch (error: any) {
@@ -71,37 +57,81 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
             console.log(DistributorsData)
             const response = await Create(DistributorsData);
             console.log(response)
-            set(state => ({
+            set({
                 success: response,
                 loading: false
-            }));
+            });
         } catch (error: any) {
             console.log(error)
             set({ error: error.message, loading: false });
         }
     },
     fetchDistributorDetail: async (id: number) => {
-        set({ loading: true, error: null });
+        set({ loading: true, error: null, distributor: null });
         try {
             const response = await GetById(id);
+            console.log(response, "Response")
             set({
-                distributor: response.data.body.distributor,
+                distributor: response,
                 loading: false
             });
         } catch (error: any) {
-            set({ error: error.response.data || "An error has occured", loading: false });
+            console.log(error)
+            set({ error: error.message || "An error has occured", loading: false });
         }
     },
-    fetchDistributorUser: async (id: number) => {
+    fetchDistributorUser: async () => {
         set({ loading: true, error: null });
         try {
-            const response = await GetDistributorUser(id);
+            const response = await GetDistributorUser();
             set({
-                distributorUser: response.data.body.user,
+                distributorUser: response.List,
+                userCount: response.TotalCount,
                 loading: false
             });
         } catch (error: any) {
-            set({ error: error, loading: false });
+            set({ error: error.message, loading: false });
+        }
+    },
+    activateDistributor: async (id: number) => {
+        set({ loading: true, error: null })
+        try {
+            const response = await UpdateDistributorStatus(id, "activate")
+            set({ success: response, loading: false })
+            await useDistributorsStore.getState().fetchDistributorDetail(id);
+        } catch (error: any) {
+            set({ error: error.message || "Error occured while approving distributor.", loading: false });
+        }
+    },
+    deactivateDistributor: async (id: number) => {
+        set({ loading: true, error: null })
+        try {
+            const response = await UpdateDistributorStatus(id, "deactivate")
+            set({ success: response, loading: false })
+            await useDistributorsStore.getState().fetchDistributorDetail(id);
+        } catch (error: any) {
+            set({ error: error.message || "Error occured while approving distributor.", loading: false });
+        }
+    },
+    approveDistributor: async (id: number) => {
+        set({ loading: true, error: null })
+        try {
+            const response = await DistributorOnBoardingReview(id, "approve")
+            set({ success: response, loading: false })
+            await useDistributorsStore.getState().fetchDistributorDetail(id);
+        } catch (error: any) {
+            set({ error: error.message || "Error occured while approving distributor.", loading: false });
+        }
+    },
+
+    rejectDistributor: async (id: number, comment: string) => {
+        set({ loading: true, error: null })
+        try {
+            const response = await DistributorOnBoardingReview(id, "reject", comment)
+            set({ success: response, loading: false })
+            await useDistributorsStore.getState().fetchDistributorDetail(id);
+        } catch (error: any) {
+            set({ error: error.message || "Error occured while rejecting distributor.", loading: false });
         }
     }
 }));

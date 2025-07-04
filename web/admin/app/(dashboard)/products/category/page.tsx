@@ -1,8 +1,6 @@
 'use client'
-import useProductsStore from "@/app/libs/store/useProductStore"
 import { useEffect, useState } from "react";
 import Heading from "../../../../components/breadcrumb";
-import { DataTableLayout } from "./datatable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +15,6 @@ import {
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { LiaEdit } from "react-icons/lia";
 import { Category } from '@/app/libs/types';
 import { MdDeleteOutline } from "react-icons/md";
@@ -25,19 +22,29 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import useCategoryStore from "@/app/libs/store/useCategories";
+import { Search } from "lucide-react";
+import { DataTable } from "@/components/ui/datatable";
 
 
 
 
 export default function Products() {
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [productId, setProductId] = useState(0)
+
   const {
     success,
-    loading,
-    error,
+    categoriesError,
+    categoriesLoading,
     categories,
     fetchCategories,
     editCategory,
-    deleteCategory
+    deleteCategory,
+    createCategory
   } = useCategoryStore()
 
   const pages = [
@@ -50,35 +57,30 @@ export default function Products() {
       "href": "/products/category"
     },
   ]
-
-  const [deleteModal, setDeleteModal] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState("")
-  const [productId, setProductId] = useState(0)
-  const handleEditCategory = async () => {
-    editCategory(productId, newCategoryName)
-    setIsEditDialogOpen(false)
-  };
-
-
-  const handleDeleteCategory = async (id: number) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        toast.success("Category Deleted", {
-          description: "The category has been deleted successfully.",
-          position: "top-right"
-        });
-
-        deleteCategory(id)
-
-        resolve();
-      }, 500);
-    });
-  };
+      const handleAddCategory = () => {
+          if (newCategoryName.trim()) {
+              createCategory(newCategoryName.trim())
+              setNewCategoryName("");
+              setIsAddDialogOpen(false);
+          }
+      };
+  
+  
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(()=>{
+    if(success !=null){
+      toast.success(success)
+    }
+
+    if(categoriesError !=null){
+      toast.error(categoriesError)
+    }
+
+  },[success, categoriesError])
 
 
   const columns: ColumnDef<Category>[] = [
@@ -106,15 +108,39 @@ export default function Products() {
 
 
   return (
-    <>
-      <Heading page={pages} heading="Categories" subheading="List of Registered categories" />
-      <DataTableLayout
-        columns={columns}
-        data={categories}
-        loading={loading}
-        search="name"
-        searchPlaceholder="Search categories..."
-      />
+
+<>
+    <Heading page={pages} heading="Categories" subheading="List of Registered categories" />
+      <div className="w-full bg-card rounded-lg border border-border/50 shadow-sm">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-end gap-4 items-start sm:items-center p-6 border-b border-border/50 space-y-4 sm:space-y-0">
+                <div className="flex items-center space-x-4 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-none">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder={"Search categories..."}
+                          
+                            className="pl-10 bg-background border-border focus:border-primary transition-colors rounded-sm"
+                        />
+                    </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                            <Button
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200"
+                                onClick={() => setIsAddDialogOpen(true)}
+                            >
+                                + Register Categories
+                            </Button>
+                </div>
+            </div>
+            <DataTable
+          columns={columns}
+          data={categories}
+          loading={categoriesLoading}
+                          />
+            </div>
+
 
       <AlertDialog open={deleteModal}>
         <AlertDialogTrigger asChild>
@@ -135,7 +161,7 @@ export default function Products() {
               onClick={() => {
                 setDeleteModal(false)
                 setProductId(0)
-                handleDeleteCategory(productId)
+                deleteCategory(productId)
               }
               }
             >
@@ -158,11 +184,33 @@ export default function Products() {
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditCategory}>Edit Category</Button>
+            <Button onClick={()=>{
+              editCategory(productId, newCategoryName)
+              setIsEditDialogOpen(false)
+            }}>Edit Category</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+            {/* Add Category Dialog */}
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Category</DialogTitle>
+                    </DialogHeader>
+                    <Input
+                        placeholder="Category Name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        autoFocus
+                    />
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAddCategory}>Add Category</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
     </>
+
   );
 }

@@ -3,9 +3,13 @@ import axiosIns from '@/app/libs/axios';
 import { DistributorRequest } from '@/app/libs/types';
 
 
-export const GetAll = async (url?: string) => {
+export const GetAll = async (status?: string) => {
     try {
-        const response = await axiosIns.get('/distributor');
+        let requestUrl = '/distributor'
+        if (status != "ALL"){
+            requestUrl = `/distributor?verdict=${status}`
+        }
+        const response = await axiosIns.get(requestUrl);
         console.log(response.data)
         return response.data.body
     } catch (error) {
@@ -36,11 +40,11 @@ export const GetById = async (id: number) => {
         throw error
     }
 }
-export const GetDistributorUser = async (id: number) => {
+export const GetDistributorUser = async () => {
     try {
-        const response = await axiosIns.get(`/user?id=${id}`);
+        const response = await axiosIns.get(`/distributor/user`);
         console.log(response.data)
-        return response.data.body.user
+        return response.data.body.users
     } catch (error) {
         console.log(error)
         throw error

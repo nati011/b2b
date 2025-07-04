@@ -1,5 +1,4 @@
 "use client"
-
 import {
     BadgeCheck,
     Bell,
@@ -31,16 +30,12 @@ import {
 } from "@/components/ui/sidebar"
 import { GoGear } from "react-icons/go"
 import Link from "next/link"
+import { useAuth } from "@/hooks/useAuth"
 
-export function NavUser({
-    user,
-}: {
-    user: {
-        name?: string
-        email?: string
-    }
-}) {
+export function NavUser() {
     const { isMobile } = useSidebar()
+    const { user, logout, isLoading } = useAuth();
+
 
     return (
         <SidebarMenu>
@@ -57,8 +52,8 @@ export function NavUser({
                                 </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">{user.name}</span>
-                                <span className="truncate text-xs">{user.email}</span>
+                                <span className="truncate font-semibold">{user?.name}</span>
+                                <span className="truncate text-xs">{user?.email}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
@@ -77,13 +72,13 @@ export function NavUser({
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">{user.name}</span>
-                                    <span className="truncate text-xs">{user.email}</span>
+                                    <span className="truncate font-semibold">{user?.name}</span>
+                                    <span className="truncate text-xs">{user?.email}</span>
                                 </div>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <Link href='/account-settings'>
+                        <Link href='/settings'>
                             <DropdownMenuGroup>
                                 <DropdownMenuItem>
                                     <GoGear />
@@ -93,7 +88,7 @@ export function NavUser({
                             </DropdownMenuGroup>
                         </Link>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=>{logout()}}>
                             <LogOut />
                             Log out
                         </DropdownMenuItem>
