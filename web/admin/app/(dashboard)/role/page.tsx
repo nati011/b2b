@@ -16,10 +16,8 @@ import {
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { LiaEdit } from "react-icons/lia";
 import { Role } from '@/app/libs/types';
-import { MdDeleteOutline } from "react-icons/md";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -94,10 +92,6 @@ export default function Roles() {
     {
       accessorKey: "name",
       header: "Name",
-    },
-    {
-      accessorKey: "desc",
-      header: "Description",
     },
     {
       id: "actions",

@@ -1,18 +1,11 @@
-import { getSession } from "@/app/actions/getSession";
-
+"use server"
+import { getUserIdentityFromSession } from "./getUserIdentity"
 
 export default async function getCurrentUser() {
     try {
-        const session = await getSession();
-        // const resp = await axiosIns.get("/users/me")
-        const currentUser = session?.user
-
-        if (!currentUser) {
-            return null;
-        }
-
-        return currentUser
+        return await getUserIdentityFromSession()
     } catch (error: any) {
-        return null;
+        console.error("Error in getCurrentUser:", error.message)
+        return null
     }
 }

@@ -1,29 +1,29 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Distributor } from '@/app/libs/types';
+import { UserDetail } from '@/app/libs/types';
 
-export const columns: ColumnDef<Distributor>[] = [
+export const columns: ColumnDef<UserDetail>[] = [
     {
         accessorKey: "Id",
         header: "Id",
     },
     {
-        accessorKey: "Name",
-        header: "Name",
+        accessorKey: "FirstName",
+        header: "First Name",
     },
     {
-        accessorKey: "tin",
-        header: "Tin",
+        accessorKey: "LastName",
+        header: "Last Name",
     },
     {
-        accessorKey: "general_zone",
-        header: "General Zone",
+        accessorKey: "Email",
+        header: "Email",
     },
     {
-        accessorKey: "region",
-        header: "Region",
+        accessorKey: "Phone",
+        header: "Phone",
     },
     {
-        accessorKey: "woreda",
-        header: "Woreda",
+        accessorKey: "Username",
+        header: "Username",
     },
 ];

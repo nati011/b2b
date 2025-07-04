@@ -208,8 +208,10 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
-		&responseBase.ConfirmationStatus,
+		&responseBase.PaymentMethod,
+		&responseBase.CreatedAt,
 		&response.TotalCount,
+		&responseBase.ConfirmationStatus,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -233,10 +235,12 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			Total:              v,
 			PaymentStatus:      res[5].(string),
 			DeliveryStatus:     res[6].(string),
-			ConfirmationStatus: res[7].(string),
+			PaymentMethod:      res[7].(string),
+			CreatedAt:          res[8].(time.Time),
+			ConfirmationStatus: res[10].(string),
 		}
 
-		response.TotalCount = res[8].(int64)
+		response.TotalCount = res[9].(int64)
 
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {

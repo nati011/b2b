@@ -58,6 +58,22 @@ export const OrderCard: React.FC<Props> = ({
                                         <>
                                             {
                                                 order.PaymentStatus == "PENDING" ? (
+                                                    <div className="flex gap-4">
+                                                    <Button variant={'outline'} className="border-red-900" onClick={() => { completePayment(order.Id) }}>
+                                                        {
+                                                            loading ? (
+                                                                <>
+                                                                    <PiSpinner className="animate-spin" />
+                                                                    Loading
+                                                                </>
+                                                            ) : (
+                                                                <span>
+                                                                    Complete Payment
+                                                                </span>
+                                                            )
+                                                        }
+
+                                                    </Button>
                                                     <Button onClick={() => { completePayment(order.Id) }}>
                                                         {
                                                             loading ? (
@@ -73,6 +89,8 @@ export const OrderCard: React.FC<Props> = ({
                                                         }
 
                                                     </Button>
+                                                    </div>
+
                                                 ) : (
                                                     <></>
                                                 )

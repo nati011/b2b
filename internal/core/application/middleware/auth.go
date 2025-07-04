@@ -134,6 +134,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 
 		var hasResource bool
 		for _, ro := range assignedRoles.List {
+			log.Printf("Roles: %v", ro)
 			hasResource, err = am.roleService.HasResource(r.Context(), &role.HasResourceRequest{
 				ResourceId: rsrce.Id,
 				RoleId:     ro.Id,

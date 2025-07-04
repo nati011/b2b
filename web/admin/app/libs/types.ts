@@ -23,6 +23,13 @@ export type Retailer = {
   user: UserAccount;
 };
 
+export enum DistributorVerdict {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED"
+}
+
+
 export type Distributor = {
   id: number;
   name: string;
@@ -34,6 +41,7 @@ export type Distributor = {
   woreda: string;
   user: number[];
   is_active: boolean;
+  verdict: DistributorVerdict;
 };
 
 export type Image = {
@@ -191,4 +199,31 @@ export type Invoice = {
   SubTotal: GLfloat
   LineItems: InvoiceItem[]
   TaxAmount: GLfloat
+}
+
+export type Permissions = {
+  Id: number
+  Name: string
+  Action: string
+}
+export type UserIdentity = {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  username: string  
+  dob: string
+  is_active: boolean
+  permissions: Permissions[]
+}
+
+
+export type UserDetail = {
+	Id:        number
+	FirstName: string
+	LastName:  string
+	Email:     string
+	Phone:     string
+	Username:  string
 }
