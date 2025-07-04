@@ -68,6 +68,6 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 				panic("Failed to create resource err")
 			}
 		}
-		return nil
 	}
+	return nil
 }

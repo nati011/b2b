@@ -68,7 +68,12 @@ func InitSuperAdminUser(roleId int, cfg config.Config, applicationService *appli
 			Password:  randomPassword,
 		})
 		if err != nil {
-			panic(" failed to create superadmin user")
+			switch err {
+			case user.ErrEmailTaken:
+				return
+			default:
+				panic(" failed to create superadmin user")
+			}
 		}
 
 		err = applicationService.UserService.AssignRole(ctx, userId, roleId)
