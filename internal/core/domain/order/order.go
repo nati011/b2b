@@ -709,18 +709,17 @@ func (o *OrderService) GetRetailerOrdersWithUserContext(ctx context.Context, use
 			})
 		}
 		return_response.List = append(return_response.List, GetResponse{
-			Id:                 i.Id,
-			RetailerId:         i.RetailerId,
-			RetailerName:       i.RetailerName,
-			Items:              items,
-			Total:              float32(i.Total),
-			Status:             i.Status,
-			DeliveryStatus:     i.DeliveryStatus,
-			PaymentStatus:      i.PaymentStatus,
-			ConfirmationStatus: i.ConfirmationStatus,
-			PaymentMethod:      i.PaymentMethod,
-			CreatedAt:          i.CreatedAt,
-			ExpiresAt:          i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			RetailerName:   i.RetailerName,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentMethod:  i.PaymentMethod,
+			PaymentStatus:  i.PaymentStatus,
+			CreatedAt:      i.CreatedAt,
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues) * time.Minute),
 		})
 	}
 	return_response.TotalCount = resp.TotalCount

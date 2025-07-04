@@ -81,10 +81,7 @@ export default function Hero() {
                             <div className={`w-full ${slide.bgColor} transition-all duration-500`}>
                                 <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 min-h-[600px]">
                                     <div className="flex flex-col justify-center px-8 py-16 order-2 md:order-1">
-                                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-md text-sm font-medium w-fit mb-4">
-                                            Wholesale Only
-                                        </span>
-
+                                       
                                         <h2 className="text-lg md:text-xl text-primary/80 font-normal mb-2 animate-slideUp">
                                             {slide.subtitle}
                                         </h2>

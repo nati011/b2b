@@ -3,46 +3,64 @@ import { columns } from "@/app/(dashboard)/orders/column"
 import { useEffect, useState } from "react";
 import Heading from "../../../components/breadcrumb";
 import { DataTableLayout } from "@/components/ui/datatablelayout";
-import { fetchOrders } from "@/actions/order";
-import { Order } from "@/app/libs/types";
+import useOrdersStore from "@/app/libs/store/useOrderStore";
 
 export default function Orders() {
-  const [orders, setOrder] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [offset, setOffset] = useState(0);
+  const limit = 10;
+
+  const {
+    orders,
+    total,
+    loading,
+    error,
+    fetchOrders,
+  } = useOrdersStore()
 
   useEffect(() => {
-    const loadOrder = async () => {
-      try {
-        const data = await fetchOrders();
-        setOrder(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadOrder();
-  }, []);
+    fetchOrders(offset)
+  }, [offset]);
+
+  const handleNext = () => {
+    if (offset + limit < (total || 0)) {
+      setOffset(offset + limit);
+    }
+  };
+  const handlePrevious = () => {
+    if (offset - limit >= 0) {
+      setOffset(offset - limit);
+    }
+  };
+  const canNext = offset + limit < (total || 0);
+  const canPrevious = offset > 0;
 
   const pages = [{
     "title": "Orders",
     "href": "/order"
   }]
 
-
   return (
     <>
       <Heading page={pages} heading="Orders" subheading="List of Registered Orders" />
+      {error && (
+        <div className="flex flex-col items-center justify-center h-full">
+          <h1 className="text-2xl font-bold">Error</h1>
+          <p className="text-gray-500">{error}</p>
+        </div>
+      )}
       <DataTableLayout
         columns={columns}
         data={orders}
+        total={total || 0}
         loading={loading}
         button={false}
         search="DeliveryStatus"
         searchPlaceholder="Search orders..."
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+        canNext={canNext}
+        canPrevious={canPrevious}
       />
     </>
-
   );
 }

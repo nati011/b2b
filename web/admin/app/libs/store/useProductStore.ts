@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import axiosIns from "@/app/libs/axios";
 import { Product, ConfigurableProduct, ProductForm } from "@/app/libs/types";
-import { addStock, createConfigurableProduct, createProduct, depleteStock, fetchConfigurableProductDetail, fetchConfigurableProducts, fetchProductDetail, fetchProducts, updateConfigurableProductStatus, updateProduct, updateProductStatus } from "@/actions/product";
+import { addStock, createConfigurableProduct, createProduct, depleteStock, fetchConfigurableProductDetail, fetchConfigurableProducts, fetchProductDetail, fetchProducts, updateConfigurableProductStatus, updateProduct, updateProductStatus, updateConfigurableProduct } from "@/app/actions/product";
 
 interface ProductsStore {
   success: string | null;
@@ -25,6 +25,7 @@ interface ProductsStore {
   fetchProductDetail: (id: number) => Promise<void>;
   fetchConfigurableProductDetail: (id: number) => Promise<void>;
   updateConfigurableProductStatus: (id: number, productStatus: boolean) => Promise<void>;
+  updateConfigurableProduct: (productData: any) => Promise<void>;
 }
 
 const useProductsStore = create<ProductsStore>((set) => ({
@@ -97,9 +98,9 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       await updateProduct(ProductsData)
-      set((state) => ({
+      set({
         loading: false,
-      }));
+      });
       await useProductsStore.getState().fetchProducts();
     } catch (error) {
       set({ error: "Failed to create product", loading: false });
@@ -174,6 +175,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const detail = await fetchConfigurableProductDetail(id);
+      console.log(detail)
       set({
         product: detail,
         loading: false,
@@ -188,6 +190,16 @@ const useProductsStore = create<ProductsStore>((set) => ({
       const response = await updateConfigurableProductStatus(id, command);
       await useProductsStore.getState().fetchConfigurableProducts();
       set({ loading: false, success: response.message, });
+    } catch (error: any) {
+      set({ loading: false, error: error.message });
+    }
+  },
+  updateConfigurableProduct: async (productData: any) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await updateConfigurableProduct(productData);
+      await useProductsStore.getState().fetchConfigurableProducts();
+      set({ loading: false, success: response });
     } catch (error: any) {
       set({ loading: false, error: error.message });
     }
