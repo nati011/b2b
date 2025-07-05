@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import axiosIns from '@/lib/axios'
 import { CheckoutRequest, Invoice, Order } from '@/lib/types';
-import { completePayment, createOrder, fetchOrders, getInvoice, getOrderById } from '@/app/actions/orders';
+import { completePayment, createOrder, fetchOrders, getInvoice, getOrderById, updateOrderStatus } from '@/app/actions/orders';
+import { toast } from 'sonner';
 
 interface OrdersStore {
     totalOrder: number;
@@ -20,6 +20,7 @@ interface OrdersStore {
     fetchInvoice: (order_id: number) => Promise<void>;
     checkout: (request: CheckoutRequest) => Promise<void>;
     completePayment: (id: number) => Promise<void>;
+    cancelOrder: (id: number) => Promise<void>;
 }
 
 const useOrdersStore = create<OrdersStore>((set) => ({
@@ -34,7 +35,9 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         Status: '',
         DeliveryStatus: '',
         PaymentStatus: '',
-        CreatedAt: ''
+        CreatedAt: '',
+        ConfirmationStatus: '',
+        ExpiresAt: ''
     },
 
     invoice: {
@@ -58,13 +61,14 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await fetchOrders(10, page, status);
+            console.log(response)
             set({
                 orders: response.List,
                 totalOrder: response.TotalCount,
                 loading: false
             });
-        } catch (error) {
-            set({ error: 'Failed to fetch order', loading: false });
+        } catch (error: any) {
+            set({ error: error.message, loading: false });
         }
     },
     fetchOrder: async (order_id: number) => {
@@ -76,8 +80,8 @@ const useOrdersStore = create<OrdersStore>((set) => ({
                 order: response.body.order,
                 loading: false
             });
-        } catch (error) {
-            set({ error: 'Failed to fetch transactions', loading: false });
+        } catch (error: any) {
+            set({ loading: false, error: error.message });
         }
     },
 
@@ -91,7 +95,8 @@ const useOrdersStore = create<OrdersStore>((set) => ({
             });
             console.log(response.data)
         } catch (error: any) {
-            set({ invoiceError: error.message, loading: false });
+            set({ loading: false, error: error.message });
+            toast.error(error.message)
         }
     },
     checkout: async (request: CheckoutRequest) => {
@@ -104,7 +109,9 @@ const useOrdersStore = create<OrdersStore>((set) => ({
                 window.location.href = response.checkout_url
             }
         } catch (error: any) {
-            set({ error: error.message || "An error occured while checkingout", loading: false });
+            const er = error.message || "An error occured while checkingout"
+            toast.error(er)
+            set({ loading: false });
         }
     },
     completePayment: async (order_id: number) => {
@@ -117,7 +124,19 @@ const useOrdersStore = create<OrdersStore>((set) => ({
                 window.location.href = response.checkout_url
             }
         } catch (error: any) {
-            set({ error: error.message, loading: false });
+            set({ loading: false });
+            toast.error(error.message)
+        }
+    },
+    cancelOrder: async (order_id: number) => {
+        set({ loading: true, error: null });
+        try {
+            await updateOrderStatus(order_id.toString(), "CANCELLED");
+            set({ loading: false });
+            await fetchOrders(10, 0, "PENDING")
+        } catch (error: any) {
+            toast.error(error.message)  
+            set({ loading: false });
         }
     },
 }));
