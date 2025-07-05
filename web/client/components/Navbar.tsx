@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import useCartStore from "@/lib/store/useCartStore";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 
 export const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,9 +50,10 @@ export const Navbar = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link href="/" className="flex-shrink-0 font-semibold">
-
-                        EFOYETA STORE
+                    
+                    <Link href="/" className="flex font-semibold">
+                        <Image src='/logo.png' width={150} height={100} alt="logo" />
+                        <span className="sr-only">EFOYETA STORE</span>
 
                     </Link>
 
