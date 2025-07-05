@@ -1,15 +1,18 @@
 import { Facebook, Instagram, Twitter } from "lucide-react";
 import Link from "next/link";
+import Image from 'next/image'
 
 export const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="bg-secondary mt-16 w-full print:hidden">
+        <div className="bg-secondary mt-16 w-full print:hidden">
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="md:col-span-1">
-                        <Link href="/" className="text-xl font-bold">Efoyeta Store</Link>
+                        <Link href="/" className="text-xl font-bold">
+                            <Image src='/logo.png' width={150} height={100} alt="logo" />
+                        </Link>
                         <p className="mt-4 text-sm text-muted-foreground">
                             Lorem ipsum dolor sit amet consectetur, adipisicing elit.
                         </p>
@@ -57,7 +60,7 @@ export const Footer = () => {
                     </div>
                 </div>
 
-                <div className="border-t mt-12 pt-6">
+                <div className="border-t border-primary mt-12 pt-6">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <p className="text-sm text-muted-foreground mb-4 md:mb-0">
                             &copy; {currentYear} Efoyeta. All rights reserved.
@@ -76,6 +79,6 @@ export const Footer = () => {
                     </div>
                 </div>
             </div>
-        </footer>
+        </div>
     );
 };
