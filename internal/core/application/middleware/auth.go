@@ -57,7 +57,7 @@ func normalizeResourcePath(path string) string {
 	segments := strings.Split(path, "/")
 	for i, seg := range segments {
 		if seg != "" && regexp.MustCompile(`^\d+$`).MatchString(seg) {
-			segments[i] = "{id}"
+			segments[i] = "{param}"
 		}
 	}
 	return strings.Join(segments, "/")
