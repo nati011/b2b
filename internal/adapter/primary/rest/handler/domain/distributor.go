@@ -98,6 +98,11 @@ func InitDistributor() {
 		Resource: "/api/v1/distributor/{param}/user",
 	})
 	handler.RegisterResource(resource.CreateRequest{
+		Name:     "create_distributor_user",
+		Action:   "POST",
+		Resource: "/api/v1/distributor/user",
+	})
+	handler.RegisterResource(resource.CreateRequest{
 		Name:     "distributor_status",
 		Action:   "ALL",
 		Resource: "/api/v1/distributor/{param}/status",
@@ -129,7 +134,7 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.UpdateDistributorHandler)).ServeHTTP(w, r)
 	})
 
-	mux.HandleFunc("POST /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/v1/distributor/user", func(w http.ResponseWriter, r *http.Request) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateUserHandler)).ServeHTTP(w, r)
 	})
 
@@ -210,7 +215,13 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	typedParamId, err := util.GetPathParam(r, 4)
+	userId, ok := r.Context().Value("userId").(int)
+	if !ok {
+		util.ServerErrorResponse(w, errors.New("userId not found in context"))
+		return
+	}
+	resp, err := de.service.GetByUserId(r.Context(), userId)
+
 	if err != nil {
 		util.RequestErrorResponse(w, err)
 		return
@@ -229,7 +240,7 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	id, err := de.service.CreateUser(r.Context(), &distributor.CreateUserRequest{
-		DistributorId: typedParamId,
+		DistributorId: resp.Id,
 		FirstName:     requestBody.FirstName,
 		LastName:      requestBody.LastName,
 		Username:      requestBody.Phone,
