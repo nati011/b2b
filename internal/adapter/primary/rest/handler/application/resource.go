@@ -18,6 +18,7 @@ type CreateResourceRequest struct {
 	Action   string `json:"action"`
 	Resource string `json:"resource"`
 	Name     string `json:"name"`
+	Scope    string `json:"scope"`
 }
 
 type UpdateResourceRequest struct {
@@ -25,6 +26,7 @@ type UpdateResourceRequest struct {
 	Name     string `json:"name"`
 	Resource string `json:"resource"`
 	Action   string `json:"action"`
+	Scope    string `json:"scope"`
 }
 
 type GetResourceResponse struct {
@@ -32,6 +34,7 @@ type GetResourceResponse struct {
 	Action   string `json:"action"`
 	Resource string `json:"resource"`
 	Name     string `json:"name"`
+	Scope    string `json:"scope"`
 }
 
 type GetAllResourceResponse struct {

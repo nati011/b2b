@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS public."resources"
   id SERIAL PRIMARY KEY,
   action VARCHAR(255),
   name VARCHAR(255),
-  resource VARCHAR(255)
+  resource VARCHAR(255),
+  scope VARCHAR(255)
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."resources" IS 'stores permissible resources for user agent role.';
