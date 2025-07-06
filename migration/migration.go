@@ -6,7 +6,7 @@ import (
 )
 
 func Core_db_functions() ([]byte, error) {
-	filepath := "/home/delilah/Documents/work/non-kifya/b2b/migration/core_db_functions.sql"
+	filepath := "/home/ship/efoyta/b2b/migration/core_db_functions.sql"
 	print(filepath)
 	sqlBytes, err := os.ReadFile(filepath)
 	if err != nil {
@@ -16,7 +16,7 @@ func Core_db_functions() ([]byte, error) {
 }
 
 func Core_db_schema() ([]byte, error) {
-	filepath := "/home/delilah/Documents/work/non-kifya/b2b/migration/core_db.sql"
+	filepath := "/home/ship/efoyta/b2b/migration/core_db.sql"
 	print(filepath)
 	sqlBytes, err := os.ReadFile(filepath)
 	if err != nil {

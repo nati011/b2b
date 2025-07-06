@@ -5,6 +5,7 @@ import (
 
 	"b2b.nati011.github.com/config"
 	db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
+	"b2b.nati011.github.com/internal/core/application/role"
 	user "b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 )
@@ -12,11 +13,14 @@ import (
 type TestContainer struct {
 	UserService     user.Provider
 	RetailerService retailer.Provider
+	RoleService     role.Provider
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
-	container.UserService = user.NewIntegrationTestContainer(db).UserService
+	userContainer := user.NewIntegrationTestContainer(db)
+	container.UserService = userContainer.UserService
+	container.RoleService = userContainer.RoleService
 	container.RetailerService = retailer.NewRetailerService(
 		container.UserService,
 		db_adapter.NewPostgres(db, config.DefaultPaginationBuilder().Build()))
