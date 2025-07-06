@@ -1038,7 +1038,7 @@ AS $$
         ON db.distributor_id = d.id
         JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
-        JOIN distributor_reviews dr
+        LEFT JOIN distributor_reviews dr
         ON dr.distributor_id = d.id
         WHERE d.id = d_distributor_id 
         AND d.is_deleted = FALSE
@@ -3294,7 +3294,7 @@ RETURNS TABLE(
     created_date TIMESTAMP,
     confirmation_status VARCHAR(255),
     payment_method VARCHAR(255),
-    total_count INT
+    total_count BIGINT
 )
 LANGUAGE plpgsql
 AS $$
@@ -3310,7 +3310,7 @@ BEGIN
            o.created_date,
            o.confirmation_status,
            pp.payment_method,
-           COUNT(*) OVER() as total_count
+           COUNT(*) OVER() AS total_count
     FROM public.orders o
     JOIN public.retailer_business_info r
         ON r.retailer_id = o.retailer_id
@@ -3337,28 +3337,35 @@ RETURNS TABLE(id INT,
               total DECIMAL(12,2),
               payment_status VARCHAR(255),
               delivery_status VARCHAR(255),
-              confirmation_status VARCHAR(255),
-              total_count BIGINT
-              
+              payment_method VARCHAR(255),
+              created_date TIMESTAMP,
+              total_count BIGINT,
+              confirmation_status VARCHAR(255)
               )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT o.id, 
-           o.retailer_id,
-           r.name,
-           o.status, 
-           o.total,
-           o.payment_status,
-           o.delivery_status,
-           o.confirmation_status,
-           COUNT(*) OVER() AS total_count
+        o.retailer_id,
+        r.name,
+        o.status, 
+        o.total,
+        o.payment_status,
+        o.delivery_status,
+        par.payment_method,
+        o.created_date,
+        COUNT(*) OVER() AS total_count,
+        o.confirmation_status
     FROM public.orders o
     JOIN public.retailer_business_info r
     ON r.retailer_id = o.retailer_id
+    JOIN public.payments p 
+    ON p.order_id=o.id
+    JOIN payment_partners par
+    ON par.id = p.partner_id
     WHERE o.status = o_status
-      AND o.is_deleted = FALSE
+    AND o.is_deleted = FALSE
     LIMIT o_limit
     OFFSET o_offset;
 END;
