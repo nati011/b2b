@@ -66,6 +66,33 @@ func Test_create_default_admin_user_upon_retailer_registration(t *testing.T) {
 	}
 }
 
+func Test_assign_default_admin_user_role_retailer(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	in := retailer.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "test",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+		Phone:       "+251949184879",
+	}
+	id, err := testContainer.RetailerService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+
+	users, err := testContainer.RetailerService.GetAllUsers(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get all users err: %v", err)
+	}
+}
+
 func Test_Get_All_Users_happyPath(t *testing.T) {
 	ctx := context.Background()
 	//setup
