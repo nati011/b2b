@@ -254,12 +254,24 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,
 	})
-
 	if err != nil {
 		switch err {
 		default:
 			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
+		}
+	}
+
+	log.Printf("assign User role: %v", req.roleName)
+	if req.roleName != "" {
+		roleId, err := u.role_service.Get(ctx, &role.GetRequest{
+			Name: req.roleName,
+		})
+		if err != nil {
+			log.Printf("failed to find role: %v", req.roleName)
+			log.Printf("failed to assign role to user")
+		} else {
+			u.AssignRole(ctx, user_id, roleId.Id)
 		}
 	}
 

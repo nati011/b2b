@@ -295,7 +295,16 @@ func (a *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := a.service.Create(r.Context(), (*user.CreateRequest)(&requestBody))
+	id, err := a.service.Create(r.Context(), &user.CreateRequest{
+		FirstName:  requestBody.FirstName,
+		LastName:   requestBody.LastName,
+		Email:      requestBody.Email,
+		Phone:      requestBody.Phone,
+		Username:   requestBody.Username,
+		DOB:        requestBody.DOB,
+		ExternalId: requestBody.ExternalId,
+		Password:   requestBody.Password,
+	})
 	if err != nil {
 		switch err {
 		case user.ErrUnknown:
