@@ -8,6 +8,7 @@ type CreateRequest struct {
 	Action   string
 	Name     string
 	Resource string
+	Scope    string
 }
 
 type UpdateActionRequest struct {
@@ -25,11 +26,17 @@ type UpdateResouceRequest struct {
 	Resource string
 }
 
+type UpdateScopeRequest struct {
+	Id    int
+	Scope string
+}
+
 type GetResponse struct {
 	Id       int
 	Action   string
 	Resource string
 	Name     string
+	Scope    string
 }
 
 type GetAllResponse struct {
@@ -40,6 +47,7 @@ type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetByName(context.Context, string) (GetResponse, error)
 	GetByResource(context.Context, string) (GetResponse, error)
+	GetByScope(context.Context, string) (GetAllResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 }
 

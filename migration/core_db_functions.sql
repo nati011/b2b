@@ -5,7 +5,8 @@
 CREATE OR REPLACE FUNCTION public.create_resource(
    r_name VARCHAR(255),
    r_action VARCHAR(255),
-   r_resource VARCHAR(255)
+   r_resource VARCHAR(255),
+   r_scope VARCHAR(255)
 )
 RETURNS INT
 LANGUAGE plpgsql
@@ -13,8 +14,8 @@ AS $$
 DECLARE
     new_id INT;
 BEGIN
-    INSERT INTO public.resources (name, action, resource)
-    VALUES (r_name, r_action, r_resource) 
+    INSERT INTO public.resources (name, action, resource, scope)
+    VALUES (r_name, r_action, r_resource, r_scope) 
     RETURNING id INTO new_id;
 
     RETURN new_id;
@@ -72,6 +73,23 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.update_resource_scope(
+    resource_id INT,
+    new_scope VARCHAR(255)
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.resources
+    SET scope = new_scope
+    WHERE id = resource_id
+      AND is_deleted = FALSE;
+
+    RETURN resource_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.delete_resource(
    r_id INT
 )
@@ -92,12 +110,13 @@ CREATE OR REPLACE FUNCTION public.get_resources_by_id(
 RETURNS TABLE(id INT, 
               action VARCHAR(255), 
               name VARCHAR(255),
-              resource VARCHAR(255))
+              resource VARCHAR(255),
+              scope VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT r.id, r.action, r.name, r.resource
+    SELECT r.id, r.action, r.name, r.resource, r.scope
     FROM public.resources r
     WHERE r.id = resource_id
       AND r.is_deleted = FALSE
@@ -111,14 +130,35 @@ CREATE OR REPLACE FUNCTION public.get_resources_by_name(
 RETURNS TABLE(id INT, 
               action VARCHAR(255), 
               name VARCHAR(255),
-              resource VARCHAR(255))
+              resource VARCHAR(255),
+              scope VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT r.id, r.action, r.name, r.resource
+    SELECT r.id, r.action, r.name, r.resource, r.scope
     FROM public.resources r
     WHERE r.name = resource_name
+      AND r.is_deleted = FALSE
+    LIMIT 1; 
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_resources_by_scope(
+    scope_name VARCHAR(255)
+)
+RETURNS TABLE(id INT, 
+              action VARCHAR(255), 
+              name VARCHAR(255),
+              resource VARCHAR(255),
+              scope VARCHAR(255))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT r.id, r.action, r.name, r.resource, r.scope
+    FROM public.resources r
+    WHERE r.scope = scope_name
       AND r.is_deleted = FALSE
     LIMIT 1; 
 END;
@@ -130,12 +170,13 @@ CREATE OR REPLACE FUNCTION public.get_resources_by_resource(
 RETURNS TABLE(id INT, 
               action VARCHAR(255), 
               name VARCHAR(255),
-              resource VARCHAR(255))
+              resource VARCHAR(255),
+              scope VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT r.id, r.action, r.name, r.resource
+    SELECT r.id, r.action, r.name, r.resource, r.scope
     FROM public.resources r
     WHERE r.resource = r_resource
       AND r.is_deleted = FALSE
@@ -151,12 +192,13 @@ RETURNS TABLE(
     id INT, 
     action VARCHAR(255), 
     name VARCHAR(255),
-    resource VARCHAR(255))
+    resource VARCHAR(255),
+    scope VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.id, r.action, r.name, r.resource
+        SELECT r.id, r.action, r.name, r.resource, r.scope
         FROM public.resources r
         WHERE r.is_deleted = FALSE
         LIMIT r_limit
