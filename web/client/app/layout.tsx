@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Efoyeta Store"
+  title: "Efoyeta Store",
 };
 
 export default function RootLayout({
@@ -39,7 +39,6 @@ export default function RootLayout({
         <Footer />
         <TawkChat />
       </SessionProvider>
-
     </html>
   );
 }
