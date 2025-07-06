@@ -172,14 +172,16 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 	}
 
 	// create user
-	user_id, err := d.UserService.Create(ctx, &user.CreateRequest{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Email:     req.Email,
-		Phone:     req.Phone,
-		Username:  req.Username,
-	})
+	// FIXME: make flexible...hardcoded
+	distributorRoleName := "distributor"
 
+	user_id, err := d.UserService.Create(ctx, user.NewCreateRequestNoPassword(
+		req.FirstName,
+		req.LastName,
+		req.Email,
+		req.Username,
+		req.Phone,
+	).WithRole(distributorRoleName))
 	if err != nil {
 		switch err {
 		case user.ErrUnknown:
