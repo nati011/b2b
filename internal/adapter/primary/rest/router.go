@@ -55,15 +55,15 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 				panic("Failed to fetch resource")
 			}
 		}
-		if err != nil {
-			if _, err = applicationServices.ResourceService.Create(ctx,
-				&resource.CreateRequest{
-					Name:     r.Name,
-					Resource: r.Resource,
-					Action:   resource.ANY}); err != nil {
-				panic("Failed to create resource err")
-			}
+
+		if _, err = applicationServices.ResourceService.Create(ctx,
+			&resource.CreateRequest{
+				Name:     r.Name,
+				Resource: r.Resource,
+				Action:   resource.ANY}); err != nil {
+			panic("Failed to create resource err")
 		}
+
 	}
 	return nil
 }
