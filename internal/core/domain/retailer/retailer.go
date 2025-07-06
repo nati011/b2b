@@ -103,7 +103,6 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 	}
 
 	// create user
-
 	// FIXME: make flexible...hardcoded
 	retailerRoleName := "retailer"
 
