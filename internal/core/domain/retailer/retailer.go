@@ -103,14 +103,18 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 	}
 
 	// create user
-	user_id, err := r.UserService.Create(ctx, &user.CreateRequest{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Email:     req.Email,
-		Username:  req.Username,
-		Phone:     req.Phone,
-		Password:  req.Password,
-	})
+
+	// FIXME: make flexible...hardcoded
+	retailerRoleName := "retailer"
+
+	user_id, err := r.UserService.Create(ctx, user.NewCreateRequest(
+		req.FirstName,
+		req.LastName,
+		req.Email,
+		req.Username,
+		req.Phone,
+		req.Password,
+	).WithRole(retailerRoleName))
 	if err != nil {
 		switch err {
 		case user.ErrUnknown:
