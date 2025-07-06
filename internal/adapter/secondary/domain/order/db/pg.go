@@ -282,6 +282,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.CreatedAt,
 		&totalCount,
 		&responseBase.ConfirmationStatus,
+		&responseBase.PaymentMethod,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -302,12 +303,13 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			DeliveryStatus:     res[6].(string),
 			PaymentStatus:      res[5].(string),
-			CreatedAt:          res[7].(time.Time),
-			ConfirmationStatus: res[9].(string),
+			DeliveryStatus:     res[6].(string),
+			PaymentMethod:      res[7].(string),
+			CreatedAt:          res[8].(time.Time),
+			ConfirmationStatus: res[10].(string),
 		}
-		totalCount = res[8].(int64)
+		totalCount = res[9].(int64)
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
 			return port.GetAllResponse{}, err
