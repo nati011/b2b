@@ -47,6 +47,30 @@ type CreateRequest struct {
 	DOB        time.Time
 	ExternalId string
 	Password   string
+	roleName   string
+}
+
+func (r *CreateRequest) WithRole(roleName string) *CreateRequest {
+	r.roleName = roleName
+	return r
+}
+
+func NewCreateRequest(
+	firstName string,
+	lastName string,
+	email string,
+	username string,
+	phone string,
+	password string) *CreateRequest {
+
+	return &CreateRequest{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Username:  username,
+		Phone:     phone,
+		Password:  password,
+	}
 }
 
 type GetAssignedRoleResponse struct {
