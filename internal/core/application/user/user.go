@@ -73,6 +73,22 @@ func NewCreateRequest(
 	}
 }
 
+func NewCreateRequestNoPassword(
+	firstName string,
+	lastName string,
+	email string,
+	username string,
+	phone string) *CreateRequest {
+
+	return &CreateRequest{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Username:  username,
+		Phone:     phone,
+	}
+}
+
 type GetAssignedRoleResponse struct {
 	Id int
 }
