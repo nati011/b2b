@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
@@ -46,7 +47,8 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 
 	ctx := context.Background()
 	for _, r := range handler.GetRoutes() {
-		_, err := applicationServices.ResourceService.GetByName(ctx, r.Name)
+		log.Printf("Resources %v", r)
+		res, err := applicationServices.ResourceService.GetByName(ctx, r.Name)
 		if err != nil {
 			switch err {
 			case resource.ErrNameNotFound:
@@ -55,19 +57,31 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 				panic("Failed to fetch resource")
 			}
 		}
-		_, err = applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
+
+		log.Printf("Resource fetched, %v", res)
+		created, err := applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
 			Name:     r.Name,
 			Resource: r.Resource,
 			Action:   resource.ANY,
 		})
+		log.Printf("Error Occured %v", err)
+		log.Printf("Resource created, %v", created)
 		if err != nil {
 			if _, err = applicationServices.ResourceService.Create(ctx,
 				&resource.CreateRequest{
 					Name:     r.Name,
 					Resource: r.Resource,
 					Action:   resource.ANY}); err != nil {
-				panic("Failed to create resource err")
+				switch err {
+				case resource.ErrDuplicateResource:
+				case resource.ErrDuplicateName:
+				default:
+					panic(err)
+				}
 			}
+		} else {
+			log.Printf("Error: %v", err)
+			panic("Error Occured while creating resource")
 		}
 	}
 	return nil
