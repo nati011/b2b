@@ -1,7 +1,6 @@
 "use client"
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import Heading from "@/components/breadcrumb";
+import { useParams} from "next/navigation";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/datatable";
 import { columns } from "@/app/(dashboard)/orders/[id]/columns";
@@ -9,12 +8,11 @@ import useOrdersStore from "@/app/libs/store/useOrderStore";
 import useRetailersStore from "@/app/libs/store/useRetailerStore";
 import StatusBadge from "@/components/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CiUser } from "react-icons/ci";
 import { Separator } from "@/components/ui/separator";
 
 
 // @ts-ignore
-export default function OrderDetail({ params: { locale } }) {
+export default function OrderDetail() {
     const routeParam = useParams<{ id: string }>();
 
     const {
@@ -82,7 +80,6 @@ export default function OrderDetail({ params: { locale } }) {
                         columns={columns}
                         data={order.Items}
                         loading={loading}
-                        button={false}
                     />
                     <div className="w-full flex flex-col items-end">
                         <p>
