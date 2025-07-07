@@ -2,6 +2,20 @@ package resource
 
 import "context"
 
+func (r *ResourceProvider) validateResource(ctx context.Context, resource string) error {
+	//empty resource
+	if resource == "" {
+		return ErrEmptyResource
+	}
+	// Check for duplicate resource
+	if _, err := r.GetByResource(ctx, resource); err == nil {
+		return ErrDuplicateResource
+	} else if err != ErrResourceNotFound {
+		return err
+	}
+	return nil
+}
+
 func (r *ResourceProvider) validateName(ctx context.Context, name string) error {
 	//empty name
 	if name == "" {

@@ -22,24 +22,13 @@ import {
     ShoppingCart,
     Settings,
     BarChart3,
-    FileText,
     Store,
-    UserCheck,
-    CreditCard,
-    Layers
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import getCurrentUser from "@/app/actions/getCurrentUser"
 
 export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const user = await getCurrentUser()
-
     const data = {
-        user: {
-            name: user?.name || "",
-            email: user?.email || "",
-        },
         navMain: [
             {
                 title: "Dashboard",
@@ -82,7 +71,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                     },
                     {
                         title: "Distributor Agents",
-                        url: "/distributors/approvals",
+                        url: "/distributors/agents",
                     },
                 ],
             },
@@ -100,16 +89,6 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         url: "/transactions",
                     }
                 ],
-            },
-            {
-                title: "Payments",
-                url: "/payments",
-                icon: CreditCard,
-            },
-            {
-                title: "Reports",
-                url: "/reports",
-                icon: FileText,
             },
             {
                 title: "Settings",
@@ -187,8 +166,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter className="border-t border-border/40 p-2">
-                <NavUser user={data.user} />
+            <SidebarFooter className="border-t border-border/40 p-2 active:bg-neutral-100">
+                <NavUser />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

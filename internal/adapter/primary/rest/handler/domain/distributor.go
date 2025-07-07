@@ -12,6 +12,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	"b2b.nati011.github.com/internal/core/application/user"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -86,10 +87,26 @@ type Distributor struct {
 func InitDistributor() {
 	handler.Register(new(Distributor))
 
-	handler.RegisterResource("/api/v1/distributor")
-	handler.RegisterResource("/api/v1/distributor/{id}/user")
-	handler.RegisterResource("/api/v1/distributor/{id}/status")
-	handler.RegisterResource("/api/v1/distributor/{id}/onboarding_review")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor_user",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor/{param}/user",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor_status",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor/{param}/status",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "distributor_onboarding_review",
+		Action:   "ALL",
+		Resource: "/api/v1/distributor/{param}/onboarding_review",
+	})
 }
 
 func (d *Distributor) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainServices *domain_core.Container) error {
@@ -116,6 +133,10 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateUserHandler)).ServeHTTP(w, r)
 	})
 
+	mux.HandleFunc("GET /api/v1/distributor/user", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetDistributorUsersFromContext)).ServeHTTP(w, r)
+	})
+
 	mux.HandleFunc("GET /api/v1/distributor/{id}/user", func(w http.ResponseWriter, r *http.Request) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetUserHandler)).ServeHTTP(w, r)
 	})
@@ -129,14 +150,10 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 	})
 }
 
-func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	typedParamId, err := util.GetPathParam(r, 4)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
+func (de *Distributor) GetDistributorUsersFromContext(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("userId").(int)
 
-	resp, err := de.service.Get(r.Context(), typedParamId)
+	resp, err := de.service.GetByUserId(r.Context(), id)
 	if err != nil {
 		switch err {
 		case distributor.ErrIdNotFound:
@@ -148,7 +165,39 @@ func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	users_resp, err := de.service.GetAllUsers(r.Context(), resp.Id)
+	users_resp, err := de.service.GetAllUserDetail(r.Context(), resp.Id)
+	if err != nil {
+		switch err {
+		case distributor.ErrIdNotFound:
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, util.Envelope{"users": users_resp})
+
+}
+
+func (de *Distributor) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	typedParamId, err := util.GetPathParam(r, 4)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	resp, err := de.service.GetByUserId(r.Context(), typedParamId)
+	if err != nil {
+		switch err {
+		case distributor.ErrIdNotFound:
+			util.RequestErrorResponse(w, err)
+			return
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+
+	users_resp, err := de.service.GetAllUserDetail(r.Context(), resp.Id)
 	if err != nil {
 		switch err {
 		case distributor.ErrIdNotFound:

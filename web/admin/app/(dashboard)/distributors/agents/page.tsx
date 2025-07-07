@@ -7,14 +7,15 @@ import Heading from "@/components/breadcrumb";
 
 export default function Distributors() {
   const {
-    distributors,
+    distributorUser,
+    userCount,
     loading,
     error,
-    fetchDistributors
+    fetchDistributorUser
   } = useDistributorsStore()
 
   useEffect(() => {
-    fetchDistributors();
+    fetchDistributorUser();
   }, []);
 
   const pages: any[] = [
@@ -30,7 +31,7 @@ export default function Distributors() {
       <Heading page={pages} heading="Distributor Agents" subheading="List of Registered Distributor Agents" />
       <DataTableLayout
         columns={columns}
-        data={distributors}
+        data={distributorUser}
         loading={loading}
         button={true}
         buttonObj={{ name: "Register Distributor Agents", url: "/distributors/agents/form" }}

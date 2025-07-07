@@ -57,7 +57,7 @@ func normalizeResourcePath(path string) string {
 	segments := strings.Split(path, "/")
 	for i, seg := range segments {
 		if seg != "" && regexp.MustCompile(`^\d+$`).MatchString(seg) {
-			segments[i] = "{id}"
+			segments[i] = "{param}"
 		}
 	}
 	return strings.Join(segments, "/")
@@ -120,7 +120,8 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 		}
 		// Temporary: For requests with query param
 		rawPath := strings.Split(r.RequestURI, "?")[0]
-		normalizedPath := normalizeResourcePath(rawPath)
+		re := regexp.MustCompile(`/\d+`)
+		normalizedPath := normalizeResourcePath(re.ReplaceAllString(rawPath, "/{param}"))
 		rsrce, err := am.ResourceService.GetByName(r.Context(), normalizedPath)
 		if err != nil {
 			switch err {
@@ -133,6 +134,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 
 		var hasResource bool
 		for _, ro := range assignedRoles.List {
+			log.Printf("Roles: %v", ro)
 			hasResource, err = am.roleService.HasResource(r.Context(), &role.HasResourceRequest{
 				ResourceId: rsrce.Id,
 				RoleId:     ro.Id,

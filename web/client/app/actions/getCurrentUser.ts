@@ -1,17 +1,23 @@
-import { getSession } from "@/app/actions/getSession";
+import axiosIns from "@/lib/axios";
+import { UserIdentity } from "@/lib/types";
 
-export default async function getCurrentUser() {
-    try {
-        const session = await getSession();
-        // const resp = await axiosIns.get("/users/me")
-        const currentUser = session?.user
+export default async function getCurrentUser(): Promise<UserIdentity | null> {
+  try {
+    const { data } = await axiosIns.get<{ user: UserIdentity }>(
+      "/identity/user"
+    );
 
-        if (!currentUser) {
-            return null;
-        }
-
-        return currentUser
-    } catch (error: any) {
-        return null;
+    if (!data?.user) {
+      console.error("No user data received");
+      return null;
     }
+
+    return data.user;
+  } catch (error: any) {
+    console.error(
+      "Error fetching current user:",
+      error.response?.data || error.message
+    );
+    return null;
+  } 
 }

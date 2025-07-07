@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock, PlayCircle, PauseCircle, MapPin, Building2, User } from "lucide-react";
+import { useUserStore } from "@/app/libs/store/useAuthStore";
 
 const Map = dynamic(
     () => import('@/components/map'),
@@ -37,6 +38,11 @@ export default function DistributorDetail() {
         activateDistributor,
         deactivateDistributor
     } = useDistributorsStore()
+
+    const {
+        user,
+        fetchUserById
+    } = useUserStore()
     
     const [markerPosition, setMarkerPosition] = useState<[number, number]>([8.9934609, 38.7714897])
     const [comment, setComment] = useState("")
@@ -67,7 +73,7 @@ export default function DistributorDetail() {
 
     useEffect(() => {
         if (distributor?.user && distributor?.user[0] !== 0) {
-            fetchDistributorUser(distributor?.user[0])
+            fetchUserById(distributor?.user[0])
             const lat = distributor?.latitude || "8.9934609"
             const long = distributor?.longitude || "38.7714897"
             setMarkerPosition([parseFloat(lat), parseFloat(long)])

@@ -26,7 +26,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 
 	query := "SELECT * FROM public.get_resources_by_id($1);"
 
-	result := []any{&response.Id, &response.Action, &response.Name}
+	result := []any{&response.Id, &response.Action, &response.Name, &response.Resource}
 	args := []any{&id}
 
 	err := query_handler.NewQuery(
@@ -42,6 +42,7 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.Id = *result[0].(*int)
 	response.Action = *result[1].(*string)
 	response.Name = *result[2].(*string)
+	response.Resource = *result[3].(*string)
 
 	return response, nil
 }
@@ -51,7 +52,7 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 
 	query := "SELECT * FROM public.get_resources_by_name($1);"
 
-	result := []any{&response.Id, &response.Action, &response.Name}
+	result := []any{&response.Id, &response.Action, &response.Name, &response.Resource}
 	args := []any{&name}
 
 	err := query_handler.NewQuery(
@@ -67,6 +68,33 @@ func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetResponse
 	response.Id = *result[0].(*int)
 	response.Action = *result[1].(*string)
 	response.Name = *result[2].(*string)
+	response.Resource = *result[3].(*string)
+
+	return response, nil
+}
+
+func (p *Postgres) GetByResource(ctx context.Context, resource string) (port.GetResponse, error) {
+	var response port.GetResponse
+
+	query := "SELECT * FROM public.get_resources_by_resource($1);"
+
+	result := []any{&response.Id, &response.Action, &response.Name, &response.Resource}
+	args := []any{&resource}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return port.GetResponse{}, err
+	}
+
+	response.Id = *result[0].(*int)
+	response.Action = *result[1].(*string)
+	response.Name = *result[2].(*string)
+	response.Resource = *result[3].(*string)
 
 	return response, nil
 }
@@ -77,7 +105,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 	query := "SELECT * FROM public.get_all_resources($1, $2);"
 
-	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Action}
+	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Action, &responseBase.Resource}
 	args := []any{p.Pagination.Limit, p.Pagination.Offset}
 
 	result, err := query_handler.NewQuery(
@@ -93,9 +121,10 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResponse{
-			Id:     int(res[0].(int64)),
-			Action: res[1].(string),
-			Name:   res[2].(string),
+			Id:       int(res[0].(int64)),
+			Action:   res[1].(string),
+			Name:     res[2].(string),
+			Resource: res[3].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}
@@ -105,10 +134,10 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.create_resource($1, $2);"
+	query := "SELECT * FROM public.create_resource($1, $2, $3);"
 
 	result := []any{&resourceId}
-	args := []any{req.Name, req.Action}
+	args := []any{req.Name, req.Action, req.Resource}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -149,6 +178,26 @@ func (p *Postgres) UpdateName(ctx context.Context, req *port.UpdateNameRequest) 
 
 	result := []any{&resourceId}
 	args := []any{req.Id, req.Name}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return 0, err
+	}
+
+	return resourceId, nil
+}
+
+func (p *Postgres) UpdateResource(ctx context.Context, req *port.UpdateResouceRequest) (int, error) {
+	var resourceId int
+	query := "SELECT * FROM public.update_resource_resource($1, $2);"
+
+	result := []any{&resourceId}
+	args := []any{req.Id, req.Resource}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),

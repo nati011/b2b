@@ -10,36 +10,42 @@ import (
 
 var (
 	ErrDuplicateName      = errors.New(" duplicate name")
+	ErrDuplicateResource  = errors.New(" duplicate resource")
 	ErrEmptyAction        = errors.New(" empty action")
 	ErrEmptyName          = errors.New(" empty name")
+	ErrEmptyResource      = errors.New(" empty resource")
 	ErrIdNotFound         = errors.New(" id not found")
 	ErrNameNotFound       = errors.New(" name not found")
+	ErrResourceNotFound   = errors.New(" resource not found")
 	ErrUnknown            = errors.New(" unknown error has occured")
 	ErrEmptyUpdateContent = errors.New(" update content empty")
 	ErrEmptyGetContent    = errors.New(" get content empty")
 )
 
 const (
-	ALL   = "ALL"
+	ANY   = "ANY"
 	READ  = "READ"
 	WRITE = "WRITE"
 )
 
 type CreateRequest struct {
-	Action string
-	Name   string
+	Action   string
+	Resource string
+	Name     string
 }
 
 type UpdateRequest struct {
-	Id     int
-	Action string
-	Name   string
+	Id       int
+	Action   string
+	Resource string
+	Name     string
 }
 
 type GetResponse struct {
-	Id     int
-	Action string
-	Name   string
+	Id       int
+	Action   string
+	Resource string
+	Name     string
 }
 
 type GetAllResponse struct {
@@ -47,6 +53,7 @@ type GetAllResponse struct {
 }
 
 type Provider interface {
+	GetByResource(context.Context, string) (GetResponse, error)
 	GetByName(context.Context, string) (GetResponse, error)
 	Get(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
@@ -75,9 +82,13 @@ func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int,
 	if err != nil {
 		return 0, err
 	}
+	if err := r.validateResource(ctx, req.Resource); err != nil {
+		return 0, err
+	}
 	id, err := r.db.Create(ctx, &port.CreateRequest{
-		Action: req.Action,
-		Name:   req.Name,
+		Action:   req.Action,
+		Name:     req.Name,
+		Resource: req.Resource,
 	})
 	if err != nil {
 		switch err {
@@ -135,6 +146,24 @@ func (r *ResourceProvider) Update(ctx context.Context, req *UpdateRequest) (int,
 		}
 	}
 
+	//update resource
+	if req.Resource != "" {
+		err = r.validateResource(ctx, req.Resource)
+		if err != nil {
+			return 0, err
+		}
+		_, err = r.db.UpdateResource(ctx, &port.UpdateResouceRequest{
+			Id:       req.Id,
+			Resource: req.Resource,
+		})
+		if err != nil {
+			switch err {
+			default:
+				return 0, ErrUnknown
+			}
+		}
+	}
+
 	return req.Id, nil
 }
 
@@ -160,6 +189,19 @@ func (r *ResourceProvider) GetByName(ctx context.Context, name string) (GetRespo
 		switch err {
 		case port_commons.ErrSysNoRows:
 			return GetResponse{}, ErrNameNotFound
+		default:
+			return GetResponse{}, ErrUnknown
+		}
+	}
+	return GetResponse(resp), nil
+}
+
+func (r *ResourceProvider) GetByResource(ctx context.Context, resource string) (GetResponse, error) {
+	resp, err := r.db.GetByResource(ctx, resource)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetResponse{}, ErrResourceNotFound
 		default:
 			return GetResponse{}, ErrUnknown
 		}

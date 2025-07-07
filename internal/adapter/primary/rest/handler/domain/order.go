@@ -11,6 +11,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 
 	"b2b.nati011.github.com/internal/core/domain/order"
@@ -55,10 +56,26 @@ var (
 func InitOrder() {
 	handler.Register(new(Order))
 
-	handler.RegisterResource("/api/v1/order")
-	handler.RegisterResource("/api/v1/order/init_payment")
-	handler.RegisterResource("/api/v1/orders/retailer")
-	handler.RegisterResource("/api/v1/orders/distributor")
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "order",
+		Action:   "ALL",
+		Resource: "/api/v1/order",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "order_init_payment",
+		Action:   "ALL",
+		Resource: "/api/v1/order/init_payment",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "orders_retailer",
+		Action:   "ALL",
+		Resource: "/api/v1/orders/retailer",
+	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "orders_distributor",
+		Action:   "ALL",
+		Resource: "/api/v1/orders/distributor",
+	})
 }
 
 type Order struct {
@@ -122,34 +139,26 @@ func (o *Order) GetRetailerOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) GetDistributorOrders(w http.ResponseWriter, r *http.Request) {
-	const ParamDistributorId = "distributor_id"
-
-	paramValues := r.URL.Query()
-	paramDistributorIdValue := paramValues.Get(ParamDistributorId)
-	if paramDistributorIdValue != "" {
-		var typedDistributorId int
-		var err error
-		if paramDistributorIdValue != "" {
-			typedDistributorId, err = strconv.Atoi(paramDistributorIdValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		resp, err := o.service.GetDistributorOrders(r.Context(), typedDistributorId)
-		if err != nil {
-			switch err {
-			case order.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			case order.ErrEmptyGetResponse:
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
+	userId, ok := r.Context().Value("userId").(int)
+	if !ok {
+		util.ServerErrorResponse(w, errors.New("userId not found in context"))
+		return
 	}
+
+	resp, err := o.service.GetDistributorOrdersWithUserContext(r.Context(), userId)
+	if err != nil {
+		switch err {
+		case order.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		case order.ErrEmptyGetResponse:
+		default:
+			util.RequestErrorResponse(w, err)
+			return
+		}
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"orders": resp})
 }
 
 func (o *Order) GetHandler(w http.ResponseWriter, r *http.Request) {
