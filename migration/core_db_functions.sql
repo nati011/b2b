@@ -320,13 +320,14 @@ create or replace function public.get_all_resource_by_role (
 RETURNS table (
 resource_id INT,
 name VARCHAR(255),
-action VARCHAR(255)
+action VARCHAR(255),
+resource VARCHAR(255)
 ) 
 LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
-        SELECT r.resource_id, re.name, re.action
+        SELECT r.resource_id, re.name, re.action, re.resource
         FROM public.role_resources r
         JOIN resources re on re.id = r.resource_id
         WHERE r.role_id = role_identifier 
