@@ -26,9 +26,10 @@ type GetResponse struct {
 }
 
 type GetResourceResponse struct {
-	Id     int
-	Action string
-	Name   string
+	Id       int
+	Action   string
+	Name     string
+	Resource string
 }
 
 type GetAllResponse struct {

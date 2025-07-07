@@ -49,9 +49,10 @@ type GetAllResponse struct {
 }
 
 type GetResourceResponse struct {
-	Id     int
-	Name   string
-	Action string
+	Id        int
+	Name      string
+	Resources string
+	Action    string
 }
 
 type GetAllResourcesResponse struct {
@@ -367,9 +368,10 @@ func (r *RoleProvider) GetAllResources(ctx context.Context, id int) (GetAllResou
 	}
 	for _, i := range resp.List {
 		response.List = append(response.List, GetResourceResponse{
-			Id:     i.Id,
-			Name:   i.Name,
-			Action: i.Action,
+			Id:        i.Id,
+			Name:      i.Name,
+			Resources: i.Resource,
+			Action:    i.Action,
 		})
 	}
 	return response, nil
