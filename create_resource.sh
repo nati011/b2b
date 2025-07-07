@@ -1,12 +1,7 @@
 #!/bin/bash
 
 
-create_resource() {
-    local name="$1"
-    local action="$2"
-    local resource="$3"
-    
-    echo "Creating resource: $name"
+$name"
     
     # Execute the PostgreSQL function using connection string
     psql "$DB_CONNECTION_STRING" -t -c \
