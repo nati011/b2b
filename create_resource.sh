@@ -1,9 +1,6 @@
 #!/bin/bash
 
 
-DB_CONNECTION_STRING="${DB_CONNECTION_STRING:-postgresql://neondb_owner:npg_vI3ByRrKu9PX@ep-nameless-sun-a55nmt8x-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require}"
-
-# Function to execute SQL and create resource
 create_resource() {
     local name="$1"
     local action="$2"
