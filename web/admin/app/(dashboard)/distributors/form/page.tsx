@@ -92,7 +92,6 @@ export default function DistributorsForm() {
 
   useEffect(() => {
     if (error != null) {
-      console.log(error)
       toast.error(error)
     }
     if (success != null) {
