@@ -98,10 +98,6 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                     {
                         title: "Roles & Permissions",
                         url: "/role",
-                    },
-                    {
-                        title: "System Config",
-                        url: "/settings/config",
                     }
                 ],
             }
@@ -112,14 +108,14 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
         <Sidebar {...props} className="border-r border-border/40">
             <SidebarHeader className="border-b border-border/40">
                 <SidebarMenu>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem className="py-[0.15rem]">
                         <Link href="/">
                             <SidebarMenuButton
                                 size="lg"
                                 className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground hover:bg-accent/50 transition-colors"
                             >
-                                <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
-                                    <Image src='/logo.png' width={32} height={32} alt="logo" className="rounded-lg" />
+                                <div className="flex  size-10 items-center justify-center  text-primary-foreground">
+                                    <Image src='/logo.svg' width={32} height={32} alt="logo" className="rounded-lg" />
                                 </div>
                                 <div className="grid flex-1 text-left text-lg leading-tight">
                                     <span className="truncate font-bold">
@@ -144,7 +140,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                                     tooltip={item.title}
                                     className="hover:bg-accent/50 transition-all duration-200 group"
                                 >
-                                    <item.icon className="h-5 w-5 transition-transform group-hover:scale-110" />
+                                    <item.icon className="h-5 w-5 transition-transform group-hover:scale-110 text-primary" />
                                     <span className="font-medium">{item.title}</span>
                                 </SidebarMenuButton>
                                 </Link>

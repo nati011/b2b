@@ -215,7 +215,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                                 <SelectGroup>
                                                     <SelectLabel>Distributor</SelectLabel>
                                                     {
-                                                        distributors.map((d) => (
+                                                        distributors?.map((d) => (
                                                             <SelectItem value={d.id.toString()}>{d.name}</SelectItem>
 
                                                         ))
