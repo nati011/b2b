@@ -86,7 +86,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
             set({
                 loading: false
             });
-            await useOrdersStore.getState().fetchOrders()
+            await useOrdersStore.getState().fetchOrders(0)
         } catch (error: any) {
             set({ error: error.message, loading: false });
         }

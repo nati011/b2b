@@ -166,15 +166,14 @@ const Product = () => {
                           onClick={() => handlePageChange(currentPage - 1)}
                           className={
                             currentPage === 0
-                              ? "pointer-events-none opacity-50"
-                              : undefined
+                              ? "pointer-events-none text-primary opacity-50"
+                              : "text-primary"
                           }
                         />
                       </PaginationItem>
 
                       {Array.from({ length: Math.min(5, totalPages) }).map(
                         (_, index) => {
-                          // Show pages around current page
                           let pageNum;
                           if (totalPages <= 5) {
                             pageNum = index;
@@ -187,7 +186,7 @@ const Product = () => {
                           }
 
                           return (
-                            <PaginationItem key={pageNum}>
+                            <PaginationItem key={pageNum} className="text-primary">
                               <PaginationLink
                                 isActive={currentPage === pageNum}
                                 onClick={() => handlePageChange(pageNum)}
@@ -204,8 +203,8 @@ const Product = () => {
                           onClick={() => handlePageChange(currentPage + 1)}
                           className={
                             currentPage === totalPages - 1
-                              ? "pointer-events-none opacity-50"
-                              : undefined
+                              ? "pointer-events-none text-primary opacity-50"
+                              : "text-primary"
                           }
                         />
                       </PaginationItem>
