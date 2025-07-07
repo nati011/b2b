@@ -165,7 +165,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 			return CheckoutResponse{}, err
 		}
 
-		returnUrl := fmt.Sprintf("%v/confirmOrder/%v", p.frontendUrl, req.OrderId)
+		returnUrl := fmt.Sprintf("%v/%v", p.frontendUrl, req.OrderId)
 
 		paymentInitiateRequest := payment_gateway.InitiateRequest{
 			Amount:         req.Amount,
