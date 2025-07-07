@@ -212,7 +212,7 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 	var responseBase port.GetResourceResponse
 
 	query := "SELECT * FROM public.get_all_resource_by_role($1);"
-	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Action}
+	dest := []any{&responseBase.Id, &responseBase.Name, &responseBase.Action, responseBase.Resource}
 	args := []any{role_id}
 
 	result, err := query_handler.NewQuery(
@@ -228,9 +228,10 @@ func (p *Postgres) GetAllResources(ctx context.Context, role_id int) (port.GetAl
 	// convert
 	for _, res := range result {
 		responseBase := port.GetResourceResponse{
-			Id:     int(res[0].(int64)),
-			Name:   res[1].(string),
-			Action: res[2].(string),
+			Id:       int(res[0].(int64)),
+			Name:     res[1].(string),
+			Action:   res[2].(string),
+			Resource: res[3].(string),
 		}
 		response.List = append(response.List, responseBase)
 	}

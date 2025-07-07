@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"log"
 
 	port "b2b.nati011.github.com/internal/port/application/resource"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
@@ -90,6 +91,7 @@ func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int,
 		Name:     req.Name,
 		Resource: req.Resource,
 	})
+	log.Printf("Created Resource: %v", id)
 	if err != nil {
 		switch err {
 		default:
