@@ -1,10 +1,11 @@
 'use server'
 import axiosIns from '@/app/libs/axios';
-import { DistributorRequest } from '@/app/libs/types';
+import { DistributorRequest, DistributorUserRequest } from '@/app/libs/types';
+import { withErrorHandling } from '../libs/error-handling';
 
 
 export const GetAll = async (status?: string) => {
-    try {
+    return withErrorHandling(async () => {
         let requestUrl = '/distributor'
         if (status != "ALL"){
             requestUrl = `/distributor?verdict=${status}`
@@ -12,24 +13,16 @@ export const GetAll = async (status?: string) => {
         const response = await axiosIns.get(requestUrl);
         console.log(response.data)
         return response.data.body
-    } catch (error) {
-        throw error
-    }
+      });
 }
 
 
 export const Create = async (DistributorsData: DistributorRequest) => {
-    try {
+    return withErrorHandling(async () => {
         const response = await axiosIns.post('/distributor/', DistributorsData);
         console.log(response)
         return response.data.detail
-    } catch (error: any) {
-        if (error.response) {
-            throw error.response.data.message
-        }
-
-
-    }
+      });
 }
 export const GetById = async (id: number) => {
     try {
@@ -49,6 +42,14 @@ export const GetDistributorUser = async () => {
         console.log(error)
         throw error
     }
+}
+
+export const CreateDistributorUser = async (user: DistributorUserRequest) => {
+    return withErrorHandling(async () => {
+        const response = await axiosIns.post(`/distributor/user`, user);
+        console.log(response.data)
+        return response.data.body
+      });
 }
 
 

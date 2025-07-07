@@ -1,5 +1,6 @@
 'use server'
 import axiosIns from "@/app/libs/axios";
+import { withErrorHandling } from "@/app/libs/error-handling";
 
 export const GetAll = async () => {
     try {
@@ -11,32 +12,27 @@ export const GetAll = async () => {
 }
 
 export const Create = async (name: string) => {
-    try {
+    return withErrorHandling(async () => {
         const response = await axiosIns.post(
             "/category",
             { name: name },
         );
         return response.data.detail
-    } catch (error: any) {
-        throw error
-    }
+      });
+    
 }
 
 export const Delete = async (id: number) => {
-    try {
+    return withErrorHandling(async () => {
         await axiosIns.delete(`/category?id=${id}`);
-    } catch (error: any) {
-        throw error
-    }
+      });
 }
 
 export const Update = async (id: number, name: string) => {
-    try {
+    return withErrorHandling(async () => {
         const response = await axiosIns.patch(`/category/${id}`, {
             "name": name
         });
         return response.data.message
-    } catch (error: any) {
-        throw error
-    }
+      });
 }
