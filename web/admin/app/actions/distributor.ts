@@ -5,11 +5,13 @@ import { withErrorHandling } from '../libs/error-handling';
 
 
 export const GetAll = async (status?: string) => {
+    console.log(status, "Status_____________________")
     return withErrorHandling(async () => {
         let requestUrl = '/distributor'
-        if (status != "ALL"){
+        if (status != "ALL" && status != null && status != undefined){
             requestUrl = `/distributor?verdict=${status}`
         }
+        console.log(requestUrl)
         const response = await axiosIns.get(requestUrl);
         console.log(response.data)
         return response.data.body

@@ -100,7 +100,7 @@ export const OrderCard: React.FC<Props> = ({
                                             {
                                                 order.PaymentStatus == "PENDING" ? (
                                                     <div className="flex gap-4">
-                                                        <Button variant={'outline'} className="border-red-900" onClick={() => { completePayment(order.Id) }} disabled={timeLeft!=""}>
+                                                        <Button variant={'outline'} className="border-red-900" onClick={() => { completePayment(order.Id) }} disabled={timeLeft==""}>
                                                             {
                                                                 loading ? (
                                                                     <>
@@ -114,7 +114,7 @@ export const OrderCard: React.FC<Props> = ({
                                                                 )
                                                             }
                                                         </Button>
-                                                        <Button variant={'outline'} className="border-gray-400" onClick={() => { cancelOrder(order.Id) }} disabled={timeLeft!=""}>
+                                                        <Button variant={'outline'} className="border-gray-400" onClick={() => { cancelOrder(order.Id) }}>
                                                             {
                                                                 loading ? (
                                                                     <>

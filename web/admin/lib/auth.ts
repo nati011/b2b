@@ -14,7 +14,6 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
 
 
-
 interface AuthResponse {
     body: {
       access_token: string
@@ -24,7 +23,6 @@ interface AuthResponse {
   }
 
 
-// Types
 interface KeycloakJWT {
     exp: number
     iat: number
@@ -82,8 +80,6 @@ interface KeycloakJWT {
   }
   
 
-
-// Utility functions
 function decodeToken(token: string): KeycloakJWT {
     try {
       return jwtDecode<KeycloakJWT>(token)
@@ -102,12 +98,10 @@ function decodeToken(token: string): KeycloakJWT {
     }
   }
   
-  // Token refresh function with improved error handling
   async function refreshAccessToken(token: AppToken): Promise<AppToken> {
     const MAX_REFRESH_ATTEMPTS = 3
     const currentAttempts = token.refreshAttempts || 0
     
-    // Check if we've exceeded the maximum refresh attempts
     if (currentAttempts >= MAX_REFRESH_ATTEMPTS) {
       console.error("Maximum refresh attempts exceeded")
       return {
@@ -143,7 +137,6 @@ function decodeToken(token: string): KeycloakJWT {
       const decoded = decodeToken(response.data.body.access_token)
       const user = createUserFromToken(decoded)
   
-      // Fetch user identity with the new token using the dedicated function
       const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
   
       return {
@@ -157,13 +150,10 @@ function decodeToken(token: string): KeycloakJWT {
         refreshAttempts: 0
       }
     } catch (error) {
-      console.error("Token refresh failed:", error)
-  
-      // Handle specific error cases
+
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<{ message?: string }>
         
-        // Handle 400/401 errors (invalid refresh token)
         if (axiosError.response?.status === 400 || axiosError.response?.status === 401) {
           return {
             ...token,
@@ -182,13 +172,11 @@ function decodeToken(token: string): KeycloakJWT {
           }
         }
         
-        // Handle network errors
         if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'NETWORK_ERROR') {
           console.error("Network error during token refresh")
         }
       }
   
-      // Return token with error for any other failure
       return {
         ...token,
         error: "RefreshAccessTokenError",
@@ -201,7 +189,6 @@ function decodeToken(token: string): KeycloakJWT {
 
 export const authOptions: AuthOptions = {
     providers: [
-      // Google OAuth provider
       ...(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET ? [
         GoogleProvider({
           clientId: GOOGLE_CLIENT_ID,
@@ -224,6 +211,7 @@ export const authOptions: AuthOptions = {
             placeholder: "Enter your password"
           }
         },
+        // @ts-ignore
         async authorize(credentials) {
           if (!credentials?.email || !credentials?.password) {
             throw new Error("Email and password are required")
@@ -254,16 +242,18 @@ export const authOptions: AuthOptions = {
   
             const decoded = decodeToken(response.data.body.access_token)
             const user = createUserFromToken(decoded)
+            console.log('HERE_______________________________________________________________')
   
             // Fetch user identity after successful authentication using the dedicated function
             const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
+            console.log(userIdentity)
   
             return {
               id: user.id,
               name: user.name,
               email: user.email,
               image: null,
-              ...response.data,
+                ...response.data,
               user,
               userIdentity
             }
@@ -292,33 +282,26 @@ export const authOptions: AuthOptions = {
     
     callbacks: {
       async redirect({ url, baseUrl }) {
-        // Allow relative URLs
         if (url.startsWith("/")) return `${baseUrl}${url}`
-        
-        // Allow URLs from the same origin
         if (new URL(url).origin === baseUrl) return url
-        
-        // Default to base URL for external URLs
         return baseUrl
       },
       
       async jwt({ token, user, account }) {
-        // Initial sign in
         if (user && account) {
           const userData = user as any
           const decoded = decodeToken(userData.body.access_token)
+          console.log(userData)
           
           return {
             accessToken: userData.body.access_token,
             refreshToken: userData.body.refresh_token,
             accessTokenExpires: decoded.exp * 1000,
-            user: userData.user,
-            userIdentity: userData.userIdentity,
+            user: userData.userIdentity,
             refreshAttempts: 0
           }
         }
   
-        // Return previous token if the access token has not expired
         const appToken = token as AppToken
         if (appToken.accessTokenExpires && Date.now() < appToken.accessTokenExpires) {
           return token
@@ -353,52 +336,45 @@ export const authOptions: AuthOptions = {
       },
       
       async session({ session, token }) {
-        const appToken = token as AppToken
+        const appToken = token as any
         
-        // Handle token errors
         if (appToken.error === "RefreshAccessTokenError" && !appToken.accessToken) {
           session.user = undefined
           session.expires = new Date(0).toISOString()
           return session
         }
         
-        // Set session data - only essential information to reduce cookie size
         session.user = {
           name: appToken.user.name,
           email: appToken.user.email,
           image: null
         }
         
-        // Add custom properties to session
         const customSession = session as any
         customSession.user = {
           ...session.user,
           id: appToken.user.id,
-          username: appToken.user.username,
-          roles: appToken.user.roles
+          first_name: appToken?.userIdentity?.first_name,
+          last_name:appToken?.userIdentity?.last_name,
+          permissions: appToken.userIdentity?.permissions?.List
         }
         customSession.accessToken = appToken.accessToken
         customSession.error = appToken.error
-        
-        // Don't store userIdentity in session - fetch it when needed
-        // This significantly reduces cookie size
-        
         return customSession
       }
     },
     
     session: {
       strategy: "jwt",
-      maxAge: 72 * 60 * 60, // 72 hours
+      maxAge: 72 * 60 * 60,
     },
     
     jwt: {
-      maxAge: 72 * 60 * 60, // 72 hours
+      maxAge: 72 * 60 * 60, 
     },
     
     debug: process.env.NODE_ENV === 'development',
-    
-    // Security settings
+
     useSecureCookies: process.env.NODE_ENV === 'production',
     cookies: {
       sessionToken: {
@@ -408,7 +384,7 @@ export const authOptions: AuthOptions = {
           sameSite: 'lax',
           path: '/',
           secure: process.env.NODE_ENV === 'production',
-          maxAge: 72 * 60 * 60 // 72 hours
+          maxAge: 72 * 60 * 60 
         }
       }
     }

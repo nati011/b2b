@@ -41,6 +41,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await GetAll(status)
+            console.log(response)
             set({
                 distributors: response.distributors,
                 totalCount: response.total_count,

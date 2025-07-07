@@ -1,7 +1,5 @@
 "use client";
 import useRolesStore from "@/app/libs/store/useRoleStore";
-"use client";
-import useRolesStore from "@/app/libs/store/useRoleStore";
 import { useEffect, useState } from "react";
 import Heading from "../../../components/breadcrumb";
 import {
@@ -70,10 +68,7 @@ export default function Roles() {
     {
       title: "Role Categories",
       href: "/roles/role",
-      title: "Role Categories",
-      href: "/roles/role",
     },
-  ];
   ];
 
   const [deleteModal, setDeleteModal] = useState(false);
@@ -92,16 +87,8 @@ export default function Roles() {
   const filteredRoles = roles.filter((role) =>
     role.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-    desc: "",
-  });
-
-  const filteredRoles = roles.filter((role) =>
-    role.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleEditRole = async () => {
-    await editRole(formData);
-    setIsEditDialogOpen(false);
     await editRole(formData);
     setIsEditDialogOpen(false);
   };
@@ -143,10 +130,6 @@ export default function Roles() {
     fetchResources();
   }, []);
 
-  useEffect(() => {
-    if (error) toast.error(error);
-    if (success) toast.success(success);
-  }, [success, error]);
   useEffect(() => {
     if (error) toast.error(error);
     if (success) toast.success(success);
@@ -287,77 +270,6 @@ export default function Roles() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Heading
-        page={pages}
-        heading='Roles'
-        subheading='List of registered roles'
-      />
-
-      <div className='w-full bg-card rounded-lg border border-border/50 shadow-sm'>
-        {/* Header with Search and Add Button */}
-        <div className='flex flex-col sm:flex-row justify-end gap-4 items-start sm:items-center p-6 border-b border-border/50 space-y-4 sm:space-y-0'>
-          <div className='flex items-center space-x-4 w-full sm:w-auto'>
-            <div className='relative flex-1 sm:flex-none'>
-              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-              <Input
-                placeholder='Search roles...'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className='pl-10 bg-background border-border focus:border-primary transition-colors rounded-sm'
-              />
-            </div>
-          </div>
-
-          <div className='flex items-center space-x-2'>
-            <Button
-              className='bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200'
-              onClick={() => setIsAddDialogOpen(true)}
-            >
-              + Add Role
-            </Button>
-          </div>
-        </div>
-
-        <DataTable columns={columns} data={filteredRoles} loading={loading} />
-      </div>
-
-      {/* Add Role Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Role</DialogTitle>
-          </DialogHeader>
-          <Input
-            placeholder='Role Name'
-            value={formData.name}
-            onChange={(e) => {
-              setFormData((prev) => ({
-                ...prev,
-                name: e.target.value,
-              }));
-            }}
-            autoFocus
-          />
-          <Textarea
-            placeholder='Role Description'
-            value={formData.desc}
-            onChange={(e) => {
-              setFormData((prev) => ({
-                ...prev,
-                desc: e.target.value,
-              }));
-            }}
-          />
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setIsAddDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddRole}>Add Role</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteModal}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -366,17 +278,10 @@ export default function Roles() {
           <AlertDialogDescription>
             Are you sure you want to delete this role?
           </AlertDialogDescription>
-          <AlertDialogDescription>
-            Are you sure you want to delete this role?
-          </AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteModal(false)}>
             <AlertDialogCancel onClick={() => setDeleteModal(false)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
-              className='bg-red-900 hover:bg-red-800'
-              onClick={() => handleDeleteRole(roleId)}
             <AlertDialogAction
               className='bg-red-900 hover:bg-red-800'
               onClick={() => handleDeleteRole(roleId)}
@@ -388,22 +293,17 @@ export default function Roles() {
       </AlertDialog>
 
       {/* Edit Role Dialog */}
-      {/* Edit Role Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Role</DialogTitle>
-            <DialogTitle>Edit Role</DialogTitle>
           </DialogHeader>
           <Input
-            placeholder='Role Name'
             placeholder='Role Name'
             value={formData.name}
             onChange={(e) => {
               setFormData((prev) => ({
-              setFormData((prev) => ({
                 ...prev,
-                name: e.target.value,
                 name: e.target.value,
               }));
             }}
@@ -411,25 +311,15 @@ export default function Roles() {
           />
           <Textarea
             placeholder='Role Description'
-            placeholder='Role Description'
             value={formData.desc}
             onChange={(e) => {
               setFormData((prev) => ({
-              setFormData((prev) => ({
                 ...prev,
-                desc: e.target.value,
                 desc: e.target.value,
               }));
             }}
           />
           <DialogFooter>
-            <Button
-              variant='outline'
-              onClick={() => setIsEditDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleEditRole}>Save Changes</Button>
             <Button
               variant='outline'
               onClick={() => setIsEditDialogOpen(false)}

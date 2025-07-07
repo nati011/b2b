@@ -159,18 +159,18 @@ export default function LoginPage() {
                 )}
               </Button>
             </div>
-            <div className="flex gap-2 items-center justify-center">
+            {/* <div className="flex gap-2 items-center justify-center">
               <div className="border h-[0.2px] w-full"></div>
               <p>Or</p>
               <div className="border h-[0.1px] w-full"></div>
-            </div>
-            <button
+            </div> */}
+            {/* <button
               onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
               className="border-2 w-full font-semibold rounded p-2 flex justify-center gap-4 items-center"
             >
               <FcGoogle size={24} className="" />
               <span>Continue with Google</span>
-            </button>
+            </button> */}
             <div className="text-center text-sm">
               Don&apos;t have an account?{" "}
               <a href="/signup" className="underline underline-offset-4">

@@ -5,17 +5,9 @@ import { toast } from 'sonner'
 import { RefreshAttemptManager } from '@/app/utils/token'
 import { UserIdentity } from '@/app/libs/types'
 
-// Extended session type
 interface ExtendedSession {
-  user?: {
-    id: string
-    name: string
-    email: string
-    username: string
-    roles: string[]
-  } | null
+  user?: UserIdentity
   accessToken?: string
-  userIdentity?: UserIdentity
   error?: string
   expires: string
 }
@@ -27,59 +19,35 @@ export function useAuth() {
   
   const extendedSession = session as ExtendedSession
 
-  // Check if user is authenticated
   const isAuthenticated = status === 'authenticated' && !!extendedSession?.user
 
-  // Check if user is loading
   const isLoading = status === 'loading'
 
-  // Check if user has a specific role
-  const hasRole = useCallback((role: string) => {
-    if (!extendedSession?.user?.roles) return false
-    return extendedSession.user.roles.includes(role)
-  }, [extendedSession])
-
-  // Check if user has any of the specified roles
-  const hasAnyRole = useCallback((roles: string[]) => {
-    if (!extendedSession?.user?.roles) return false
-    return roles.some(role => extendedSession.user!.roles.includes(role))
-  }, [extendedSession])
-
-  // Check if user has all of the specified roles
-  const hasAllRoles = useCallback((roles: string[]) => {
-    if (!extendedSession?.user?.roles) return false
-    return roles.every(role => extendedSession.user!.roles.includes(role))
-  }, [extendedSession])
-
-  // Check if user has a specific permission
   const hasPermission = useCallback((permissionName: string) => {
-    if (!extendedSession?.userIdentity?.permissions) return false
-    return extendedSession.userIdentity.permissions.some(
+    if (!extendedSession?.user?.permissions) return false
+    return extendedSession.user.permissions.some(
       permission => permission.Name === permissionName
     )
   }, [extendedSession])
 
-  // Check if user has any of the specified permissions
   const hasAnyPermission = useCallback((permissionNames: string[]) => {
-    if (!extendedSession?.userIdentity?.permissions) return false
+    if (!extendedSession?.user?.permissions) return false
     return permissionNames.some(permissionName =>
-      extendedSession.userIdentity!.permissions.some(
+      extendedSession.user!.permissions.some(
         permission => permission.Name === permissionName
       )
     )
   }, [extendedSession])
 
-  // Check if user has all of the specified permissions
   const hasAllPermissions = useCallback((permissionNames: string[]) => {
-    if (!extendedSession?.userIdentity?.permissions) return false
+    if (!extendedSession?.user?.permissions) return false
     return permissionNames.every(permissionName =>
-      extendedSession.userIdentity!.permissions.some(
+      extendedSession.user!.permissions.some(
         permission => permission.Name === permissionName
       )
     )
   }, [extendedSession])
 
-  // Sign in function
   const login = useCallback(async (email: string, password: string, callbackUrl?: string) => {
     try {
       const result = await signIn('credentials', {
@@ -94,9 +62,8 @@ export function useAuth() {
       }
 
       if (result?.ok) {
-        // Reset refresh attempts on successful login
         if (extendedSession?.user?.id) {
-          refreshManager.resetAttempts(extendedSession.user.id)
+          refreshManager.resetAttempts(extendedSession.user?.id.toString())
         }
         toast.success('Successfully signed in')
         router.push(callbackUrl || '/')
@@ -114,9 +81,8 @@ export function useAuth() {
   // Sign out function
   const logout = useCallback(async (callbackUrl?: string) => {
     try {
-      // Reset refresh attempts on logout
       if (extendedSession?.user?.id) {
-        refreshManager.resetAttempts(extendedSession.user.id)
+        refreshManager.resetAttempts(extendedSession.user.id.toString())
       }
       
       await signOut({
@@ -136,7 +102,7 @@ export function useAuth() {
       return
     }
 
-    const userId = extendedSession.user.id
+    const userId = extendedSession.user.id.toString()
 
     if (!refreshManager.canAttemptRefresh(userId)) {
       console.error('Maximum refresh attempts reached')
@@ -170,7 +136,7 @@ export function useAuth() {
       console.error('Authentication error:', extendedSession.error)
       
       if (extendedSession.error === 'RefreshAccessTokenError') {
-        const userId = extendedSession.user?.id
+        const userId = extendedSession.user?.id.toString()
         
         if (userId && refreshManager.isMaxAttemptsReached(userId)) {
           toast.error('Session expired due to too many refresh attempts. Please sign in again.')
@@ -202,7 +168,6 @@ export function useAuth() {
     // State
     session: extendedSession,
     user: extendedSession?.user,
-    userIdentity: extendedSession?.userIdentity,
     isAuthenticated,
     isLoading,
     status,
@@ -211,11 +176,6 @@ export function useAuth() {
     login,
     logout,
     refreshSession,
-    
-    // Role checks
-    hasRole,
-    hasAnyRole,
-    hasAllRoles,
     
     // Permission checks
     hasPermission,
@@ -226,7 +186,7 @@ export function useAuth() {
     accessToken: extendedSession?.accessToken,
     
     // Refresh attempt info
-    refreshAttempts: extendedSession?.user?.id ? refreshManager.getAttempts(extendedSession.user.id) : 0,
-    canRefresh: extendedSession?.user?.id ? refreshManager.canAttemptRefresh(extendedSession.user.id) : true,
+    refreshAttempts: extendedSession?.user?.id ? refreshManager.getAttempts(extendedSession.user.id.toString()) : 0,
+    canRefresh: extendedSession?.user?.id ? refreshManager.canAttemptRefresh(extendedSession.user.id.toString()) : true,
   }
 } 

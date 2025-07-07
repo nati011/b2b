@@ -51,7 +51,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const { distributors, fetchDistributors } = useDistributorsStore();
 
   useEffect(() => {
-    fetchDistributors();
+    fetchDistributors("ALL");
   }, []);
   useEffect(() => {
     fetchCategories();
@@ -92,6 +92,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         Name: product.Name || "",
         ExternalID: product.ExternalID || "",
         Desc: product.Desc || "",
+        DistributorId: parseFloat(product.DistributorId),
         Price: product.Price || 0,
         Attributes: attributesObject || [],
         Images: product.Images || [],
@@ -207,7 +208,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
                   <div className="grid gap-2">
                     <Label htmlFor="Distributor">Distributor</Label>
-                    <Select>
+                    <Select onValueChange={(e)=>setProduct((prev) => ({
+      ...prev,
+      DistributorId: e.valueOf()
+    }))}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a distributor" />
                       </SelectTrigger>

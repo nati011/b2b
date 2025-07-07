@@ -32,7 +32,6 @@ type IdentityResponse  = {
  */
 export async function getUserIdentityWithToken(accessToken: string): Promise<UserIdentity | null> {
   try {
-    console.log(accessToken)
     const response = await axios.get<{ body: IdentityResponse }>(
       `${API_BASE_URL}/api/v1/identity/user`,
       {
@@ -43,6 +42,8 @@ export async function getUserIdentityWithToken(accessToken: string): Promise<Use
         timeout: 10000,
       }
     )
+
+    console.log(response.data)
 
     if (!response.data?.body.user) {
       console.error("No user data received from API")

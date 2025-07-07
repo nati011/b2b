@@ -280,9 +280,9 @@ const Cart = () => {
               </div>
             ) : (
               <div
-                className={`grid sm:grid-cols-${partners.length} grid-cols-2  gap-4`}
+                className={`grid sm:grid-cols-${partners?.length} grid-cols-2  gap-4`}
               >
-                {partners.map((partner) => (
+                {partners?.map((partner) => (
                   <Card
                     key={partner.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${

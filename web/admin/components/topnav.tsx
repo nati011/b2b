@@ -24,16 +24,12 @@ import {
     Monitor,
     ChevronDown
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
 const Topnav = () => {
-    const { setTheme, theme } = useTheme();
+    const { setTheme } = useTheme();
     const { user, logout, isLoading } = useAuth();
-    const router = useRouter();
-    const pathName = usePathname();
-
-    const user_initials = user?.name
+    const user_initials = (user?.first_name ?? "" + user?.last_name ?? "")
         ?.split(" ")
         .map((n: string) => n[0])
         .join("");
@@ -79,13 +75,13 @@ const Topnav = () => {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="flex items-center space-x-2 px-3 py-2">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src="" alt={user?.name ?? ""} />
+                                <AvatarImage src="" alt={user?.first_name ?? ""} />
                                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-sm font-medium">
                                     {user_initials || <User className="h-4 w-4" />}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="hidden md:flex flex-col items-start">
-                                <span className="text-sm font-medium">{user?.name}</span>
+                                <span className="text-sm font-medium">{user?.first_name} {user?.last_name}</span>
                                 <span className="text-xs text-muted-foreground">{user?.email}</span>
                             </div>
                             <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -94,13 +90,13 @@ const Topnav = () => {
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel className="flex items-center space-x-2 p-3">
                             <Avatar className="h-10 w-10">
-                                <AvatarImage src="" alt={user?.name ?? ""} />
+                                <AvatarImage src="" alt={user?.first_name ?? ""} />
                                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
                                     {user_initials || <User className="h-5 w-5" />}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                                <span className="font-medium">{user?.name}</span>
+                                <span className="font-medium">{user?.first_name} {user?.last_name}</span>
                                 <span className="text-sm text-muted-foreground">{user?.email}</span>
                                 {/* {user?.roles && user.roles.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">

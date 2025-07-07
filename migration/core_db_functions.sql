@@ -1206,11 +1206,11 @@ AS $$
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
         db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
-        JOIN public.distributor_business_info db 
+        LEFT JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
-        JOIN public.db_locations db_loc 
+        LEFT JOIN public.db_locations db_loc 
         ON db_loc.business_id = db.id
-        JOIN distributor_reviews dr
+        LEFT JOIN distributor_reviews dr
         ON dr.distributor_id = d.id
         WHERE d.is_deleted = FALSE
         LIMIT t_limit

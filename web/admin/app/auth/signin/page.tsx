@@ -106,7 +106,6 @@ export default function LoginPage() {
     setShowPassword(!showPassword)
   }
 
-  // Show loading state while checking authentication
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -191,7 +190,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="link"
-                className="px-0 text-sm"
+                className="px-0 text-sm "
                 onClick={handleInitResetPassword}
                 disabled={loading}
               >
@@ -210,7 +209,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
@@ -224,7 +223,7 @@ export default function LoginPage() {
             <Button type="button" variant="outline" className="w-full">
               <FcGoogle className="mr-2 h-4 w-4" />
               Sign in with Google
-            </Button>
+            </Button> */}
           </form>
         </div>
       </div>
