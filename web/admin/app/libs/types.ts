@@ -131,6 +131,14 @@ export type DistributorRequest = {
 }
 
 
+export type DistributorUserRequest = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  username: string;
+}
+
 export type Item = {
   ProductId: number
   ProductName: string
@@ -170,6 +178,7 @@ export type Role = {
 export type Resource = {
   id: number;
   name: string;
+  resource: string;
   action: string;
 };
 
