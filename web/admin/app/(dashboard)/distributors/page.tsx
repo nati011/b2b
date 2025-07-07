@@ -52,16 +52,16 @@ export default function Distributors() {
   const getStatusBadge = (distributor: Distributor) => {
     if (distributor.verdict === DistributorVerdict.PENDING) {
       return (
-        <Badge variant='secondary' className='flex items-center gap-1'>
-          <Clock className='w-3 h-3' />
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Clock className="w-3 h-3" />
           Pending Approval
         </Badge>
       );
     }
     if (distributor.verdict === DistributorVerdict.REJECTED) {
       return (
-        <Badge variant='destructive' className='flex items-center gap-1'>
-          <XCircle className='w-3 h-3' />
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <XCircle className="w-3 h-3" />
           Rejected
         </Badge>
       );
@@ -72,10 +72,10 @@ export default function Distributors() {
     ) {
       return (
         <Badge
-          variant='default'
-          className='flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-100'
+          variant="default"
+          className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-100"
         >
-          <CheckCircle className='w-3 h-3' />
+          <CheckCircle className="w-3 h-3" />
           Approved
         </Badge>
       );
@@ -85,8 +85,8 @@ export default function Distributors() {
       !distributor.is_active
     ) {
       return (
-        <Badge variant='destructive' className='flex items-center gap-1'>
-          <PauseCircle className='w-3 h-3' />
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <PauseCircle className="w-3 h-3" />
           Inactive
         </Badge>
       );
@@ -99,7 +99,7 @@ export default function Distributors() {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => (
-        <span className='font-mono text-sm'>#{row.original.id}</span>
+        <span className="font-mono text-sm">#{row.original.id}</span>
       ),
     },
     {
@@ -110,7 +110,7 @@ export default function Distributors() {
       accessorKey: "tin",
       header: "TIN",
       cell: ({ row }) => (
-        <span className='font-mono text-sm'>{row.original.tin}</span>
+        <span className="font-mono text-sm">{row.original.tin}</span>
       ),
     },
     {
@@ -132,12 +132,12 @@ export default function Distributors() {
       header: "Actions",
       cell: ({ row }: any) => {
         return (
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             <Link
               href={`/distributors/detail/${row.original.id}`}
-              className='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8'
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
             >
-              <GoEye className='h-4 w-4' />
+              <GoEye className="h-4 w-4" />
             </Link>
           </div>
         );
@@ -149,38 +149,38 @@ export default function Distributors() {
     <>
       <Heading
         page={pages}
-        heading='Distributors'
-        subheading='Manage distributor registrations and approvals'
+        heading="Distributors"
+        subheading="Manage distributor registrations and approvals"
       />
 
-      <div className='w-full bg-card rounded-lg border border-border/50 shadow-sm'>
+      <div className="w-full bg-card rounded-lg border border-border/50 shadow-sm">
         {/* Header */}
-        <div className='flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center p-6 border-b border-border/50 space-y-4 sm:space-y-0'>
-          <div className='flex items-center space-x-4 w-full sm:w-auto'>
-            <div className='relative flex-1 sm:flex-none'>
-              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+        <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center p-6 border-b border-border/50 space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-4 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={"Search distributors..."}
-                className='pl-10 bg-background border-border focus:border-primary transition-colors rounded-sm'
+                className="pl-10 bg-background border-border focus:border-primary transition-colors rounded-sm"
               />
             </div>
           </div>
 
-          <div className='flex items-center space-x-2'>
-            <Link href='/distributors/form' passHref>
-              <Button className='bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200'>
+          <div className="flex items-center space-x-2">
+            <Link href="/distributors/form" passHref>
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200">
                 + Register Distributor
               </Button>
             </Link>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant={"outline"} className='shadow-none'>
+                <Button variant={"outline"} className="shadow-none">
                   <CiFilter />
                   Filter
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align='end'>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() => {
                     setStatus("PENDING");

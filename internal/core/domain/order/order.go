@@ -8,6 +8,7 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/domain/config"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/product"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
@@ -86,6 +87,7 @@ type GetResponse struct {
 	Status             string
 	DeliveryStatus     string
 	PaymentStatus      string
+	PaymentMethod      string
 	ConfirmationStatus string
 	CreatedAt          time.Time
 	ExpiresAt          time.Time
@@ -125,6 +127,7 @@ type Provider interface {
 	GetDistributorOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrders(ctx context.Context, id int) (GetAllResponse, error)
 	GetRetailerOrdersWithUserContext(ctx context.Context, userId int) (GetAllResponse, error)
+	GetDistributorOrdersWithUserContext(ctx context.Context, userId int) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	UpdateStatus(ctx context.Context, req *UpdateRequest) (int, error)
 	UpdatePaymentStatus(ctx context.Context, req *UpdateRequest) (int, error)
@@ -135,16 +138,18 @@ type Provider interface {
 }
 
 type OrderService struct {
-	DB              port.DB
-	InvoiceService  invoice.Provider
-	ProductService  product.Provider
-	RetailerService retailer.Provider
-	CheckoutService checkout.Provider
-	Config          config.Provider
+	DB                 port.DB
+	InvoiceService     invoice.Provider
+	ProductService     product.Provider
+	RetailerService    retailer.Provider
+	DistributorService distributor.Provider
+	CheckoutService    checkout.Provider
+	Config             config.Provider
 }
 
 func NewOrderService(
 	db port.DB,
+	ds distributor.Provider,
 	is invoice.Provider,
 	ps product.Provider,
 	rs retailer.Provider,
@@ -153,12 +158,13 @@ func NewOrderService(
 
 ) Provider {
 	return &OrderService{
-		DB:              db,
-		InvoiceService:  is,
-		ProductService:  ps,
-		RetailerService: rs,
-		CheckoutService: pays,
-		Config:          config,
+		DB:                 db,
+		DistributorService: ds,
+		InvoiceService:     is,
+		ProductService:     ps,
+		RetailerService:    rs,
+		CheckoutService:    pays,
+		Config:             config,
 	}
 }
 
@@ -699,6 +705,56 @@ func (o *OrderService) GetRetailerOrdersWithUserContext(ctx context.Context, use
 				ProductId:    i.ProductId,
 				ProductName:  i.ProductName,
 				ProductPrice: i.Price,
+				Quantity:     i.Quantity,
+			})
+		}
+		return_response.List = append(return_response.List, GetResponse{
+			Id:             i.Id,
+			RetailerId:     i.RetailerId,
+			RetailerName:   i.RetailerName,
+			Items:          items,
+			Total:          float32(i.Total),
+			Status:         i.Status,
+			DeliveryStatus: i.DeliveryStatus,
+			PaymentMethod:  i.PaymentMethod,
+			PaymentStatus:  i.PaymentStatus,
+			CreatedAt:      i.CreatedAt,
+			ExpiresAt:      i.CreatedAt.Add(time.Duration(expiry_duration.ExpiryDurationInMinues) * time.Minute),
+		})
+	}
+	return_response.TotalCount = resp.TotalCount
+	return return_response, nil
+}
+
+func (o *OrderService) GetDistributorOrdersWithUserContext(ctx context.Context, user_id int) (GetAllResponse, error) {
+	distributor_resp, err := o.getUserDistributor(ctx, user_id)
+	if err != nil {
+		return GetAllResponse{}, err
+	}
+	resp, err := o.GetDistributorOrders(ctx, distributor_resp.Id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetResponse
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+
+	expiry_duration, err := o.Config.GetOrderExpiryConfig(ctx)
+	if err != nil {
+		log.Printf("failed to get order")
+		return GetAllResponse{}, ErrUnknown
+	}
+
+	return_response := GetAllResponse{}
+	for _, i := range resp.List {
+		items := []Item{}
+		for _, i := range i.Items {
+			items = append(items, Item{
+				ProductId:    i.ProductId,
+				ProductName:  i.ProductName,
+				ProductPrice: i.ProductPrice,
 				Quantity:     i.Quantity,
 			})
 		}

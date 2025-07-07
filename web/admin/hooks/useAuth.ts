@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import { RefreshAttemptManager } from '@/app/utils/token'
+import { UserIdentity } from '@/app/libs/types'
 
 // Extended session type
 interface ExtendedSession {
@@ -14,6 +15,7 @@ interface ExtendedSession {
     roles: string[]
   } | null
   accessToken?: string
+  userIdentity?: UserIdentity
   error?: string
   expires: string
 }
@@ -47,6 +49,34 @@ export function useAuth() {
   const hasAllRoles = useCallback((roles: string[]) => {
     if (!extendedSession?.user?.roles) return false
     return roles.every(role => extendedSession.user!.roles.includes(role))
+  }, [extendedSession])
+
+  // Check if user has a specific permission
+  const hasPermission = useCallback((permissionName: string) => {
+    if (!extendedSession?.userIdentity?.permissions) return false
+    return extendedSession.userIdentity.permissions.some(
+      permission => permission.Name === permissionName
+    )
+  }, [extendedSession])
+
+  // Check if user has any of the specified permissions
+  const hasAnyPermission = useCallback((permissionNames: string[]) => {
+    if (!extendedSession?.userIdentity?.permissions) return false
+    return permissionNames.some(permissionName =>
+      extendedSession.userIdentity!.permissions.some(
+        permission => permission.Name === permissionName
+      )
+    )
+  }, [extendedSession])
+
+  // Check if user has all of the specified permissions
+  const hasAllPermissions = useCallback((permissionNames: string[]) => {
+    if (!extendedSession?.userIdentity?.permissions) return false
+    return permissionNames.every(permissionName =>
+      extendedSession.userIdentity!.permissions.some(
+        permission => permission.Name === permissionName
+      )
+    )
   }, [extendedSession])
 
   // Sign in function
@@ -96,7 +126,6 @@ export function useAuth() {
       toast.success('Successfully signed out')
     } catch (error) {
       console.error('Sign out error:', error)
-      toast.error('Error signing out')
     }
   }, [extendedSession?.user?.id, refreshManager])
 
@@ -156,8 +185,14 @@ export function useAuth() {
   // Auto-redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
-      const currentPath = window.location.pathname
-      if (!currentPath.startsWith('/auth')) {
+      // Check if we're on the client side before accessing window
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname
+        if (!currentPath.startsWith('/auth')) {
+          router.push('/auth/signin')
+        }
+      } else {
+        // On server side, just redirect to signin
         router.push('/auth/signin')
       }
     }
@@ -167,6 +202,7 @@ export function useAuth() {
     // State
     session: extendedSession,
     user: extendedSession?.user,
+    userIdentity: extendedSession?.userIdentity,
     isAuthenticated,
     isLoading,
     status,
@@ -180,6 +216,11 @@ export function useAuth() {
     hasRole,
     hasAnyRole,
     hasAllRoles,
+    
+    // Permission checks
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
     
     // Utilities
     accessToken: extendedSession?.accessToken,

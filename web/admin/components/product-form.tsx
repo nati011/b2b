@@ -144,72 +144,72 @@ const ProductForm: React.FC<ProductFormProps> = ({
   }, [error]);
   return (
     <form onSubmit={handleSubmit}>
-      <div className='space-y-6'>
-        <Card className='rounded-sm border-2 border-gray-200 shadow-none'>
-          <CardContent className=''>
-            <div className='mb-4'>
-              <h3 className='text-xl font-bold'>Basic Information</h3>
-              <p className='text-sm text-muted-foreground'>
+      <div className="space-y-6">
+        <Card className="rounded-sm border-2 border-gray-200 shadow-none">
+          <CardContent className="">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold">Basic Information</h3>
+              <p className="text-sm text-muted-foreground">
                 {isEdit ? "Update product details" : "Add a new product"}
               </p>
             </div>
 
-            <div className='space-y-4'>
-              <div className='grid grid-cols-1 gap-6'>
-                <div className='space-y-4'>
-                  <div className='grid gap-2'>
-                    <Label htmlFor='ExternalID'>External ID</Label>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="ExternalID">External ID</Label>
                     <Input
-                      id='ExternalID'
-                      name='ExternalID'
+                      id="ExternalID"
+                      name="ExternalID"
                       value={product.ExternalID || ""}
                       onChange={handleChange}
-                      placeholder='e.g. 12345-abcde'
+                      placeholder="e.g. 12345-abcde"
                     />
                   </div>
-                  <div className='grid gap-2'>
-                    <Label htmlFor='Name'>Product Name</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="Name">Product Name</Label>
                     <Input
-                      id='Name'
-                      name='Name'
+                      id="Name"
+                      name="Name"
                       value={product.Name}
                       onChange={handleChange}
-                      placeholder='e.g. POLO black - xl'
+                      placeholder="e.g. POLO black - xl"
                       required
                     />
                   </div>
 
-                  <div className='grid gap-2'>
-                    <Label htmlFor='Desc'>Description</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="Desc">Description</Label>
                     <Textarea
-                      id='Desc'
-                      name='Desc'
+                      id="Desc"
+                      name="Desc"
                       value={product.Desc || ""}
                       onChange={handleChange}
-                      placeholder='Enter product description'
+                      placeholder="Enter product description"
                       rows={5}
                     />
                   </div>
 
-                  <div className='grid gap-2'>
-                    <Label htmlFor='Price'>Price</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="Price">Price</Label>
                     <Input
-                      id='Price'
-                      name='Price'
-                      type='number'
-                      step='0.01'
+                      id="Price"
+                      name="Price"
+                      type="number"
+                      step="0.01"
                       value={product.Price || ""}
                       onChange={handleChange}
-                      placeholder='29.99'
+                      placeholder="29.99"
                       required
                     />
                   </div>
 
-                  <div className='grid gap-2'>
-                    <Label htmlFor='Distributor'>Distributor</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="Distributor">Distributor</Label>
                     <Select>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select a distributor' />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a distributor" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -223,7 +223,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className='grid gap-2'>
+                  <div className="grid gap-2">
                     <Label>Categories</Label>
                     <MultiSelect
                       options={categoryOptions}
@@ -258,16 +258,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
           }
         />
 
-        <div className='flex items-center justify-end space-x-4'>
+        <div className="flex items-center justify-end space-x-4">
           <Button
-            type='button'
-            variant='outline'
+            type="button"
+            variant="outline"
             onClick={handleReset}
             disabled={isSubmitting}
           >
             Reset
           </Button>
-          <Button type='submit' disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
               ? isEdit
                 ? "Updating..."

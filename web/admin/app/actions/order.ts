@@ -1,15 +1,14 @@
 'use server'
 import axiosIns from "@/app/libs/axios";
+import { withErrorHandling } from "@/app/libs/error-handling";
 
 export async function fetchOrders(offset: number) {
-    try {
+    return withErrorHandling(async () => {
         const response = await axiosIns.get(`/order?limit=10&offset=${offset}`);
         console.log(response.data)
         return response.data.body;
-    } catch (error) {
-        console.log(error)
-        throw new Error('Failed to fetch orders');
-    }
+      });
+
 }
 
 export async function getOrderById(orderId: number) {

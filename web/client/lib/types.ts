@@ -109,7 +109,9 @@ export type Order = {
     Status: string
     DeliveryStatus: string
     PaymentStatus: string
+    ConfirmationStatus: string
     CreatedAt: string
+    ExpiresAt: string
 }
 
 export interface CartItem {
@@ -137,4 +139,23 @@ export type Invoice = {
     SubTotal: GLfloat
     LineItems: InvoiceItem[]
     TaxAmount: GLfloat
+}
+
+
+
+export type Permissions = {
+    Id: number
+    Name: string
+    Action: string
+}
+export type UserIdentity = {
+    id: number
+    first_name: string
+    last_name: string
+    email: string
+    phone: string
+    username: string
+    dob: string
+    is_active: boolean
+    permissions: Permissions[]
 }

@@ -208,8 +208,10 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 		&responseBase.Total,
 		&responseBase.PaymentStatus,
 		&responseBase.DeliveryStatus,
-		&responseBase.ConfirmationStatus,
+		&responseBase.PaymentMethod,
+		&responseBase.CreatedAt,
 		&response.TotalCount,
+		&responseBase.ConfirmationStatus,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -233,10 +235,12 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 			Total:              v,
 			PaymentStatus:      res[5].(string),
 			DeliveryStatus:     res[6].(string),
-			ConfirmationStatus: res[7].(string),
+			PaymentMethod:      res[7].(string),
+			CreatedAt:          res[8].(time.Time),
+			ConfirmationStatus: res[10].(string),
 		}
 
-		response.TotalCount = res[8].(int64)
+		response.TotalCount = res[9].(int64)
 
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
@@ -278,6 +282,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 		&responseBase.CreatedAt,
 		&totalCount,
 		&responseBase.ConfirmationStatus,
+		&responseBase.PaymentMethod,
 	}
 
 	result, err := query_handler.NewQuery(
@@ -298,12 +303,13 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 			RetailerName:       res[2].(string),
 			Status:             res[3].(string),
 			Total:              v,
-			DeliveryStatus:     res[6].(string),
 			PaymentStatus:      res[5].(string),
-			CreatedAt:          res[7].(time.Time),
-			ConfirmationStatus: res[9].(string),
+			DeliveryStatus:     res[6].(string),
+			PaymentMethod:      res[7].(string),
+			CreatedAt:          res[8].(time.Time),
+			ConfirmationStatus: res[10].(string),
 		}
-		totalCount = res[8].(int64)
+		totalCount = res[9].(int64)
 		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
 		if err != nil {
 			return port.GetAllResponse{}, err

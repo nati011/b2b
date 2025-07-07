@@ -1,20 +1,16 @@
 "use client"
 import { IoPrintOutline } from "react-icons/io5";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { useParams } from "next/navigation";
+import { useEffect} from "react";
 import Heading from "@/components/breadcrumb";
 import { Card } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/datatable";
 import { columns } from "@/app/(dashboard)/invoice/[id]/columns";
 import useOrdersStore from "@/app/libs/store/useOrderStore";
-import Logo from "@/public/logo.png"
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
-
-// @ts-ignore
-export default function InvoiceDetail({ params: { locale } }) {
+export default function InvoiceDetail() {
     const routeParam = useParams<{ id: string }>();
 
     const {
@@ -31,7 +27,7 @@ export default function InvoiceDetail({ params: { locale } }) {
 
     const pages = [
         {
-            name: "Invoices",
+            title: "Invoices",
             href: "/invoice",
         },
 
@@ -106,7 +102,6 @@ export default function InvoiceDetail({ params: { locale } }) {
                         columns={columns}
                         data={invoice.LineItems}
                         loading={loading}
-                        button={false}
                     />
                     <div className="flex flex-col w-full items-end gap-4 text-gray-600 text-left">
                         <p>

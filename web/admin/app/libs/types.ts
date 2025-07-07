@@ -131,6 +131,14 @@ export type DistributorRequest = {
 }
 
 
+export type DistributorUserRequest = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  username: string;
+}
+
 export type Item = {
   ProductId: number
   ProductName: string
@@ -170,6 +178,7 @@ export type Role = {
 export type Resource = {
   id: number;
   name: string;
+  resource: string;
   action: string;
 };
 
@@ -199,4 +208,31 @@ export type Invoice = {
   SubTotal: GLfloat
   LineItems: InvoiceItem[]
   TaxAmount: GLfloat
+}
+
+export type Permissions = {
+  Id: number
+  Name: string
+  Action: string
+}
+export type UserIdentity = {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  username: string  
+  dob: string
+  is_active: boolean
+  permissions: Permissions[]
+}
+
+
+export type UserDetail = {
+	Id:        number
+	FirstName: string
+	LastName:  string
+	Email:     string
+	Phone:     string
+	Username:  string
 }

@@ -39,11 +39,11 @@ const chartData = [
 const chartConfig = {
   orders: {
     label: 'Orders',
-    color: 'hsl(var(--primary))'
+    color: '#179FDB'
   },
   revenue: {
     label: 'Revenue',
-    color: 'hsl(var(--chart-1))'
+    color: '#65C4BC'
   }
 } satisfies ChartConfig;
 
@@ -112,11 +112,11 @@ export default function BarGraph() {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Orders</p>
-            <p className="text-2xl font-bold">{total.orders.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-primary">{total.orders.toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Revenue</p>
-            <p className="text-2xl font-bold">${total.revenue.toLocaleString()}</p>
+            <p className="text-2xl text-primary font-bold">${total.revenue.toLocaleString()}</p>
           </div>
         </div>
         
@@ -138,24 +138,24 @@ export default function BarGraph() {
                 <linearGradient id="fillBar" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor="hsl(var(--primary))"
+                    stopColor="#179FDB"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="100%"
-                    stopColor="hsl(var(--primary))"
+                    stopColor="#179FDB"
                     stopOpacity={0.2}
                   />
                 </linearGradient>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor="hsl(var(--chart-1))"
+                    stopColor="#65C4BC"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="100%"
-                    stopColor="hsl(var(--chart-1))"
+                    stopColor="#65C4BC"
                     stopOpacity={0.2}
                   />
                 </linearGradient>

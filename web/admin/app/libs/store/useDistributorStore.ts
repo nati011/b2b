@@ -1,48 +1,41 @@
 import { create } from 'zustand'
-import { Distributor, DistributorRequest, UserAccount } from '@/app/libs/types';
-import { Create, GetAll, GetDistributorUser, GetById, DistributorOnBoardingReview, UpdateDistributorStatus } from '@/app/actions/distributor';
+import { Distributor, DistributorRequest, DistributorUserRequest, UserDetail } from '@/app/libs/types';
+import { Create, GetAll, GetDistributorUser, GetById, DistributorOnBoardingReview, UpdateDistributorStatus, CreateDistributorUser } from '@/app/actions/distributor';
 
 interface DistributorsStore {
     success: string | null
     distributors: Distributor[];
     distributor: Distributor |  null;
-    distributorUser: UserAccount
+    distributorUser: UserDetail[];
     loading: boolean;
     error: string | null;
     next: string | null;
     previous: string | null;
     totalCount: number | null;
+    userCount: number |null;
 
     fetchDistributors: (status?: string) => Promise<void>;
     createDistributors: (DistributorsData: DistributorRequest) => Promise<void>;
     fetchDistributorDetail: (id: number) => Promise<void>
-    fetchDistributorUser: (id: number) => Promise<void>
+    fetchDistributorUser: () => Promise<void>
     approveDistributor: (id: number) => Promise<void>
     rejectDistributor: (id: number, comment: string) => Promise<void>
     activateDistributor: (id: number) => Promise<void>
     deactivateDistributor: (id: number) => Promise<void>
+    createDistirbutorUser: (user: DistributorUserRequest) => Promise<void>
 }
 
 const useDistributorsStore = create<DistributorsStore>((set) => ({
     distributors: [],
     distributor: null,
-    distributorUser: {
-        id: 0,
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        username: '',
-        dob: '',
-        is_active: false,
-        external_id: ''
-    },
+    distributorUser: [],
     success: null,
     loading: false,
     error: null,
     next: null,
     previous: null,
     totalCount: null,
+    userCount: null,
 
     fetchDistributors: async (status?: string) => {
         set({ loading: true, error: null });
@@ -88,15 +81,13 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
             set({ error: error.message || "An error has occured", loading: false });
         }
     },
-    fetchDistributorUser: async (id: number) => {
-        console.log(id)
+    fetchDistributorUser: async () => {
         set({ loading: true, error: null });
         try {
-            console.log("EZIII", id)
-            const response = await GetDistributorUser(id);
+            const response = await GetDistributorUser();
             set({
-                // @ts-ignore
-                distributorUser: response,
+                distributorUser: response.List,
+                userCount: response.TotalCount,
                 loading: false
             });
         } catch (error: any) {
@@ -142,6 +133,17 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
             await useDistributorsStore.getState().fetchDistributorDetail(id);
         } catch (error: any) {
             set({ error: error.message || "Error occured while rejecting distributor.", loading: false });
+        }
+    },
+
+    createDistirbutorUser: async(user: DistributorUserRequest) =>{
+        set({ loading: true, error: null })
+        try {
+            const response = await CreateDistributorUser(user)
+            set({ success: response, loading: false })
+            await useDistributorsStore.getState().fetchDistributorUser()
+        } catch (error: any) {
+            set({ error: error.message || "Error occured while creating distributor user.", loading: false });
         }
     }
 }));

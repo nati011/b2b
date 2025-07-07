@@ -1,5 +1,17 @@
 'use server'
 import axiosIns from "@/app/libs/axios";
+import { UserIdentity } from "../libs/types";
+import { withErrorHandling } from "@/app/libs/error-handling";
+
+
+export const FetchUserDetail = async (id: number) => {
+    return withErrorHandling(async () => {
+        const response = await axiosIns.get(`/user?id=${id}`);
+        console.log(response.data)
+        return response.data.body.user
+      });
+}
+
 
 export const InitResetPassword = async (email: string) => {
     try {
@@ -26,8 +38,16 @@ export const ResetPassword = async (token: string, password: string) => {
     } catch (error: any) {
         console.log(error)
         if (error.response) {
-            throw error.response.data.message || "An error has occured while creating the product"
+            throw error.response.data.message || "An error has occured while reseting your password"
         }
-        throw "An error has occured while creating the product"
+        throw "An error has occured while reseting your password"
     }
+}
+
+export const UpdateProfile  = async (data: Partial<UserIdentity>) =>{
+    return withErrorHandling(async () => {
+        const response = await axiosIns.patch("/user", data)
+        console.log(response.data)
+        return response.data.message
+      });
 }

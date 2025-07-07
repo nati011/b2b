@@ -36,6 +36,7 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 	domain_handler.InitPayment()
 	domain_handler.InitConfigurableProduct()
 	domain_handler.InitInvoice()
+	domain_handler.InitConfig()
 
 	for _, h := range handler.GetHandlers() {
 		if err := h.Init(applicationServices.AuthMiddleware, applicationServices, domainServices); err != nil {
@@ -43,14 +44,44 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 		}
 		h.Routes(mux)
 	}
+
 	ctx := context.Background()
 	for _, r := range handler.GetRoutes() {
-		_, err := applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
-			Name:   r,
-			Action: resource.ALL,
-		})
+		log.Printf("Resources %v", r)
+		res, err := applicationServices.ResourceService.GetByName(ctx, r.Name)
 		if err != nil {
-			log.Printf("Failed to create resource err: %v", err)
+			switch err {
+			case resource.ErrNameNotFound:
+				continue
+			default:
+				panic("Failed to fetch resource")
+			}
+		}
+
+		log.Printf("Resource fetched, %v", res)
+		created, err := applicationServices.ResourceService.Create(ctx, &resource.CreateRequest{
+			Name:     r.Name,
+			Resource: r.Resource,
+			Action:   resource.ANY,
+		})
+		log.Printf("Error Occured %v", err)
+		log.Printf("Resource created, %v", created)
+		if err != nil {
+			if _, err = applicationServices.ResourceService.Create(ctx,
+				&resource.CreateRequest{
+					Name:     r.Name,
+					Resource: r.Resource,
+					Action:   resource.ANY}); err != nil {
+				switch err {
+				case resource.ErrDuplicateResource:
+				case resource.ErrDuplicateName:
+				default:
+					panic(err)
+				}
+			}
+		} else {
+			log.Printf("Error: %v", err)
+			panic("Error Occured while creating resource")
 		}
 	}
 	return nil

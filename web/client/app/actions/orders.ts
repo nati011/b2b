@@ -5,13 +5,13 @@ import { CheckoutRequest } from "@/lib/types";
 export async function fetchOrders(limit: number, offset: number, status: string) {
     try {
         console.log(status, "STatus")
-        let req_url = `/order?limit=${limit}&offset=${limit * offset}`
+        let req_url = `/orders/retailer?limit=${limit}&offset=${limit * offset}`
         if (status != "ALL") {
-            req_url = `/order?limit=${limit}&offset=${limit * offset}&status=${status}`
+            req_url = `/orders/retailer?limit=${limit}&offset=${limit * offset}&status=${status}`
         }
         const response = await axiosIns.get(req_url);
         console.log(response.data)
-        return response.data.body;
+        return response.data.body.orders;
     } catch (error) {
         console.log(error)
         throw new Error('Failed to fetch orders');
@@ -40,7 +40,7 @@ export async function getInvoice(orderId: number) {
 
 export async function updateOrderStatus(orderId: string, status: string) {
     try {
-        const response = await axiosIns.put(`/order/${orderId}`, { status });
+        const response = await axiosIns.patch(`/order?id=${orderId}&command=${status}`);
         return response.data;
     } catch (error) {
         throw new Error('Failed to update order status');

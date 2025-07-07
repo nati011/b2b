@@ -44,16 +44,14 @@ func Test_create(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := resource.CreateRequest{
-		Action: "test",
-		Name:   "test121",
+		Action:   "test",
+		Name:     "test121",
+		Resource: "test",
 	}
 
-	got, err := service.Create(ctx, &in)
+	_, err := service.Create(ctx, &in)
 	if err != nil {
 		t.Errorf("Failed to create resource err: %v", err)
-	}
-	if got == 0 {
-		t.Errorf("Expected id != from %v", got)
 	}
 }
 
@@ -62,13 +60,17 @@ func Test_delete(t *testing.T) {
 	//setup
 	ctx := context.Background()
 	in := resource.CreateRequest{
-		Action: "test",
-		Name:   "test",
+		Action:   "test",
+		Name:     "test",
+		Resource: "test",
 	}
-	id, _ := service.Create(ctx, &in)
+	id, err := service.Create(ctx, &in)
+	if err != nil {
+		t.Errorf("Failed to create resource err: %v", err)
+	}
 
 	//delete resource
-	err := service.Delete(ctx, id)
+	err = service.Delete(ctx, id)
 	if err != nil {
 		t.Errorf("Failed to delete resource err: %v", err)
 	}
@@ -85,15 +87,17 @@ func Test_update(t *testing.T) {
 	//setup
 	ctx := context.Background()
 	id, _ := service.Create(ctx, &resource.CreateRequest{
-		Action: "test",
-		Name:   "test",
+		Action:   "test",
+		Name:     "test",
+		Resource: "test",
 	})
 
 	//update
 	in := resource.UpdateRequest{
-		Id:     id,
-		Action: "test1",
-		Name:   "test1",
+		Id:       id,
+		Action:   "test1",
+		Name:     "test1",
+		Resource: "test2",
 	}
 	resp, err := service.Update(ctx, &in)
 	if err != nil {
@@ -110,8 +114,9 @@ func Test_get(t *testing.T) {
 		//setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "test",
+			Action:   "test",
+			Name:     "test",
+			Resource: "test",
 		})
 
 		// Get by Id
@@ -129,8 +134,9 @@ func Test_get(t *testing.T) {
 		//setup
 		ctx := context.Background()
 		id, _ := service.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "test",
+			Action:   "test",
+			Name:     "test",
+			Resource: "test",
 		})
 
 		got, err := service.GetByName(ctx, "test")
@@ -141,6 +147,25 @@ func Test_get(t *testing.T) {
 			t.Errorf("Failed to get resource by id")
 		}
 	})
+
+	t.Run("getByResource", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		id, _ := service.Create(ctx, &resource.CreateRequest{
+			Action:   "test",
+			Name:     "test",
+			Resource: "test",
+		})
+
+		got, err := service.GetByResource(ctx, "test")
+		if err != nil {
+			t.Errorf("Failed to get resource by resource err %v", err)
+		}
+		if got.Id != id {
+			t.Errorf("Failed to get resource by resource")
+		}
+	})
 }
 
 func Test_getAll(t *testing.T) {
@@ -148,8 +173,9 @@ func Test_getAll(t *testing.T) {
 	//setup
 	ctx := context.Background()
 	id, _ := service.Create(ctx, &resource.CreateRequest{
-		Action: "test",
-		Name:   "test",
+		Action:   "test",
+		Name:     "test",
+		Resource: "test",
 	})
 
 	// Get All

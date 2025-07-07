@@ -102,7 +102,7 @@ const Topnav = () => {
                             <div className="flex flex-col">
                                 <span className="font-medium">{user?.name}</span>
                                 <span className="text-sm text-muted-foreground">{user?.email}</span>
-                                {user?.roles && user.roles.length > 0 && (
+                                {/* {user?.roles && user.roles.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">
                                         {user.roles.slice(0, 2).map((role, index) => (
                                             <Badge key={index} variant="secondary" className="text-xs">
@@ -115,7 +115,7 @@ const Topnav = () => {
                                             </Badge>
                                         )}
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
