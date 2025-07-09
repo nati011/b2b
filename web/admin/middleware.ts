@@ -1,28 +1,8 @@
-import { withAuth } from "next-auth/middleware"
-import { NextResponse } from "next/server"
+import {chain} from '@/middlewares/middleware-chain'
+import { withAuthMiddleware } from './middlewares/authMiddleware'
 
-export default withAuth(
-  function middleware(req) {
-    // Add custom middleware logic here if needed
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        // Allow access to protected routes if user is authenticated
-        if (req.nextUrl.pathname.startsWith('/auth')) {
-          return true // Allow access to auth pages
-        }
-        
-        // Require authentication for all other routes
-        return !!token
-      },
-    },
-    pages: {
-      signIn: '/auth/signin',
-    },
-  }
-)
+
+export default chain([withAuthMiddleware])
 
 export const config = {
   matcher: [

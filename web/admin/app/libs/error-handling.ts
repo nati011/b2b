@@ -42,6 +42,7 @@ export async function withErrorHandling<T>(
         case 500:
           throw new Error("Server error. Please try again later.");
         default:
+          console.log(message)
           throw new Error(message);
       }
     }

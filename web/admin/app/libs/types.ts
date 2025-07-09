@@ -214,6 +214,7 @@ export type Permissions = {
   Id: number
   Name: string
   Action: string
+  Resources: string
 }
 export type UserIdentity = {
   id: number

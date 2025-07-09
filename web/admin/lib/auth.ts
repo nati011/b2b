@@ -2,17 +2,15 @@ import { AuthOptions, Session, TokenSet } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 
-
 import { jwtDecode } from "jwt-decode"
 import axios, { AxiosError } from "axios"
 import { getUserIdentityWithToken } from "@/app/actions/getUserIdentity"
- 
+import { Permissions } from "@/app/libs/types"
 
 const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
-
 
 interface AuthResponse {
     body: {
@@ -20,8 +18,7 @@ interface AuthResponse {
       refresh_token: string
     }
     message?: string
-  }
-
+}
 
 interface KeycloakJWT {
     exp: number
@@ -35,17 +32,18 @@ interface KeycloakJWT {
     realm_access: {
       roles: string[]
     }
-  }
-  
-  interface UserToken {
+}
+
+interface UserToken {
     id: string
     name: string
     email: string
     username: string
     roles: string[]
-  }
-  
-  interface UserIdentity {
+}
+
+
+interface UserIdentity {
     id: number
     first_name: string
     last_name: string
@@ -55,30 +53,23 @@ interface KeycloakJWT {
     dob: string
     is_active: boolean
     permissions: {
-      Id: number
-      Name: string
-      Action: string
-    }[]
-  }
-  
-  interface AppToken extends TokenSet {
+      List: Permissions[]
+    }
+}
+
+interface AppToken extends TokenSet {
     accessToken: string
     refreshToken: string
     accessTokenExpires: number
-    user: UserToken
+    user: UserToken & {
+        permissions?: {
+            List: Permissions[]
+        }
+    }
     userIdentity?: UserIdentity
     error?: "RefreshAccessTokenError" | "TokenExpiredError"
     refreshAttempts?: number
-  }
-  
-  interface AuthResponse {
-    body: {
-      access_token: string
-      refresh_token: string
-    }
-    message?: string
-  }
-  
+}
 
 function decodeToken(token: string): KeycloakJWT {
     try {
@@ -86,9 +77,9 @@ function decodeToken(token: string): KeycloakJWT {
     } catch (error) {
       throw new Error("Invalid token format")
     }
-  }
-  
-  function createUserFromToken(decoded: KeycloakJWT): UserToken {
+}
+
+function createUserFromToken(decoded: KeycloakJWT): UserToken {
     return {
       id: decoded.sub,
       name: decoded.name || `${decoded.given_name || ''} ${decoded.family_name || ''}`.trim(),
@@ -96,9 +87,9 @@ function decodeToken(token: string): KeycloakJWT {
       username: decoded.preferred_username,
       roles: decoded.realm_access?.roles || []
     }
-  }
-  
-  async function refreshAccessToken(token: AppToken): Promise<AppToken> {
+}
+
+async function refreshAccessToken(token: AppToken): Promise<AppToken> {
     const MAX_REFRESH_ATTEMPTS = 3
     const currentAttempts = token.refreshAttempts || 0
     
@@ -120,7 +111,7 @@ function decodeToken(token: string): KeycloakJWT {
         refreshAttempts: currentAttempts
       }
     }
-  
+
     try {
       const response = await axios.post<AuthResponse>(`${API_BASE_URL}/api/v1/auth/refresh`, {
         refresh_token: token.refreshToken,
@@ -129,28 +120,30 @@ function decodeToken(token: string): KeycloakJWT {
           'Content-Type': 'application/json',
         }
       })
-  
+
       if (!response.data.body?.access_token) {
         throw new Error("Invalid refresh response")
       }
-  
+
       const decoded = decodeToken(response.data.body.access_token)
       const user = createUserFromToken(decoded)
-  
+
       const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
-  
+
       return {
         ...token,
         accessToken: response.data.body.access_token,
         refreshToken: response.data.body.refresh_token || token.refreshToken,
         accessTokenExpires: decoded.exp * 1000,
-        user,
-        userIdentity: userIdentity || token.userIdentity,
+        user: {
+          ...user,
+          // @ts-expect-error
+          permissions: userIdentity?.permissions || []
+        },
         error: undefined,
         refreshAttempts: 0
       }
     } catch (error) {
-
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<{ message?: string }>
         
@@ -176,16 +169,14 @@ function decodeToken(token: string): KeycloakJWT {
           console.error("Network error during token refresh")
         }
       }
-  
+
       return {
         ...token,
         error: "RefreshAccessTokenError",
         refreshAttempts: currentAttempts + 1
       }
     }
-  }
-  
-
+}
 
 export const authOptions: AuthOptions = {
     providers: [
@@ -216,7 +207,7 @@ export const authOptions: AuthOptions = {
           if (!credentials?.email || !credentials?.password) {
             throw new Error("Email and password are required")
           }
-  
+
           try {
             const response = await axios.post<AuthResponse>(
               `${API_BASE_URL}/api/v1/auth/login`,
@@ -226,34 +217,27 @@ export const authOptions: AuthOptions = {
               },
               {
                 timeout: 10000,
-                headers: {
-                  'Content-Type': 'application/json',
-                }
               }
             )
-  
+
             if (response.status !== 202) {
               throw new Error(response.data?.message || "Authentication failed")
             }
-  
+
             if (!response.data.body?.access_token) {
               throw new Error("Invalid authentication response")
             }
-  
+
             const decoded = decodeToken(response.data.body.access_token)
             const user = createUserFromToken(decoded)
-            console.log('HERE_______________________________________________________________')
-  
-            // Fetch user identity after successful authentication using the dedicated function
+            console.log('User created from token:', user)
+
             const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
-            console.log(userIdentity)
-  
+            console.log('User identity:', userIdentity)
+
             return {
               id: user.id,
-              name: user.name,
-              email: user.email,
-              image: null,
-                ...response.data,
+              ...response.data,
               user,
               userIdentity
             }
@@ -291,27 +275,30 @@ export const authOptions: AuthOptions = {
         if (user && account) {
           const userData = user as any
           const decoded = decodeToken(userData.body.access_token)
-          console.log(userData)
+          console.log('JWT callback - userData:', userData)
           
           return {
             accessToken: userData.body.access_token,
             refreshToken: userData.body.refresh_token,
             accessTokenExpires: decoded.exp * 1000,
-            user: userData.userIdentity,
-            refreshAttempts: 0
+            user: {
+              id: userData.user.id,
+              name: userData.user.name,
+              email: userData.user.email,
+              permissions: userData.userIdentity?.permissions
+            },
+            refreshAttempts: 0,
           }
         }
-  
+
         const appToken = token as AppToken
         if (appToken.accessTokenExpires && Date.now() < appToken.accessTokenExpires) {
           return token
         }
-  
-        // Access token has expired, try to refresh it
+
         if (appToken.refreshToken) {
           const refreshedToken = await refreshAccessToken(appToken)
-          
-          // If refresh failed and we have no access token, clear the session
+        
           if (refreshedToken.error === "RefreshAccessTokenError" && !refreshedToken.accessToken) {
             return {
               ...refreshedToken,
@@ -327,7 +314,7 @@ export const authOptions: AuthOptions = {
           
           return refreshedToken
         }
-  
+
         // No refresh token available
         return {
           ...token,
@@ -355,8 +342,8 @@ export const authOptions: AuthOptions = {
           ...session.user,
           id: appToken.user.id,
           first_name: appToken?.userIdentity?.first_name,
-          last_name:appToken?.userIdentity?.last_name,
-          permissions: appToken.userIdentity?.permissions?.List
+          last_name: appToken?.userIdentity?.last_name,
+          permissions: appToken.user?.permissions || appToken.userIdentity?.permissions
         }
         customSession.accessToken = appToken.accessToken
         customSession.error = appToken.error
@@ -388,4 +375,4 @@ export const authOptions: AuthOptions = {
         }
       }
     }
-  }
+}

@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { UserIdentity } from '@/app/libs/types'
 
-// Environment variables
 const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
 
 // Extended session type to include userIdentity
@@ -63,14 +62,12 @@ export async function getUserIdentityWithToken(accessToken: string): Promise<Use
  */
 export async function getUserIdentityFromSession(): Promise<UserIdentity | null> {
   try {
-    // First, try to get user identity from the session
     const session = await getServerSession(authOptions) as ExtendedSession
     
     if (session?.userIdentity) {
       return session.userIdentity
     }
 
-    // If not in session, fetch from API using the access token
     if (session?.accessToken) {
       return await getUserIdentityWithToken(session.accessToken)
     }

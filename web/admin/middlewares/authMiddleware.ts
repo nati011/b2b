@@ -1,30 +1,42 @@
-import { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { CustomMiddleware } from './middleware-chain'
+    import { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
+    import { CustomMiddleware } from './middleware-chain'
 
-const protectedPaths = ['/']
+    import { getToken } from 'next-auth/jwt'
+import { ACL } from '@/lib/constants'
 
-export function withAuthMiddleware(middleware: CustomMiddleware) {
-    return async (request: NextRequest, event: NextFetchEvent) => {
-        const response = NextResponse.next()
+    const protectedPaths = ['/']
 
-        const token = await getToken({ req: request })
+    export function withAuthMiddleware(middleware: CustomMiddleware) {
+        return async (request: NextRequest, event: NextFetchEvent) => {
+            const response = NextResponse.next()
+
+            const token = await getToken({ req: request })
+            const pathname = request.nextUrl.pathname
+
+            if ((!token) && protectedPaths.includes(pathname)) {
+                const signInUrl = new URL('/auth/signin', request.url)
+                signInUrl.searchParams.set('callbackUrl', pathname)
+                return NextResponse.redirect(signInUrl)
+            }
+            console.log((token as any).user.permissions, "HERE")
+
+            const requiredPermission = ACL[pathname]
+            if (requiredPermission) {
+                let userPermissions: any[] = []
+                if (token && Array.isArray((token as any).user?.permissions?.List)) {
+                    userPermissions = (token as any).user?.permissions?.List
+                }
 
 
-        // @ts-ignore
-        request.nextauth = request.nextauth || {}
-        // @ts-ignore
-        request.nextauth.token = token
-        const pathname = request.nextUrl.pathname
+                const hasPermission = userPermissions.some(
+                    (perm: any) =>  requiredPermission.includes(perm.Resources)
+                )
 
+                if (!hasPermission) {
+                    return NextResponse.redirect(new URL('/forbidden', request.url))
+                }
+            }
 
-        if (!token && protectedPaths.includes(pathname)) {
-            const signInUrl = new URL('/auth/signin', request.url)
-            signInUrl.searchParams.set('callbackUrl', pathname)
-            return NextResponse.redirect(signInUrl)
+            return middleware(request, event, response)
         }
-
-
-        return middleware(request, event, response)
     }
-}
