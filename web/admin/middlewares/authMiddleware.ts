@@ -18,8 +18,6 @@ import { ACL } from '@/lib/constants'
                 signInUrl.searchParams.set('callbackUrl', pathname)
                 return NextResponse.redirect(signInUrl)
             }
-            console.log((token as any).user.permissions, "HERE")
-
             const requiredPermission = ACL[pathname]
             if (requiredPermission) {
                 let userPermissions: any[] = []
