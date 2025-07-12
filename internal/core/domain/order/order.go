@@ -43,6 +43,7 @@ const (
 const (
 	PAYMENT_PENDING_STATUS  = "PENDING"
 	PAYMENT_ACCEPTED_STATUS = "ACCEPTED"
+	PAYMENT_CANCELED_STATUS = "CANCELED"
 )
 
 // delivery
@@ -50,6 +51,7 @@ const (
 	DELIVERY_PENDING_STATUS    = "PENDING"
 	DELIVERY_DISPATCHED_STATUS = "DISPATCHED"
 	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
+	DELIVERY_CANCELED_STATUS   = "CANCELED"
 )
 
 // confirmation
@@ -473,6 +475,28 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
 		Id:     id,
 		Status: CANCELED_STATUS,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	//canceled order has canceled delivery status
+	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
+		Id:             id,
+		DeliveryStatus: DELIVERY_CANCELED_STATUS,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	//canceled order has canceled payment status
+	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
+		Id:            id,
+		PaymentStatus: PAYMENT_CANCELED_STATUS,
 	})
 	if err != nil {
 		switch err {

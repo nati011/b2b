@@ -254,35 +254,114 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 }
 
 func Test_Cancel_Order_happyPath(t *testing.T) {
-	t.Cleanup(teardown)
-	ctx := context.Background()
-	in := &PlaceRequest{
-		PaymentPartnerId: DigitalPaymentPartnerId,
-		RetailerId:       retailer_id,
-		Items: []Item{
-			{
-				ProductId: product_id,
-				Quantity:  19},
-		},
-	}
-	order_resp, err := container.OrderService.Place(ctx, in)
-	if err != nil {
-		t.Fatalf("Failed to place order err: %v", err)
-	}
+	t.Run("cancel_order", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: DigitalPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
 
-	err = container.OrderService.Cancel(ctx, order_resp.Id)
-	if err != nil {
-		t.Fatalf("Failed to cancel order err:%v", err)
-	}
+		err = container.OrderService.Cancel(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to cancel order err:%v", err)
+		}
 
-	got, err := container.OrderService.Get(ctx, order_resp.Id)
-	if err != nil {
-		t.Fatalf("Failed to get err: %v", err)
-	}
+		got, err := container.OrderService.Get(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
 
-	if got.Status != CANCELED_STATUS {
-		t.Errorf("Expected status: %v Got: %v", CANCELED_STATUS, got.Status)
-	}
+		if got.Status != CANCELED_STATUS {
+			t.Errorf("Expected status: %v Got: %v", CANCELED_STATUS, got.Status)
+		}
+	})
+
+	t.Run("cancel_payment_status_upon_order_cancelation", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: DigitalPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		err = container.OrderService.Cancel(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to cancel order err:%v", err)
+		}
+
+		got, err := container.OrderService.Get(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		wantDeliveryStatus := DELIVERY_CANCELED_STATUS
+		if got.DeliveryStatus != wantDeliveryStatus {
+			t.Errorf("Expected delivery status: %v Got: %v", wantDeliveryStatus, got.Status)
+		}
+
+		wantPaymentStatus := PAYMENT_CANCELED_STATUS
+		if got.PaymentStatus != wantPaymentStatus {
+			t.Errorf("Expected payment status: %v Got: %v", wantPaymentStatus, got.PaymentStatus)
+		}
+	})
+
+	t.Run("cancel_delivery_status_upon_order_cancelation", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: DigitalPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+
+		err = container.OrderService.Cancel(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to cancel order err:%v", err)
+		}
+
+		got, err := container.OrderService.Get(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+
+		wantDeliveryStatus := DELIVERY_CANCELED_STATUS
+		if got.DeliveryStatus != wantDeliveryStatus {
+			t.Errorf("Expected delivery status: %v Got: %v", wantDeliveryStatus, got.Status)
+		}
+
+		wantPaymentStatus := PAYMENT_CANCELED_STATUS
+		if got.PaymentStatus != wantPaymentStatus {
+			t.Errorf("Expected payment status: %v Got: %v", wantPaymentStatus, got.PaymentStatus)
+		}
+	})
+
 }
 
 func Test_Cancel_Order_unhappyPath(t *testing.T) {
@@ -306,7 +385,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 			Items: []Item{
 				{
 					ProductId: product_id,
-					Quantity:  19},
+					Quantity:  1},
 			},
 		}
 		order_resp, err := container.OrderService.Place(ctx, in)
