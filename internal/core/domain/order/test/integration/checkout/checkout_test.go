@@ -105,7 +105,7 @@ func teardown() {
 	db_test_container.Teardown(db)
 }
 
-func Test_Checkout(t *testing.T) {
+func Test_Checkout_happyPath(t *testing.T) {
 	t.Run("generate_checkout_url_upon_order_placement_digital", func(t *testing.T) {
 		t.Cleanup(teardown)
 		setup()
@@ -174,5 +174,36 @@ func Test_Checkout(t *testing.T) {
 		if strings.Split(init_resp.CheckoutUrl, " ") == nil {
 			t.Errorf("Expected checkoutUrl different from nil got: %v", order_resp.CheckoutUrl)
 		}
+	})
+}
+
+func Test_Checkout_unhappyPath(t *testing.T) {
+	t.Run("cannot_settle_payment_if_order_canceled", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			PaymentPartnerId: digitalPaymentPartnerId,
+			RetailerId:       retailerId,
+			Items: []order.Item{
+				{
+					ProductId: productId,
+					Quantity:  1},
+			},
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		err = container.OrderService.Cancel(ctx, order_resp.Id)
+		if err != nil {
+			t.Fatalf("Failed to cancel order err: %v", err)
+		}
+		_, err = container.OrderService.InitPayment(ctx, order_resp.Id)
+		wantErr := order.ErrCannotInitPaymentForCanceledOrder
+		if err != wantErr {
+			t.Errorf("Expeceted err: %v Want err: %v", err, wantErr)
+		}
+
 	})
 }
