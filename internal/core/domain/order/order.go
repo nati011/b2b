@@ -30,6 +30,7 @@ var (
 	ErrDuplicateOrderNotAllowed           = errors.New(" duplicate order not allowed")
 	ErrOrderAlreadyConfirmed              = errors.New(" order already confirmed")
 	ErrOrderAlreadyRejected               = errors.New(" order already rejected")
+	ErrCannotInitPaymentForCanceledOrder  = errors.New("order canceled, cannot init payment")
 )
 
 // order status
@@ -441,6 +442,18 @@ func (o *OrderService) PlaceWithUserContext(ctx context.Context, req *PlaceAsUse
 }
 
 func (o *OrderService) InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error) {
+	order, err := o.Get(ctx, id)
+	if err != nil {
+		switch err {
+		default:
+			log.Printf("failed to get product")
+		}
+	}
+	if order.PaymentStatus == PAYMENT_CANCELED_STATUS {
+		log.Printf(" init payment for canceled order")
+		return OrderPlaceResponse{}, ErrCannotInitPaymentForCanceledOrder
+	}
+
 	resp, err := o.CheckoutService.ReinitiateCheckout(ctx, &checkout.ReinitiateCheckoutRequest{
 		OrderId: id,
 	})
