@@ -159,3 +159,33 @@ export type UserIdentity = {
     is_active: boolean
     permissions: Permissions[]
 }
+
+export type Distributor = {
+    id: number;
+    name: string;
+    tin: string;
+    latitude: string;
+    longitude: string;
+    general_zone: string;
+    region: string;
+    woreda: string;
+    user: number[];
+    is_active: boolean;
+  }
+
+  export type DistributorRequest = {
+    name: string;
+    tin: string;
+    latitude: string;
+    longitude: string
+    general_zone: string;
+    region: string;
+    woreda: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    username: string;
+    dob: string;
+    external_id: string;
+  }

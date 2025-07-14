@@ -221,6 +221,7 @@ export const authOptions: AuthOptions = {
             )
 
             if (response.status !== 202) {
+              console.log(response.data)
               throw new Error(response.data?.message || "Authentication failed")
             }
 
@@ -245,11 +246,12 @@ export const authOptions: AuthOptions = {
             if (axios.isAxiosError(error)) {
               const axiosError = error as AxiosError<{ message?: string }>
               const errorMessage = axiosError.response?.data?.message || "Authentication failed"
-              console.error("Authentication error:", errorMessage)
+              console.log(axiosError.response?.data)
+              console.error("Authentication 11:", axiosError.response?.data, axiosError.response?.status)
               throw new Error(errorMessage)
             }
             
-            console.error("Authentication error:", error)
+            console.error("Authentication 22:", error)
             throw new Error("Authentication failed")
           }
         }

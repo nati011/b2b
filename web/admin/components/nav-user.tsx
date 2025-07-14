@@ -35,6 +35,11 @@ import { useAuth } from "@/hooks/useAuth"
 export function NavUser() {
     const { isMobile } = useSidebar()
     const { user, logout, isLoading } = useAuth();
+    // @ts-ignore
+    const user_initials = (user?.name)
+    ?.split(" ")
+    .map((n: string) => n[0])
+    .join("");
 
 
     return (
@@ -68,11 +73,13 @@ export function NavUser() {
                             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarFallback className="rounded-lg">
-                                        {user?.first_name?.split(" ")[0]?.slice(0, 1)}{user?.last_name?.split(" ")[1]?.slice(0, 1)}
+                                          {/* @ts-ignore */}
+                                        {user_initials}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">{user?.first_name} {user?.last_name}</span>
+                                    {/* @ts-ignore */}
+                                    <span className="truncate font-semibold">{user?.name}</span>
                                     <span className="truncate text-xs">{user?.email}</span>
                                 </div>
                             </div>

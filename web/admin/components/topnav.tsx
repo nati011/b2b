@@ -29,7 +29,8 @@ import { useAuth } from "@/hooks/useAuth";
 const Topnav = () => {
     const { setTheme } = useTheme();
     const { user, logout, isLoading } = useAuth();
-    const user_initials = (user?.first_name ?? "" + user?.last_name ?? "")
+    // @ts-ignore
+    const user_initials = (user?.name)
         ?.split(" ")
         .map((n: string) => n[0])
         .join("");
@@ -81,7 +82,8 @@ const Topnav = () => {
                                 </AvatarFallback>
                             </Avatar>
                             <div className="hidden md:flex flex-col items-start">
-                                <span className="text-sm font-medium">{user?.first_name} {user?.last_name}</span>
+                                {/* @ts-ignore */}
+                                <span className="text-sm font-medium">{user?.name}</span>
                                 <span className="text-xs text-muted-foreground">{user?.email}</span>
                             </div>
                             <ChevronDown className="h-4 w-4 text-muted-foreground" />

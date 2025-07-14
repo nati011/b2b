@@ -1,6 +1,6 @@
 "use server";
 import axiosIns from "@/lib/axios";
-import { RegisterRequest, User } from "@/lib/types";
+import { DistributorRequest, RegisterRequest, User } from "@/lib/types";
 
 export const RegisterRetailer = async (profile: RegisterRequest) => {
   try {
@@ -17,6 +17,22 @@ export const RegisterRetailer = async (profile: RegisterRequest) => {
     throw "An error has occured while creating account";
   }
 };
+
+export const RegisterDistributor = async(profile: DistributorRequest) => {
+  try {
+    const response = await axiosIns.post("/distributor", profile);
+    console.log(response.data);
+    return response.data.message;
+  } catch (error: any) {
+    if (error.response) {
+      throw (
+        error.response.data.message ||
+        "An error has occured while creating account"
+      );
+    }
+    throw "An error has occured while creating account";
+  }
+}
 
 export const InitResetPassword = async (email: string) => {
   try {
