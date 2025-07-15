@@ -25,7 +25,7 @@ func NewPostgres(DB *sql.DB, pagination *config.Pagination) port.DB {
 
 func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, error) {
 	var distributorId int
-	query := "SELECT * FROM public.create_distributor($1, $2, $3, $4, $5, $6, $7);"
+	query := "SELECT * FROM public.create_distributor($1, $2, $3, $4, $5, $6, $7, $8);"
 
 	result := []any{&distributorId}
 	args := []any{
@@ -35,7 +35,8 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 		req.Longitude,
 		req.GeneralZone,
 		req.Region,
-		req.Woreda}
+		req.Woreda,
+		req.LicenceURL}
 
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -67,6 +68,7 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	result := []any{&response.Id,
 		&response.Name,
 		&response.Tin,
+		&response.LicenceURL,
 		&response.Latitude,
 		&response.Longitude,
 		&response.GeneralZone,
@@ -91,13 +93,14 @@ func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	response.Id = *result[0].(*int)
 	response.Name = *result[1].(*string)
 	response.Tin = *result[2].(*string)
-	response.Latitude = *result[3].(*string)
-	response.Longitude = *result[4].(*string)
-	response.GeneralZone = *result[5].(*string)
-	response.Region = *result[6].(*string)
-	response.Woreda = *result[7].(*string)
-	response.IsActive = *result[8].(*bool)
-	response.Verdict = *result[9].(*string)
+	response.LicenceURL = *result[3].(*string)
+	response.Latitude = *result[4].(*string)
+	response.Longitude = *result[5].(*string)
+	response.GeneralZone = *result[6].(*string)
+	response.Region = *result[7].(*string)
+	response.Woreda = *result[8].(*string)
+	response.IsActive = *result[9].(*bool)
+	response.Verdict = *result[10].(*string)
 
 	return response, nil
 }
