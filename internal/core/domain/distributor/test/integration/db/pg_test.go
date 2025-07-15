@@ -288,6 +288,7 @@ func Test_Write(t *testing.T) {
 			Username:    "dist_test",
 			FirstName:   "test",
 			LastName:    "test",
+			LicenceURL:  "example.com",
 
 			Email: "test@gmail.com",
 		}

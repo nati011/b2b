@@ -12,6 +12,7 @@ type CreateRequest struct {
 	GeneralZone string
 	Region      string
 	Woreda      string
+	LicenceURL  string
 	UserId      int
 }
 
@@ -29,6 +30,7 @@ type GetResponse struct {
 	Id          int
 	Name        string
 	Tin         string
+	LicenceURL  string
 	Latitude    string
 	Longitude   string
 	GeneralZone string
