@@ -2528,6 +2528,34 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_all_configurable_products_by_price_range(
+    cp_min DECIMAL(12,2),
+    cp_max DECIMAL(12,2) 
+)
+RETURNS TABLE(id INT, 
+              name VARCHAR(255), 
+              description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_available BOOLEAN)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT cp.id, 
+           cp.name, 
+           cp.description, 
+           cp.external_id, 
+           cp.is_available
+    FROM public.configurable_products cp
+    JOIN public.configurable_product_member cp_m 
+    ON cp_m.id = cp.id
+    JOIN public.products p
+    ON p.id = cp_m.product_id
+    WHERE p.price BETWEEN cp_min AND cp_max
+    AND cp.is_deleted = FALSE;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.get_all_configurable_products_by_name(
     cp_name VARCHAR(255) 
 )

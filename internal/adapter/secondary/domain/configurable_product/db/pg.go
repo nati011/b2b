@@ -280,6 +280,144 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return response, nil
 }
 
+func (p *Postgres) GetByPriceRange(ctx context.Context, req port.PriceRangeRequest) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+	query := "SELECT * FROM public.get_all_configurable_products_by_price_range($1, $2);"
+	args := []any{
+		&req.Min,
+		&req.Max,
+	}
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.Name,
+		&responseBase.Desc,
+		&responseBase.ExternalId,
+		&responseBase.IsAvailable}
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		val := port.GetResponse{
+			Id:          int(res[0].(int64)),
+			Name:        res[1].(string),
+			Desc:        res[2].(string),
+			ExternalId:  res[3].(string),
+			IsAvailable: res[4].(bool),
+		}
+		// images
+		//--------------------
+		var imageResponse []port.Image
+		var imageResponseBase port.Image
+		query = "SELECT * FROM public.get_images_by_cp_Id($1);"
+
+		productImageArgs := []any{val.Id}
+		imagesDest := []any{
+			&imageResponseBase.ImageUrl,
+			&imageResponseBase.BlurHash,
+		}
+		imagesResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(productImageArgs, imagesDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, i := range imagesResult {
+			image := port.Image{
+				ImageUrl: i[0].(string),
+				BlurHash: i[1].(string),
+			}
+			imageResponse = append(imageResponse, image)
+		}
+		val.Images = imageResponse
+		//--------------------
+
+		// attribute-values
+		//--------------------
+		type avProductReq struct {
+			AttributeKey   string
+			AttributeValue string
+		}
+		var productAttrutes = []string{}
+		var attributeValueResponseBase avProductReq
+
+		query = "SELECT * FROM public.get_all_configurable_product_attributes_values($1)"
+		avArgs := []any{val.Id}
+		avDest := []any{
+			&attributeValueResponseBase.AttributeValue,
+		}
+
+		avResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(avArgs, avDest),
+		).DoMultiQuery()
+
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, a := range avResult {
+			productAttrutes = append(productAttrutes, a[0].(string))
+		}
+		val.Attributes = productAttrutes
+		//--------------------
+
+		// member products
+		//--------------------
+		var memberProductIds []int
+		var memberProductBase int
+		query = "SELECT * FROM public.get_all_configurable_product_members($1);"
+		memberProductArgs := []any{val.Id}
+		memberProductDest := []any{
+			&memberProductBase,
+		}
+
+		memberProductResult, err := query_handler.NewQuery(
+			query_handler.WithCtx(ctx),
+			query_handler.WithDB(p.Pool),
+			query_handler.WithQuery(query),
+			query_handler.WithMultiRowResultSet(memberProductArgs, memberProductDest),
+		).DoMultiQuery()
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+			default:
+				return port.GetAllResponse{}, err
+			}
+		}
+		for _, i := range memberProductResult {
+			memberProductIds = append(memberProductIds, int(i[0].(int64)))
+		}
+		val.Products = memberProductIds
+		response.List = append(response.List, val)
+	}
+
+	if len(response.List) == 0 {
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
+	}
+
+	return response, nil
+}
+
 func (p *Postgres) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
