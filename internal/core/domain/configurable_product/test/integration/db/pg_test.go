@@ -16,6 +16,7 @@ import (
 
 var container test_container.TestContainer
 var distributorId int
+var productPrice float64
 var db *sql.DB
 
 func TestMain(m *testing.M) {
@@ -44,6 +45,7 @@ func setup() {
 	if err != nil {
 		panic("failed to create distributor err: ")
 	}
+	productPrice = 100
 }
 
 func teardown() {
@@ -103,6 +105,70 @@ func Test_read(t *testing.T) {
 		}
 		if got.List[0].Id != id {
 			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+	})
+
+	t.Run("GetByPrice", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: productPrice,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//included get
+		got, err := container.ConfigurableProductService.GetByParam(ctx, &configurable_product.GetByParamRequest{
+			Name:     "test",
+			MinPrice: productPrice - 10,
+			MaxPrice: productPrice + 10,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if got.List[0].Id != id {
+			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+
+		//excluded get
+		got, err = container.ConfigurableProductService.GetByParam(ctx, &configurable_product.GetByParamRequest{
+			Name:     "test",
+			MinPrice: productPrice + 10,
+			MaxPrice: productPrice - 10,
+		})
+		wantErr := configurable_product.ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("Want err: %v Got: %v", wantErr, err)
 		}
 	})
 

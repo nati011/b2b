@@ -65,8 +65,8 @@ type GetAllResponse struct {
 type GetByParamRequest struct {
 	Name       string
 	ExternalId string
-	MinPrice   int
-	MaxPrice   int
+	MinPrice   float64
+	MaxPrice   float64
 }
 
 type UpdateRequest struct {

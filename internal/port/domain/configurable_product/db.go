@@ -26,8 +26,8 @@ type PriceRangeResponse struct {
 }
 
 type PriceRangeRequest struct {
-	Min int
-	Max int
+	Min float64
+	Max float64
 }
 
 type Image struct {
