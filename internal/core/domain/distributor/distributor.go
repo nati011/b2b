@@ -35,6 +35,7 @@ type CreateRequest struct {
 	Email     string
 	Phone     string
 	Username  string
+	Password  string
 }
 
 type GetUserDetailResponse struct {
