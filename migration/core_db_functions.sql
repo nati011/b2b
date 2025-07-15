@@ -929,7 +929,8 @@ CREATE OR REPLACE FUNCTION public.create_distributor (
     d_long VARCHAR(255),
     d_generalZone VARCHAR(255),
     d_region VARCHAR(255),
-    d_woreda VARCHAR(255)
+    d_woreda VARCHAR(255),
+    d_licence_url VARCHAR(255)
 ) 
 RETURNS INT 
 LANGUAGE plpgsql 
@@ -942,11 +943,11 @@ AS $$
         RETURNING id INTO new_id;
 
         -- Business info
-        INSERT INTO public.distributor_business_info(name, tin, distributor_id)
-        VALUES(d_name, d_tin, new_id)
+        INSERT INTO public.distributor_business_info(name, tin, licence_url, distributor_id)
+        VALUES(d_name, d_tin, d_licence_url, new_id)
         RETURNING id INTO business_id;
 
-        -- business Locations
+        -- Business Locations
         INSERT INTO public.db_locations(lat, long, general_zone, region, woreda, business_id)
         VALUES(d_lat, d_long, d_generalZone, d_region, d_woreda, business_id);
 
@@ -1019,21 +1020,22 @@ RETURNS TABLE (
   id INT,
   name VARCHAR(255),
   tin VARCHAR(255),
+  licence_url VARCHAR(255),
   lat VARCHAR(255),
   long VARCHAR(255),
   generalZone VARCHAR(255),
   region VARCHAR(255),
   woreda VARCHAR(255),
   is_active BOOLEAN,
-  verdict VARCHAR(255)
-) 
+  verdict VARCHAR(255) 
+)
 LANGUAGE plpgsql 
 AS $$
     BEGIN
         RETURN QUERY
 
-        SELECT  d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict
+        SELECT  d.id, db.name, db.tin,COALESCE(db.licence_url, ''), db_loc.lat, db_loc.long, 
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, COALESCE(dr.verdict, 'PENDING') AS verdict
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1167,8 +1169,8 @@ AS $$
 BEGIN
     RETURN QUERY
 
-        SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
+        SELECT d.id, db.name, db.tin,db.licence_url, db_loc.lat, db_loc.long, 
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, COALESCE(dr.verdict, 'PENDING') AS verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1246,7 +1248,7 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active,  COALESCE(dr.verdict, 'PENDING') AS verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
