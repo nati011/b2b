@@ -30,6 +30,7 @@ type CreateDistributorRequest struct {
 	GeneralZone string `json:"general_zone"`
 	Region      string `json:"region"`
 	Woreda      string `json:"woreda"`
+	LicenceURL  string `json:"licence_url"`
 
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -50,6 +51,7 @@ type GetDistributorResponse struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`
 	Tin         string `json:"tin"`
+	LicenceURL  string `json:"licence_url"`
 	Latitude    string `json:"latitude"`
 	Longitude   string `json:"longitude"`
 	GeneralZone string `json:"general_zone"`
@@ -127,7 +129,7 @@ func (d *Distributor) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateDistributorHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateDistributorHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PUT /api/v1/distributor", func(w http.ResponseWriter, r *http.Request) {
@@ -307,6 +309,7 @@ func (de *Distributor) GetDistributorHandler(w http.ResponseWriter, r *http.Requ
 				Id:          resp.Id,
 				Name:        resp.Name,
 				Tin:         resp.Tin,
+				LicenceURL:  resp.LicenceURL,
 				Latitude:    resp.Latitude,
 				Longitude:   resp.Longitude,
 				GeneralZone: resp.GeneralZone,
