@@ -30,6 +30,7 @@ var (
 	ErrDuplicateOrderNotAllowed           = errors.New(" duplicate order not allowed")
 	ErrOrderAlreadyConfirmed              = errors.New(" order already confirmed")
 	ErrOrderAlreadyRejected               = errors.New(" order already rejected")
+	ErrCannotInitPaymentForCanceledOrder  = errors.New("order canceled, cannot init payment")
 )
 
 // order status
@@ -43,6 +44,7 @@ const (
 const (
 	PAYMENT_PENDING_STATUS  = "PENDING"
 	PAYMENT_ACCEPTED_STATUS = "ACCEPTED"
+	PAYMENT_CANCELED_STATUS = "CANCELED"
 )
 
 // delivery
@@ -50,6 +52,7 @@ const (
 	DELIVERY_PENDING_STATUS    = "PENDING"
 	DELIVERY_DISPATCHED_STATUS = "DISPATCHED"
 	DELIVERY_COMPLETED_STATUS  = "COMPLETED"
+	DELIVERY_CANCELED_STATUS   = "CANCELED"
 )
 
 // confirmation
@@ -439,6 +442,18 @@ func (o *OrderService) PlaceWithUserContext(ctx context.Context, req *PlaceAsUse
 }
 
 func (o *OrderService) InitPayment(ctx context.Context, id int) (OrderPlaceResponse, error) {
+	order, err := o.Get(ctx, id)
+	if err != nil {
+		switch err {
+		default:
+			log.Printf("failed to get product")
+		}
+	}
+	if order.PaymentStatus == PAYMENT_CANCELED_STATUS {
+		log.Printf(" init payment for canceled order")
+		return OrderPlaceResponse{}, ErrCannotInitPaymentForCanceledOrder
+	}
+
 	resp, err := o.CheckoutService.ReinitiateCheckout(ctx, &checkout.ReinitiateCheckoutRequest{
 		OrderId: id,
 	})
@@ -473,6 +488,28 @@ func (o *OrderService) Cancel(ctx context.Context, id int) error {
 	err = o.DB.UpdateOrderStatus(ctx, &port.UpdateOrderStatusRequest{
 		Id:     id,
 		Status: CANCELED_STATUS,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	//canceled order has canceled delivery status
+	err = o.DB.UpdateDeliveryStatus(ctx, &port.UpdateOrderDeliveryStatusRequest{
+		Id:             id,
+		DeliveryStatus: DELIVERY_CANCELED_STATUS,
+	})
+	if err != nil {
+		switch err {
+		default:
+			return ErrUnknown
+		}
+	}
+	//canceled order has canceled payment status
+	err = o.DB.UpdatePaymentStatus(ctx, &port.UpdateOrderPaymentStatusRequest{
+		Id:            id,
+		PaymentStatus: PAYMENT_CANCELED_STATUS,
 	})
 	if err != nil {
 		switch err {

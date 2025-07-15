@@ -165,6 +165,7 @@ CREATE TABLE IF NOT EXISTS public."distributor_business_info"
   id SERIAL PRIMARY KEY,
   name VARCHAR(255),
   tin VARCHAR(10) NOT NULL,
+  licence_url VARCHAR(255),
   distributor_id INT 
   -- UNIQUE REFERENCES public."distributors" (id) ON DELETE CASCADE
 ) INHERITS (public."base");

@@ -28,12 +28,14 @@ type CreateRequest struct {
 	GeneralZone string
 	Region      string
 	Woreda      string
+	LicenceURL  string
 
 	FirstName string
 	LastName  string
 	Email     string
 	Phone     string
 	Username  string
+	Password  string
 }
 
 type GetUserDetailResponse struct {
@@ -49,6 +51,7 @@ type GetResponse struct {
 	Id          int
 	Name        string
 	Tin         string
+	LicenceURL  string
 	Latitude    string
 	Longitude   string
 	GeneralZone string
@@ -178,6 +181,7 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		Email:     req.Email,
 		Phone:     req.Phone,
 		Username:  req.Username,
+		Password:  req.Password,
 	})
 
 	if err != nil {
@@ -198,6 +202,7 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		GeneralZone: req.GeneralZone,
 		Region:      req.Region,
 		Woreda:      req.Woreda,
+		LicenceURL:  req.LicenceURL,
 		UserId:      user_id,
 	})
 	if err != nil {
@@ -250,6 +255,7 @@ func (d *DistributorService) Get(ctx context.Context, id int) (GetResponse, erro
 		Id:          resp.Id,
 		Name:        resp.Name,
 		Tin:         resp.Tin,
+		LicenceURL:  resp.LicenceURL,
 		Latitude:    resp.Latitude,
 		Longitude:   resp.Longitude,
 		GeneralZone: resp.GeneralZone,
@@ -520,7 +526,6 @@ func (d *DistributorService) Dectivate(ctx context.Context, id int) error {
 			return ErrUnknown
 		}
 	}
-
 	if !resp.IsActive {
 		return ErrDistributorAlreadyInactive
 	}
