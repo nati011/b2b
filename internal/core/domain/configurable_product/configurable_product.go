@@ -65,6 +65,8 @@ type GetAllResponse struct {
 type GetByParamRequest struct {
 	Name       string
 	ExternalId string
+	MinPrice   int
+	MaxPrice   int
 }
 
 type UpdateRequest struct {
@@ -198,6 +200,43 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 			}
 		}
 		for _, i := range get_by_name_resp.List {
+			var images []Image
+			for _, value := range i.Images {
+				image := Image{
+					ImageUrl: value.ImageUrl,
+					BlurHash: value.BlurHash,
+				}
+				images = append(images, image)
+			}
+			resp = append(resp, GetResponse{
+				Id:            i.Id,
+				Name:          i.Name,
+				Desc:          i.Desc,
+				ExternalId:    i.ExternalId,
+				Products:      i.Products,
+				IsAvailable:   i.IsAvailable,
+				PriceRange:    PriceRangeResponse(i.PriceRange),
+				CategoryId:    i.CategoryId,
+				DistributorId: i.DistributorId,
+				Images:        images,
+			})
+		}
+	}
+
+	if req.MinPrice != 0 || req.MaxPrice != 0 {
+		get_by_price_range_resp, err := c.DB.GetByPriceRange(ctx, port.PriceRangeRequest{
+			Min: req.MinPrice,
+			Max: req.MaxPrice,
+		})
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetAllResponse{}, ErrEmptyGetContent
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+		for _, i := range get_by_price_range_resp.List {
 			var images []Image
 			for _, value := range i.Images {
 				image := Image{

@@ -25,6 +25,11 @@ type PriceRangeResponse struct {
 	Max int
 }
 
+type PriceRangeRequest struct {
+	Min int
+	Max int
+}
+
 type Image struct {
 	ImageUrl string
 	BlurHash string
@@ -88,6 +93,7 @@ type Reader interface {
 	GetAll(ctx context.Context) (GetAllResponse, error)
 	GetByName(ctx context.Context, name string) (GetAllResponse, error)
 	GetByExternalId(ctx context.Context, extId string) (GetAllResponse, error)
+	GetByPriceRange(ctx context.Context, req PriceRangeRequest) (GetAllResponse, error)
 }
 
 type Writer interface {

@@ -10,6 +10,7 @@ import (
 )
 
 var product_id int
+var productPrice float64
 var distributorId int
 var container TestContainer
 
@@ -37,6 +38,7 @@ func setup() {
 	if err != nil {
 		panic("failed to create distributor err: ")
 	}
+	productPrice = 100.00
 	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
@@ -45,7 +47,7 @@ func setup() {
 			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
 		},
-		Price: 100.00,
+		Price: productPrice,
 		Attributes: map[string]string{
 			"test":         "test",
 			"another_test": "another_test",
@@ -611,6 +613,54 @@ func Test_GetByParam_happyPath(t *testing.T) {
 		}
 		if got.List[0].Id != id {
 			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+	})
+
+	t.Run("byMin&MaxPrice", func(t *testing.T) {
+		t.Cleanup(container.Teardown)
+		setup()
+		ctx := context.Background()
+		in := &CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		// inclusive get
+		got, err := container.ConfigurableProductService.GetByParam(ctx, &GetByParamRequest{
+			MinPrice: int(productPrice) - 10,
+			MaxPrice: int(productPrice) + 10,
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if got.List[0].Id != id {
+			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+
+		// exclusive get
+		got, err = container.ConfigurableProductService.GetByParam(ctx, &GetByParamRequest{
+			MinPrice: int(productPrice) + 10,
+			MaxPrice: int(productPrice) - 10,
+		})
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("Want err:%v Got: %v", err, ErrEmptyGetContent)
 		}
 	})
 }

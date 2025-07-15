@@ -312,7 +312,6 @@ func (c *CatalogueService) Get(ctx context.Context, req *GetRequest) (GetAllCata
 	}
 
 	// standalone products
-
 	pr := product.GetAllResponse{}
 	if req.minPrice == 0 && req.maxPrice == 0 {
 		//if filter is used
