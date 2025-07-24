@@ -1,20 +1,6 @@
 #!/bin/bash
 
 
-$name"
-    
-    # Execute the PostgreSQL function using connection string
-    psql "$DB_CONNECTION_STRING" -t -c \
-        "SELECT public.create_resource('$name', '$action', '$resource');"
-    
-    if [ $? -eq 0 ]; then
-        echo "✓ Successfully created resource: $name"
-    else
-        echo "✗ Failed to create resource: $name"
-        return 1
-    fi
-}
-
 # Main script
 echo "Starting resource creation..."
 echo "================================"
