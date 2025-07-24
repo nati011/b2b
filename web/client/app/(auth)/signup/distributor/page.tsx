@@ -13,6 +13,9 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Checkbox } from "@/components/ui/checkbox";
 import ImageUpload from "@/components/ImageUpload";
+import { RegisterDistributor } from "@/app/actions/auth";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { CheckCircle, Eye, EyeOff } from "lucide-react";
 
 const Map = dynamic(() => import("@/components/map"), { ssr: false });
 
@@ -33,10 +36,15 @@ const steps = [
     title: "Business Documents",
     description: "Set your business documents",
   },
+  {
+    title: "Security",
+    description: "Set a password for your account",
+  },
 ];
 
 export default function DistributorsForm() {
   const router = useRouter();
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState<DistributorRequest>({
     name: "",
     tin: "",
@@ -52,6 +60,9 @@ export default function DistributorsForm() {
     username: "",
     dob: "",
     external_id: "",
+    licence_url: "",
+    password:"",
+    confirm_password:""
   });
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([
     8.9934609, 38.7714897,
@@ -59,6 +70,9 @@ export default function DistributorsForm() {
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleReset = () => {
     setFormData({
@@ -76,6 +90,9 @@ export default function DistributorsForm() {
       username: "",
       dob: "",
       external_id: "",
+      licence_url: "",
+      password:"",
+    confirm_password:""
     });
     setMarkerPosition([8.9934609, 38.7714897]);
     setUseCurrentLocation(false);
@@ -119,13 +136,17 @@ export default function DistributorsForm() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    if(formData.password != formData.confirm_password){
+      setLoading(false);
+      toast.error("Password don't match")
+      return
+    }
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await RegisterDistributor(formData);
       toast.success("Distributor registered successfully!");
-      router.push("/distributors");
-    } catch (e) {
-      toast.error("Failed to register distributor.");
+      setSuccess(true);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to register distributor.");
     } finally {
       setLoading(false);
     }
@@ -374,9 +395,91 @@ export default function DistributorsForm() {
 
           {currentStep === 3 && (
             <div className="space-y-4">
-              <ImageUpload onChange={function (value: string[]): void {
-                throw new Error("Function not implemented.");
-              } }/>
+              <ImageUpload
+                onChange={(value: string[]) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    licence_url: value[0] || "",
+                  }));
+                  setImageError("");
+                }}
+                value={formData.licence_url ? [formData.licence_url] : []}
+              />
+              {imageError && (
+                <p className="text-red-600 text-sm mt-2">{imageError}</p>
+              )}
+            </div>
+          )}
+
+
+{currentStep === 4 && (
+            <div className="space-y-4">
+              <div className="grid gap-2 relative">
+                <Label htmlFor="password">
+                  Password<span className="text-red-500 ">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="********"
+                    required
+                    value={formData.password}
+                    onChange={(e)=>
+                      setFormData((prev) => ({
+                        ...prev,
+                        password: e.target.value,
+                      }))
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                
+              </div>
+
+              <div className="grid gap-2 relative">
+                <Label htmlFor="confirmPassword">
+                  Confirm Password<span className="text-red-500 ">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="********"
+                    required
+                    value={formData.confirm_password}
+                    onChange={ (e)=>setFormData((prev) => ({
+                      ...prev,
+                      confirm_password: e.target.value,
+                    }))}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                
+              </div>
+
             </div>
           )}
 
@@ -412,6 +515,19 @@ export default function DistributorsForm() {
               )}
             </div>
           </div>
+
+          <Dialog open={success} onOpenChange={setSuccess}>
+            <DialogContent className="p-6 text-center">
+              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+              <h1 className="text-3xl font-bold text-green-800 mb-2">
+                Thank You for Registering!
+              </h1>
+              <p className="text-green-700">
+                Our team will get back to you shortly after reviewing your
+                profile information
+              </p>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>

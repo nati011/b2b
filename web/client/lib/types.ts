@@ -188,4 +188,7 @@ export type Distributor = {
     username: string;
     dob: string;
     external_id: string;
+    licence_url: string;
+    password: string;
+    confirm_password: string
   }

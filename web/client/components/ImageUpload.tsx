@@ -12,29 +12,27 @@ interface ImageUploadProps {
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value = [] }) => {
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [values, setValues] = useState<string[]>([]);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [imageValue, setImageValue] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [isUploading, setIsUploading] = useState(false);
 
   const api_key = "AmdeORpwsw7AJGbbjfwAYgPk1yQ";
   const cloud_name = "dnqkrebrb";
 
-  const removeImage = (index: number) => {
-    const newPreviews = [...previews];
-    const newValues = [...values];
-    newPreviews.splice(index, 1);
-    newValues.splice(index, 1);
-
-    setPreviews(newPreviews);
-    setValues(newValues);
-    onChange(newValues);
+  const removeImage = () => {
+    setPreview(null);
+    setImageValue(null);
+    onChange([]);
   };
 
   useEffect(() => {
-    if (value) {
-      setPreviews(value);
-      setValues(value);
+    if (value && value.length > 0) {
+      setPreview(value[0]);
+      setImageValue(value[0]);
+    } else {
+      setPreview(null);
+      setImageValue(null);
     }
   }, [value]);
 
@@ -52,10 +50,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value = [] }) => {
       xhr.upload.addEventListener("progress", (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded * 100) / event.total);
-          setUploadProgress(prev => ({
-            ...prev,
-            [file.name]: progress
-          }));
+          setUploadProgress({ [file.name]: progress });
         }
       });
 
@@ -84,28 +79,24 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value = [] }) => {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
-
+      const file = acceptedFiles[0];
       setIsUploading(true);
       try {
-        const uploadPromises = acceptedFiles.map(file => uploadImage(file));
-        toast("Uploading images...");
-
-        const uploadedImages = await Promise.all(uploadPromises);
-
-        const newValues = [...values, ...uploadedImages];
-        setValues(newValues);
-        setPreviews(newValues);
-        onChange(newValues);
-        toast.success("Images uploaded successfully!");
+        toast("Uploading image...");
+        const uploadedImage = await uploadImage(file);
+        setImageValue(uploadedImage);
+        setPreview(uploadedImage);
+        onChange([uploadedImage]);
+        toast.success("Image uploaded successfully!");
       } catch (error) {
-        console.error("Error uploading images:", error);
-        toast.error("Failed to upload some images");
+        console.error("Error uploading image:", error);
+        toast.error("Failed to upload image");
       } finally {
         setUploadProgress({});
         setIsUploading(false);
       }
     },
-    [values, onChange]
+    [onChange]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -169,28 +160,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onChange, value = [] }) => {
         </div>
       )}
 
-      {previews.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {previews.map((preview, index) => (
-            <div key={index} className="group relative aspect-square rounded-md border bg-muted">
-              <img
-                src={preview}
-                alt={`Preview ${index + 1}`}
-                className="h-full w-full rounded-md object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                }}
-              />
-              <Button
-                size="icon"
-                variant="destructive"
-                className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition"
-                onClick={() => removeImage(index)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+      {preview && (
+        <div className="grid grid-cols-1 gap-4">
+          <div className="group relative aspect-square rounded-md border bg-muted">
+            <img
+              src={preview}
+              alt="Preview"
+              className="h-full w-full rounded-md object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/placeholder.svg";
+              }}
+            />
+            <Button
+              size="icon"
+              variant="destructive"
+              className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition"
+              onClick={removeImage}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

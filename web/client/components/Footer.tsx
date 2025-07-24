@@ -62,8 +62,8 @@ export const Footer = () => {
 
                 <div className="border-t border-primary mt-12 pt-6">
                     <div className="flex flex-col md:flex-row justify-between items-center">
-                        <p className="text-sm text-muted-foreground mb-4 md:mb-0">
-                            &copy; {currentYear} Efoyeta. All rights reserved.
+                        <p className="text-sm text-muted-foreground mb-4 md:mb-0 uppercase">
+                            &copy; {currentYear} <a href="https://www.efoyetastore.com/">efoyeta store plc.</a> All rights reserved.
                         </p>
                         <div className="flex space-x-6">
                             <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
