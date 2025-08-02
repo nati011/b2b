@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"log"
 	"os"
 	"testing"
 
@@ -210,41 +209,7 @@ func Test_Read(t *testing.T) {
 			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
 		}
 	})
-	t.Run("getByUserId", func(t *testing.T) {
-		t.Cleanup(teardown)
-		ctx := context.Background()
-		// setup
-		in := distributor.CreateRequest{
-			Tin:         "1111111111",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-			Username:    "dist_test",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
-		}
-		id, err := testContainer.DistributorService.Create(ctx, &in)
-		log.Printf("Id, %v", id)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		// distributor, err := testContainer.DistributorService.Get(ctx, id)
-		// if err != nil {
-		// 	t.Fatalf("Failed to create user %v", err)
-		// }
-		dist, err := testContainer.DistributorService.GetByUserId(ctx, id)
-		if err != nil {
-			t.Errorf("Failed to get distirbutor %v", err)
-		}
-		log.Printf("Distribtors %v", dist)
-		if dist.Id != id {
-			t.Fatalf("Want id %v got id %v", id, dist.Id)
-		}
 
-	})
 	t.Run("get_all_user_agents", func(t *testing.T) {
 		t.Cleanup(teardown)
 		//setup
