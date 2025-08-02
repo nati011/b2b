@@ -27,11 +27,16 @@ func setup() {
 		db,
 	)
 	distributorId = 1
+	ctx := context.Background()
+	err := testContainer.DistributorApprovalService.CreateApprovalProcess(ctx, distributorId)
+	if err != nil {
+		panic("failed to create approval process")
+	}
 }
 
 func teardown() {
 	testContainer.Teardown(db)
-	db_test_container.Teardown(db)
+	// db_test_container.Teardown(db)
 }
 
 func Test_Timeout(t *testing.T) {

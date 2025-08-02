@@ -24,6 +24,25 @@ func teardown() {
 	testContainer.Teardown()
 }
 
+func Test_Init_HappyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	err := testContainer.DistributorApprovalService.CreateApprovalProcess(ctx, distributorId)
+	if err != nil {
+		t.Fatalf("failed to create distributor approval: %v", err)
+	}
+
+	//check
+	approvalStatus, err := testContainer.DistributorApprovalService.GetApprovalStatus(ctx, distributorId)
+	if err != nil {
+		t.Fatalf("Failed to get err: %v", err)
+	}
+	wantApprovalStatus := PENDING_STATUS
+	if approvalStatus.Status != wantApprovalStatus {
+		t.Errorf("Expected approval status: %v Got: %v", wantApprovalStatus, approvalStatus)
+	}
+}
+
 func Test_Approve_HappyPath(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
@@ -39,7 +58,7 @@ func Test_Approve_HappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
-	wantApprovalStatus := "APPROVED"
+	wantApprovalStatus := APPROVED_STATUS
 	if approvalStatus.Status != wantApprovalStatus {
 		t.Errorf("Expected approval status: %v Got: %v", wantApprovalStatus, approvalStatus)
 	}
@@ -82,7 +101,7 @@ func Test_Reject_HappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get err: %v", err)
 	}
-	wantApprovalStatus := "REJECTED"
+	wantApprovalStatus := REJECTED_STATUS
 	if approvalStatus.Status != wantApprovalStatus {
 		t.Errorf("Expected approval status: %v Got: %v", wantApprovalStatus, approvalStatus)
 	}
@@ -139,7 +158,7 @@ func Test_GetApprovalStatus_HappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get approval status err: %v", err)
 	}
-	wantStatus := "REJECTED"
+	wantStatus := REJECTED_STATUS
 	if status.Status != wantStatus {
 		t.Errorf("Expected status: %v Got: %v", wantStatus, status.Status)
 	}

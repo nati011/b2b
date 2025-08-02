@@ -36,6 +36,7 @@ type ApprovalStatusResponse struct {
 }
 
 type Provider interface {
+	CreateApprovalProcess(ctx context.Context, distributorId int) error
 	Approve(ctx context.Context, req *ApprovalRequest) error
 	Reject(ctx context.Context, req *RejectionRequest) error
 	GetApprovalStatus(ctx context.Context, distributorId int) (ApprovalStatusResponse, error)
@@ -51,6 +52,21 @@ func NewDistributorApprovalService(db port.DB) Provider {
 	}
 }
 
+func (d *DistributorApprovalService) CreateApprovalProcess(ctx context.Context, distributorId int) error {
+	err := d.DB.Init(ctx, port.InitRequest{
+		DistributorId: distributorId,
+		Status:        PENDING_STATUS,
+	})
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+		default:
+			return ErrUnknown
+		}
+	}
+	return nil
+}
+
 func (d *DistributorApprovalService) Approve(ctx context.Context, req *ApprovalRequest) error {
 	status, err := d.DB.GetApprovalStatus(ctx, req.DistributorId)
 	if err != nil {
@@ -63,8 +79,11 @@ func (d *DistributorApprovalService) Approve(ctx context.Context, req *ApprovalR
 	if status == APPROVED_STATUS {
 		return ErrAlreadyApproved
 	}
-	err = d.DB.Approve(ctx, port.ApprovalRequest{
+	//TODO: add reviewed by
+	err = d.DB.ChangeDistributorReview(ctx, port.ReviewChangeRequest{
 		DistributorId: req.DistributorId,
+		Verdict:       APPROVED_STATUS,
+		Comment:       "approved",
 	})
 	if err != nil {
 		return ErrUnknown
@@ -90,9 +109,10 @@ func (d *DistributorApprovalService) Reject(ctx context.Context, req *RejectionR
 		}
 	}
 
-	err = d.DB.Reject(ctx, port.RejectRequest{
+	err = d.DB.ChangeDistributorReview(ctx, port.ReviewChangeRequest{
 		DistributorId: req.DistributorId,
 		Comment:       req.Comment,
+		Verdict:       REJECTED_STATUS,
 	})
 	if err != nil {
 		return ErrUnknown
