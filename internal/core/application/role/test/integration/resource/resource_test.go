@@ -27,11 +27,12 @@ func setup() {
 	container = test_container.NewIntegrationTestContainer(db)
 	ctx := context.Background()
 	resource_id, err = container.ResourceService.Create(ctx, &resource.CreateRequest{
-		Action: "resourceTest",
-		Name:   "resourceTest",
+		Action:   "resourceTest",
+		Name:     "resourceTest",
+		Resource: "resourceTest",
 	})
 	if err != nil {
-		panic(err.Error())
+		panic("failed to create resource")
 	}
 }
 
@@ -81,18 +82,19 @@ func Test_Read(t *testing.T) {
 			Name: "test2",
 		})
 		resId, err := container.ResourceService.Create(ctx, &resource.CreateRequest{
-			Action: "test",
-			Name:   "taken_2",
+			Action:   "test",
+			Name:     "taken_2",
+			Resource: "taken",
 		})
 		if err != nil {
-			t.Errorf("Failed")
+			t.Fatalf("Failed")
 		}
 		err = container.RoleService.AddResource(ctx, &role.AddResourceRequest{
 			ResourceId: resId,
 			RoleId:     id,
 		})
 		if err != nil {
-			t.Errorf("Failed to add resource")
+			t.Fatalf("Failed to add resource")
 		}
 		// Get All
 		got, err := container.RoleService.GetAllResources(ctx, id)
