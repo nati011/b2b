@@ -289,7 +289,8 @@ func (r *Postgres) GetByStatus(ctx context.Context, status bool) (port.GetAllRes
 
 	query := "SELECT * FROM public.get_distributor_by_status($1,$2,$3);"
 
-	dest := []any{&responseBase.Id,
+	dest := []any{
+		&responseBase.Id,
 		&responseBase.Name,
 		&responseBase.Tin,
 		&responseBase.Latitude,
