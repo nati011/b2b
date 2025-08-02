@@ -190,6 +190,7 @@ func Test_Confirm_unhappyPath(t *testing.T) {
 
 func Test_Confirm_happyPath(t *testing.T) {
 	t.Cleanup(teardown)
+	setup()
 	ctx := context.Background()
 	in := &order.PlaceRequest{
 		PaymentPartnerId: ManualPaymentPartnerId,
