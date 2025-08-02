@@ -172,7 +172,7 @@ func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 
 func (p *Postgres) Create(ctx context.Context, req *port.CreateRequest) (int, error) {
 	var resourceId int
-	query := "SELECT * FROM public.create_resource($1, $2, $3);"
+	query := "SELECT * FROM public.create_resource($1, $2, $3, $4);"
 
 	result := []any{&resourceId}
 	args := []any{req.Name, req.Action, req.Resource, req.Scope}
