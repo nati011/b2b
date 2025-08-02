@@ -1341,36 +1341,22 @@ $$;
 -- distributor reveiw ---------------------------------
 
     -- writer
-CREATE OR REPLACE FUNCTION public.approve_distributor_review (
+CREATE OR REPLACE FUNCTION public.init_distributor_review (
     d_distributor_id INT,
-    d_comment VARCHAR(255),
-    d_reviewed_by VARCHAR(255)
+    d_verdict VARCHAR(255)
 ) 
 RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
-        UPDATE public.distributor_reviews
-        SET verdict = 'APPROVED',
-            comment = d_comment,
-            reviewed_by = d_reviewed_by
-        WHERE distributor_id = d_distributor_id;
-    ELSE
-        INSERT INTO public.distributor_reviews(distributor_id,
-                                               verdict,
-                                               comment,
-                                               reviewed_by)
-        VALUES(d_distributor_id,
-               'APPROVED',
-               d_comment,
-               d_reviewed_by);
-    END IF;
+    INSERT INTO public.distributor_reviews(distributor_id, verdict)
+    VALUES(d_distributor_id, d_verdict);
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.reject_distributor_review (
+CREATE OR REPLACE FUNCTION public.change_distributor_review (
     d_distributor_id INT,
+    d_verdict VARCHAR(255),
     d_comment VARCHAR(255),
     d_reviewed_by VARCHAR(255)
 ) 
@@ -1378,22 +1364,11 @@ RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
-        UPDATE public.distributor_reviews
-        SET verdict = 'REJECTED',
-            comment = d_comment,
-            reviewed_by = d_reviewed_by
-        WHERE distributor_id = d_distributor_id;
-    ELSE
-        INSERT INTO public.distributor_reviews(distributor_id,
-                                               verdict,
-                                               comment,
-                                               reviewed_by)
-        VALUES(d_distributor_id,
-               'REJECTED',
-               d_comment,
-               d_reviewed_by);
-    END IF;
+    UPDATE public.distributor_reviews
+    SET verdict = d_verdict,
+        comment = d_comment,
+        reviewed_by = d_reviewed_by
+    WHERE distributor_id = d_distributor_id;
 END;
 $$;
 
