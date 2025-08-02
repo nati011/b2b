@@ -955,6 +955,20 @@ AS $$
     END;
 $$;
 
+
+CREATE OR REPLACE FUNCTION public.remove_distributor (
+    d_id INT
+) 
+RETURNS VOID
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    UPDATE public.distributor_business_info
+        SET is_deleted = true
+        WHERE id = r_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.update_distributor_name(
     r_id INT,
     r_name VARCHAR(255)
