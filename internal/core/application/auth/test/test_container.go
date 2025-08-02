@@ -114,10 +114,6 @@ func NewIntegrationTestContainer() TestContainer {
 	return container
 }
 
-func (t *TestContainer) teardown() {
-
-}
-
 const (
 	KEYCLOAK_VERSION        = "keycloak/keycloak:24.0"
 	KEYCLOAK_ADMIN_USERNAME = "admin"

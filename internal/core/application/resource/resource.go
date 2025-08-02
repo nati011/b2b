@@ -33,6 +33,7 @@ type CreateRequest struct {
 	Action   string
 	Resource string
 	Name     string
+	Scope    string
 }
 
 type UpdateRequest struct {
@@ -40,6 +41,7 @@ type UpdateRequest struct {
 	Action   string
 	Resource string
 	Name     string
+	Scope    string
 }
 
 type GetResponse struct {
@@ -47,6 +49,7 @@ type GetResponse struct {
 	Action   string
 	Resource string
 	Name     string
+	Scope    string
 }
 
 type GetAllResponse struct {
@@ -58,6 +61,7 @@ type Provider interface {
 	GetByName(context.Context, string) (GetResponse, error)
 	Get(context.Context, int) (GetResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
+	GetByScope(context.Context, string) (GetAllResponse, error)
 
 	Create(context.Context, *CreateRequest) (int, error)
 	Update(context.Context, *UpdateRequest) (int, error)
@@ -90,6 +94,7 @@ func (r *ResourceProvider) Create(ctx context.Context, req *CreateRequest) (int,
 		Action:   req.Action,
 		Name:     req.Name,
 		Resource: req.Resource,
+		Scope:    req.Scope,
 	})
 	log.Printf("Created Resource: %v", id)
 	if err != nil {
@@ -209,6 +214,23 @@ func (r *ResourceProvider) GetByResource(ctx context.Context, resource string) (
 		}
 	}
 	return GetResponse(resp), nil
+}
+
+func (r *ResourceProvider) GetByScope(ctx context.Context, scope string) (GetAllResponse, error) {
+	allResp, err := r.db.GetByScope(ctx, scope)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrResourceNotFound
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	var response GetAllResponse
+	for _, i := range allResp.List {
+		response.List = append(response.List, GetResponse(i))
+	}
+	return response, nil
 }
 
 func (r *ResourceProvider) Get(ctx context.Context, id int) (GetResponse, error) {

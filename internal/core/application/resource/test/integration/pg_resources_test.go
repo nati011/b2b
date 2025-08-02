@@ -47,6 +47,7 @@ func Test_create(t *testing.T) {
 		Action:   "test",
 		Name:     "test121",
 		Resource: "test",
+		Scope:    "d",
 	}
 
 	_, err := service.Create(ctx, &in)
