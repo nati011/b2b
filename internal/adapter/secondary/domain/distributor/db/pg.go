@@ -62,6 +62,23 @@ func (r *Postgres) Create(ctx context.Context, req port.CreateRequest) (int, err
 	return distributorId, nil
 }
 
+func (r *Postgres) Remove(ctx context.Context, id int) error {
+	query := "SELECT * FROM public.remove_distributor($1);"
+
+	args := []any{id}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(r.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, nil),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	var response port.GetResponse
 	query := "SELECT * FROM public.get_distributor_by_id($1);"

@@ -67,6 +67,27 @@ func (m *Mock) Create(ctx context.Context, req port.CreateRequest) (int, error) 
 	return newId, nil
 }
 
+func (m *Mock) Remove(ctx context.Context, id int) error {
+	distributors := []MockDistributor{}
+	for _, i := range m.distributors {
+		if i.Id != id {
+			distributors = append(distributors, MockDistributor{
+				Id:          i.Id,
+				Name:        i.Name,
+				Tin:         i.Tin,
+				Latitude:    i.Latitude,
+				Longitude:   i.Longitude,
+				GeneralZone: i.GeneralZone,
+				Region:      i.Region,
+				Woreda:      i.Woreda,
+				IsActive:    i.IsActive,
+			})
+		}
+	}
+	m.distributors = distributors
+	return nil
+}
+
 func (m *Mock) CreateDistributorUser(ctx context.Context, req *port.CreateUserAgentRequest) (int, error) {
 	m.userAgents = append(m.userAgents, MockUserAgent{
 		Id: req.User_id,
