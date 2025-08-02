@@ -21,16 +21,16 @@ type GetAuditReportResponse struct {
 	List []GetVerdictResponse
 }
 
-type RejectRequest struct {
+type ReviewChangeRequest struct {
 	DistributorId int
+	Verdict       string
 	Comment       string
 	ReviewedBy    string
 }
 
-type ApprovalRequest struct {
+type InitRequest struct {
 	DistributorId int
-	Comment       string
-	ReviewedBy    string
+	Status        string
 }
 
 type Reader interface {
@@ -39,8 +39,8 @@ type Reader interface {
 }
 
 type Writer interface {
-	Approve(ctx context.Context, req ApprovalRequest) error
-	Reject(ctx context.Context, req RejectRequest) error
+	ChangeDistributorReview(ctx context.Context, req ReviewChangeRequest) error
+	Init(ctx context.Context, req InitRequest) error
 }
 
 type DB interface {

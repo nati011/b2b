@@ -913,6 +913,20 @@ AS $$
     END;
 $$;
 
+
+CREATE OR REPLACE FUNCTION public.remove_distributor (
+    d_id INT
+) 
+RETURNS VOID
+LANGUAGE plpgsql 
+AS $$
+BEGIN
+    UPDATE public.distributor_business_info
+        SET is_deleted = true
+        WHERE id = r_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.update_distributor_name(
     r_id INT,
     r_name VARCHAR(255)
@@ -1027,8 +1041,7 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-            db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, 
-            COALESCE(dr.verdict, 'PENDING') AS verdict
+            db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict
         FROM public.distributors d
         JOIN public.distributor_business_info db ON db.distributor_id = d.id
         JOIN public.db_locations db_loc ON db_loc.business_id = db.id
@@ -1127,8 +1140,8 @@ AS $$
 BEGIN
     RETURN QUERY
 
-        SELECT d.id, db.name, db.tin,db.licence_url, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, COALESCE(dr.verdict, 'PENDING') AS verdict, COUNT(*) OVER() AS total_count
+        SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1206,7 +1219,7 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active,  COALESCE(dr.verdict, 'PENDING') AS verdict, COUNT(*) OVER() AS total_count
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1299,36 +1312,22 @@ $$;
 -- distributor reveiw ---------------------------------
 
     -- writer
-CREATE OR REPLACE FUNCTION public.approve_distributor_review (
+CREATE OR REPLACE FUNCTION public.init_distributor_review (
     d_distributor_id INT,
-    d_comment VARCHAR(255),
-    d_reviewed_by VARCHAR(255)
+    d_verdict VARCHAR(255)
 ) 
 RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
-        UPDATE public.distributor_reviews
-        SET verdict = 'APPROVED',
-            comment = d_comment,
-            reviewed_by = d_reviewed_by
-        WHERE distributor_id = d_distributor_id;
-    ELSE
-        INSERT INTO public.distributor_reviews(distributor_id,
-                                               verdict,
-                                               comment,
-                                               reviewed_by)
-        VALUES(d_distributor_id,
-               'APPROVED',
-               d_comment,
-               d_reviewed_by);
-    END IF;
+    INSERT INTO public.distributor_reviews(distributor_id, verdict)
+    VALUES(d_distributor_id, d_verdict);
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.reject_distributor_review (
+CREATE OR REPLACE FUNCTION public.change_distributor_review (
     d_distributor_id INT,
+    d_verdict VARCHAR(255),
     d_comment VARCHAR(255),
     d_reviewed_by VARCHAR(255)
 ) 
@@ -1336,22 +1335,11 @@ RETURNS VOID
 LANGUAGE plpgsql 
 AS $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM public.distributor_reviews WHERE distributor_id = d_distributor_id) THEN
-        UPDATE public.distributor_reviews
-        SET verdict = 'REJECTED',
-            comment = d_comment,
-            reviewed_by = d_reviewed_by
-        WHERE distributor_id = d_distributor_id;
-    ELSE
-        INSERT INTO public.distributor_reviews(distributor_id,
-                                               verdict,
-                                               comment,
-                                               reviewed_by)
-        VALUES(d_distributor_id,
-               'REJECTED',
-               d_comment,
-               d_reviewed_by);
-    END IF;
+    UPDATE public.distributor_reviews
+    SET verdict = d_verdict,
+        comment = d_comment,
+        reviewed_by = d_reviewed_by
+    WHERE distributor_id = d_distributor_id;
 END;
 $$;
 

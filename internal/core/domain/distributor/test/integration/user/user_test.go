@@ -1,4 +1,4 @@
-package onboardingapproval
+package user
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	test_container "b2b.nati011.github.com/internal/core/domain/distributor/test"
-	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -34,7 +33,7 @@ func teardown() {
 	db_test_container.Teardown(db)
 }
 
-func Test_Init_Approval_Process_upon_registration_happypath(t *testing.T) {
+func Test_create_user_upon_distributor_create(t *testing.T) {
 	t.Cleanup(teardown)
 	ctx := context.Background()
 	in := distributor.CreateRequest{
@@ -55,13 +54,17 @@ func Test_Init_Approval_Process_upon_registration_happypath(t *testing.T) {
 	}
 
 	//assert
-	distApprovalStatus, err := testContainer.DistributorApprovalService.GetApprovalStatus(
-		ctx, id)
+	resp, err := testContainer.DistributorService.GetAllUserDetail(ctx, id)
 	if err != nil {
-		t.Fatalf("Failed to create err: %v", err)
+		t.Fatalf("Failed to get user err: %v", err)
 	}
-	wantDistributorApprovalStatus := distributorApproval.PENDING_STATUS
-	if distApprovalStatus.Status != wantDistributorApprovalStatus {
-		t.Fatalf("expected err: %v, want err: %v", wantDistributorApprovalStatus, err)
+	wantLen := 1
+	if len(resp.List) != wantLen {
+		t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
+	}
+
+	_, err = testContainer.UserService.Get(ctx, resp.List[0].Id)
+	if err != nil {
+		t.Fatalf("Failed to get user err: %v", err)
 	}
 }
