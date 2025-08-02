@@ -440,35 +440,6 @@ func Test_Get_happyPath(t *testing.T) {
 			t.Errorf("Expected id: %v Got: %v", id, resp.List[0].Id)
 		}
 	})
-
-	t.Run("getAllDistributorUser", func(t *testing.T) {
-		t.Cleanup(testContainer.Teardown)
-		// setup
-		in := CreateRequest{
-			Tin:         "1111111111",
-			Latitude:    "9.0192° N",
-			Longitude:   "38.7525° E",
-			GeneralZone: "test",
-			Region:      "test",
-			Woreda:      "test",
-			Username:    "username",
-			FirstName:   "test",
-			LastName:    "test",
-			Email:       "test@gmail.com",
-		}
-		id, err := testContainer.DistributorService.Create(ctx, &in)
-		if err != nil {
-			t.Fatalf("Failed to create err: %v", err)
-		}
-		resp, err := testContainer.DistributorService.GetAllUserDetail(ctx, id)
-		if err != nil {
-			t.Fatalf("Failed to get err: %v", err)
-		}
-		wantLen := 1
-		if len(resp.List) != wantLen {
-			t.Errorf("Expected len: %v Got: %v", len(resp.List), wantLen)
-		}
-	})
 }
 
 func Test_Get_unhappyPath(t *testing.T) {
@@ -521,6 +492,7 @@ func Test_Get_All_Users_happyPath(t *testing.T) {
 	})
 }
 
+// no use case for it
 func Test_Get_All_Users_unhappyPath(t *testing.T) {
 
 }

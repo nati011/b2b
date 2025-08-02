@@ -32,7 +32,7 @@ func InitOrderExpiry(
 		),
 	)
 	if err != nil {
-		log.Panicf("failed to setup order expiry cron err: %v", err)
+		log.Fatalf("failed to setup order expiry cron err: %v", err)
 	}
 	log.Printf("init order expiry cron id: %v", j.ID())
 }
