@@ -221,10 +221,14 @@ func Test_delete_unhappyPath(t *testing.T) {
 func Test_update_happyPath(t *testing.T) {
 	t.Cleanup(container.Teardown)
 	ctx := context.Background()
-	id, _ := container.ResourceService.Create(ctx, &CreateRequest{
-		Action: "test",
-		Name:   "test",
+	id, err := container.ResourceService.Create(ctx, &CreateRequest{
+		Action:   "test",
+		Name:     "test",
+		Resource: "test",
 	})
+	if err != nil {
+		t.Fatalf("Failed to create resource err:%v", err)
+	}
 
 	//update
 	in := UpdateRequest{
@@ -310,10 +314,9 @@ func Test_update_unhappyPath(t *testing.T) {
 		})
 		// update
 		in := UpdateRequest{
-			Id:       id,
-			Action:   "tets",
-			Name:     "",
-			Resource: "teetas",
+			Id:     id,
+			Action: "tets",
+			Name:   "",
 		}
 		wantErr := ErrDuplicateName
 		resp, err := container.ResourceService.Update(ctx, &in)
@@ -340,10 +343,9 @@ func Test_update_unhappyPath(t *testing.T) {
 		})
 		// update
 		in := UpdateRequest{
-			Id:       id,
-			Action:   "",
-			Name:     "test2",
-			Resource: "teetas",
+			Id:     id,
+			Action: "",
+			Name:   "test2",
 		}
 		wantErr := ErrEmptyAction
 		resp, err := container.ResourceService.Update(ctx, &in)
@@ -481,7 +483,7 @@ func Test_getResource_unhappyPath(t *testing.T) {
 		ctx := context.Background()
 		// Get by Id
 		_, err := container.ResourceService.GetByResource(ctx, "resource")
-		wantErr := ErrNameNotFound
+		wantErr := ErrResourceNotFound
 		if err != wantErr {
 			t.Errorf("Expected err %v Got: %v", wantErr, err)
 		}
