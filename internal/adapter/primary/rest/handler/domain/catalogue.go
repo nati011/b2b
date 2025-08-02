@@ -2,6 +2,7 @@ package domain
 
 import (
 	"net/http"
+	"strconv"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -99,10 +100,47 @@ func (c *Catalogue) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/catalogue", func(w http.ResponseWriter, r *http.Request) {
 		c.authMiddleware.RequireNoAuthentication(http.HandlerFunc(c.GetCatalogueHandler)).ServeHTTP(w, r)
 	})
+
+	mux.HandleFunc("GET /api/v1/catalogue/search", func(w http.ResponseWriter, r *http.Request) {
+		c.authMiddleware.RequireNoAuthentication(http.HandlerFunc(c.SearchCatalogueHandler)).ServeHTTP(w, r)
+	})
 }
 
 func (c *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := c.service.GetAll(r.Context())
+	if err != nil {
+		switch err {
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, resp)
+}
+
+func (c *Catalogue) SearchCatalogueHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamName = "name"
+	const ParamPriceMin = "price_min"
+	const ParamPriceMax = "price_max"
+	paramValues := r.URL.Query()
+	paramNameValue := paramValues.Get(ParamName)
+	paramPriceMaxValue := paramValues.Get(ParamPriceMin)
+	paramPriceMinValue := paramValues.Get(ParamPriceMax)
+	typedParamPriceMinValue, err := strconv.Atoi(paramPriceMinValue)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	typedParamPriceMaxValue, err := strconv.Atoi(paramPriceMaxValue)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	resp, err := c.service.Search(r.Context(), catalogue.SearchCatalogueRequest{
+		Name:     paramNameValue,
+		PriceMin: typedParamPriceMinValue,
+		PriceMax: typedParamPriceMaxValue,
+	})
 	if err != nil {
 		switch err {
 		default:
