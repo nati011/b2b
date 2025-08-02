@@ -15,8 +15,10 @@ import (
 func InitDefaultConfig(cfg config.Config, applicationService *application_core.Container) {
 
 	log.Print("# initializing default configs...")
-	roleId := InitSuperadminRole(cfg, applicationService)
-	InitSuperAdminUser(roleId, cfg, applicationService)
+	superadminRoleId := InitSuperadminRole(cfg, applicationService)
+	InitSuperAdminUser(superadminRoleId, cfg, applicationService)
+	InitRetailerRole(cfg, applicationService)
+	InitDistributorSuperadminRole(cfg, applicationService)
 }
 
 func InitSuperAdminUser(roleId int, cfg config.Config, applicationService *application_core.Container) {
@@ -102,7 +104,7 @@ func InitSuperadminRole(cfg config.Config, applicationService *application_core.
 			log.Print("# superadmin role already created...")
 			return 0
 		default:
-			panic("failed to get user")
+			panic("failed to get role")
 		}
 	}
 
@@ -113,6 +115,84 @@ func InitSuperadminRole(cfg config.Config, applicationService *application_core.
 	})
 	if err != nil {
 		panic("failed to create superadmin role")
+	}
+
+	resources, err := applicationService.ResourceService.GetAll(ctx)
+	if err != nil {
+		panic("failed to fetch all resources")
+	}
+
+	for _, r := range resources.List {
+		applicationService.RoleService.AddResource(ctx, &role.AddResourceRequest{
+			ResourceId: r.Id,
+			RoleId:     roleId,
+		})
+	}
+	return roleId
+}
+
+func InitDistributorSuperadminRole(cfg config.Config, applicationService *application_core.Container) int {
+	ctx := context.Background()
+	_, err := applicationService.RoleService.Get(ctx, &role.GetRequest{
+		Name: "distributor",
+	})
+	wantErr := role.ErrEmptyGetContent
+	if err != wantErr {
+		switch err {
+		case nil:
+			log.Print("# distributor role already created...")
+			return 0
+		default:
+			panic("failed to get role")
+		}
+	}
+
+	log.Print("# creating distributor superadmin role...")
+	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
+		Name: "distributor",
+		Desc: "distributor superadmin",
+	})
+	if err != nil {
+		panic("failed to create distributor role")
+	}
+
+	resources, err := applicationService.ResourceService.GetAll(ctx)
+	if err != nil {
+		panic("failed to fetch all resources")
+	}
+
+	for _, r := range resources.List {
+		applicationService.RoleService.AddResource(ctx, &role.AddResourceRequest{
+			ResourceId: r.Id,
+			RoleId:     roleId,
+		})
+	}
+	return roleId
+}
+
+func InitRetailerRole(cfg config.Config, applicationService *application_core.Container) int {
+	ctx := context.Background()
+	_, err := applicationService.RoleService.Get(ctx, &role.GetRequest{
+		Name: "retailer",
+	})
+	wantErr := role.ErrEmptyGetContent
+	if err != wantErr {
+		switch err {
+		case nil:
+			log.Print("# retailer role already created...")
+			return 0
+		default:
+			panic("failed to get role")
+		}
+	}
+
+	log.Print("# creating retailer role...")
+	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
+		Name: "retailer",
+		Desc: "retailer superadmin",
+	})
+	if err != nil {
+		panic("failed to create retailer role")
 	}
 
 	resources, err := applicationService.ResourceService.GetAll(ctx)

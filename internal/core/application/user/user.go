@@ -47,6 +47,46 @@ type CreateRequest struct {
 	DOB        time.Time
 	ExternalId string
 	Password   string
+	roleName   string
+}
+
+func (r *CreateRequest) WithRole(roleName string) *CreateRequest {
+	r.roleName = roleName
+	return r
+}
+
+func NewCreateRequest(
+	firstName string,
+	lastName string,
+	email string,
+	username string,
+	phone string,
+	password string) *CreateRequest {
+
+	return &CreateRequest{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Username:  username,
+		Phone:     phone,
+		Password:  password,
+	}
+}
+
+func NewCreateRequestNoPassword(
+	firstName string,
+	lastName string,
+	email string,
+	username string,
+	phone string) *CreateRequest {
+
+	return &CreateRequest{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Username:  username,
+		Phone:     phone,
+	}
 }
 
 type GetAssignedRoleResponse struct {
@@ -230,12 +270,24 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		UserId:     user_id,
 		ProviderId: providerResponse.Id,
 	})
-
 	if err != nil {
 		switch err {
 		default:
 			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
+		}
+	}
+
+	log.Printf("assign User role: %v", req.roleName)
+	if req.roleName != "" {
+		roleId, err := u.role_service.Get(ctx, &role.GetRequest{
+			Name: req.roleName,
+		})
+		if err != nil {
+			log.Printf("failed to find role: %v", req.roleName)
+			log.Printf("failed to assign role to user")
+		} else {
+			u.AssignRole(ctx, user_id, roleId.Id)
 		}
 	}
 

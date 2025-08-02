@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"b2b.nati011.github.com/internal/core/application/role"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 	test_container "b2b.nati011.github.com/internal/core/domain/retailer/test"
 	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
@@ -63,6 +64,50 @@ func Test_create_default_admin_user_upon_retailer_registration(t *testing.T) {
 	err = testContainer.UserService.Deactivate(ctx, users.List[0])
 	if err != nil {
 		t.Fatalf("Failed to activate user err: %v", err)
+	}
+}
+
+func Test_assign_default_admin_user_role_retailer(t *testing.T) {
+	t.Cleanup(teardown)
+	//create role by name "retailer" as done in init
+	roleId, err := testContainer.RoleService.Create(ctx, &role.CreateRequest{
+		Name: "retailer",
+		Desc: "retailer",
+	})
+	if err != nil {
+		t.Fatalf("failed to create role err: %v", err)
+	}
+
+	ctx := context.Background()
+	in := retailer.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "test",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+		Phone:       "+251949184879",
+	}
+	id, err := testContainer.RetailerService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+
+	users, err := testContainer.RetailerService.GetAllUsers(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to get all users err: %v", err)
+	}
+
+	assignedRole, err := testContainer.UserService.GetAllAssignedRoles(ctx, users.List[0])
+	if err != nil {
+		t.Fatalf("failed to get assigned roles : %v", err)
+	}
+	if assignedRole.List[0].Id != roleId {
+		t.Errorf("Expected roleId: %v Got roleId: %v", assignedRole.List[0].Id, roleId)
 	}
 }
 
