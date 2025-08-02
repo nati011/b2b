@@ -8,6 +8,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
+	distributorApproval_test "b2b.nati011.github.com/internal/core/domain/distributor_approval/test"
 )
 
 type TestContainer struct {
@@ -19,6 +20,7 @@ type TestContainer struct {
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
 	container.UserService = user.NewTestContainer().UserService
+	container.DistributorApprovalService = distributorApproval_test.NewIntegrationTestContainer(db).DistributorApprovalService
 	container.DistributorService = distributor.NewDistributorService(
 		container.UserService,
 		db_adapter.NewPostgres(db, config.DefaultPaginationBuilder().Build()),

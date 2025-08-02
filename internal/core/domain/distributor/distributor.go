@@ -194,7 +194,7 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 	}
 
 	// create distributor
-	_, err = d.DB.Create(ctx, port.CreateRequest{
+	dist_id, err := d.DB.Create(ctx, port.CreateRequest{
 		Name:        req.FirstName + req.LastName,
 		Tin:         req.Tin,
 		Latitude:    req.Latitude,
@@ -213,6 +213,16 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 		}
 	}
 
+	// init distributor approval process
+	err = d.DistributorApprovalService.CreateApprovalProcess(ctx, dist_id)
+	if err != nil {
+		switch err {
+		default:
+			d.DB.Remove(ctx, dist_id)
+			d.UserService.Remove(ctx, user_id)
+			return 0, ErrUnknown
+		}
+	}
 	return user_id, nil
 }
 func (d *DistributorService) GetByUserId(ctx context.Context, userId int) (GetResponse, error) {

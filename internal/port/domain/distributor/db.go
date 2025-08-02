@@ -86,6 +86,7 @@ type Reader interface {
 
 type Writer interface {
 	Create(ctx context.Context, req CreateRequest) (int, error)
+	Remove(ctx context.Context, distributorId int) error
 	CreateDistributorUser(ctx context.Context, req *CreateUserAgentRequest) (int, error)
 	UpdateName(ctx context.Context, req *UpdateNameRequest) error
 	UpdateTin(ctx context.Context, tin *UpdateTinRequest) error
