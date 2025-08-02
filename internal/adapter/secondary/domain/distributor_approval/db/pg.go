@@ -42,11 +42,12 @@ func (m *Postgres) GetReviewReport(ctx context.Context, distributorId int) (port
 	return port.GetAuditReportResponse{}, nil
 }
 
-func (m *Postgres) Approve(ctx context.Context, req port.ApprovalRequest) error {
-	query := "SELECT * FROM public.approve_distributor_review($1, $2, $3);"
+func (m *Postgres) ChangeDistributorReview(ctx context.Context, req port.ReviewChangeRequest) error {
+	query := "SELECT * FROM public.change_distributor_review($1, $2, $3, $4);"
 
 	args := []any{
 		req.DistributorId,
+		req.Verdict,
 		req.Comment,
 		req.ReviewedBy}
 
@@ -61,13 +62,12 @@ func (m *Postgres) Approve(ctx context.Context, req port.ApprovalRequest) error 
 	return nil
 }
 
-func (m *Postgres) Reject(ctx context.Context, req port.RejectRequest) error {
-	query := "SELECT * FROM public.reject_distributor_review($1, $2, $3);"
+func (m *Postgres) Init(ctx context.Context, req port.InitRequest) error {
+	query := "SELECT * FROM public.init_distributor_review($1, $2);"
 
 	args := []any{
 		req.DistributorId,
-		req.Comment,
-		req.ReviewedBy}
+		req.Status}
 
 	if err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
