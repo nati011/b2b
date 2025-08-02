@@ -59,3 +59,11 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 		)
 	return container
 }
+
+func (t *TestContainer) Teardown(db *sql.DB) {
+	t.ProductService = product.NewProduct(
+		product_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
+		t.CategoryService,
+		t.DistributorService,
+	)
+}
