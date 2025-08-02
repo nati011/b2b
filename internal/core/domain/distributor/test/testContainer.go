@@ -19,7 +19,7 @@ type TestContainer struct {
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
-	container.UserService = user.NewTestContainer().UserService
+	container.UserService = user.NewIntegrationTestContainer(db).UserService
 	container.DistributorApprovalService = distributorApproval_test.NewIntegrationTestContainer(db).DistributorApprovalService
 	container.DistributorService = distributor.NewDistributorService(
 		container.UserService,

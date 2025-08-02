@@ -1041,8 +1041,7 @@ AS $$
     BEGIN
         RETURN QUERY
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-            db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, 
-            COALESCE(dr.verdict, 'PENDING') AS verdict
+            db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict
         FROM public.distributors d
         JOIN public.distributor_business_info db ON db.distributor_id = d.id
         JOIN public.db_locations db_loc ON db_loc.business_id = db.id
@@ -1141,8 +1140,8 @@ AS $$
 BEGIN
     RETURN QUERY
 
-        SELECT d.id, db.name, db.tin,db.licence_url, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, COALESCE(dr.verdict, 'PENDING') AS verdict, COUNT(*) OVER() AS total_count
+        SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
@@ -1220,7 +1219,7 @@ AS $$
         RETURN QUERY
 
         SELECT d.id, db.name, db.tin, db_loc.lat, db_loc.long, 
-        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active,  COALESCE(dr.verdict, 'PENDING') AS verdict, COUNT(*) OVER() AS total_count
+        db_loc.general_zone, db_loc.region, db_loc.woreda, d.is_active, dr.verdict, COUNT(*) OVER() AS total_count
         FROM  public.distributors d
         JOIN public.distributor_business_info db 
         ON db.distributor_id = d.id
