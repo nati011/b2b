@@ -52,21 +52,18 @@ func (m *Mock) GetReviewReport(ctx context.Context, distributorId int) (port.Get
 	return resp, nil
 }
 
-func (m *Mock) Approve(ctx context.Context, req port.ApprovalRequest) error {
+func (m *Mock) Init(ctx context.Context, req port.InitRequest) error {
 	m.List = append(m.List, MockDistributorApproval{
 		DistributorId: req.DistributorId,
-		Verdict:       "APPROVED",
-		Comment:       req.Comment,
-		ReviewedAt:    time.Now(),
-		ReviewedBy:    req.ReviewedBy,
+		Verdict:       req.Status,
 	})
 	return nil
 }
 
-func (m *Mock) Reject(ctx context.Context, req port.RejectRequest) error {
+func (m *Mock) ChangeDistributorReview(ctx context.Context, req port.ReviewChangeRequest) error {
 	m.List = append(m.List, MockDistributorApproval{
 		DistributorId: req.DistributorId,
-		Verdict:       "REJECTED",
+		Verdict:       req.Verdict,
 		Comment:       req.Comment,
 		ReviewedAt:    time.Now(),
 		ReviewedBy:    req.ReviewedBy,
