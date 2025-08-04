@@ -119,6 +119,7 @@ func InitSuperadminRole(cfg config.Config, applicationService *application_core.
 
 	resources, err := applicationService.ResourceService.GetAll(ctx)
 	if err != nil {
+		print(err)
 		panic("failed to fetch all resources")
 	}
 
