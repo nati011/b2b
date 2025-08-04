@@ -52,7 +52,6 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 		if err != nil {
 			switch err {
 			case resource.ErrNameNotFound:
-				continue
 			default:
 				panic("Failed to fetch resource")
 			}
@@ -79,9 +78,6 @@ func BuildRouter(mux *http.ServeMux, applicationServices *application_core.Conta
 					panic(err)
 				}
 			}
-		} else {
-			log.Printf("Error: %v", err)
-			panic("Error Occured while creating resource")
 		}
 	}
 	return nil
