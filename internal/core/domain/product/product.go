@@ -38,6 +38,7 @@ var (
 	ErrFreeReservationQtyMustBeLessThanOrEqualToReservedQty   = errors.New(" free reservation quantity cannot be more than reserved quantity")
 	ErrDistributorNotFound                                    = errors.New(" distributor not found")
 	ErrDistributorIdMandatory                                 = errors.New(" distributor id not supplied")
+	ErrDistributorInactive                                    = errors.New(" distributor inactive, cannot create product")
 )
 
 type Image struct {
