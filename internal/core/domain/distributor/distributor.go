@@ -119,7 +119,10 @@ type DistributorService struct {
 	DistributorApprovalService distributorApproval.Provider
 }
 
-func NewDistributorService(up user.Provider, db port.DB, dap distributorApproval.Provider) Provider {
+func NewDistributorService(
+	up user.Provider,
+	db port.DB,
+	dap distributorApproval.Provider) Provider {
 	return &DistributorService{
 		UserService:                up,
 		DB:                         db,
