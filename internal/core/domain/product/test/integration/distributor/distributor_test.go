@@ -11,6 +11,7 @@ import (
 
 var testContainer product.TestContainer
 var distributorId int
+var inactiveDistributorId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -37,6 +38,26 @@ func setup() {
 	if err != nil {
 		panic("failed to create distributor err: ")
 	}
+	err = testContainer.DistributorService.Activate(ctx, distributorId)
+	if err != nil {
+		panic("failed to ctivate distributor")
+	}
+	inactiveDistributorId, err = testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111112",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username2",
+		FirstName:   "test2",
+		LastName:    "test2",
+		Email:       "test1@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor")
+	}
+
 }
 
 func teardown() {
@@ -88,4 +109,27 @@ func Test_Validate_Distributor(t *testing.T) {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
+}
+
+func Test_inactiveDistributorCannotCreateProduct(t *testing.T) {
+	ctx := context.Background()
+	t.Cleanup(teardown)
+	_, err := testContainer.ProductService.Create(ctx, &product.CreateRequest{
+		Name:       "testProduct",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+		DistributorId: inactiveDistributorId,
+	})
+	wantErr := product.ErrDistributorInactive
+	if err != wantErr {
+		t.Errorf("Expected err: %v Got: %v", wantErr, err)
+	}
 }
