@@ -58,7 +58,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         try {
             const response = await fetchOrders(page);
             set({
-                orders: response.List,
+                orders: response.List ? response.List : [],
                 total: response.TotalCount,
                 loading: false
             });

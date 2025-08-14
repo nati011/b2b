@@ -27,7 +27,7 @@ import { ACL } from '@/lib/constants'
 
 
                 const hasPermission = userPermissions.some(
-                    (perm: any) =>  requiredPermission.includes(perm.Resources)
+                    (perm: any) =>  requiredPermission.includes(perm.Name)
                 )
 
                 if (!hasPermission) {

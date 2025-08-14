@@ -37,7 +37,9 @@ export async function AppSidebar({
   const permissions = user?.permissions.List || [];
   console.log(permissions)
   function hasPermission(required: string[]) {
-    return permissions.some((perm: any) => required?.includes(perm.Resources));
+    console.log(required,"Required")
+    console.log(permissions)
+    return permissions.some((perm: any) => required?.includes(perm.Name));
   }
 
   const data = {
