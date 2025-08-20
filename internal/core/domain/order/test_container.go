@@ -38,6 +38,7 @@ type TestContainer struct {
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
+	container.Event = event.NewBroker()
 	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewMock(),
@@ -53,11 +54,13 @@ func NewPackageIntegrationTestContainer() TestContainer {
 		distributor_db.NewMock(),
 		distributorApproval.NewTestContainer().DistributorApprovalService,
 		container.Event)
+
 	container.ProductService = product.NewProduct(
 		product_db.NewMock(),
 		container.CategoryService,
 		container.DistributorService,
-	)
+		container.Event)
+
 	checkout_container := checkout.NewPackageIntegrationTestContainer()
 	container.PartnerService = checkout_container.PartnerService
 	container.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
