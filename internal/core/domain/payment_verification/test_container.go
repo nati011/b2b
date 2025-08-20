@@ -7,6 +7,7 @@ import (
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/event"
 	payment "b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
@@ -33,10 +34,12 @@ type TestContainer struct {
 	InvoiceService             invoice.Provider
 	PaymentService             payment.Provider
 	ConfigService              config_module.Provider
+	Event                      *event.Broker
 }
 
 func NewPackageIntegrationTestContainer() TestContainer {
 	container := TestContainer{}
+	container.Event = event.NewBroker()
 	container.PartnerService = partner.NewIntegrationTestContainer().PartnerService
 	container.TransactionService = transaction.NewPackageIntegrationTestContainer().TransactionService
 	container.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
@@ -47,7 +50,8 @@ func NewPackageIntegrationTestContainer() TestContainer {
 			category_db.NewMock(),
 		),
 		container.DistributorService,
-	)
+		container.Event)
+
 	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewMock(),

@@ -36,11 +36,12 @@ type TestContainer struct {
 	ConfigService      config_module.Provider
 	CategoryService    category.Provider
 	UserService        user.Provider
-	Event              event.Broker
+	Event              *event.Broker
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
+	container.Event = event.NewBroker()
 	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewMock(),
@@ -55,12 +56,12 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 		container.UserService,
 		distributor_db.NewMock(),
 		distributorApproval.NewTestContainer().DistributorApprovalService,
-		&container.Event)
+		container.Event)
 	container.ProductService = product.NewProduct(
 		product_db.NewMock(),
 		container.CategoryService,
 		container.DistributorService,
-	)
+		container.Event)
 	checkout_container := checkout.NewPackageIntegrationTestContainer()
 	container.PartnerService = checkout_container.PartnerService
 	container.RetailerService = retailer.NewPackageIntegrationTestContainer().RetailerService
