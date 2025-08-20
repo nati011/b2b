@@ -8,5 +8,5 @@ import (
 )
 
 func BuildEventHandler(applicationServices *application_core.Container, domainServices *domain_core.Container) {
-	domain_handler.InitProduct()
+	domain_handler.InitProduct(domainServices.ProductService, applicationServices.Event)
 }
