@@ -67,7 +67,7 @@ import (
 
 type Container struct {
 	db                    *sql.DB
-	Event                 event.Broker
+	Event                 *event.Broker
 	AuthService           auth.Provider
 	AuthMiddleware        *middleware.Auth
 	EmailService          email.Provider
@@ -190,5 +190,5 @@ func (m *Container) InitCheckoutService(baseUrl, frontendUrl string) {
 }
 
 func (m *Container) InitEvent() {
-	m.Event = *event.NewBroker()
+	m.Event = event.NewBroker()
 }
