@@ -6,6 +6,7 @@ import (
 	"b2b.nati011.github.com/config"
 	configurableProduct_db "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
+	"b2b.nati011.github.com/internal/core/application/event"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
@@ -18,16 +19,19 @@ type TestContainer struct {
 	ProductService             product.Provider
 	ConfigurableProductService configurable_product.Provider
 	DistributorService         distributor.Provider
+	Event                      *event.Broker
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
+	container.Event = event.NewBroker()
 	container.DistributorService = distributor_test.NewDBIntegrationTestContainer(db).DistributorService
 	container.ProductService = product.NewProduct(
 		product_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		container.CategoryService,
 		container.DistributorService,
-	)
+		container.Event)
+
 	container.ConfigurableProductService = configurable_product.NewConfigurableProductService(
 		configurableProduct_db.NewPostgres(db),
 		container.ProductService,

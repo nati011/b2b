@@ -82,10 +82,50 @@ func Test_Validate_Distributor(t *testing.T) {
 			Attributes: map[string]string{
 				"test": "test",
 			},
+			DistributorId: distributorId,
 		})
 		wantErr := product.ErrDistributorIdMandatory
 		if err != wantErr {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
+}
+
+func Test_DisableDistributorProductsUponDistributorDeactivation(t *testing.T) {
+	ctx := context.Background()
+	t.Cleanup(teardown)
+	pid, err := testContainer.ProductService.Create(ctx, &product.CreateRequest{
+		Name:       "testProduct",
+		Desc:       "test",
+		ExternalID: "123",
+		Images: []string{
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+		},
+		Price: 100.00,
+		Attributes: map[string]string{
+			"test": "test",
+		},
+		DistributorId: distributorId,
+	})
+	if err != nil {
+		t.Fatalf("failed to create product: %v", err)
+	}
+
+	err = testContainer.ProductService.Activate(ctx, pid)
+	if err != nil {
+		t.Fatalf("failed to activate product: %v", err)
+	}
+
+	distProduts, err := testContainer.ProductService.GetByParam(ctx, &product.GetByParamRequest{DistributorId: distributorId})
+	if err != nil {
+		t.Fatalf("failed to get distirbutor products: %v", err)
+	}
+
+	wantStatus := false
+	for _, d := range distProduts.List {
+		if d.IsActive != wantStatus {
+			t.Errorf("Expected isActive status: %v Got: %v", wantStatus, d.IsActive)
+		}
+	}
 }
