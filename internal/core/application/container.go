@@ -14,6 +14,7 @@ import (
 	transaction_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/transaction/db"
 	user_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/user/db"
 
+	"b2b.nati011.github.com/internal/core/application/event"
 	payment "b2b.nati011.github.com/internal/core/application/payment"
 
 	// sms_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/sms/provider"
@@ -66,6 +67,7 @@ import (
 
 type Container struct {
 	db                    *sql.DB
+	Event                 event.Broker
 	AuthService           auth.Provider
 	AuthMiddleware        *middleware.Auth
 	EmailService          email.Provider
@@ -93,6 +95,7 @@ func NewContainer(
 	container.Pagination = pagination
 
 	//ORDER ORDER!!
+	container.InitEvent()
 	container.InitTemplateService()
 	container.InitRenderService()
 	container.InitEmailService(cfg.Email, cfg.SMTP, cfg.EmailPassword)
@@ -184,4 +187,8 @@ func (m *Container) InitPaymentService() {
 
 func (m *Container) InitCheckoutService(baseUrl, frontendUrl string) {
 	m.CheckoutService = checkout.NewCheckoutService(m.PaymentService, m.PaymentPartnerService, m.TransactionService, frontendUrl, baseUrl)
+}
+
+func (m *Container) InitEvent() {
+	m.Event = *event.NewBroker()
 }

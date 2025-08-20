@@ -129,7 +129,8 @@ func (m *Container) InitDistributorService() {
 	m.DistributorService = distributor.NewDistributorService(
 		m.ApplicationServices.UserService,
 		distributor_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination),
-		m.DistributorApprovalService)
+		m.DistributorApprovalService,
+		&m.ApplicationServices.Event)
 }
 
 func (m *Container) InitDistributorApprovalService() {

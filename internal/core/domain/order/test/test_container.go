@@ -10,6 +10,7 @@ import (
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/event"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/user"
@@ -35,6 +36,7 @@ type TestContainer struct {
 	ConfigService      config_module.Provider
 	CategoryService    category.Provider
 	UserService        user.Provider
+	Event              event.Broker
 }
 
 func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
@@ -52,7 +54,8 @@ func NewDBIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.DistributorService = distributor.NewDistributorService(
 		container.UserService,
 		distributor_db.NewMock(),
-		distributorApproval.NewTestContainer().DistributorApprovalService)
+		distributorApproval.NewTestContainer().DistributorApprovalService,
+		&container.Event)
 	container.ProductService = product.NewProduct(
 		product_db.NewMock(),
 		container.CategoryService,
