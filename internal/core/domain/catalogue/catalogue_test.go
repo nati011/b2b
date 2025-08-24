@@ -163,9 +163,10 @@ func Test_Search(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create product")
 		}
-		got, err := container.CatalogueService.Search(ctx, SearchCatalogueRequest{
+		got, err := container.CatalogueService.Search(ctx, &SearchCatalogueRequest{
 			Name:     "sear",
 			PriceMax: 10000,
+			PriceMin: 0,
 		})
 		if err != nil {
 			t.Fatalf("Failed to search catalogue err: %v", err)
