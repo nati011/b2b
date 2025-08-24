@@ -468,7 +468,9 @@ func Test_search(t *testing.T) {
 		t.Fatalf("Failed to create product")
 	}
 
-	got, err := container.ProductService.Search(ctx, "sear")
+	got, err := container.ProductService.Search(ctx, &product.SearchRequest{
+		Name: "sear",
+	})
 	if err != nil {
 		t.Errorf("Expected err: %v, Got err: %v", nil, err)
 	}

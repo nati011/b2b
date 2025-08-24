@@ -465,7 +465,9 @@ func Test_Search_happyPath(t *testing.T) {
 			t.Fatalf("Failed to create product")
 		}
 
-		got, err := container.ProductService.Search(ctx, "sear")
+		got, err := container.ProductService.Search(ctx, &SearchRequest{
+			Name: "sear",
+		})
 		if err != nil {
 			t.Errorf("Expected err: %v, Got err: %v", nil, err)
 		}

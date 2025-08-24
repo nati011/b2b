@@ -510,8 +510,8 @@ $$;
 
 create or replace function public.get_users_by_active_status (
     user_active_status BOOLEAN,
-    u_limit INT,
-    u_offset INT
+    r_limit INT,
+    r_offset INT
 ) 
 RETURNS table (
   id INT,
@@ -2215,7 +2215,9 @@ $$;
 CREATE OR REPLACE FUNCTION public.get_all_products_paginated(
     p_limit INT DEFAULT 10,
     p_offset INT DEFAULT 0,
-    p_search VARCHAR(255) DEFAULT NULL
+    p_search VARCHAR(255) DEFAULT NULL,
+    p_price_min INT DEFAULT NULL,
+    p_price_max INT DEFAULT NULL
 )
 RETURNS TABLE(
     id INT,
@@ -2247,17 +2249,20 @@ BEGIN
         p.price,
         COUNT(*) OVER() AS total_count
     FROM public.products p
-    JOIN p_stock ps ON ps.product_id = p.id
+    JOIN public.p_stock ps ON ps.product_id = p.id
     WHERE p.is_deleted = FALSE
         AND (p_search IS NULL OR 
              p.name ILIKE '%' || p_search || '%' OR 
              p.description ILIKE '%' || p_search || '%' OR
              p.external_id ILIKE '%' || p_search || '%')
+        AND (p_price_min IS NULL OR p.price >= p_price_min)
+        AND (p_price_max IS NULL OR p.price <= p_price_max)
     ORDER BY p.created_date DESC
     LIMIT p_limit
     OFFSET p_offset;
 END
 $$;
+
 
 CREATE OR REPLACE FUNCTION public.get_all_products()
 RETURNS TABLE(id INT, 

@@ -88,10 +88,10 @@ func (m *Mock) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	return port.GetResponse{}, port_commons.ErrSysNoRows
 }
 
-func (m *Mock) Search(ctx context.Context, search_query string) (port.GetAllResponse, error) {
+func (m *Mock) Search(ctx context.Context, req *port.SearchRequest) (port.GetAllResponse, error) {
 	responses := port.GetAllResponse{}
 	for _, i := range m.products {
-		if strings.Contains(i.Name, search_query) || strings.Contains(i.Desc, search_query) || strings.Contains(i.ExternalID, search_query) {
+		if strings.Contains(i.Name, req.Name) || strings.Contains(i.Desc, req.Name) || strings.Contains(i.ExternalID, req.Name) {
 			responses.List = append(responses.List,
 				port.GetResponse{
 					Id:             i.Id,
