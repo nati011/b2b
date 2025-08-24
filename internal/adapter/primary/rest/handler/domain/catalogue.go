@@ -88,6 +88,12 @@ func InitCatalogue() {
 		Action:   "ALL",
 		Resource: "/api/v1/catalogue",
 	})
+
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "catalogue_search",
+		Action:   "ALL",
+		Resource: "/api/v1/catalogue/search",
+	})
 }
 
 func (c *Catalogue) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
@@ -124,22 +130,39 @@ func (c *Catalogue) SearchCatalogueHandler(w http.ResponseWriter, r *http.Reques
 	const ParamPriceMax = "price_max"
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
-	paramPriceMaxValue := paramValues.Get(ParamPriceMin)
-	paramPriceMinValue := paramValues.Get(ParamPriceMax)
-	typedParamPriceMinValue, err := strconv.Atoi(paramPriceMinValue)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
+	paramPriceMaxValue := paramValues.Get(ParamPriceMax)
+	paramPriceMinValue := paramValues.Get(ParamPriceMin)
+
+	if paramPriceMinValue != "" && paramPriceMaxValue != "" {
+		typedParamPriceMinValue, err := strconv.Atoi(paramPriceMinValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+
+		typedParamPriceMaxValue, err := strconv.Atoi(paramPriceMaxValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		resp, err := c.service.Search(r.Context(), &catalogue.SearchCatalogueRequest{
+			Name:     paramNameValue,
+			PriceMin: typedParamPriceMinValue,
+			PriceMax: typedParamPriceMaxValue,
+		})
+		if err != nil {
+			switch err {
+			default:
+				util.ServerErrorResponse(w, err)
+				return
+			}
+		}
+		util.OperationSuccessResponse(w, resp)
 		return
 	}
-	typedParamPriceMaxValue, err := strconv.Atoi(paramPriceMaxValue)
-	if err != nil {
-		util.RequestErrorResponse(w, err)
-		return
-	}
-	resp, err := c.service.Search(r.Context(), catalogue.SearchCatalogueRequest{
-		Name:     paramNameValue,
-		PriceMin: typedParamPriceMinValue,
-		PriceMax: typedParamPriceMaxValue,
+
+	resp, err := c.service.Search(r.Context(), &catalogue.SearchCatalogueRequest{
+		Name: paramNameValue,
 	})
 	if err != nil {
 		switch err {
