@@ -171,11 +171,11 @@ func (c *CatalogueService) Search(ctx context.Context, req SearchCatalogueReques
 	}
 
 	// standalone products
-	pr, err := c.ProductService.GetByParam(ctx, &product.GetByParamRequest{
-		Name:     req.Name,
-		PriceMin: req.PriceMin,
-		PriceMax: req.PriceMax,
-	})
+	pr, err := c.ProductService.Search(ctx,
+		req.Name,
+		// PriceMin: req.PriceMin,
+		// PriceMax: req.PriceMax,
+	)
 	if err != nil {
 		switch err {
 		case product.ErrEmptyGetContent:
