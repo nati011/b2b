@@ -64,6 +64,8 @@ func main() {
 	InitCron(s, application_container, domain_container)
 	s.Start()
 
+	InitEventLister(application_container, domain_container)
+
 	InitDefaultConfig(cfg, application_container)
 
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
