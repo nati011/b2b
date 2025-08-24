@@ -22,8 +22,8 @@ func InitDefaultConfig(cfg config.Config, applicationService *application_core.C
 	log.Print("# initializing default configs...")
 	superadminRoleId := InitSuperadminRole(cfg, applicationService)
 	InitSuperAdminUser(superadminRoleId, cfg, applicationService)
-	// InitRetailerRole(cfg, applicationService)
-	// InitDistributorSuperadminRole(cfg, applicationService)
+	InitRetailerRole(cfg, applicationService)
+	InitDistributorSuperadminRole(cfg, applicationService)
 }
 
 func checkIfSuperAdminExists(cfg config.Config, applicationService *application_core.Container) (bool, error) {
@@ -156,86 +156,109 @@ func InitSuperadminRole(cfg config.Config, applicationService *application_core.
 	}
 }
 
-// func InitDistributorSuperadminRole(cfg config.Config, applicationService *application_core.Container) int {
-// 	ctx := context.Background()
-// 	_, err := applicationService.RoleService.Get(ctx, &role.GetRequest{
-// 		Name: "distributor",
-// 	})
-// 	wantErr := role.ErrEmptyGetContent
-// 	if err != wantErr {
-// 		switch err {
-// 		case nil:
-// 			log.Print("# distributor role already created...")
-// 			return 0
-// 		default:
-// 			panic("failed to get role")
-// 		}
-// 	}
+var (
+	DISTRIBUTOR_SUPERADMIN_ROLE_NAME = "distributor"
+	DISTRIBUTOR_SUPERADMIN_ROLE_DESC = "distributor superadmin"
+)
 
-// 	log.Print("# creating distributor superadmin role...")
-// 	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
-// 		Name: "distributor",
-// 		Desc: "distributor superadmin",
-// 	})
-// 	if err != nil {
-// 		panic(" failed to create distributor role")
-// 	}
+func checkIfDistributorSuperAdminRoleExists(applicationService *application_core.Container) (bool, error) {
+	ctx := context.Background()
+	_, err := applicationService.RoleService.Get(ctx, &role.GetRequest{
+		Name: DISTRIBUTOR_SUPERADMIN_ROLE_NAME,
+	})
 
-// 	resources, err := applicationService.ResourceService.GetAll(ctx)
-// 	if err != nil {
-// 		panic(" failed to fetch all resources")
-// 	}
+	switch err {
+	case nil:
+		return true, nil
+	case role.ErrEmptyGetContent:
+		return false, nil
+	default:
+		return false, ErrUnknown
+	}
+}
 
-// 	for _, r := range resources.List {
-// 		applicationService.RoleService.AddResource(ctx, &role.AddResourceRequest{
-// 			ResourceId: r.Id,
-// 			RoleId:     roleId,
-// 		})
-// 	}
-// 	return roleId
-// }
+func InitDistributorSuperadminRole(cfg config.Config, applicationService *application_core.Container) int {
+	ctx := context.Background()
+	distributorSuperAdminRoleExists, err := checkIfDistributorSuperAdminRoleExists(applicationService)
+	if err != nil {
+		panic(" failed to check distributor superadmin role")
+	}
 
-// func InitRetailerRole(cfg config.Config, applicationService *application_core.Container) int {
-// 	ctx := context.Background()
-// 	_, err := applicationService.RoleService.Get(ctx, &role.GetRequest{
-// 		Name: "retailer",
-// 	})
-// 	wantErr := role.ErrEmptyGetContent
-// 	if err != wantErr {
-// 		switch err {
-// 		case nil:
-// 			log.Print("# retailer role already created...")
-// 			return 0
-// 		default:
-// 			panic("HB5a158TiZ6r2tM8OonAgqIBpPSyFXF3failed to get role")
-// 		}
-// 	}
+	if distributorSuperAdminRoleExists {
+		log.Print("# distributor superadmin role already created...")
+	} else {
+		log.Print("# creating distributor superadmin role...")
+		roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
+			Name: DISTRIBUTOR_SUPERADMIN_ROLE_NAME,
+			Desc: DISTRIBUTOR_SUPERADMIN_ROLE_DESC,
+		})
+		if err != nil {
+			panic(" failed to create distributor role")
+		}
 
-// 	log.Print("# creating retailer role...")
-// 	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
-// 		Name: "retailer",
-// 		Desc: "retailer superadmin",
-// 	})
-// 	if err != nil {
-// 		panic("failed to create retailer role")
-// 	}
+		resources, err := applicationService.ResourceService.GetAll(ctx)
+		if err != nil {
+			panic(" failed to fetch all resources")
+		}
 
-// 	resources, err := applicationService.ResourceService.GetAll(ctx)
-// 	if err != nil {
-// 		panic("failed to fetch all resources")
-// 	}
+		for _, r := range resources.List {
+			if err = applicationService.RoleService.AddResource(ctx, &role.AddResourceRequest{
+				ResourceId: r.Id,
+				RoleId:     roleId,
+			}); err != nil {
+				panic("failed to assign distributor role resources")
+			}
+		}
+		return roleId
+	}
+	return 0
+}
 
-// 	for _, r := range resources.List {
-// 		err = applicationService.RoleService.AddResource(ctx, &role.AddResourceRequest{
-// 			ResourceId: r.Id,
-// 			RoleId:     roleId,
-// 		})
-// 		if err != nil {
-// 			panic("failed to add resourceId")
-// 		}
-// 	}
-// 	return roleId
-// }
+var (
+	RETAILER_SUPERADMIN_ROLE_NAME = "retailer"
+	RETAILER_SUPERADMIN_ROLE_DESC = "retailer superadmin"
+)
+
+func InitRetailerRole(cfg config.Config, applicationService *application_core.Container) int {
+	ctx := context.Background()
+	_, err := applicationService.RoleService.Get(ctx, &role.GetRequest{
+		Name: RETAILER_SUPERADMIN_ROLE_NAME,
+	})
+	wantErr := role.ErrEmptyGetContent
+	if err != wantErr {
+		switch err {
+		case nil:
+			log.Print("# retailer role already created...")
+			return 0
+		default:
+			panic("failed to get role")
+		}
+	}
+
+	log.Print("# creating retailer role...")
+	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
+		Name: RETAILER_SUPERADMIN_ROLE_NAME,
+		Desc: RETAILER_SUPERADMIN_ROLE_DESC,
+	})
+	if err != nil {
+		panic("failed to create retailer role")
+	}
+
+	resources, err := applicationService.ResourceService.GetAll(ctx)
+	if err != nil {
+		panic("failed to fetch all resources")
+	}
+
+	for _, r := range resources.List {
+		if err = applicationService.RoleService.AddResource(ctx, &role.AddResourceRequest{
+			ResourceId: r.Id,
+			RoleId:     roleId,
+		}); err != nil {
+			panic("failed to assign retailer role resources")
+		}
+	}
+	return roleId
+}
 
 // func generateRandomPassword(length int) (string, error) {
 // 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
