@@ -12,10 +12,9 @@ var (
 	ErrFailedToBuildEvent = errors.New(" failed to init event lister")
 )
 
-func InitEventLister(applicationServices *application_core.Container, domainServices *domain_core.Container) error {
+func InitEventLister(applicationServices *application_core.Container, domainServices *domain_core.Container) {
 	err := event.BuildEventHandler(applicationServices, domainServices)
 	if err != nil {
-		return err
+		panic("failed to init event listener")
 	}
-	return nil
 }
