@@ -105,6 +105,7 @@ func Test_GetAll(t *testing.T) {
 			},
 			DistributorId: distributorId,
 		})
+
 		if err != nil {
 			t.Fatalf("fauked to create product err: %v", err)
 		}
