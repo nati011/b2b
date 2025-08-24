@@ -510,8 +510,8 @@ $$;
 
 create or replace function public.get_users_by_active_status (
     user_active_status BOOLEAN,
-    u_limit INT,
-    u_offset INT
+    r_limit INT,
+    r_offset INT
 ) 
 RETURNS table (
   id INT,
