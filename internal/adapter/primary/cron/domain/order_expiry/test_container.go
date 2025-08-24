@@ -11,6 +11,7 @@ import (
 	order_db "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/event"
 	"b2b.nati011.github.com/internal/core/application/payment"
 	partner "b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
@@ -37,10 +38,12 @@ type TestContainer struct {
 	DistributorService distributor.Provider
 	ConfigService      config_module.Provider
 	PaymentService     payment.Provider
+	Event              *event.Broker
 }
 
 func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	container := TestContainer{}
+	container.Event = event.NewBroker()
 	container.RenderService = render.NewMock()
 	container.InvoiceService = invoice.NewInvoice(
 		invoice_db.NewPostgres(db, config.NewPaginationBuilder().Build()),
@@ -63,7 +66,7 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 		product_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),
 		category.NewCategory(category_db.NewMock()),
 		container.DistributorService,
-	)
+		container.Event)
 	container.ConfigService = config_module.NewConfig(config_db.NewPostgres(db))
 	container.OrderService = order.NewOrderService(
 		order_db.NewPostgres(db, config.DefaultPaginationBuilder().Build()),

@@ -35,7 +35,11 @@ func setup() {
 		Email:       "test@gmail.com",
 	})
 	if err != nil {
-		panic("failed to create distributor err: ")
+		panic("failed to create distributor")
+	}
+	err = container.DistributorService.Activate(ctx, distributorId)
+	if err != nil {
+		panic("failed to activate distributor")
 	}
 	product_id, _ = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",

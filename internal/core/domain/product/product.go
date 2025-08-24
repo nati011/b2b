@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"b2b.nati011.github.com/internal/core/application/event"
 	category "b2b.nati011.github.com/internal/core/domain/category"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
@@ -145,15 +146,18 @@ type ProductService struct {
 	DB                port.DB
 	CategoryService   category.Provider
 	DistrbutorService distributor.Provider
+	Event             *event.Broker
 }
 
 func NewProduct(db port.DB,
 	categoryService category.Provider,
-	distributorService distributor.Provider) Provider {
+	distributorService distributor.Provider,
+	ev *event.Broker) Provider {
 	return &ProductService{
 		DB:                db,
 		CategoryService:   categoryService,
 		DistrbutorService: distributorService,
+		Event:             ev,
 	}
 }
 

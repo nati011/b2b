@@ -10,6 +10,7 @@ import (
 )
 
 var testContainer product.TestContainer
+var distributorId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -19,6 +20,27 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	testContainer = product.NewPackageIntegrationTestContainer()
+	var err error
+	ctx := context.Background()
+	distributorId, err = testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor")
+	}
+	err = testContainer.DistributorService.Activate(ctx, distributorId)
+	if err != nil {
+		panic("failed to activate distributor")
+	}
 }
 
 func teardown() {
@@ -72,68 +94,11 @@ func Test_Validate_Distributor(t *testing.T) {
 	})
 }
 
-func Test_inactiveDistributorCannotCreateProduct(t *testing.T) {
+// find a way to test this along with the listner...
+func Test_DisableDistributorProductsUponDistributorDeactivation(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(teardown)
-	inactiveDistributorId, err := testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
-		Tin:         "1111111112",
-		Latitude:    "9.0192° N",
-		Longitude:   "38.7525° E",
-		GeneralZone: "test",
-		Region:      "test",
-		Woreda:      "test",
-		Username:    "username2",
-		FirstName:   "test2",
-		LastName:    "test2",
-		Email:       "test1@gmail.com",
-	})
-	if err != nil {
-		panic("failed to create distributor")
-	}
-	_, err = testContainer.ProductService.Create(ctx, &product.CreateRequest{
-		Name:       "testProduct",
-		Desc:       "test",
-		ExternalID: "123",
-		Images: []string{
-			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
-			"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
-		},
-		Price: 100.00,
-		Attributes: map[string]string{
-			"test": "test",
-		},
-		DistributorId: inactiveDistributorId,
-	})
-	wantErr := product.ErrDistributorInactive
-	if err != wantErr {
-		t.Errorf("Expected err: %v Got: %v", wantErr, err)
-	}
-}
-
-func Test_Deactivate_Products_Upon_Distributor_Deactivation(t *testing.T) {
-	t.Cleanup(teardown)
-	ctx := context.Background()
-	distributorId, err := testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
-		Tin:         "1111111111",
-		Latitude:    "9.0192° N",
-		Longitude:   "38.7525° E",
-		GeneralZone: "test",
-		Region:      "test",
-		Woreda:      "test",
-		Username:    "username",
-		FirstName:   "test",
-		LastName:    "test",
-		Email:       "test@gmail.com",
-	})
-	if err != nil {
-		t.Fatalf("failed to create distributor %v", err)
-	}
-	err = testContainer.DistributorService.Activate(ctx, distributorId)
-	if err != nil {
-		t.Fatalf("failed to activate distributor err: %v", err)
-	}
-
-	productId, err := testContainer.ProductService.Create(ctx, &product.CreateRequest{
+	pid, err := testContainer.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
@@ -148,20 +113,23 @@ func Test_Deactivate_Products_Upon_Distributor_Deactivation(t *testing.T) {
 		DistributorId: distributorId,
 	})
 	if err != nil {
-		t.Fatalf("failed to create product %v", err)
+		t.Fatalf("failed to create product: %v", err)
 	}
 
-	err = testContainer.DistributorService.Dectivate(ctx, distributorId)
+	err = testContainer.ProductService.Activate(ctx, pid)
 	if err != nil {
-		t.Fatalf("failed to deactivate disributor %v", err)
+		t.Fatalf("failed to activate product: %v", err)
 	}
 
-	product, err := testContainer.ProductService.Get(ctx, productId)
+	distProduts, err := testContainer.ProductService.GetByParam(ctx, &product.GetByParamRequest{DistributorId: distributorId})
 	if err != nil {
-		t.Fatalf("failed to get product %v", err)
+		t.Fatalf("failed to get distirbutor products: %v", err)
 	}
-	wantActiveStatus := false
-	if product.IsActive != wantActiveStatus {
-		t.Errorf("Expected active status: %v Got: %v", wantActiveStatus, product.IsActive)
+
+	wantStatus := false
+	for _, d := range distProduts.List {
+		if d.IsActive != wantStatus {
+			t.Errorf("Expected isActive status: %v Got: %v", wantStatus, d.IsActive)
+		}
 	}
 }

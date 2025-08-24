@@ -106,7 +106,8 @@ func (m *Container) InitProductService() {
 	m.ProductService = product.NewProduct(
 		product_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination),
 		m.CategoryService,
-		m.DistributorService)
+		m.DistributorService,
+		m.ApplicationServices.Event)
 }
 
 func (m *Container) InitConfigrableProductService() {
@@ -129,7 +130,8 @@ func (m *Container) InitDistributorService() {
 	m.DistributorService = distributor.NewDistributorService(
 		m.ApplicationServices.UserService,
 		distributor_db_port.NewPostgres(m.db, m.ApplicationServices.Pagination),
-		m.DistributorApprovalService)
+		m.DistributorApprovalService,
+		m.ApplicationServices.Event)
 }
 
 func (m *Container) InitDistributorApprovalService() {
