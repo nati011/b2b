@@ -15,7 +15,7 @@ type ProductHandler struct {
 	event   *event.Broker
 }
 
-func InitProduct(service product.Provider, event *event.Broker) {
+func InitProduct(service product.Provider, event *event.Broker) error {
 	handler := &ProductHandler{
 		service: service,
 		event:   event,
@@ -43,4 +43,5 @@ func InitProduct(service product.Provider, event *event.Broker) {
 			}
 		}
 	}()
+	return nil
 }
