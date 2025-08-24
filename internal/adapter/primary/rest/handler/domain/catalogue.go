@@ -130,8 +130,8 @@ func (c *Catalogue) SearchCatalogueHandler(w http.ResponseWriter, r *http.Reques
 	const ParamPriceMax = "price_max"
 	paramValues := r.URL.Query()
 	paramNameValue := paramValues.Get(ParamName)
-	paramPriceMaxValue := paramValues.Get(ParamPriceMin)
-	paramPriceMinValue := paramValues.Get(ParamPriceMax)
+	paramPriceMaxValue := paramValues.Get(ParamPriceMax)
+	paramPriceMinValue := paramValues.Get(ParamPriceMin)
 
 	if paramPriceMinValue != "" && paramPriceMaxValue != "" {
 		typedParamPriceMinValue, err := strconv.Atoi(paramPriceMinValue)
@@ -145,7 +145,7 @@ func (c *Catalogue) SearchCatalogueHandler(w http.ResponseWriter, r *http.Reques
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := c.service.Search(r.Context(), catalogue.SearchCatalogueRequest{
+		resp, err := c.service.Search(r.Context(), &catalogue.SearchCatalogueRequest{
 			Name:     paramNameValue,
 			PriceMin: typedParamPriceMinValue,
 			PriceMax: typedParamPriceMaxValue,
@@ -161,7 +161,7 @@ func (c *Catalogue) SearchCatalogueHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	resp, err := c.service.Search(r.Context(), catalogue.SearchCatalogueRequest{
+	resp, err := c.service.Search(r.Context(), &catalogue.SearchCatalogueRequest{
 		Name: paramNameValue,
 	})
 	if err != nil {

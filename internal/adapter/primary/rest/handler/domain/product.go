@@ -259,7 +259,9 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else if ParamSearchValue != "" {
-		resp, err := p.service.Search(r.Context(), ParamSearchValue)
+		resp, err := p.service.GetByParam(r.Context(), &product.GetByParamRequest{
+			Name: ParamSearchValue,
+		})
 		if err != nil {
 			switch err {
 			case product.ErrUnknown:
