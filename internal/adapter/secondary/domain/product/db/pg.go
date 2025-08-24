@@ -252,7 +252,7 @@ func (p *Postgres) Search(ctx context.Context, req *port.SearchRequest) (port.Ge
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	var totalCount int64
-	query := "SELECT * FROM public.get_all_products_paginated($1, $2, $3, $4, $4);"
+	query := "SELECT * FROM public.get_all_products_paginated($1, $2, $3, $4, $5);"
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
