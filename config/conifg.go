@@ -1,7 +1,7 @@
 package config
 
 type Config struct {
-	//auth
+	// auth
 	Port                     int
 	Env                      string
 	KeycloakInstanceURL      string
@@ -16,24 +16,30 @@ type Config struct {
 	BaseUrl     string
 	FrontendUrl string
 
-	//email
+	// email
 	Email         string
 	SMTP          string
 	EmailPassword string
 
-	//db
+	// db
 	FileLocation           string
 	CoreDBConnectionString string
 
 	// payment partner
 	ChapaSecretKey string
 
-	//mobile client version
+	// mobile client version
 	MinMobileClientCompatibleVersion string
 
 	// JWT
 	JWTSecret string
 
-	//Default SuperAdmin Email
+	// default superAdmin email
 	DefaultSuperAdminUserEmail string
+
+	// default superAdmin password
+	DefaultSuperAdminUserPassword string
+
+	// default superAdmin password
+	DefaultSuperAdminUserUsername string
 }
