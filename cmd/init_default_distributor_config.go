@@ -39,11 +39,11 @@ func createDistributorSuperadminRole(applicationService *application_core.Contai
 	ctx := context.Background()
 
 	roleId, err := applicationService.RoleService.Create(ctx, &role.CreateRequest{
-		Name: SUPERADMIN_ROLE_NAME,
-		Desc: SUPERADMIN_ROLE_DESC,
+		Name: DISTRIBUTOR_SUPERADMIN_ROLE_NAME,
+		Desc: DISTRIBUTOR_SUPERADMIN_ROLE_DESC,
 	})
 	if err != nil {
-		log.Printf(" failed to create superadmin role")
+		log.Printf(" failed to create distributor superadmin role")
 		return 0, ErrUnknown
 	}
 
@@ -77,7 +77,7 @@ func InitDistributorSuperadminRole(cfg config.Config, applicationService *applic
 		log.Print("# creating distributor superadmin role...")
 		roleId, err = createDistributorSuperadminRole(applicationService)
 		if err != nil {
-			panic("failed to create superadmin role")
+			panic("failed to add resources to distributor")
 		}
 	}
 	return roleId
