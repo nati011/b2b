@@ -1,4 +1,4 @@
-.vscode
+.vscode/launch.json
 .env
 */cfg.env
 web/*/node_modules/*
