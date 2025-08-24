@@ -248,11 +248,11 @@ func (p *Postgres) Get(ctx context.Context, id int) (port.GetResponse, error) {
 	return response, nil
 }
 
-func (p *Postgres) Search(ctx context.Context, search_query string) (port.GetAllResponse, error) {
+func (p *Postgres) Search(ctx context.Context, req *port.SearchRequest) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse
 	var totalCount int64
-	query := "SELECT * FROM public.get_all_products_paginated($1,$2, $3);"
+	query := "SELECT * FROM public.get_all_products_paginated($1, $2, $3, $4, $4);"
 	dest := []any{
 		&responseBase.Id,
 		&responseBase.Name,
@@ -266,7 +266,13 @@ func (p *Postgres) Search(ctx context.Context, search_query string) (port.GetAll
 		&responseBase.Price,
 		&totalCount,
 	}
-	args := []any{p.Pagination.Limit, p.Pagination.Offset, search_query}
+	args := []any{
+		p.Pagination.Limit,
+		p.Pagination.Offset,
+		req.Name,
+		req.PriceMin,
+		req.PriceMax}
+
 	result, err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
 		query_handler.WithDB(p.db),

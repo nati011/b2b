@@ -110,6 +110,12 @@ type UpdateRequest struct {
 	CategoryId []int
 }
 
+type SearchRequest struct {
+	Name     string
+	PriceMin int
+	PriceMax int
+}
+
 type GoodsReceivingRequest struct {
 	Id     int
 	Amount int
@@ -128,7 +134,7 @@ type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
-	Search(ctx context.Context, search_query string) (GetAllResponse, error)
+	Search(ctx context.Context, req *SearchRequest) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) (int, error)
 	ReceiveGoods(ctx context.Context, req *GoodsReceivingRequest) error
@@ -592,8 +598,12 @@ func (p *ProductService) GetByParam(ctx context.Context, req *GetByParamRequest)
 
 	return resp, nil
 }
-func (p *ProductService) Search(ctx context.Context, search_query string) (GetAllResponse, error) {
-	resp, err := p.DB.Search(ctx, search_query)
+func (p *ProductService) Search(ctx context.Context, req *SearchRequest) (GetAllResponse, error) {
+	resp, err := p.DB.Search(ctx, &port.SearchRequest{
+		Name:     req.Name,
+		PriceMin: req.PriceMin,
+		PriceMax: req.PriceMax,
+	})
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:

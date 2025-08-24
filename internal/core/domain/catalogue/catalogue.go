@@ -77,7 +77,7 @@ type GetAllCatalogueResponse struct {
 
 type Provider interface {
 	GetAll(ctx context.Context) (GetAllCatalogueResponse, error)
-	Search(ctx context.Context, req SearchCatalogueRequest) (GetAllCatalogueResponse, error)
+	Search(ctx context.Context, req *SearchCatalogueRequest) (GetAllCatalogueResponse, error)
 }
 
 type CatalogueService struct {
@@ -92,7 +92,7 @@ func NewCatalogueService(productService product.Provider, configurableProductser
 	}
 }
 
-func (c *CatalogueService) Search(ctx context.Context, req SearchCatalogueRequest) (GetAllCatalogueResponse, error) {
+func (c *CatalogueService) Search(ctx context.Context, req *SearchCatalogueRequest) (GetAllCatalogueResponse, error) {
 	// configurable products
 	var resp []GetCatalogueResponse
 	products_belonging_to_cps := []int{}
@@ -171,11 +171,12 @@ func (c *CatalogueService) Search(ctx context.Context, req SearchCatalogueReques
 	}
 
 	// standalone products
-	pr, err := c.ProductService.Search(ctx,
-		req.Name,
-		// PriceMin: req.PriceMin,
-		// PriceMax: req.PriceMax,
-	)
+	pr, err := c.ProductService.Search(ctx, &product.SearchRequest{
+		Name:     req.Name,
+		PriceMin: req.PriceMin,
+		PriceMax: req.PriceMax,
+	})
+
 	if err != nil {
 		switch err {
 		case product.ErrEmptyGetContent:
