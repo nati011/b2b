@@ -94,6 +94,7 @@ func Test_Validate_Distributor(t *testing.T) {
 	})
 }
 
+// find a way to test this along with the listner...
 func Test_DisableDistributorProductsUponDistributorDeactivation(t *testing.T) {
 	ctx := context.Background()
 	t.Cleanup(teardown)
