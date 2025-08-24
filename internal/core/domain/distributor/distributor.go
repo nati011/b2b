@@ -3,10 +3,13 @@ package distributor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
+	"b2b.nati011.github.com/internal/core/application/event"
 	"b2b.nati011.github.com/internal/core/application/user"
 	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
+	"b2b.nati011.github.com/internal/core/util"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor"
 )
@@ -117,16 +120,20 @@ type DistributorService struct {
 	DB                         port.DB
 	UserService                user.Provider
 	DistributorApprovalService distributorApproval.Provider
+	Event                      *event.Broker
 }
 
 func NewDistributorService(
 	up user.Provider,
 	db port.DB,
-	dap distributorApproval.Provider) Provider {
+	dap distributorApproval.Provider,
+	ev *event.Broker) Provider {
+
 	return &DistributorService{
 		UserService:                up,
 		DB:                         db,
 		DistributorApprovalService: dap,
+		Event:                      ev,
 	}
 }
 
@@ -549,6 +556,9 @@ func (d *DistributorService) Dectivate(ctx context.Context, id int) error {
 		log.Printf("failed to deactivate distributor id:%v", id)
 		return ErrUnknown
 	}
+
+	d.Event.Publish(util.EVENT_DISTRIBUTOR_DEACTIVATE, fmt.Sprintf("id:%v", id))
+
 	return nil
 }
 

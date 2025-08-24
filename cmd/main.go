@@ -64,6 +64,8 @@ func main() {
 	InitCron(s, application_container, domain_container)
 	s.Start()
 
+	InitEventLister(application_container, domain_container)
+
 	InitDefaultConfig(cfg, application_container)
 
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
@@ -72,8 +74,8 @@ func main() {
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Handler:      handler,
 		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
 	}
 	log.Printf("Ahoy! server running %s on %s ...", cfg.Env, srv.Addr)
 
