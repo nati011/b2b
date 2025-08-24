@@ -5,6 +5,9 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
+
+	"b2b.nati011.github.com/internal/core/util"
 )
 
 var testContainer TestContainer
@@ -691,4 +694,47 @@ func Test_Dectivate_unhappyPath(t *testing.T) {
 			t.Errorf("Expected err: %v Got: %v", wantErr, err)
 		}
 	})
+}
+
+func Test_raiseEventUponDeactivation(t *testing.T) {
+	t.Cleanup(testContainer.Teardown)
+
+	in := CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test1@gmail.com",
+	}
+
+	// Subscribe to the event BEFORE deactivation
+	ch := testContainer.Event.Subscribe(util.EVENT_DISTRIBUTOR_DEACTIVATE)
+
+	id, err := testContainer.DistributorService.Create(ctx, &in)
+	if err != nil {
+		t.Fatalf("Failed to create err: %v", err)
+	}
+
+	err = testContainer.DistributorService.Activate(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to activate err: %v", err)
+	}
+
+	err = testContainer.DistributorService.Dectivate(ctx, id)
+	if err != nil {
+		t.Fatalf("Failed to deactivate err: %v", err)
+	}
+
+	// Wait for the event
+	select {
+	case msg := <-ch:
+		t.Logf("Received event: %v", msg)
+	case <-time.After(time.Second):
+		t.Errorf("Did not receive expected event")
+	}
 }

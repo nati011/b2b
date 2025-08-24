@@ -60,6 +60,10 @@ func setup() {
 	if err != nil {
 		panic("failed to create distributor err: ")
 	}
+	err = container.DistributorService.Activate(ctx, distributorId)
+	if err != nil {
+		panic("failed to activate distributor")
+	}
 	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
