@@ -36,7 +36,11 @@ func setup() {
 		Email:       "test@gmail.com",
 	})
 	if err != nil {
-		panic("failed to create distributor err: ")
+		panic("failed to create distributor")
+	}
+	err = testContainer.DistributorService.Activate(ctx, distributorId)
+	if err != nil {
+		panic("failed to activate distributor")
 	}
 }
 

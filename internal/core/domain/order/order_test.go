@@ -15,8 +15,8 @@ import (
 
 var container TestContainer
 var retailer_id int
-var distributor_id int
-var product_id int
+var distributorId int
+var productId int
 var DigitalPaymentPartnerId int
 var ManualPaymentPartnerId int
 
@@ -47,7 +47,7 @@ func setup() {
 		panic("failed to create product")
 	}
 
-	distributor_id, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
 		Tin:         "1111111111",
 		Latitude:    "9.0192° N",
 		Longitude:   "38.7525° E",
@@ -62,7 +62,13 @@ func setup() {
 	if err != nil {
 		panic("failed to create distributor")
 	}
-	product_id, err = container.ProductService.Create(ctx, &product.CreateRequest{
+
+	err = container.DistributorService.Activate(ctx, distributorId)
+	if err != nil {
+		panic("failed to activate distributor")
+	}
+
+	productId, err = container.ProductService.Create(ctx, &product.CreateRequest{
 		Name:       "testProduct",
 		Desc:       "test",
 		ExternalID: "123",
@@ -74,13 +80,13 @@ func setup() {
 		Attributes: map[string]string{
 			"test": "test",
 		},
-		DistributorId: distributor_id,
+		DistributorId: distributorId,
 	})
 	if err != nil {
 		panic("failed to create product")
 	}
 	err = container.ProductService.ReceiveGoods(ctx, &product.GoodsReceivingRequest{
-		Id:     product_id,
+		Id:     productId,
 		Amount: 10000,
 	})
 	if err != nil {
@@ -125,7 +131,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -152,7 +158,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -182,7 +188,7 @@ func Test_Place_Order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -208,7 +214,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 			PaymentPartnerId: DigitalPaymentPartnerId,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -242,7 +248,7 @@ func Test_Place_Order_unhappyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id},
+					ProductId: productId},
 			},
 		}
 		_, err := container.OrderService.Place(ctx, in)
@@ -262,7 +268,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -294,7 +300,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -332,7 +338,7 @@ func Test_Cancel_Order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -384,7 +390,7 @@ func Test_Cancel_Order_unhappyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -415,7 +421,7 @@ func Test_Get_happyPath(t *testing.T) {
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
-				ProductId: product_id,
+				ProductId: productId,
 				Quantity:  19},
 		},
 	}
@@ -455,7 +461,7 @@ func Test_Get_All_happyPath(t *testing.T) {
 		RetailerId:       retailer_id,
 		Items: []Item{
 			{
-				ProductId: product_id,
+				ProductId: productId,
 				Quantity:  19},
 		},
 	}
@@ -495,7 +501,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -524,7 +530,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -553,7 +559,7 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -600,7 +606,7 @@ func Test_Get_By_Retailer_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -629,7 +635,7 @@ func Test_Get_By_Distributor_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -638,7 +644,7 @@ func Test_Get_By_Distributor_happyPath(t *testing.T) {
 			t.Fatalf("Failed to place order err: %v", err)
 		}
 		//check
-		got, err := container.OrderService.GetDistributorOrders(ctx, distributor_id)
+		got, err := container.OrderService.GetDistributorOrders(ctx, productId)
 		if err != nil {
 			t.Fatalf("Failed to fetch order err: err %v", err)
 		}
@@ -668,7 +674,7 @@ func Test_Get_By_Retailer_unhappyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  1},
 			},
 		}
@@ -704,7 +710,7 @@ func Test_Update_Status(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -759,7 +765,7 @@ func Test_confirm_order_unhappyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -788,7 +794,7 @@ func Test_reject_order_happyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
@@ -823,7 +829,7 @@ func Test_reject_order_unhappyPath(t *testing.T) {
 			RetailerId:       retailer_id,
 			Items: []Item{
 				{
-					ProductId: product_id,
+					ProductId: productId,
 					Quantity:  19},
 			},
 		}
