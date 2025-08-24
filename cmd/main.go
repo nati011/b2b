@@ -37,6 +37,7 @@ func main() {
 	flag.StringVar(&cfg.FrontendUrl, "frontend_base_url", "http://localhost:8080", "frontend base url")
 	flag.StringVar(&cfg.JWTSecret, "jwt_secret", "", "jwt secret keys")
 	flag.StringVar(&cfg.DefaultSuperAdminUserEmail, "default_superadmin_email", "superadmin", "")
+	flag.StringVar(&cfg.DefaultSuperAdminUserUsername, "default_superadmin_username", "superadmin", "")
 	flag.StringVar(&cfg.DefaultSuperAdminUserPassword, "default_superadmin_password", "superadmin", "")
 	flag.Parse()
 	validateFlags(cfg)
