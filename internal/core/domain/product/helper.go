@@ -73,9 +73,12 @@ func (p *ProductService) validateDistributor(ctx context.Context, id int) error 
 	if id == 0 {
 		return ErrDistributorIdMandatory
 	}
-	_, err := p.DistrbutorService.Get(ctx, id)
+	dist, err := p.DistrbutorService.Get(ctx, id)
 	if err == distributor.ErrIdNotFound {
 		return ErrDistributorNotFound
+	}
+	if !dist.IsActive {
+		return ErrDistributorInactive
 	}
 	return nil
 }
