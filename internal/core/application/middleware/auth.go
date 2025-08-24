@@ -122,7 +122,7 @@ func (am *Auth) RequireAuthentication(next http.Handler, options ...Option) http
 		rawPath := strings.Split(r.RequestURI, "?")[0]
 		re := regexp.MustCompile(`/\d+`)
 		normalizedPath := normalizeResourcePath(re.ReplaceAllString(rawPath, "/{param}"))
-		rsrce, err := am.ResourceService.GetByName(r.Context(), normalizedPath)
+		rsrce, err := am.ResourceService.GetByResource(r.Context(), normalizedPath)
 		if err != nil {
 			switch err {
 			case resource.ErrNameNotFound:
