@@ -5,12 +5,10 @@ import (
 	"os"
 	"testing"
 
-	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
 var testContainer product.TestContainer
-var distributorId int
 
 func TestMain(m *testing.M) {
 	setup()
@@ -19,24 +17,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	ctx := context.Background()
 	testContainer = product.NewPackageIntegrationTestContainer()
-	var err error
-	distributorId, err = testContainer.DistributorService.Create(ctx, &distributor.CreateRequest{
-		Tin:         "1111111111",
-		Latitude:    "9.0192° N",
-		Longitude:   "38.7525° E",
-		GeneralZone: "test",
-		Region:      "test",
-		Woreda:      "test",
-		Username:    "username",
-		FirstName:   "test",
-		LastName:    "test",
-		Email:       "test@gmail.com",
-	})
-	if err != nil {
-		panic("failed to create distributor err: ")
-	}
 }
 
 func teardown() {

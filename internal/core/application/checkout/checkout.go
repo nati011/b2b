@@ -78,7 +78,7 @@ func NewCheckoutService(paymentService payment.Provider, partner partner.Provide
 func (p *CheckoutService) CreatePayment(ctx context.Context, req *CreatePaymentRequest) (string, error) {
 	currentTimestamp := time.Now()
 	//to ensure uniqueness use current time stamp as transaction ref
-	generatedTxRef := fmt.Sprintf("%s_%s", currentTimestamp.Format("2006_01_02_15_04_05"), uuid.New().String())
+	generatedTxRef := fmt.Sprintf("%s_%s", currentTimestamp.Format("Monday_15"), uuid.New().String())
 	_, err := p.paymentService.Create(ctx, &payment.CreateRequest{
 		OrderId:        req.OrderId,
 		PartnerId:      req.PaymentPartnerId,
