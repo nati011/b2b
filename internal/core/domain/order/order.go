@@ -724,7 +724,9 @@ func (o *OrderService) GetRetailerOrdersWithUserContext(ctx context.Context, use
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
-			return GetAllResponse{}, ErrEmptyGetResponse
+			return GetAllResponse{
+				List: []GetResponse{},
+			}, ErrEmptyGetResponse
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
