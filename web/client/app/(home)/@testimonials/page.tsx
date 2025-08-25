@@ -1,103 +1,114 @@
-import { Star } from "lucide-react";
+import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-interface Testimonial {
+interface PricingTier {
   id: string;
   name: string;
-  position: string;
-  company: string;
-  content: string;
-  rating: number;
-  image: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+  popular?: boolean;
 }
 
-export default function Testimonials() {
-  const testimonials: Testimonial[] = [
+export default function PricingSection(){
+  const pricingTiers: PricingTier[] = [
     {
-      id: "1",
-      name: "Sarah Johnson",
-      position: "Retail Operations Manager",
-      company: "Urban Boutique Group",
-      content:
-        "Efoyeta's wholesale platform has transformed our inventory management. Their curated collections consistently outperform other suppliers, and the analytics dashboard gives us valuable insights for better purchasing decisions.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+      id: "monthly",
+      name: "Monthly",
+      price: "$2,500",
+      period: "per month",
+      description: "Perfect for getting started with minimal commitment",
+      features: [
+        "Full product catalog access",
+        "Basic marketing materials",
+        "Email support",
+        "Monthly reporting"
+      ]
     },
     {
-      id: "2",
-      name: "Michael Chen",
-      position: "Owner",
-      company: "Modern Home Store",
-      content:
-        "Since partnering with Efoyeta two years ago, our average basket size has increased by 28%. The quality of their products and reliability of their supply chain has made them our go-to wholesale partner.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+      id: "yearly",
+      name: "Annual",
+      price: "$11,500",
+      period: "per year",
+      description: "Most popular choice for established distributors",
+      features: [
+        "Everything in Monthly",
+        "Priority customer support",
+        "Quarterly business reviews",
+        "Advanced marketing materials",
+        "Volume discounts"
+      ],
+      popular: true
     },
     {
-      id: "3",
-      name: "Emma Rodriguez",
-      position: "Purchasing Director",
-      company: "HomeStyle Inc.",
-      content:
-        "The flexible minimum order quantities and seasonal discounts have allowed us to experiment with new product categories with minimal risk. Their account management team provides exceptional support.",
-      rating: 4,
-      image:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
-    },
+      id: "two-year",
+      name: "Two Year",
+      price: "$22,000",
+      period: "for 24 months",
+      description: "Best value for long-term partnerships",
+      features: [
+        "Everything in Annual",
+        "Dedicated account manager",
+        "Custom marketing support",
+        "Exclusive product previews",
+        "Maximum volume discounts",
+        "Territory protection"
+      ]
+    }
   ];
 
   return (
-    <section className="py-16 container mx-auto px-4">
-      <div className="flex flex-col items-center mb-12">
-        <h2 className="text-3xl font-medium mb-4">What Our Retailers Say</h2>
-        <div className="h-1 w-20 bg-primary mb-6"></div>
-        <p className="text-lg text-center text-muted-foreground mb-4 max-w-2xl">
-          Trusted by hundreds of retailers across the country
-        </p>
-      </div>
+    <section className="py-16 bg-secondary/30">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col items-center mb-12">
+          <h2 className="text-3xl font-medium mb-4">Distributor Pricing</h2>
+          <div className="h-1 w-20 bg-primary mb-6"></div>
+          <p className="text-lg text-center text-muted-foreground mb-4 max-w-2xl">
+            Choose the package that fits your business needs and growth goals
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {testimonials.map((testimonial) => (
-          <div
-            key={testimonial.id}
-            className="bg-secondary/20 p-6 rounded-lg border"
-          >
-            <div className="flex items-center mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-5 w-5 ${
-                    i < testimonial.rating
-                      ? "fill-primary text-primary"
-                      : "fill-muted text-muted"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <p className="text-muted-foreground mb-6 italic">
-              "{testimonial.content}"
-            </p>
-
-            <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-full h-full object-cover"
-                />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {pricingTiers.map(tier => (
+            <div 
+              key={tier.id} 
+              className={`relative bg-background p-8 rounded-lg border ${
+                tier.popular ? "border-primary shadow-lg scale-105" : "border-border"
+              }`}
+            >
+              {tier.popular && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                  Recommended
+                </div>
+              )}
+              
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-medium mb-2">{tier.name}</h3>
+                <div className="text-3xl font-bold text-primary mb-1">{tier.price}</div>
+                <div className="text-sm text-muted-foreground">{tier.period}</div>
+                <p className="text-sm text-muted-foreground mt-4">{tier.description}</p>
               </div>
-              <div>
-                <h4 className="font-medium">{testimonial.name}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {testimonial.position}, {testimonial.company}
-                </p>
-              </div>
+
+              <ul className="space-y-3 mb-8">
+                {tier.features.map((feature, index) => (
+                  <li key={index} className="flex items-center">
+                    <Check className="h-4 w-4 text-primary mr-3 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button 
+                variant={tier.popular ? "default" : "secondary"}
+                className={tier.popular ? "default" : "secondary"}
+              >
+                Get Started
+              </Button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
-}
+};
