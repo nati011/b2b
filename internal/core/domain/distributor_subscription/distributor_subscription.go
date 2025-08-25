@@ -19,6 +19,7 @@ var (
 	ErrPriceCannotBeZero                       = errors.New(" price cannot be zero")
 	ErrPriceCannotBeNegative                   = errors.New(" price cannot be negative")
 	ErrSubscriptionAlreadyExistsForDistributor = errors.New(" subscription already exists for distributor")
+	ErrPaymentPartnerIdNotSupported            = errors.New(" payment partner mandatory")
 	ErrUnknown                                 = errors.New(" unknown error")
 )
 
@@ -41,7 +42,7 @@ type GetSubscriptionResponse struct {
 }
 
 type GetAllSubscriptionResponse struct {
-	List []GetAllSubscriptionPlanResponse
+	List []GetSubscriptionResponse
 }
 
 type SubscribeResponse struct {
@@ -80,7 +81,7 @@ type Prodvider interface {
 	GetAllPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
 	Place(ctx context.Context, req *PlaceRequest) (SubscribeResponse, error)
 	InitPayment(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
-	GetSubscriptions(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
+	GetSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
 	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
 }
 
@@ -158,6 +159,7 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 	if err != nil {
 		switch err {
 		case ErrEmptyGetContent:
+			return SubscribeResponse{}, ErrEmptyGetContent
 		default:
 			log.Printf("failed to get plan: %v", err)
 			return SubscribeResponse{}, ErrUnknown
@@ -166,9 +168,11 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 
 	//validate if subscription already exists
 	sub_resp, err := d.GetSubscriptionByDistributorId(ctx, req.DistributorId)
-	if err != nil {
+	wantErr := ErrEmptyGetContent
+	if err != wantErr {
 		switch err {
-		case ErrEmptyGetContent:
+		case nil:
+			return SubscribeResponse{}, ErrSubscriptionAlreadyExistsForDistributor
 		default:
 			log.Printf("failed to get subescription by distributorId err: %v", err)
 			return SubscribeResponse{}, ErrUnknown
@@ -215,10 +219,35 @@ func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId
 	return SubscribeResponse{}, nil
 }
 
-func (d *DistributorSubscriptionService) GetSubscriptions(ctx context.Context) (GetAllSubscriptionPlanResponse, error) {
-	return GetAllSubscriptionPlanResponse{}, nil
+func (d *DistributorSubscriptionService) GetSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error) {
+	response := GetAllSubscriptionResponse{}
+	resp, err := d.DB.GetAllSubscriptions(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllSubscriptionResponse{}, ErrEmptyGetContent
+		default:
+			log.Printf("failed to get all subs: %v", err)
+			return GetAllSubscriptionResponse{}, ErrUnknown
+		}
+	}
+	for _, i := range resp.List {
+		response.List = append(response.List, GetSubscriptionResponse(i))
+	}
+	return response, nil
 }
 
 func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error) {
-	return GetSubscriptionResponse{}, nil
+	resp, err := d.DB.GetSubscriptionByDistributorId(ctx, distId)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetSubscriptionResponse{}, ErrEmptyGetContent
+		default:
+			log.Printf("failed to get subscription by distributorId  err: %v", err)
+			return GetSubscriptionResponse{}, ErrUnknown
+		}
+	}
+
+	return GetSubscriptionResponse(resp), nil
 }

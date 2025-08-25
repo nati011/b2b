@@ -44,6 +44,7 @@ type Reader interface {
 	GetPlan(ctx context.Context, id int) (GetPlanResponse, error)
 	GetAllPlan(ctx context.Context) (GetAllPlanResponse, error)
 	GetAllSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
+	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
 }
 
 type Writer interface {
