@@ -252,10 +252,142 @@ func Test_Place_happypath(t *testing.T) {
 
 func Test_Place_unhappypath(t *testing.T) {
 	t.Run("invalidPlan", func(t *testing.T) {
+		t.Cleanup(teardown)
+		randomPlanId := 112
+		ctx := context.Background()
+		_, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
+			SubscriptionPlanId: randomPlanId,
+			DistributorId:      distributorId,
+		})
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("expected err: %v got: %v", wantErr, err)
+		}
+	})
 
+	t.Run("paymentPartnerIdMandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
+		randomPlanId := 112
+		ctx := context.Background()
+		_, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
+			SubscriptionPlanId: randomPlanId,
+			DistributorId:      distributorId,
+		})
+		wantErr := ErrPaymentPartnerIdNotSupported
+		if err != wantErr {
+			t.Errorf("expected err: %v got: %v", wantErr, err)
+		}
 	})
 
 	t.Run("subscriptionAlreadyExists", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		planId, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+			Name:        "test",
+			Price:       101,
+			TermInMonth: 11,
+			Description: "test",
+		})
+		if err != nil {
+			t.Fatalf("failed to create plan err: %v", err)
+		}
+		_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
+			SubscriptionPlanId: planId,
+			DistributorId:      distributorId,
+		})
+		if err != nil {
+			t.Fatalf("failed to place order err: %v", err)
+		}
+		_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
+			SubscriptionPlanId: planId,
+			DistributorId:      distributorId,
+		})
+		wantErr := ErrSubscriptionAlreadyExistsForDistributor
+		if err != wantErr {
+			t.Errorf("subscription already exists err: %v", err)
+		}
+	})
+}
 
+func Test_GetAllSubscriptions_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	planId, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+		Name:        "test",
+		Price:       101,
+		TermInMonth: 11,
+		Description: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to create plan err: %v", err)
+	}
+	_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
+		SubscriptionPlanId: planId,
+		DistributorId:      distributorId,
+		PaymentPartnerId:   DigitalPaymentPartnerId,
+	})
+	if err != nil {
+		t.Fatalf("failed to place order err: %v", err)
+	}
+	all_resp, err := container.SubscriptionService.GetSubscriptions(ctx)
+	if err != nil {
+		t.Fatalf("failed to get plans err: %v", err)
+	}
+	wantLen := 1
+	if len(all_resp.List) != wantLen {
+		t.Errorf("Expected len: %v Got: %v", wantLen, len(all_resp.List))
+	}
+}
+
+func Test_GetAllSubscriptions_unhappyPath(t *testing.T) {
+	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		_, err := container.SubscriptionService.GetSubscriptions(ctx)
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("expected err: %v got: %v", wantErr, err)
+		}
+	})
+}
+
+func Test_GetSubscriptionByDistributorId_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	planId, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+		Name:        "test",
+		Price:       101,
+		TermInMonth: 11,
+		Description: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to create plan err: %v", err)
+	}
+	sub_id, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
+		SubscriptionPlanId: planId,
+		DistributorId:      distributorId,
+	})
+	if err != nil {
+		t.Fatalf("failed to place order err: %v", err)
+	}
+	got, err := container.SubscriptionService.GetSubscriptionByDistributorId(ctx, distributorId)
+	if err != nil {
+		t.Fatalf("failed to get subscriptions by distId err: %v", err)
+	}
+	wantSubId := sub_id.Id
+	if wantSubId != got.Id {
+		t.Errorf("expected sub Id: %v got :%v", wantSubId, got.Id)
+	}
+}
+
+func Test_GetSubscriptionByDistributorId_unhappyPath(t *testing.T) {
+	t.Run("emptyGetContent", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		_, err := container.SubscriptionService.GetSubscriptionByDistributorId(ctx, distributorId)
+		wantErr := ErrEmptyGetContent
+		if err != wantErr {
+			t.Errorf("expected err: %v got: %v", wantErr, err)
+		}
 	})
 }

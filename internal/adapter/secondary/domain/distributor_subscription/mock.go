@@ -79,5 +79,18 @@ func (m *DistributorSubscriptionMock) GetAllSubscriptions(ctx context.Context) (
 	for _, i := range m.Subs {
 		response.List = append(response.List, port.GetSubscriptionResponse(i))
 	}
-	return port.GetAllSubscriptionResponse{}, nil
+	if len(response.List) == 0 {
+		return port.GetAllSubscriptionResponse{}, port_commons.ErrSysNoRows
+	}
+	return response, nil
+}
+
+func (m *DistributorSubscriptionMock) GetSubscriptionByDistributorId(ctx context.Context, distributorId int) (port.GetSubscriptionResponse, error) {
+	for _, i := range m.Subs {
+		if i.DistributorId == distributorId {
+			return port.GetSubscriptionResponse(i), nil
+		}
+
+	}
+	return port.GetSubscriptionResponse{}, port_commons.ErrSysNoRows
 }
