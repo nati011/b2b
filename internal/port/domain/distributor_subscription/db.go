@@ -42,11 +42,11 @@ type GetAllPlanResponse struct {
 
 type Reader interface {
 	GetPlans(ctx context.Context) (GetAllPlanResponse, error)
-	GetAllSubscriptionResponse(ctx context.Context) (GetAllSubscriptionResponse, error)
+	GetAllSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
 }
 
 type Writer interface {
-	Place(ctx context.Context, req *PlaceRequest) error
+	Place(ctx context.Context, req *PlaceRequest) (int, error)
 	CreatePlan(ctx context.Context, req *CreatePlanRequest) (int, error)
 }
 

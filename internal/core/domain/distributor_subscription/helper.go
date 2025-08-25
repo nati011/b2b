@@ -32,7 +32,7 @@ func (d *DistributorSubscriptionService) validateName(name string) error {
 func (d *DistributorSubscriptionService) validateDesc(desc string) error {
 	sliced := strings.Split(desc, "")
 	if len(sliced) == 0 {
-		return ErrNameMandatory
+		return ErrDescriptionMandatory
 	}
 	return nil
 }
