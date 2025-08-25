@@ -565,7 +565,9 @@ func (o *OrderService) GetAll(ctx context.Context) (GetAllResponse, error) {
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
-			return GetAllResponse{}, ErrEmptyGetResponse
+			return GetAllResponse{
+				List: []GetResponse{},
+			}, ErrEmptyGetResponse
 		default:
 			return GetAllResponse{}, ErrUnknown
 		}
