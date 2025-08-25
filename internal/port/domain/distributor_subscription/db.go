@@ -41,7 +41,8 @@ type GetAllPlanResponse struct {
 }
 
 type Reader interface {
-	GetPlans(ctx context.Context) (GetAllPlanResponse, error)
+	GetPlan(ctx context.Context, id int) (GetPlanResponse, error)
+	GetAllPlan(ctx context.Context) (GetAllPlanResponse, error)
 	GetAllSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
 }
 
