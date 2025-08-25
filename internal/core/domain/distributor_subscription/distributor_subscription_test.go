@@ -29,6 +29,7 @@ func Test_Create_Happypath(t *testing.T) {
 		Name:        "test",
 		Price:       101,
 		TermInMonth: 11,
+		Description: "test",
 	})
 	if err != nil {
 		t.Fatalf("failed to create plan err: %v", err)
@@ -43,8 +44,24 @@ func Test_Create_unappypath(t *testing.T) {
 			Name:        "",
 			Price:       101,
 			TermInMonth: 11,
+			Description: "test",
 		})
 		wantErr := ErrNameMandatory
+		if err != wantErr {
+			t.Fatalf("expected err: %v got: %v", wantErr, err)
+		}
+	})
+
+	t.Run("desc_mandatory", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		_, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+			Name:        "test",
+			Price:       101,
+			TermInMonth: 11,
+			Description: "",
+		})
+		wantErr := ErrDescriptionMandatory
 		if err != wantErr {
 			t.Fatalf("expected err: %v got: %v", wantErr, err)
 		}
@@ -57,6 +74,7 @@ func Test_Create_unappypath(t *testing.T) {
 			Name:        "test",
 			Price:       0,
 			TermInMonth: 11,
+			Description: "test",
 		})
 		wantErr := ErrPriceCannotBeZero
 		if err != wantErr {
@@ -71,6 +89,7 @@ func Test_Create_unappypath(t *testing.T) {
 			Name:        "test",
 			Price:       -10,
 			TermInMonth: 11,
+			Description: "test",
 		})
 		wantErr := ErrPriceCannotBeNegative
 		if err != wantErr {
@@ -85,6 +104,7 @@ func Test_Create_unappypath(t *testing.T) {
 			Name:        "test",
 			Price:       10,
 			TermInMonth: 0,
+			Description: "test",
 		})
 		wantErr := ErrTermCannotBeZero
 		if err != wantErr {
@@ -99,6 +119,7 @@ func Test_Create_unappypath(t *testing.T) {
 			Name:        "test",
 			Price:       10,
 			TermInMonth: -10,
+			Description: "test",
 		})
 		wantErr := ErrTermCannotBeNegative
 		if err != wantErr {
@@ -114,6 +135,7 @@ func Test_Get_happypath(t *testing.T) {
 		Name:        "test",
 		Price:       101,
 		TermInMonth: 11,
+		Description: "test",
 	})
 	if err != nil {
 		t.Fatalf("failed to create plan err: %v", err)

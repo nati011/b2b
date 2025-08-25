@@ -1,8 +1,9 @@
-package distributorsubscription
+package distributor_subscription
 
 import (
 	"context"
 
+	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_subscription"
 )
 
@@ -21,16 +22,16 @@ type MockSubscription struct {
 	Status             string
 }
 
-type Mock struct {
+type DistributorSubscriptionMock struct {
 	Plans []MockPlan
 	Subs  []MockSubscription
 }
 
-func NewMock() port.DB {
-	return &Mock{}
+func NewDistributorSubscriptionMock() port.DB {
+	return &DistributorSubscriptionMock{}
 }
 
-func (m *Mock) CreatePlan(ctx context.Context, req *port.CreatePlanRequest) (int, error) {
+func (m *DistributorSubscriptionMock) CreatePlan(ctx context.Context, req *port.CreatePlanRequest) (int, error) {
 	newId := len(m.Plans) + 1
 	m.Plans = append(m.Plans, MockPlan{
 		Id:          newId,
@@ -42,15 +43,18 @@ func (m *Mock) CreatePlan(ctx context.Context, req *port.CreatePlanRequest) (int
 	return newId, nil
 }
 
-func (m *Mock) GetPlans(ctx context.Context) (port.GetAllPlanResponse, error) {
+func (m *DistributorSubscriptionMock) GetPlans(ctx context.Context) (port.GetAllPlanResponse, error) {
 	response := port.GetAllPlanResponse{}
 	for _, i := range m.Plans {
 		response.List = append(response.List, port.GetPlanResponse(i))
 	}
-	return port.GetAllPlanResponse{}, nil
+	if len(response.List) == 0 {
+		return port.GetAllPlanResponse{}, port_commons.ErrSysNoRows
+	}
+	return response, nil
 }
 
-func (m *Mock) Place(ctx context.Context, req *port.PlaceRequest) error {
+func (m *DistributorSubscriptionMock) Place(ctx context.Context, req *port.PlaceRequest) (int, error) {
 	newId := len(m.Subs) + 1
 	m.Subs = append(m.Subs, MockSubscription{
 		Id:                 newId,
@@ -58,10 +62,10 @@ func (m *Mock) Place(ctx context.Context, req *port.PlaceRequest) error {
 		DistributorId:      req.DistributorId,
 		Status:             req.Status,
 	})
-	return nil
+	return newId, nil
 }
 
-func (m *Mock) GetAllSubscriptions(ctx context.Context) (port.GetAllSubscriptionResponse, error) {
+func (m *DistributorSubscriptionMock) GetAllSubscriptions(ctx context.Context) (port.GetAllSubscriptionResponse, error) {
 	response := port.GetAllSubscriptionResponse{}
 	for _, i := range m.Subs {
 		response.List = append(response.List, port.GetSubscriptionResponse(i))
