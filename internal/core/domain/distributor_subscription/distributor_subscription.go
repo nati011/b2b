@@ -13,6 +13,7 @@ import (
 var (
 	ErrEmptyGetContent       = errors.New(" empty conent")
 	ErrNameMandatory         = errors.New(" name mandatory")
+	ErrDescriptionMandatory  = errors.New(" desc mandatory")
 	ErrTermCannotBeZero      = errors.New(" term cannot be zero")
 	ErrTermCannotBeNegative  = errors.New(" term cannot be negative")
 	ErrPriceCannotBeZero     = errors.New(" price cannot be zero")
@@ -68,7 +69,7 @@ type CreatePlanRequest struct {
 type Prodvider interface {
 	CreatePlan(ctx context.Context, req *CreatePlanRequest) (int, error)
 	GetPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
-	Place(ctx context.Context) (SubscribeResponse, error)
+	Place(ctx context.Context, req *PlaceRequest) (SubscribeResponse, error)
 	InitPayment(ctx context.Context, distId int) (SubscribeResponse, error)
 	GetSubscriptions(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
 }
@@ -76,6 +77,15 @@ type Prodvider interface {
 type DistributorSubscriptionService struct {
 	DB port.DB
 	DS distributor.Provider
+}
+
+func NewDistributorSubscriptionService(
+	db port.DB,
+	ds distributor.Provider) Prodvider {
+	return &DistributorSubscriptionService{
+		DB: db,
+		DS: ds,
+	}
 }
 
 func (d *DistributorSubscriptionService) CreatePlan(ctx context.Context, req *CreatePlanRequest) (int, error) {
@@ -94,7 +104,7 @@ func (d *DistributorSubscriptionService) CreatePlan(ctx context.Context, req *Cr
 	return id, nil
 }
 
-func (d *DistributorSubscriptionService) GetPlans(ctx context.Context) (GetAllSubscriptionPlanResponse, error) {
+func (d *DistributorSubscriptionService) GetPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error) {
 	resp, err := d.DB.GetPlans(ctx)
 	if err != nil {
 		switch err {
