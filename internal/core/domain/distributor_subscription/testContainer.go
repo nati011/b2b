@@ -22,12 +22,14 @@ func NewTestContainer() TestContainer {
 	container.CheckoutService = checkout_container.CheckoutService
 	container.SubscriptionService = NewDistributorSubscriptionService(
 		adapter.NewDistributorSubscriptionMock(),
-		container.CheckoutService)
+		container.CheckoutService,
+		container.PartnerService)
 	return container
 }
 
 func (t *TestContainer) Teardown() {
 	t.SubscriptionService = NewDistributorSubscriptionService(
 		adapter.NewDistributorSubscriptionMock(),
-		t.CheckoutService)
+		t.CheckoutService,
+		t.PartnerService)
 }
