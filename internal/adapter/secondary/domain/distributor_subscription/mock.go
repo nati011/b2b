@@ -43,7 +43,7 @@ func (m *DistributorSubscriptionMock) CreatePlan(ctx context.Context, req *port.
 	return newId, nil
 }
 
-func (m *DistributorSubscriptionMock) GetPlans(ctx context.Context) (port.GetAllPlanResponse, error) {
+func (m *DistributorSubscriptionMock) GetAllPlan(ctx context.Context) (port.GetAllPlanResponse, error) {
 	response := port.GetAllPlanResponse{}
 	for _, i := range m.Plans {
 		response.List = append(response.List, port.GetPlanResponse(i))
@@ -52,6 +52,15 @@ func (m *DistributorSubscriptionMock) GetPlans(ctx context.Context) (port.GetAll
 		return port.GetAllPlanResponse{}, port_commons.ErrSysNoRows
 	}
 	return response, nil
+}
+
+func (m *DistributorSubscriptionMock) GetPlan(ctx context.Context, id int) (port.GetPlanResponse, error) {
+	for _, i := range m.Plans {
+		if i.Id == id {
+			return port.GetPlanResponse(i), nil
+		}
+	}
+	return port.GetPlanResponse{}, port_commons.ErrSysNoRows
 }
 
 func (m *DistributorSubscriptionMock) Place(ctx context.Context, req *port.PlaceRequest) (int, error) {

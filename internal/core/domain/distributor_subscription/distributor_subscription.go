@@ -5,33 +5,39 @@ import (
 	"errors"
 	"log"
 
-	"b2b.nati011.github.com/internal/core/domain/distributor"
+	"b2b.nati011.github.com/internal/core/application/checkout"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_subscription"
 )
 
 var (
-	ErrEmptyGetContent       = errors.New(" empty conent")
-	ErrNameMandatory         = errors.New(" name mandatory")
-	ErrDescriptionMandatory  = errors.New(" desc mandatory")
-	ErrTermCannotBeZero      = errors.New(" term cannot be zero")
-	ErrTermCannotBeNegative  = errors.New(" term cannot be negative")
-	ErrPriceCannotBeZero     = errors.New(" price cannot be zero")
-	ErrPriceCannotBeNegative = errors.New(" price cannot be negative")
-	ErrUnknown               = errors.New(" unknown error")
+	ErrEmptyGetContent                         = errors.New(" empty conent")
+	ErrNameMandatory                           = errors.New(" name mandatory")
+	ErrDescriptionMandatory                    = errors.New(" desc mandatory")
+	ErrTermCannotBeZero                        = errors.New(" term cannot be zero")
+	ErrTermCannotBeNegative                    = errors.New(" term cannot be negative")
+	ErrPriceCannotBeZero                       = errors.New(" price cannot be zero")
+	ErrPriceCannotBeNegative                   = errors.New(" price cannot be negative")
+	ErrSubscriptionAlreadyExistsForDistributor = errors.New(" subscription already exists for distributor")
+	ErrUnknown                                 = errors.New(" unknown error")
+)
+
+var (
+	STATUS_SUBSCRIPTION_ACTIVE   = "active"
+	STATUS_SUBSCRIPTION_INACTIVE = "inactive"
 )
 
 type PlaceRequest struct {
 	SubscriptionPlanId int
 	DistributorId      int
-	Status             string
+	PaymentPartnerId   int
 }
 
 type GetSubscriptionResponse struct {
-	Id                 int
-	SubscriptionPlanId int
-	DistributorId      int
-	Status             string
+	Id                 int    `json:"id"`
+	SubscriptionPlanId int    `json:"subscription_plan_id"`
+	DistributorId      int    `json:"distributor_id"`
+	Status             string `json:"status"`
 }
 
 type GetAllSubscriptionResponse struct {
@@ -63,28 +69,32 @@ type CreatePlanRequest struct {
 	Description string
 }
 
+// TODO: renew subscription api
+// TODO: expired subscription notification
 // TODO: acitvate and deactivate plans
 // TODO: make name, price, termInMonth unique
 // Note: instead of updating plans, deactivate plan of choice and create a new one instead
 type Prodvider interface {
 	CreatePlan(ctx context.Context, req *CreatePlanRequest) (int, error)
-	GetPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
+	GetPlan(ctx context.Context, id int) (GetSubscriptionPlanResponse, error)
+	GetAllPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
 	Place(ctx context.Context, req *PlaceRequest) (SubscribeResponse, error)
-	InitPayment(ctx context.Context, distId int) (SubscribeResponse, error)
+	InitPayment(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
 	GetSubscriptions(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
+	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
 }
 
 type DistributorSubscriptionService struct {
-	DB port.DB
-	DS distributor.Provider
+	DB       port.DB
+	checkout checkout.Provider
 }
 
 func NewDistributorSubscriptionService(
 	db port.DB,
-	ds distributor.Provider) Prodvider {
+	checkout checkout.Provider) Prodvider {
 	return &DistributorSubscriptionService{
-		DB: db,
-		DS: ds,
+		DB:       db,
+		checkout: checkout,
 	}
 }
 
@@ -104,8 +114,8 @@ func (d *DistributorSubscriptionService) CreatePlan(ctx context.Context, req *Cr
 	return id, nil
 }
 
-func (d *DistributorSubscriptionService) GetPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error) {
-	resp, err := d.DB.GetPlans(ctx)
+func (d *DistributorSubscriptionService) GetAllPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error) {
+	resp, err := d.DB.GetAllPlan(ctx)
 	if err != nil {
 		switch err {
 		case port_commons.ErrSysNoRows:
@@ -128,13 +138,75 @@ func (d *DistributorSubscriptionService) GetPlan(ctx context.Context) (GetAllSub
 	return response, nil
 }
 
+func (d *DistributorSubscriptionService) GetPlan(ctx context.Context, id int) (GetSubscriptionPlanResponse, error) {
+	resp, err := d.DB.GetPlan(ctx, id)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetSubscriptionPlanResponse{}, ErrEmptyGetContent
+		default:
+			log.Printf("failed to get distributor subscription plans err: %v", err.Error())
+			return GetSubscriptionPlanResponse{}, ErrUnknown
+		}
+	}
+	return GetSubscriptionPlanResponse(resp), nil
+}
+
 func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRequest) (SubscribeResponse, error) {
-	//validate dist
-	//validate subscription plan
+	//validate subscription plan exists
+	plan_resp, err := d.GetPlan(ctx, req.SubscriptionPlanId)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+		default:
+			log.Printf("failed to get plan: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+
 	//validate if subscription already exists
+	sub_resp, err := d.GetSubscriptionByDistributorId(ctx, req.DistributorId)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+		default:
+			log.Printf("failed to get subescription by distributorId err: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+
 	//create subscription record
+	sub_id, err := d.DB.Place(ctx, &port.PlaceRequest{
+		SubscriptionPlanId: sub_resp.Id,
+		DistributorId:      req.DistributorId,
+		Status:             STATUS_SUBSCRIPTION_ACTIVE,
+	})
+	if err != nil {
+		switch err {
+		default:
+			log.Printf("failed to place err: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+
 	//init subscription checkout and return
-	return SubscribeResponse{}, nil
+	pay_resp, err := d.checkout.SubscriptionPayment(ctx, &checkout.SubscriptionPaymentRequest{
+		SubscriptionId:   sub_id,
+		Amount:           plan_resp.Price,
+		PaymentPartnerId: req.PaymentPartnerId,
+	})
+	if err != nil {
+		switch err {
+		default:
+			log.Printf("failed to checkout err: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+	return SubscribeResponse{
+		Id:          sub_id,
+		CheckoutUrl: pay_resp.CheckoutUrl,
+		TxRef:       pay_resp.TransactionRef,
+	}, nil
 }
 
 func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId int) (SubscribeResponse, error) {
@@ -145,4 +217,8 @@ func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId
 
 func (d *DistributorSubscriptionService) GetSubscriptions(ctx context.Context) (GetAllSubscriptionPlanResponse, error) {
 	return GetAllSubscriptionPlanResponse{}, nil
+}
+
+func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error) {
+	return GetSubscriptionResponse{}, nil
 }
