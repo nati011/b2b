@@ -126,6 +126,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 	if paymentPartner.Status != partner.ACTIVE_STATUS {
 		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
 	}
+
 	switch paymentPartner.PaymentMethod {
 	case PAYMENT_METHOD_MANUAL:
 		transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
