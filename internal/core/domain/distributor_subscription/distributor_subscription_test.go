@@ -243,6 +243,7 @@ func Test_Place_happypath(t *testing.T) {
 		_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
 			SubscriptionPlanId: planId,
 			DistributorId:      distributorId,
+			PaymentPartnerId:   DigitalPaymentPartnerId,
 		})
 		if err != nil {
 			t.Fatalf("failed to place order err: %v", err)
@@ -258,6 +259,7 @@ func Test_Place_unhappypath(t *testing.T) {
 		_, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
 			SubscriptionPlanId: randomPlanId,
 			DistributorId:      distributorId,
+			PaymentPartnerId:   DigitalPaymentPartnerId,
 		})
 		wantErr := ErrEmptyGetContent
 		if err != wantErr {
@@ -267,11 +269,21 @@ func Test_Place_unhappypath(t *testing.T) {
 
 	t.Run("paymentPartnerIdMandatory", func(t *testing.T) {
 		t.Cleanup(teardown)
-		randomPlanId := 112
 		ctx := context.Background()
-		_, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
-			SubscriptionPlanId: randomPlanId,
+		planId, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+			Name:        "test",
+			Price:       101,
+			TermInMonth: 11,
+			Description: "test",
+		})
+		if err != nil {
+			t.Fatalf("failed to create plan err: %v", err)
+		}
+		randomPaymentPartnerId := 1112
+		_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
+			SubscriptionPlanId: planId,
 			DistributorId:      distributorId,
+			PaymentPartnerId:   randomPaymentPartnerId,
 		})
 		wantErr := ErrPaymentPartnerIdNotSupported
 		if err != wantErr {
@@ -294,6 +306,7 @@ func Test_Place_unhappypath(t *testing.T) {
 		_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
 			SubscriptionPlanId: planId,
 			DistributorId:      distributorId,
+			PaymentPartnerId:   DigitalPaymentPartnerId,
 		})
 		if err != nil {
 			t.Fatalf("failed to place order err: %v", err)
@@ -301,6 +314,7 @@ func Test_Place_unhappypath(t *testing.T) {
 		_, err = container.SubscriptionService.Place(ctx, &PlaceRequest{
 			SubscriptionPlanId: planId,
 			DistributorId:      distributorId,
+			PaymentPartnerId:   DigitalPaymentPartnerId,
 		})
 		wantErr := ErrSubscriptionAlreadyExistsForDistributor
 		if err != wantErr {
@@ -366,6 +380,7 @@ func Test_GetSubscriptionByDistributorId_happyPath(t *testing.T) {
 	sub_id, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
 		SubscriptionPlanId: planId,
 		DistributorId:      distributorId,
+		PaymentPartnerId:   DigitalPaymentPartnerId,
 	})
 	if err != nil {
 		t.Fatalf("failed to place order err: %v", err)

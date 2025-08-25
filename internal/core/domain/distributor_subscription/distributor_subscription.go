@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
+	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_subscription"
 )
@@ -19,7 +20,7 @@ var (
 	ErrPriceCannotBeZero                       = errors.New(" price cannot be zero")
 	ErrPriceCannotBeNegative                   = errors.New(" price cannot be negative")
 	ErrSubscriptionAlreadyExistsForDistributor = errors.New(" subscription already exists for distributor")
-	ErrPaymentPartnerIdNotSupported            = errors.New(" payment partner mandatory")
+	ErrPaymentPartnerIdNotSupported            = errors.New(" payment partner not supported")
 	ErrUnknown                                 = errors.New(" unknown error")
 )
 
@@ -86,16 +87,19 @@ type Prodvider interface {
 }
 
 type DistributorSubscriptionService struct {
-	DB       port.DB
-	checkout checkout.Provider
+	DB              port.DB
+	Checkout        checkout.Provider
+	Payment_partner payment_partner.Provider
 }
 
 func NewDistributorSubscriptionService(
 	db port.DB,
-	checkout checkout.Provider) Prodvider {
+	checkout checkout.Provider,
+	partner payment_partner.Provider) Prodvider {
 	return &DistributorSubscriptionService{
-		DB:       db,
-		checkout: checkout,
+		DB:              db,
+		Checkout:        checkout,
+		Payment_partner: partner,
 	}
 }
 
@@ -166,6 +170,18 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 		}
 	}
 
+	//validate paymentPartnerId
+	_, err = d.Payment_partner.Get(ctx, req.PaymentPartnerId)
+	if err != nil {
+		switch err {
+		case payment_partner.ErrIdNotFound:
+			return SubscribeResponse{}, ErrPaymentPartnerIdNotSupported
+		default:
+			log.Printf("failed to get payment partner err: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+
 	//validate if subscription already exists
 	sub_resp, err := d.GetSubscriptionByDistributorId(ctx, req.DistributorId)
 	wantErr := ErrEmptyGetContent
@@ -194,7 +210,7 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 	}
 
 	//init subscription checkout and return
-	pay_resp, err := d.checkout.SubscriptionPayment(ctx, &checkout.SubscriptionPaymentRequest{
+	pay_resp, err := d.Checkout.SubscriptionPayment(ctx, &checkout.SubscriptionPaymentRequest{
 		SubscriptionId:   sub_id,
 		Amount:           plan_resp.Price,
 		PaymentPartnerId: req.PaymentPartnerId,
