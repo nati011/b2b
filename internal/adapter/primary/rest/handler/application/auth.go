@@ -62,6 +62,7 @@ func initRegisterResources() {
 func (a *AuthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.AuthService
 	a.authMiddleware = *services.AuthMiddleware
+	a.oauthService = services.OAuthService
 	return nil
 }
 
