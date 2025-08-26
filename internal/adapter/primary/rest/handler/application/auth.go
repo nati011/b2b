@@ -9,6 +9,7 @@ import (
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	auth "b2b.nati011.github.com/internal/core/application/auth"
 	"b2b.nati011.github.com/internal/core/application/middleware"
+	oauth "b2b.nati011.github.com/internal/core/application/oauth"
 	"b2b.nati011.github.com/internal/core/application/resource"
 
 	application_core "b2b.nati011.github.com/internal/core/application"
@@ -18,6 +19,7 @@ import (
 type AuthHandler struct {
 	authMiddleware middleware.Auth
 	service        auth.Provider
+	oauthService   oauth.Provider
 }
 
 type ResetPasswordRequest struct {
@@ -50,11 +52,17 @@ func initRegisterResources() {
 		Action:   "ALL",
 		Resource: "/api/v1/auth/reset/{param}",
 	})
+	handler.RegisterResource(resource.CreateRequest{
+		Name:     "sso",
+		Action:   "ALL",
+		Resource: "/api/v1/auth/sso",
+	})
 }
 
 func (a *AuthHandler) Init(authMiddleWare *middleware.Auth, services *application_core.Container, domainService *domain_core.Container) error {
 	a.service = services.AuthService
 	a.authMiddleware = *services.AuthMiddleware
+	a.oauthService = services.OAuthService
 	return nil
 }
 
@@ -62,6 +70,10 @@ func (a *AuthHandler) Routes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /api/v1/auth/login", func(w http.ResponseWriter, r *http.Request) {
 		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.LoginHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("POST /api/v1/auth/sso", func(w http.ResponseWriter, r *http.Request) {
+		a.authMiddleware.RequireNoAuthentication(http.HandlerFunc(a.SSOHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/auth/logout", func(w http.ResponseWriter, r *http.Request) {
@@ -104,6 +116,33 @@ func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 	util.OperationSuccessMessageResponse(w, "password reset successfully")
+}
+
+func (a *AuthHandler) SSOHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	var requestBody oauth.OAuthRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	sso_resp, err := a.oauthService.GoogleSignOn(r.Context(), requestBody)
+	if err != nil {
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, sso_resp.JWT)
 }
 
 func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
