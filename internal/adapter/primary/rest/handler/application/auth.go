@@ -118,7 +118,30 @@ func (h *AuthHandler) ResetCredentialsHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (a *AuthHandler) SSOHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	defer r.Body.Close()
 
+	var requestBody oauth.OAuthRequest
+	if err := json.Unmarshal(body, &requestBody); err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+	sso_resp, err := a.oauthService.GoogleSignOn(r.Context(), requestBody)
+	if err != nil {
+		switch err {
+		case auth.ErrUnknown:
+			util.ServerErrorResponse(w, err)
+			return
+		default:
+			util.UnauthorizedResponse(w)
+			return
+		}
+	}
+	util.OperationSuccessResponse(w, sso_resp.JWT)
 }
 
 func (a *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
