@@ -145,12 +145,9 @@ func Test_Checkout_happyPath(t *testing.T) {
 					Quantity:  1},
 			},
 		}
-		order_resp, err := container.OrderService.Place(ctx, in)
+		_, err := container.OrderService.Place(ctx, in)
 		if err != nil {
 			t.Fatalf("Failed to place order err: %v", err)
-		}
-		if strings.Split(order_resp.CheckoutUrl, " ") == nil {
-			t.Errorf("Expected checkoutUrl different from nil got: %v", order_resp.CheckoutUrl)
 		}
 	})
 
@@ -176,7 +173,7 @@ func Test_Checkout_happyPath(t *testing.T) {
 			t.Fatalf("Failed to init payment err: %v", err)
 		}
 		if strings.Split(init_resp.CheckoutUrl, " ") == nil {
-			t.Errorf("Expected checkoutUrl different from nil got: %v", order_resp.CheckoutUrl)
+			t.Errorf("Expected checkoutUrl different from nil got: %v", init_resp.CheckoutUrl)
 		}
 	})
 }

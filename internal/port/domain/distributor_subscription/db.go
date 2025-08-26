@@ -7,6 +7,7 @@ import (
 type PlaceRequest struct {
 	SubscriptionPlanId int
 	DistributorId      int
+	PaymentPartnerId   int
 	Status             string
 }
 
@@ -14,6 +15,7 @@ type GetSubscriptionResponse struct {
 	Id                 int
 	SubscriptionPlanId int
 	DistributorId      int
+	PaymentPartnerId   int
 	Status             string
 }
 

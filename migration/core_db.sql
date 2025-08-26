@@ -426,6 +426,7 @@ CREATE TABLE IF NOT EXISTS public."distributor_subscriptions"
     id SERIAL PRIMARY KEY,
     subscription_plan_id INT,
     distributor_id INT,
+    payment_partner_Id INT,
     status VARCHAR(255)
 
 ) INHERITS (public."base");

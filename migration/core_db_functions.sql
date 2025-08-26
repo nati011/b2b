@@ -4140,6 +4140,7 @@ RETURNS TABLE(
     id INT,
     subscription_plan_id INT,
     distributor_id INT,
+    p_payment_partner_id INT,
     staus VARCHAR(255)
 )
 LANGUAGE plpgsql
@@ -4149,6 +4150,7 @@ BEGIN
     SELECT ds.id,
            ds.subscription_plan_id,
            ds.distributor_id,
+           ds.payment_partner_Id,
            ds.status
     FROM public.distributor_subscriptions ds
     WHERE ds.distributor_id = p_distributor_id
@@ -4161,6 +4163,7 @@ RETURNS TABLE(
     id INT,
     subscription_plan_id INT,
     distributor_id INT,
+    p_payment_partner_id INT,
     status VARCHAR(255)
 )
 LANGUAGE plpgsql
@@ -4170,6 +4173,7 @@ BEGIN
     SELECT ds.id,
            ds.subscription_plan_id,
            ds.distributor_id,
+           ds.payment_partner_Id,
            ds.status
     FROM public.distributor_subscriptions ds
     WHERE ds.is_deleted = false;
@@ -4181,6 +4185,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.create_distributor_subscription(
     p_subscription_plan_id INT,
     p_distributor_id INT,
+    p_payment_partner_id INT,
     p_status VARCHAR(255)
 )
 RETURNS TABLE(
@@ -4192,11 +4197,13 @@ BEGIN
     INSERT INTO public.distributor_subscriptions (
         subscription_plan_id,
         distributor_id,
+        payment_partner_Id,
         status
     )
     VALUES (
         p_subscription_plan_id,
         p_distributor_id,
+        p_payment_partner_id,
         p_status
     )
     RETURNING distributor_subscriptions.id
