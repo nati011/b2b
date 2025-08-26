@@ -50,7 +50,20 @@ type CreateRequest struct {
 	roleName   string
 }
 
+type CreateAssistedRequest struct {
+	FirstName string
+	LastName  string
+	Email     string
+	Username  string
+	roleName  string
+}
+
 func (r *CreateRequest) WithRole(roleName string) *CreateRequest {
+	r.roleName = roleName
+	return r
+}
+
+func (r *CreateAssistedRequest) WithRole(roleName string) *CreateAssistedRequest {
 	r.roleName = roleName
 	return r
 }
@@ -70,6 +83,20 @@ func NewCreateRequest(
 		Username:  username,
 		Phone:     phone,
 		Password:  password,
+	}
+}
+
+func NewCreateAssistedRequest(
+	firstName string,
+	lastName string,
+	email string,
+	username string) *CreateAssistedRequest {
+
+	return &CreateAssistedRequest{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Username:  username,
 	}
 }
 
@@ -143,6 +170,7 @@ type GetAllResponse struct {
 
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (id int, err error)
+	CreateAssisted(ctx context.Context, req *CreateAssistedRequest) (id int, err error)
 	Get(ctx context.Context, id int) (resp GetResponse, err error)
 	GetAll(ctx context.Context) (resp GetAllResponse, err error)
 	GetByParam(ctx context.Context, req *GetByParam) (resp GetAllResponse, err error)
@@ -255,6 +283,52 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		Username:   req.Username,
 		DOB:        req.DOB,
 		ExternalId: req.ExternalId,
+	})
+	if err != nil {
+		log.Printf("Failed to create and activate user: %v err:%v", req.Email, err)
+		u.auth_service.DeleteClient(ctx, providerResponse.Id)
+		switch err {
+		default:
+			return 0, ErrUnknown
+		}
+	}
+
+	log.Printf("Registered User %v", user_id)
+	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
+		UserId:     user_id,
+		ProviderId: providerResponse.Id,
+	})
+	if err != nil {
+		switch err {
+		default:
+			u.Remove(ctx, user_id)
+			return 0, ErrUnknown
+		}
+	}
+
+	log.Printf("assign User role: %v", req.roleName)
+	if req.roleName != "" {
+		roleId, err := u.role_service.Get(ctx, &role.GetRequest{
+			Name: req.roleName,
+		})
+		if err != nil {
+			log.Printf("failed to find role: %v", req.roleName)
+			log.Printf("failed to assign role to user")
+		} else {
+			u.AssignRole(ctx, user_id, roleId.Id)
+		}
+	}
+
+	return user_id, nil
+}
+
+func (u *UserService) CreateAssisted(ctx context.Context, req *CreateAssistedRequest) (int, error) {
+	var providerResponse auth.RegisterUserResponse
+	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Username:  req.Username,
 	})
 	if err != nil {
 		log.Printf("Failed to create and activate user: %v err:%v", req.Email, err)

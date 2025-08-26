@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"b2b.nati011.github.com/internal/core/application/event"
+	"b2b.nati011.github.com/internal/core/util"
+	auth_port "b2b.nati011.github.com/internal/port/application/auth/provider"
 	port "b2b.nati011.github.com/internal/port/application/oauth/provider"
 )
 
@@ -13,7 +16,11 @@ var (
 )
 
 type OAuthRequest struct {
-	Token string
+	Token       string
+	FirstName   string
+	LastName    string
+	Email       string
+	PhoneNumber string
 }
 
 type OAuthResponse struct {
@@ -39,19 +46,26 @@ type Provider interface {
 
 type OAuthService struct {
 	oauthProvider port.Provider
+	authProvider  auth_port.Provider
+	event         *event.Broker
 }
 
 func NewAuthService(
-	AP port.Provider,
+	op port.Provider,
+	e *event.Broker,
+	ap auth_port.Provider,
+
 ) Provider {
 	return &OAuthService{
-		oauthProvider: AP,
+		oauthProvider: op,
+		event:         e,
+		authProvider:  ap,
 	}
 }
 
-func (o *OAuthService) GoogleSignOn(ctx context.Context, Request OAuthRequest) (OAuthResponse, error) {
+func (o *OAuthService) GoogleSignOn(ctx context.Context, request OAuthRequest) (OAuthResponse, error) {
 	resp, err := o.oauthProvider.GoogleSignOn(ctx, &port.OAuthRequest{
-		Token: Request.Token,
+		Token: request.Token,
 	})
 	if err != nil {
 		switch err {
@@ -61,6 +75,16 @@ func (o *OAuthService) GoogleSignOn(ctx context.Context, Request OAuthRequest) (
 			return OAuthResponse{}, ErrUnknown
 		}
 	}
+
+	payload := util.EventRetailerSSOPayload{
+		ID:        resp.UserId,
+		Email:     request.Email,
+		Username:  request.Email,
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+	}
+
+	o.event.Publish(util.EVENT_RETAILER_SSO, payload)
 
 	return OAuthResponse{
 		JWT: JWT(resp.JWT),
