@@ -20,6 +20,7 @@ var (
 	ErrPriceCannotBeZero                       = errors.New(" price cannot be zero")
 	ErrPriceCannotBeNegative                   = errors.New(" price cannot be negative")
 	ErrSubscriptionAlreadyExistsForDistributor = errors.New(" subscription already exists for distributor")
+	ErrSubscriptionNotFoundForDistributor      = errors.New(" subscription not found for distributor")
 	ErrPaymentPartnerIdNotSupported            = errors.New(" payment partner not supported")
 	ErrUnknown                                 = errors.New(" unknown error")
 )
@@ -210,8 +211,8 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 	}
 
 	//init subscription checkout and return
-	pay_resp, err := d.Checkout.SubscriptionPayment(ctx, &checkout.SubscriptionPaymentRequest{
-		SubscriptionId:   sub_id,
+	pay_resp, err := d.Checkout.Checkout(ctx, &checkout.CheckoutRequest{
+		OrderId:          sub_id,
 		Amount:           plan_resp.Price,
 		PaymentPartnerId: req.PaymentPartnerId,
 	})
@@ -231,8 +232,47 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 
 func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId int) (SubscribeResponse, error) {
 	//get current subscription
+	sub, err := d.GetSubscriptionByDistributorId(ctx, distId)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+			return SubscribeResponse{}, ErrSubscriptionNotFoundForDistributor
+		default:
+			log.Printf("failed to place err: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+
+	//validate subscription plan exists
+	plan_resp, err := d.GetPlan(ctx, sub.SubscriptionPlanId)
+	if err != nil {
+		switch err {
+		case ErrEmptyGetContent:
+			return SubscribeResponse{}, ErrEmptyGetContent
+		default:
+			log.Printf("failed to get plan: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+
 	//init subscription checkout and return
-	return SubscribeResponse{}, nil
+	pay_resp, err := d.Checkout.Checkout(ctx, &checkout.CheckoutRequest{
+		OrderId: sub.Id,
+		Amount:  plan_resp.Price,
+		// PaymentPartnerId: plan_resp.PaymentPartnerId,
+	})
+	if err != nil {
+		switch err {
+		default:
+			log.Printf("failed to checkout err: %v", err)
+			return SubscribeResponse{}, ErrUnknown
+		}
+	}
+	return SubscribeResponse{
+		Id:          sub.Id,
+		CheckoutUrl: pay_resp.CheckoutUrl,
+		TxRef:       pay_resp.TransactionRef,
+	}, nil
 }
 
 func (d *DistributorSubscriptionService) GetSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error) {
