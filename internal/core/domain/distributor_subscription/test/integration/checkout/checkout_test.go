@@ -118,7 +118,7 @@ func Test_Checkout_happypath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to create plan err: %v", err)
 		}
-		subs_resp, err := container.SubscriptionService.Place(ctx, &distributor_subscription.PlaceRequest{
+		_, err = container.SubscriptionService.Place(ctx, &distributor_subscription.PlaceRequest{
 			SubscriptionPlanId: planId,
 			DistributorId:      distributorId,
 			PaymentPartnerId:   ManualPaymentPartnerId,
@@ -127,7 +127,7 @@ func Test_Checkout_happypath(t *testing.T) {
 			t.Fatalf("failed to place order err: %v", err)
 		}
 
-		init_resp, err := container.SubscriptionService.InitPayment(ctx, subs_resp.Id)
+		init_resp, err := container.SubscriptionService.InitPayment(ctx, distributorId)
 		if err != nil {
 			t.Fatalf("Failed to init payment err: %v", err)
 		}
