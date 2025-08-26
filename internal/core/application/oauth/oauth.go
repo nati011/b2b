@@ -16,11 +16,11 @@ var (
 )
 
 type OAuthRequest struct {
-	Token       string
-	FirstName   string
-	LastName    string
-	Email       string
-	PhoneNumber string
+	Token       string `json:"token"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
 }
 
 type OAuthResponse struct {
