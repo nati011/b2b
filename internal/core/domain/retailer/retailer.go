@@ -35,6 +35,13 @@ type CreateRequest struct {
 	Password  string
 }
 
+type CreateAssistedRequest struct {
+	FirstName string
+	LastName  string
+	Email     string
+	Username  string
+}
+
 type GetResponse struct {
 	Id          int
 	Name        string
@@ -68,6 +75,7 @@ type GetAllUsers struct {
 
 type Provider interface {
 	Create(ctx context.Context, req *CreateRequest) (int, error)
+	CreateAssisted(ctx context.Context, req *CreateAssistedRequest) (int, error)
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
@@ -133,6 +141,43 @@ func (r *RetailerService) Create(ctx context.Context, req *CreateRequest) (int, 
 		Region:      req.Region,
 		Woreda:      req.Woreda,
 		UserId:      user_id,
+	})
+	if err != nil {
+		switch err {
+		default:
+			r.UserService.Remove(ctx, user_id)
+			return 0, ErrUnknown
+		}
+	}
+
+	return id, nil
+}
+
+func (r *RetailerService) CreateAssisted(ctx context.Context, req *CreateAssistedRequest) (int, error) {
+
+	// create user
+	// FIXME: make flexible...hardcoded
+	retailerRoleName := "retailer"
+
+	user_id, err := r.UserService.CreateAssisted(ctx, user.NewCreateAssistedRequest(
+		req.FirstName,
+		req.LastName,
+		req.Email,
+		req.Username,
+	).WithRole(retailerRoleName))
+	if err != nil {
+		switch err {
+		case user.ErrUnknown:
+			return 0, ErrUnknown
+		default:
+			return 0, err
+		}
+	}
+
+	// create retailer
+	id, err := r.DB.Create(ctx, port.CreateRequest{
+		Name:   req.FirstName + req.LastName,
+		UserId: user_id,
 	})
 	if err != nil {
 		switch err {
