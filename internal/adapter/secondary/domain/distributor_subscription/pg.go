@@ -110,12 +110,13 @@ func (m *Postgres) CreatePlan(ctx context.Context, req *port.CreatePlanRequest) 
 
 func (m *Postgres) Place(ctx context.Context, req *port.PlaceRequest) (int, error) {
 	var subId int
-	query := "SELECT * FROM public.create_distributor_subscription($1, $2, $3);"
+	query := "SELECT * FROM public.create_distributor_subscription($1, $2, $3, $4);"
 
 	result := []any{&subId}
 	args := []any{
 		&req.SubscriptionPlanId,
 		&req.DistributorId,
+		&req.PaymentPartnerId,
 		&req.Status,
 	}
 
