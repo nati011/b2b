@@ -1,4 +1,4 @@
-package distributor_subscription
+package db
 
 import (
 	"context"
