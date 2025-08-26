@@ -7,6 +7,7 @@ import (
 	auth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/auth/provider"
 	template_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email-template/db"
 	email_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/email/smtp"
+	oauth_provider_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/oauth/provider"
 	payment_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment/db"
 	payment_partner_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/payment_partner/db"
 	resource_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/application/resource/db"
@@ -24,6 +25,7 @@ import (
 	"b2b.nati011.github.com/internal/core/application/email"
 	"b2b.nati011.github.com/internal/core/application/middleware"
 	mobileclient "b2b.nati011.github.com/internal/core/application/mobile_client"
+	oauth "b2b.nati011.github.com/internal/core/application/oauth"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
 	"b2b.nati011.github.com/internal/core/application/render"
 	"b2b.nati011.github.com/internal/core/application/resource"
@@ -69,6 +71,7 @@ type Container struct {
 	db                    *sql.DB
 	Event                 *event.Broker
 	AuthService           auth.Provider
+	OAuthService          oauth.Provider
 	AuthMiddleware        *middleware.Auth
 	EmailService          email.Provider
 	PaymentPartnerService payment_partner.Provider
@@ -113,6 +116,16 @@ func NewContainer(
 		cfg.KeycloakClientSecret,
 		cfg.JWTSecret,
 	)
+	container.InitOAuthService(
+		cfg.KeycloakInstanceURL,
+		cfg.KeycloakUsername,
+		cfg.KeycloakPassword,
+		cfg.KeycloakRealm,
+		cfg.KeycloakApplicationRealm,
+		cfg.KeycloakClientId,
+		cfg.KeycloakClientSecret,
+		cfg.JWTSecret,
+	)
 	container.InitUserService()
 	container.InitPaymentService()
 	container.InitCheckoutService(cfg.BaseUrl, cfg.FrontendUrl)
@@ -135,6 +148,13 @@ func (m *Container) InitAuthService(keycloakInstanceURL string, keycloakUsername
 		m.RoleService,
 		jwtSecret,
 	)
+}
+
+func (m *Container) InitOAuthService(keycloakInstanceURL string, keycloakUsername string, keycloakPassword string, keycloakRealm string, keycloakApplicationRealm string, keycloakClientId string, keycloakClientSecret string, jwtSecret string) {
+	m.OAuthService = oauth.NewAuthService(
+		oauth_provider_adapter.NewKeycloakOAuthProvider(keycloakInstanceURL, keycloakRealm, keycloakClientId, keycloakClientSecret),
+		m.Event,
+		auth_provider_adapter.NewKeycloakProvider(keycloakInstanceURL, keycloakUsername, keycloakPassword, keycloakRealm, keycloakApplicationRealm, keycloakClientId, keycloakClientSecret))
 }
 
 func (m *Container) InitAuthMiddleware() {
