@@ -46,9 +46,27 @@ type ReinitiateCheckoutRequest struct {
 	OrderId int
 }
 
+type SubscriptionPaymentRequest struct {
+	SubscriptionId   int
+	Amount           float64
+	PaymentPartnerId int
+}
+
+type SubscriptionPaymentResponse struct {
+	CheckoutUrl    string
+	TransactionRef string
+}
+
+type ReinitiateSubscriptionPaymentRequest struct {
+	SubscriptionId int
+}
+
+// TODO: generalize naming to address expanded domain responsibility as central payment hub
 type Provider interface {
 	Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error)
 	ReinitiateCheckout(ctx context.Context, req *ReinitiateCheckoutRequest) (CheckoutResponse, error)
+	SubscriptionPayment(ctx context.Context, req *SubscriptionPaymentRequest) (SubscriptionPaymentResponse, error)
+	ReinitiateSubscriptionPayment(ctx context.Context, req *ReinitiateSubscriptionPaymentRequest) (SubscriptionPaymentResponse, error)
 }
 
 type CheckoutService struct {
@@ -108,7 +126,9 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 	if paymentPartner.Status != partner.ACTIVE_STATUS {
 		return CheckoutResponse{}, ErrPaymentPartnerNotSupported
 	}
-	if paymentPartner.PaymentMethod == PAYMENT_METHOD_MANUAL {
+
+	switch paymentPartner.PaymentMethod {
+	case PAYMENT_METHOD_MANUAL:
 		transaction_ref, err := p.CreatePayment(ctx, &CreatePaymentRequest{
 			Amount:           req.Amount,
 			PaymentPartnerId: req.PaymentPartnerId,
@@ -138,7 +158,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 		return CheckoutResponse{
 			TransactionRef: transaction_ref,
 		}, nil
-	} else if paymentPartner.PaymentMethod == PAYMENT_METHOD_DIGITAL {
+	case PAYMENT_METHOD_DIGITAL:
 		paymentPartnerSecret, err := p.paymentPartner.GetPartnerSecret(ctx, req.PaymentPartnerId)
 		if err != nil {
 			log.Printf("Error while fetching paymentPartnerSecret: %v", err.Error())
@@ -202,6 +222,7 @@ func (p *CheckoutService) Checkout(ctx context.Context, req *CheckoutRequest) (C
 			CheckoutUrl:    checkoutUrl,
 		}, nil
 	}
+
 	return CheckoutResponse{}, ErrInvalidPaymentMethod
 }
 
@@ -288,4 +309,12 @@ func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *Reinitiat
 		TransactionRef: transaction_ref,
 		CheckoutUrl:    checkoutUrl,
 	}, nil
+}
+
+func (p *CheckoutService) SubscriptionPayment(ctx context.Context, req *SubscriptionPaymentRequest) (SubscriptionPaymentResponse, error) {
+	return SubscriptionPaymentResponse{}, nil
+}
+
+func (p *CheckoutService) ReinitiateSubscriptionPayment(ctx context.Context, req *ReinitiateSubscriptionPaymentRequest) (SubscriptionPaymentResponse, error) {
+	return SubscriptionPaymentResponse{}, nil
 }

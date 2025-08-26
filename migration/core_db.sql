@@ -419,3 +419,28 @@ CREATE TABLE IF NOT EXISTS public."order_expiry_duration_config"
 ) INHERITS (public."base");
 
 COMMENT ON TABLE public."order_expiry_duration_config" IS 'stores order expiry duration in hours';
+
+
+CREATE TABLE IF NOT EXISTS public."distributor_subscriptions"
+(
+    id SERIAL PRIMARY KEY,
+    subscription_plan_id INT,
+    distributor_id INT,
+    status VARCHAR(255)
+
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."distributor_subscriptions" IS 'stores distributor subscription';
+
+
+CREATE TABLE IF NOT EXISTS public."subscription_plans"
+(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    price Decimal(12, 2),
+    term_in_month int,
+    description VARCHAR(255)
+
+) INHERITS (public."base");
+
+COMMENT ON TABLE public."subscription_plans" IS 'stores subscription plan';
