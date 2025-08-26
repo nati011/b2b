@@ -1,62 +1,25 @@
-import { Check } from "lucide-react";
+"use client";
 import { Button } from "@/components/ui/button";
-
-interface PricingTier {
-  id: string;
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  popular?: boolean;
-}
+import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
+import usePlanstore from "@/lib/store/usePricingPlan";
+import Link from "next/link";
 
 export default function PricingSection(){
-  const pricingTiers: PricingTier[] = [
-    {
-      id: "monthly",
-      name: "Monthly",
-      price: "$2,500",
-      period: "per month",
-      description: "Perfect for getting started with minimal commitment",
-      features: [
-        "Full product catalog access",
-        "Basic marketing materials",
-        "Email support",
-        "Monthly reporting"
-      ]
-    },
-    {
-      id: "yearly",
-      name: "Annual",
-      price: "$11,500",
-      period: "per year",
-      description: "Most popular choice for established distributors",
-      features: [
-        "Everything in Monthly",
-        "Priority customer support",
-        "Quarterly business reviews",
-        "Advanced marketing materials",
-        "Volume discounts"
-      ],
-      popular: true
-    },
-    {
-      id: "two-year",
-      name: "Two Year",
-      price: "$22,000",
-      period: "for 24 months",
-      description: "Best value for long-term partnerships",
-      features: [
-        "Everything in Annual",
-        "Dedicated account manager",
-        "Custom marketing support",
-        "Exclusive product previews",
-        "Maximum volume discounts",
-        "Territory protection"
-      ]
-    }
-  ];
+  const { plans, loading, error, fetchPricingPlan } = usePlanstore();
+
+  useEffect(() => {
+    void fetchPricingPlan();
+  }, [fetchPricingPlan]);
+
+  const formatPrice = (price: number) => `$${price.toLocaleString()}`;
+  const termToPeriod = (termInMonth: number) => {
+    if (termInMonth === 1) return "per month";
+    if (termInMonth === 12) return "per year";
+    return `for ${termInMonth} months`;
+  };
+
+  const isRecommended = (name: string) => /annual|annunal/i.test(name);
 
   return (
     <section className="py-16 bg-secondary/30">
@@ -69,42 +32,62 @@ export default function PricingSection(){
           </p>
         </div>
 
+        {error && (
+          <div className="text-center text-destructive mb-8">{error}</div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {pricingTiers.map(tier => (
+          {loading && plans.length === 0 && (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="relative bg-background p-8 rounded-lg border border-border">
+                <div className="text-center mb-6">
+                  <Skeleton className="h-6 w-32 mx-auto mb-2" />
+                  <Skeleton className="h-8 w-24 mx-auto mb-1" />
+                  <Skeleton className="h-4 w-28 mx-auto" />
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-3 w-56 mx-auto" />
+                    <Skeleton className="h-3 w-44 mx-auto" />
+                  </div>
+                </div>
+                <div className="space-y-3 mb-8">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+                <Skeleton className="h-9 w-full" />
+              </div>
+            ))
+          )}
+
+          {!loading && plans.length === 0 && !error && (
+            <div className="md:col-span-3 text-center text-muted-foreground">No pricing plans available.</div>
+          )}
+
+          {plans.map(plan => (
             <div 
-              key={tier.id} 
-              className={`relative bg-background p-8 rounded-lg border ${
-                tier.popular ? "border-primary shadow-lg scale-105" : "border-border"
-              }`}
+              key={plan.name}
+              className={`relative bg-background p-8 rounded-lg border ${isRecommended(plan.name) ? "border-primary shadow-lg scale-105" : "border-border"}`}
             >
-              {tier.popular && (
+              {isRecommended(plan.name) && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
                   Recommended
                 </div>
               )}
-              
               <div className="text-center mb-6">
-                <h3 className="text-xl font-medium mb-2">{tier.name}</h3>
-                <div className="text-3xl font-bold text-primary mb-1">{tier.price}</div>
-                <div className="text-sm text-muted-foreground">{tier.period}</div>
-                <p className="text-sm text-muted-foreground mt-4">{tier.description}</p>
+                <h3 className="text-xl font-medium mb-2">{plan.name}</h3>
+                <div className="text-3xl font-bold text-primary mb-1">{formatPrice(plan.price)}</div>
+                <div className="text-sm text-muted-foreground">{termToPeriod(plan.term_in_month)}</div>
+                <p className="text-sm text-muted-foreground mt-4">{String((plan as any).desc ?? "")}</p>
               </div>
 
-              <ul className="space-y-3 mb-8">
-                {tier.features.map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <Check className="h-4 w-4 text-primary mr-3 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
+              <Link href={`/signup/distributor/?plan_id=${plan.id}`}>
               <Button 
-                variant={tier.popular ? "default" : "secondary"}
-                className={tier.popular ? "default" : "secondary"}
+                variant="default"
+                className="w-full"
               >
                 Get Started
               </Button>
+              </Link>
             </div>
           ))}
         </div>

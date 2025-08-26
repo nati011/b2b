@@ -9,17 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PiSpinner } from "react-icons/pi";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Checkbox } from "@/components/ui/checkbox";
 import ImageUpload from "@/components/ImageUpload";
 import { RegisterDistributor } from "@/app/actions/auth";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CheckCircle, Eye, EyeOff } from "lucide-react";
+import usePlanstore from "@/lib/store/usePricingPlan";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Map = dynamic(() => import("@/components/map"), { ssr: false });
 
-const steps = [
+const baseSteps = [
   {
     title: "Profile Information",
     description: "Register a new distributor",
@@ -44,6 +46,7 @@ const steps = [
 
 export default function DistributorsForm() {
   const router = useRouter();
+  const { plans, loading: plansLoading, error: plansError, fetchPricingPlan } = usePlanstore();
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState<DistributorRequest>({
     name: "",
@@ -69,10 +72,10 @@ export default function DistributorsForm() {
   ]);
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleReset = () => {
     setFormData({
@@ -122,8 +125,30 @@ export default function DistributorsForm() {
     }
   }, [useCurrentLocation]);
 
+  const searchParams = useSearchParams();
+  const plan_id = searchParams.get("plan_id");
+  const needsPlanSelection = !plan_id;
+
+  useEffect(() => {
+    void fetchPricingPlan();
+  }, [fetchPricingPlan]);
+
+  const formatPrice = (price: number) => `$${price.toLocaleString()}`;
+  const termToPeriod = (termInMonth: number) => {
+    if (termInMonth === 1) return "per month";
+    if (termInMonth === 12) return "per year";
+    return `for ${termInMonth} months`;
+  };
+
+  const handleSelectPlan = (id: string | number) => {
+    const newSearch = new URLSearchParams(Array.from(searchParams.entries()));
+    newSearch.set("plan_id", String(id));
+    router.replace(`?${newSearch.toString()}`);
+    setCurrentStep(0);
+  };
+
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < baseSteps.length - 1) {
       setCurrentStep((prev) => prev + 1);
     }
   };
@@ -161,375 +186,430 @@ export default function DistributorsForm() {
         </p>
       </div>
 
-      {/* Stepper */}
-      <div className="flex items-center justify-between mb-6">
-        {steps.map((step, idx) => (
-          <div key={step.title} className="flex-1 flex flex-col items-center">
-            <div
-              className={`rounded-full w-8 h-8 flex items-center justify-center text-white font-bold ${
-                idx === currentStep
-                  ? "bg-primary"
-                  : idx < currentStep
-                  ? "bg-primary"
-                  : "bg-gray-300"
-              }`}
-            >
-              {idx + 1}
+      {/* Plan selection shown initially when plan is missing */}
+      {needsPlanSelection && (
+        <Card className="rounded-sm border-2 border-gray-200 shadow-none">
+          <CardContent className="pt-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold">Select Plan</h3>
+              <p className="text-sm text-muted-foreground">Choose a pricing plan</p>
             </div>
-            <span
-              className={`text-xs mt-2 text-center ${
-                idx === currentStep
-                  ? "text-cyan-700 font-semibold"
-                  : "text-gray-500"
-              }`}
-            >
-              {step.title}
-            </span>
-            {idx < steps.length - 1 && (
-              <div className="w-full h-1 bg-gray-200 my-2">
-                <div
-                  className={`h-1 ${
-                    idx < currentStep ? "bg-primary" : "bg-gray-200"
-                  }`}
-                  style={{ width: "100%" }}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {plansLoading && (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="relative bg-background p-6 rounded-lg border border-border">
+                    <div className="text-center mb-6">
+                      <Skeleton className="h-6 w-32 mx-auto mb-2" />
+                      <Skeleton className="h-8 w-24 mx-auto mb-1" />
+                      <Skeleton className="h-4 w-28 mx-auto" />
+                      <div className="mt-4 space-y-2">
+                        <Skeleton className="h-3 w-56 mx-auto" />
+                        <Skeleton className="h-3 w-44 mx-auto" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                ))
+              )}
 
-      {/* Step Content */}
-      <Card className="rounded-sm border-2 border-gray-200 shadow-none">
-        <CardContent className="pt-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-bold">{steps[currentStep].title}</h3>
-            <p className="text-sm text-muted-foreground">
-              {steps[currentStep].description}
-            </p>
-          </div>
+              {!plansLoading && plans.length === 0 && (
+                <div className="md:col-span-3 text-center text-muted-foreground">No pricing plans available.</div>
+              )}
 
-          {currentStep === 0 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="FirstName">First Name</Label>
-                    <Input
-                      id="FirstName"
-                      name="FirstName"
-                      value={formData.first_name}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          first_name: e.target.value,
-                        }));
-                      }}
-                      placeholder="Abebe"
-                    />
+              {!plansLoading && plans.map((plan) => (
+                <div key={(plan as any).id ?? plan.name} className={`relative bg-background p-6 rounded-lg border border-border`}>
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-medium mb-2">{plan.name}</h3>
+                    <div className="text-2xl font-bold text-primary mb-1">{formatPrice(plan.price)}</div>
+                    <div className="text-xs text-muted-foreground">{termToPeriod((plan as any).term_in_month)}</div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="LastName">Last Name</Label>
-                    <Input
-                      id="LastName"
-                      name="LastName"
-                      value={formData.last_name}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          last_name: e.target.value,
-                        }));
-                      }}
-                      placeholder="Kebede"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="Email">Email</Label>
-                    <Input
-                      id="Email"
-                      name="Email"
-                      value={formData.email}
-                      type="email"
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          email: e.target.value,
-                        }));
-                      }}
-                      placeholder="abebe.kebede@example.com"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          phone: e.target.value,
-                        }));
-                      }}
-                      placeholder="+25191234566"
-                      required
-                    />
-                  </div>
+                  <Button className="w-full" onClick={() => handleSelectPlan((plan as any).id ?? plan.name)}>
+                    Select Plan
+                  </Button>
                 </div>
-              </div>
-            </div>
-          )}
+              ))}
 
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="Name">Name</Label>
-                    <Input
-                      id="Name"
-                      name="Name"
-                      value={formData.name}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }));
-                      }}
-                      placeholder="Business Name"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="Tin">Tin</Label>
-                    <Input
-                      id="Tin"
-                      name="Tin"
-                      value={formData.tin}
-                      type="number"
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          tin: e.target.value,
-                        }));
-                      }}
-                      placeholder="1234567890"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="General Zone">General Zone</Label>
-                    <Input
-                      id="General Zone"
-                      name="General Zone"
-                      value={formData.general_zone}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          general_zone: e.target.value,
-                        }));
-                      }}
-                      placeholder="Bole"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="Region">Region</Label>
-                    <Input
-                      id="Region"
-                      name="Region"
-                      value={formData.region}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          region: e.target.value,
-                        }));
-                      }}
-                      placeholder="region-001"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="Woreda">Woreda</Label>
-                    <Input
-                      id="Woreda"
-                      name="Woreda"
-                      value={formData.woreda}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          woreda: e.target.value,
-                        }));
-                      }}
-                      placeholder="woreda-001"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 2 && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 my-4">
-                <Checkbox
-                  id="useLocation"
-                  checked={useCurrentLocation}
-                  onCheckedChange={(checked: any) =>
-                    setUseCurrentLocation(checked as boolean)
-                  }
-                />
-                <label htmlFor="useLocation">Use my current location</label>
-              </div>
-              <div className="h-[400px] rounded-lg overflow-hidden">
-                <Map
-                  markerPosition={markerPosition}
-                  useCurrentLocation={useCurrentLocation}
-                  setMarkerPosition={setMarkerPosition}
-                  setFormData={setFormData}
-                />
-              </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="space-y-4">
-              <ImageUpload
-                onChange={(value: string[]) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    licence_url: value[0] || "",
-                  }));
-                  setImageError("");
-                }}
-                value={formData.licence_url ? [formData.licence_url] : []}
-              />
-              {imageError && (
-                <p className="text-red-600 text-sm mt-2">{imageError}</p>
+              {plansError && (
+                <div className="md:col-span-3 text-center text-destructive">{plansError}</div>
               )}
             </div>
-          )}
+          </CardContent>
+        </Card>
+      )}
 
+      {/* Stepper appears after plan is selected */}
+      {!needsPlanSelection && (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            {baseSteps.map((step, idx) => (
+              <div key={step.title} className="flex-1 flex flex-col items-center">
+                <div
+                  className={`rounded-full w-8 h-8 flex items-center justify-center text-white font-bold ${
+                    idx === currentStep
+                      ? "bg-primary"
+                      : idx < currentStep
+                      ? "bg-primary"
+                      : "bg-gray-300"
+                  }`}
+                >
+                  {idx + 1}
+                </div>
+                <span
+                  className={`text-xs mt-2 text-center ${
+                    idx === currentStep
+                      ? "text-cyan-700 font-semibold"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {step.title}
+                </span>
+                {idx < baseSteps.length - 1 && (
+                  <div className="w-full h-1 bg-gray-200 my-2">
+                    <div
+                      className={`h-1 ${
+                        idx < currentStep ? "bg-primary" : "bg-gray-200"
+                      }`}
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
-{currentStep === 4 && (
-            <div className="space-y-4">
-              <div className="grid gap-2 relative">
-                <Label htmlFor="password">
-                  Password<span className="text-red-500 ">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="********"
-                    required
-                    value={formData.password}
-                    onChange={(e)=>
+          {/* Step Content */}
+          <Card className="rounded-sm border-2 border-gray-200 shadow-none">
+            <CardContent className="pt-6">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold">{baseSteps[currentStep].title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {baseSteps[currentStep].description}
+                </p>
+              </div>
+
+              {currentStep === 0 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="FirstName">First Name</Label>
+                        <Input
+                          id="FirstName"
+                          name="FirstName"
+                          value={formData.first_name}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              first_name: e.target.value,
+                            }));
+                          }}
+                          placeholder="Abebe"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="LastName">Last Name</Label>
+                        <Input
+                          id="LastName"
+                          name="LastName"
+                          value={formData.last_name}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              last_name: e.target.value,
+                            }));
+                          }}
+                          placeholder="Kebede"
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="Email">Email</Label>
+                        <Input
+                          id="Email"
+                          name="Email"
+                          value={formData.email}
+                          type="email"
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }));
+                          }}
+                          placeholder="abebe.kebede@example.com"
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              phone: e.target.value,
+                            }));
+                          }}
+                          placeholder="+25191234566"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="Name">Name</Label>
+                        <Input
+                          id="Name"
+                          name="Name"
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }));
+                          }}
+                          placeholder="Business Name"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="Tin">Tin</Label>
+                        <Input
+                          id="Tin"
+                          name="Tin"
+                          value={formData.tin}
+                          type="number"
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              tin: e.target.value,
+                            }));
+                          }}
+                          placeholder="1234567890"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="General Zone">General Zone</Label>
+                        <Input
+                          id="General Zone"
+                          name="General Zone"
+                          value={formData.general_zone}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              general_zone: e.target.value,
+                            }));
+                          }}
+                          placeholder="Bole"
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="Region">Region</Label>
+                        <Input
+                          id="Region"
+                          name="Region"
+                          value={formData.region}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              region: e.target.value,
+                            }));
+                          }}
+                          placeholder="region-001"
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="Woreda">Woreda</Label>
+                        <Input
+                          id="Woreda"
+                          name="Woreda"
+                          value={formData.woreda}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              woreda: e.target.value,
+                            }));
+                          }}
+                          placeholder="woreda-001"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 2 && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 my-4">
+                    <Checkbox
+                      id="useLocation"
+                      checked={useCurrentLocation}
+                      onCheckedChange={(checked: any) =>
+                        setUseCurrentLocation(checked as boolean)
+                      }
+                    />
+                    <label htmlFor="useLocation">Use my current location</label>
+                  </div>
+                  <div className="h-[400px] rounded-lg overflow-hidden">
+                    <Map
+                      markerPosition={markerPosition}
+                      useCurrentLocation={useCurrentLocation}
+                      setMarkerPosition={setMarkerPosition}
+                      setFormData={setFormData}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  <ImageUpload
+                    onChange={(value: string[]) => {
                       setFormData((prev) => ({
                         ...prev,
-                        password: e.target.value,
-                      }))
-                    }
+                        licence_url: value[0] || "",
+                      }));
+                      setImageError("");
+                    }}
+                    value={formData.licence_url ? [formData.licence_url] : []}
                   />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                
-              </div>
-
-              <div className="grid gap-2 relative">
-                <Label htmlFor="confirmPassword">
-                  Confirm Password<span className="text-red-500 ">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="********"
-                    required
-                    value={formData.confirm_password}
-                    onChange={ (e)=>setFormData((prev) => ({
-                      ...prev,
-                      confirm_password: e.target.value,
-                    }))}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                
-              </div>
-
-            </div>
-          )}
-
-          {/* Stepper Navigation */}
-          <div className="flex items-center justify-between mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === 0}
-            >
-              Back
-            </Button>
-            <div className="flex items-center space-x-4">
-              <Button type="button" variant="outline" onClick={handleReset}>
-                Reset
-              </Button>
-              {currentStep < steps.length - 1 ? (
-                <Button type="button" onClick={handleNext}>
-                  Next
-                </Button>
-              ) : (
-                <Button type="submit" onClick={handleSubmit} disabled={loading}>
-                  {loading ? (
-                    <>
-                      <PiSpinner className="animate-spin text-white mr-2" />
-                      Loading
-                    </>
-                  ) : (
-                    <>Register</>
+                  {imageError && (
+                    <p className="text-red-600 text-sm mt-2">{imageError}</p>
                   )}
-                </Button>
+                </div>
               )}
-            </div>
-          </div>
 
-          <Dialog open={success} onOpenChange={setSuccess}>
-            <DialogContent className="p-6 text-center">
-              <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-              <h1 className="text-3xl font-bold text-green-800 mb-2">
-                Thank You for Registering!
-              </h1>
-              <p className="text-green-700">
-                Our team will get back to you shortly after reviewing your
-                profile information
-              </p>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
+              {currentStep === 4 && (
+                <div className="space-y-4">
+                  <div className="grid gap-2 relative">
+                    <Label htmlFor="password">
+                      Password<span className="text-red-500 ">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="********"
+                        required
+                        value={formData.password}
+                        onChange={(e)=>
+                          setFormData((prev) => ({
+                            ...prev,
+                            password: e.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    
+                  </div>
+
+                  <div className="grid gap-2 relative">
+                    <Label htmlFor="confirmPassword">
+                      Confirm Password<span className="text-red-500 ">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="********"
+                        required
+                        value={formData.confirm_password}
+                        onChange={ (e)=>setFormData((prev) => ({
+                          ...prev,
+                          confirm_password: e.target.value,
+                        }))}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    
+                  </div>
+
+                </div>
+              )}
+
+              {/* Stepper Navigation */}
+              <div className="flex items-center justify-between mt-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={currentStep === 0}
+                >
+                  Back
+                </Button>
+                <div className="flex items-center space-x-4">
+                  <Button type="button" variant="outline" onClick={handleReset}>
+                    Reset
+                  </Button>
+                  {currentStep < (baseSteps.length - 1) ? (
+                    <Button type="button" onClick={handleNext}>
+                      Next
+                    </Button>
+                  ) : (
+                    <Button type="submit" onClick={handleSubmit} disabled={loading}>
+                      {loading ? (
+                        <>
+                          <PiSpinner className="animate-spin text-white mr-2" />
+                          Loading
+                        </>
+                      ) : (
+                        <>Register</>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      <Dialog open={success} onOpenChange={setSuccess}>
+        <DialogContent className="p-6 text-center">
+          <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-green-800 mb-2">
+            Thank You for Registering!
+          </h1>
+          <p className="text-green-700">
+            Our team will get back to you shortly after reviewing your
+            profile information
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

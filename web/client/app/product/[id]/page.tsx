@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // import { useCart } from "@/contexts/CartContext";
+import Image from 'next/image'
 import { toast } from "sonner";
 import Link from "next/dist/client/link";
 import useCatalogueStore from "@/lib/store/useCatalogueStore";
@@ -169,36 +170,21 @@ const ProductDetail = () => {
       </style>
 
       <main className="container mx-auto px-4 pt-24 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           <div className="grid grid-cols-1 gap-4">
             <div className="">
-              <img
+              <Image
+                width={400}
+                height={300}
                 loading="lazy"
                 src={selectedImage?.ImageUrl}
                 alt={catalogue?.name}
                 className="w-full h-full object-cover rounded-md"
               />
             </div>
-            <div className="flex gap-4">
-              {catalogue?.images.map((image, index) => (
-                <div className="" key={index}>
-                  <img
-                    loading="lazy"
-                    src={image.ImageUrl}
-                    alt={catalogue.name}
-                    className={`max-w-xs object-cover hover:border-2 hover:border-gray-900 hover:shadow-md hover:shadow-gray-400 rounded-md ${
-                      selectedImage?.ImageUrl == image.ImageUrl
-                        ? "ring-2 ring-black border-black "
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    onClick={() => setSelectedImage(image)}
-                  />
-                </div>
-              ))}
-            </div>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col mt-32">
             <h1 className="text-2xl md:text-3xl font-semibold text-primary mb-2">
               {catalogue.name}
             </h1>

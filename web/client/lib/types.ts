@@ -192,3 +192,11 @@ export type Distributor = {
     password: string;
     confirm_password: string
   }
+
+export type PricingPlan = {
+    id: number;
+    name: string;
+    price: number;
+    term_in_month: number;
+    desc: number;
+}

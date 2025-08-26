@@ -8,6 +8,7 @@ import { GetAllCatalogues } from "@/app/actions/catalogue";
 import { Catalogue } from "@/lib/types";
 import { CardSkeleton } from "@/components/CardSkeleton";
 import { ProductCard } from "@/components/ProductCard";
+import { Button } from "@/components/ui/button";
 
 export default function ProductGrid() {
   const [categories, setCategories] = useState([{ id: 0, name: "All" }]);
@@ -69,10 +70,6 @@ export default function ProductGrid() {
               ))}
             </div>
           </div>
-          <div className="primary font-semibold flex items-center gap-2">
-            <Link href="/product">Load All</Link>
-            <MdOutlineKeyboardDoubleArrowRight />
-          </div>
         </div>
       </div>
 
@@ -93,6 +90,14 @@ export default function ProductGrid() {
           </>
         )}
       </div>
+      <div className="w-full flex items-center">
+      <Link href="/product">
+          <Button variant="outline">
+            Load All
+          </Button>
+        </Link>
+      </div>
+
     </section>
   );
 }
