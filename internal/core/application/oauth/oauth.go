@@ -24,8 +24,7 @@ type OAuthRequest struct {
 }
 
 type OAuthResponse struct {
-	UserId string
-	JWT    JWT
+	JWT JWT
 }
 
 type JWT struct {
