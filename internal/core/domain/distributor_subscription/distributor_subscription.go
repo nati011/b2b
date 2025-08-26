@@ -231,7 +231,7 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 }
 
 func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId int) (SubscribeResponse, error) {
-	//get current subscription
+	//get subscription
 	sub, err := d.GetSubscriptionByDistributorId(ctx, distId)
 	if err != nil {
 		switch err {
