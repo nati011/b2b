@@ -2,16 +2,24 @@ package domain_handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 
 	"b2b.nati011.github.com/internal/core/application/event"
+	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/retailer"
 	"b2b.nati011.github.com/internal/core/util"
 )
 
+var (
+	ErrUnknown = errors.New(" unknown error")
+)
+
 type AuthHandler struct {
-	service retailer.Provider
-	event   *event.Broker
+	service     retailer.Provider
+	userService user.Provider
+	event       *event.Broker
 }
 
 func InitAuth(service retailer.Provider, event *event.Broker) error {
@@ -31,12 +39,24 @@ func InitAuth(service retailer.Provider, event *event.Broker) error {
 				continue
 			}
 			ctx := context.Background()
-			handler.service.CreateAssisted(ctx, &retailer.CreateAssistedRequest{
-				FirstName: payload.FirstName,
-				LastName:  payload.LastName,
-				Email:     payload.Email,
-				Username:  payload.Username,
+			_, err := handler.userService.GetByParam(ctx, &user.GetByParam{
+				Email: payload.Email,
 			})
+			if err != nil {
+				switch err {
+				case user.ErrEmptyGetContent:
+					handler.service.CreateAssisted(ctx, &retailer.CreateAssistedRequest{
+						FirstName: payload.FirstName,
+						LastName:  payload.LastName,
+						Email:     payload.Email,
+						Username:  payload.Username,
+					})
+					continue
+				default:
+					log.Printf("failed to get user")
+					continue
+				}
+			}
 		}
 	}()
 	return nil
