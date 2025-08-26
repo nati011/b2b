@@ -65,8 +65,6 @@ type ReinitiateSubscriptionPaymentRequest struct {
 type Provider interface {
 	Checkout(ctx context.Context, req *CheckoutRequest) (CheckoutResponse, error)
 	ReinitiateCheckout(ctx context.Context, req *ReinitiateCheckoutRequest) (CheckoutResponse, error)
-	SubscriptionPayment(ctx context.Context, req *SubscriptionPaymentRequest) (SubscriptionPaymentResponse, error)
-	ReinitiateSubscriptionPayment(ctx context.Context, req *ReinitiateSubscriptionPaymentRequest) (SubscriptionPaymentResponse, error)
 }
 
 type CheckoutService struct {
@@ -309,12 +307,4 @@ func (p *CheckoutService) ReinitiateCheckout(ctx context.Context, req *Reinitiat
 		TransactionRef: transaction_ref,
 		CheckoutUrl:    checkoutUrl,
 	}, nil
-}
-
-func (p *CheckoutService) SubscriptionPayment(ctx context.Context, req *SubscriptionPaymentRequest) (SubscriptionPaymentResponse, error) {
-	return SubscriptionPaymentResponse{}, nil
-}
-
-func (p *CheckoutService) ReinitiateSubscriptionPayment(ctx context.Context, req *ReinitiateSubscriptionPaymentRequest) (SubscriptionPaymentResponse, error) {
-	return SubscriptionPaymentResponse{}, nil
 }

@@ -126,9 +126,7 @@ func Test_Checkout_happypath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to place order err: %v", err)
 		}
-		if strings.Split(subs_resp.CheckoutUrl, " ") == nil {
-			t.Errorf("Expected checkoutUrl different from nil got: %v", subs_resp.CheckoutUrl)
-		}
+
 		init_resp, err := container.SubscriptionService.InitPayment(ctx, subs_resp.Id)
 		if err != nil {
 			t.Fatalf("Failed to init payment err: %v", err)
