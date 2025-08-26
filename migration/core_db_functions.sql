@@ -4129,3 +4129,165 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- distributor_subscriptions ---------------
+    
+    -- Read
+CREATE OR REPLACE FUNCTION public.get_subscription_by_distributor_id(
+    p_distributor_id INT
+)
+RETURNS TABLE(
+    id INT,
+    subscription_plan_id INT,
+    distributor_id INT,
+    staus VARCHAR(255)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT ds.id,
+           ds.subscription_plan_id,
+           ds.distributor_id,
+           ds.status
+    FROM public.distributor_subscriptions ds
+    WHERE ds.distributor_id = p_distributor_id
+      AND ds.is_deleted = false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_subscriptions()
+RETURNS TABLE(
+    id INT,
+    subscription_plan_id INT,
+    distributor_id INT,
+    status VARCHAR(255)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT ds.id,
+           ds.subscription_plan_id,
+           ds.distributor_id,
+           ds.status
+    FROM public.distributor_subscriptions ds
+    WHERE ds.is_deleted = false;
+END;
+$$;
+
+    -- Write
+
+CREATE OR REPLACE FUNCTION public.create_distributor_subscription(
+    p_subscription_plan_id INT,
+    p_distributor_id INT,
+    p_status VARCHAR(255)
+)
+RETURNS TABLE(
+    id INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO public.distributor_subscriptions (
+        subscription_plan_id,
+        distributor_id,
+        status
+    )
+    VALUES (
+        p_subscription_plan_id,
+        p_distributor_id,
+        p_status
+    )
+    RETURNING distributor_subscriptions.id
+    INTO id;
+
+    RETURN NEXT;
+END;
+$$;
+
+
+-- subscription_plans ---------------
+    
+    -- read
+
+CREATE OR REPLACE FUNCTION public.get_subscription_plan_by_id(
+    p_id INT
+)
+RETURNS TABLE(
+    id INT,
+    name VARCHAR(255),
+    price Decimal(12, 2),
+    term_in_month int,
+    description VARCHAR(255)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT sp.id,
+           sp.name,
+           sp.price,
+           sp.term_in_month,
+           sp.description
+    FROM public.subscription_plans sp
+    WHERE sp.id = p_id
+      AND sp.is_deleted = FALSE;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.get_all_subscription_plan()
+RETURNS TABLE(
+    id INT,
+    name VARCHAR(255),
+    price Decimal(12, 2),
+    term_in_month int,
+    description VARCHAR(255)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT sp.id,
+           sp.name,
+           sp.price,
+           sp.term_in_month,
+           sp.description
+    FROM public.subscription_plans sp
+    WHERE sp.is_deleted = FALSE;
+END;
+$$;
+
+    -- write
+
+CREATE OR REPLACE FUNCTION public.create_subscription_plan(
+    p_name VARCHAR(255),
+    p_price DECIMAL(12, 2),
+    p_term_in_month INT,
+    p_description VARCHAR(255)
+)
+RETURNS TABLE(
+    id INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO public.subscription_plans (
+        name,
+        price,
+        term_in_month,
+        description
+    )
+    VALUES (
+        p_name,
+        p_price,
+        p_term_in_month,
+        p_description
+    )
+    RETURNING subscription_plans.id
+    INTO id;
+
+    RETURN NEXT;
+END;
+$$;
