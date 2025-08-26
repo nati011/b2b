@@ -142,6 +142,7 @@ func (k *KeycloakProvider) DecodeToken(ctx context.Context, token string) (port.
 	}
 	return res, nil
 }
+
 func (k *KeycloakProvider) CreateNewClient(ctx context.Context, req *port.RegisterUserRequest) (port.RegisterUserResponse, error) {
 	client := gocloak.NewClient(k.KeycloakInstanceURL)
 
