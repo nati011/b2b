@@ -84,3 +84,52 @@ func Test_Checkout(t *testing.T) {
 		}
 	})
 }
+
+func Test_SubscriptionPayment(t *testing.T) {
+	t.Run("paymentPartnerNotSupplied", func(t *testing.T) {
+		t.Cleanup(testContainer.TearDown)
+		setup()
+		ctx := context.Background()
+
+		_, err := testContainer.CheckoutService.Checkout(ctx, &CheckoutRequest{
+			OrderId: 1,
+			Amount:  100,
+		})
+		wantErr := ErrPaymentPartnerNotSupported
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+
+	t.Run("checkoutHappyPath", func(t *testing.T) {
+		ctx := context.Background()
+		t.Cleanup(testContainer.TearDown)
+		setup()
+		in := &CheckoutRequest{
+			OrderId:          1,
+			Amount:           400,
+			PaymentPartnerId: PaymentPartnerId,
+		}
+
+		_, err := testContainer.CheckoutService.Checkout(ctx, in)
+		if err != nil {
+			t.Errorf("Failed to checkout %v", err)
+		}
+
+	})
+
+	t.Run("amountNotSupplied", func(t *testing.T) {
+		ctx := context.Background()
+		t.Cleanup(testContainer.TearDown)
+		setup()
+		in := &CheckoutRequest{
+			PaymentPartnerId: PaymentPartnerId,
+		}
+		_, err := testContainer.CheckoutService.Checkout(ctx, in)
+		log.Printf("Got Error: %v", err)
+		wantErr := ErrAmountNotSupplied
+		if err != wantErr {
+			t.Errorf("Expected err: %v Got err: %v", wantErr, err)
+		}
+	})
+}
