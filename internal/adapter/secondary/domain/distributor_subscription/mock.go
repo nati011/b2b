@@ -19,6 +19,7 @@ type MockSubscription struct {
 	Id                 int
 	SubscriptionPlanId int
 	DistributorId      int
+	PaymentPartnerId   int
 	Status             string
 }
 
@@ -69,6 +70,7 @@ func (m *DistributorSubscriptionMock) Place(ctx context.Context, req *port.Place
 		Id:                 newId,
 		SubscriptionPlanId: req.SubscriptionPlanId,
 		DistributorId:      req.DistributorId,
+		PaymentPartnerId:   req.PaymentPartnerId,
 		Status:             req.Status,
 	})
 	return newId, nil
