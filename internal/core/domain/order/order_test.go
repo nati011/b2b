@@ -845,6 +845,5 @@ func Test_reject_order_unhappyPath(t *testing.T) {
 		if ErrOrderAlreadyRejected != err {
 			t.Errorf("Expected error: %v got: %v", ErrOrderAlreadyRejected, err)
 		}
-
 	})
 }
