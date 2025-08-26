@@ -8,6 +8,7 @@ import (
 	configurable_product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/configurable_product/db"
 	distributor_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor/db"
 	distributor_approval_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor_approval/db"
+	distributor_subscription_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/distributor_subscription"
 	invoice_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/invoice/db"
 	order_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/order/db"
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
@@ -19,6 +20,7 @@ import (
 	"b2b.nati011.github.com/internal/core/domain/configurable_product"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	distributorApproval "b2b.nati011.github.com/internal/core/domain/distributor_approval"
+	distributorSubscription "b2b.nati011.github.com/internal/core/domain/distributor_subscription"
 	"b2b.nati011.github.com/internal/core/domain/invoice"
 	"b2b.nati011.github.com/internal/core/domain/order"
 	"b2b.nati011.github.com/internal/core/domain/payment_verification"
@@ -54,19 +56,20 @@ import (
 // │   └── DistributorApprovalService
 
 type Container struct {
-	db                         *sql.DB
-	CategoryService            category.Provider
-	ProductService             product.Provider
-	ConfigurableProductService configurable_product.Provider
-	InvoiceService             invoice.Provider
-	OrderService               order.Provider
-	DistributorService         distributor.Provider
-	RetailerService            retailer.Provider
-	ApplicationServices        application_core.Container
-	CatalogueService           catalogue.Provider
-	PaymentVerificationService payment_verification.Provider
-	DistributorApprovalService distributorApproval.Provider
-	ConfigService              config_module.Provider
+	db                             *sql.DB
+	CategoryService                category.Provider
+	ProductService                 product.Provider
+	ConfigurableProductService     configurable_product.Provider
+	InvoiceService                 invoice.Provider
+	OrderService                   order.Provider
+	DistributorService             distributor.Provider
+	RetailerService                retailer.Provider
+	ApplicationServices            application_core.Container
+	CatalogueService               catalogue.Provider
+	PaymentVerificationService     payment_verification.Provider
+	DistributorApprovalService     distributorApproval.Provider
+	DistributorSubscriptionService distributorSubscription.Prodvider
+	ConfigService                  config_module.Provider
 }
 
 func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
@@ -81,6 +84,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitInvoiceService()
 	container.InitRetailerService()
 	container.InitDistributorApprovalService()
+	container.InitDistributorSubscriptionService()
 	container.InitDistributorService()
 	container.InitProductService()
 	container.InitConfigService()
@@ -137,6 +141,14 @@ func (m *Container) InitDistributorService() {
 func (m *Container) InitDistributorApprovalService() {
 	m.DistributorApprovalService = distributorApproval.NewDistributorApprovalService(
 		distributor_approval_db_port.NewPostgres(m.db))
+}
+
+func (m *Container) InitDistributorSubscriptionService() {
+	m.DistributorSubscriptionService = distributorSubscription.NewDistributorSubscriptionService(
+		distributor_subscription_db_port.NewPostgres(m.db),
+		m.ApplicationServices.CheckoutService,
+		m.ApplicationServices.PaymentPartnerService,
+	)
 }
 
 func (m *Container) InitRetailerService() {
