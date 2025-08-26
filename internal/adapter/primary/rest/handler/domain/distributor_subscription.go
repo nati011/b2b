@@ -65,7 +65,7 @@ func (d *Distributor_Subscription) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("GET /api/v1/plan", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetSubscriptionPlanHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.GetSubscriptionPlanHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/plan", func(w http.ResponseWriter, r *http.Request) {
