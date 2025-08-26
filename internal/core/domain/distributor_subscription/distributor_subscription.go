@@ -288,7 +288,12 @@ func (d *DistributorSubscriptionService) GetSubscriptions(ctx context.Context) (
 		}
 	}
 	for _, i := range resp.List {
-		response.List = append(response.List, GetSubscriptionResponse(i))
+		response.List = append(response.List, GetSubscriptionResponse{
+			Id:                 i.Id,
+			SubscriptionPlanId: i.SubscriptionPlanId,
+			DistributorId:      i.DistributorId,
+			Status:             i.Status,
+		})
 	}
 	return response, nil
 }
@@ -304,6 +309,10 @@ func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx cont
 			return GetSubscriptionResponse{}, ErrUnknown
 		}
 	}
-
-	return GetSubscriptionResponse(resp), nil
+	return GetSubscriptionResponse{
+		Id:                 resp.Id,
+		SubscriptionPlanId: resp.SubscriptionPlanId,
+		DistributorId:      resp.DistributorId,
+		Status:             resp.Status,
+	}, nil
 }
