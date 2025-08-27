@@ -95,7 +95,7 @@ func (p *PaymentPartner) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("GET /api/v1/payment_option/active", func(w http.ResponseWriter, r *http.Request) {
-		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.GetActivePaymentPartnersHandler)).ServeHTTP(w, r)
+		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.GetActivePaymentPartnersHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/payment_option", func(w http.ResponseWriter, r *http.Request) {
