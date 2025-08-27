@@ -22,10 +22,11 @@ type AuthHandler struct {
 	event       *event.Broker
 }
 
-func InitAuth(service retailer.Provider, event *event.Broker) error {
+func InitAuth(service retailer.Provider, userService user.Provider, event *event.Broker) error {
 	handler := &AuthHandler{
-		service: service,
-		event:   event,
+		service:     service,
+		userService: userService,
+		event:       event,
 	}
 
 	ch := event.Subscribe(util.EVENT_RETAILER_SSO)
