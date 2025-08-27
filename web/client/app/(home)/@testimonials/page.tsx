@@ -12,7 +12,7 @@ export default function PricingSection(){
     void fetchPricingPlan();
   }, [fetchPricingPlan]);
 
-  const formatPrice = (price: number) => `$${price.toLocaleString()}`;
+  const formatPrice = (price: number) => `${price.toLocaleString()} ETB`;
   const termToPeriod = (termInMonth: number) => {
     if (termInMonth === 1) return "per month";
     if (termInMonth === 12) return "per year";

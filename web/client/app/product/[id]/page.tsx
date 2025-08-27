@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // import { useCart } from "@/contexts/CartContext";
-import Image from 'next/image'
+import Image from "next/image";
 import { toast } from "sonner";
 import Link from "next/dist/client/link";
 import useCatalogueStore from "@/lib/store/useCatalogueStore";
@@ -174,13 +174,33 @@ const ProductDetail = () => {
           <div className="grid grid-cols-1 gap-4">
             <div className="">
               <Image
-                width={400}
+                width={600}
                 height={300}
                 loading="lazy"
-                src={selectedImage?.ImageUrl}
+                src={selectedImage?.ImageUrl || ""}
                 alt={catalogue?.name}
-                className="w-full h-full object-cover rounded-md"
+                className="object-cover rounded-md"
               />
+            </div>
+
+            <div className="flex gap-4">
+              {catalogue?.images.map((image, index) => (
+                <div className="" key={index}>
+                  <Image
+                  width={250}
+                  height={200}
+                    loading="lazy"
+                    src={image.ImageUrl || ""}
+                    alt={catalogue.name}
+                    className={`object-cover hover:border-2 hover:border-gray-900 hover:shadow-md hover:shadow-gray-400 rounded-md ${
+                      selectedImage?.ImageUrl == image.ImageUrl
+                        ? "ring-2 ring-black border-black "
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    onClick={() => setSelectedImage(image)}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -188,7 +208,7 @@ const ProductDetail = () => {
             <h1 className="text-2xl md:text-3xl font-semibold text-primary mb-2">
               {catalogue.name}
             </h1>
-            <p className="text-xl mb-4">${currentPrice}</p>
+            <p className="text-xl mb-4">{currentPrice.toLocaleString()} ETB</p>
             <p className="text-md text-gray-600 mb-8">{catalogue.desc}</p>
 
             {attributeTypes.map((attributeName) => (
