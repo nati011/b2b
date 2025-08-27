@@ -28,15 +28,15 @@ type OAuthResponse struct {
 }
 
 type JWT struct {
-	AccessToken      string
-	IDToken          string
-	ExpiresIn        int
-	RefreshExpiresIn int
-	RefreshToken     string
-	TokenType        string
-	NotBeforePolicy  int
-	SessionState     string
-	Scope            string
+	AccessToken      string `json:"access_token"`
+	IDToken          string `json:"id_token"`
+	ExpiresIn        int    `json:"expires_in"`
+	RefreshExpiresIn int    `json:"refresh_expires_in"`
+	RefreshToken     string `json:"refresh_token"`
+	TokenType        string `json:"token_type"`
+	NotBeforePolicy  int    `json:"not_before_policy"`
+	SessionState     string `json:"session_state"`
+	Scope            string `json:"scope"`
 }
 
 type Provider interface {
