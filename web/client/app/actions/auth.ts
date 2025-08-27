@@ -1,6 +1,6 @@
 "use server";
 import axiosIns from "@/lib/axios";
-import { DistributorRequest, RegisterRequest, User } from "@/lib/types";
+import { BuySubscriptionRequest, DistributorRequest, RegisterRequest, User } from "@/lib/types";
 
 export const RegisterRetailer = async (profile: RegisterRequest) => {
   try {
@@ -22,7 +22,7 @@ export const RegisterDistributor = async(profile: DistributorRequest) => {
   try {
     const response = await axiosIns.post("/distributor", profile);
     console.log(response.data);
-    return response.data.message;
+    return response.data.body.distributor_id;
   } catch (error: any) {
     if (error.response) {
       throw (
@@ -84,5 +84,21 @@ export const UpdateProfile = async (data: Partial<User>) => {
       );
     }
     throw "An error has occured while updating your profile";
+  }
+};
+
+
+export const BuySubscription = async (profile: BuySubscriptionRequest) => {
+  try {
+    const response = await axiosIns.post("/distributor/buy_subscription", profile);
+    return response.data.message;
+  } catch (error: any) {
+    if (error.response) {
+      throw (
+        error.response.data.message ||
+        "An error has occured while buying subscription"
+      );
+    }
+    throw "An error has occured while buying subscription";
   }
 };

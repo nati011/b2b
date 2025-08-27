@@ -193,6 +193,13 @@ export type Distributor = {
     confirm_password: string
   }
 
+
+  export type BuySubscriptionRequest = {
+    distributor_id: number;
+    subscription_plan_id: number;
+    payment_partner_id: number;
+  }
+
 export type PricingPlan = {
     id: number;
     name: string;

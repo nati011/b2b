@@ -13,11 +13,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Checkbox } from "@/components/ui/checkbox";
 import ImageUpload from "@/components/ImageUpload";
-import { RegisterDistributor } from "@/app/actions/auth";
+// import { RegisterDistributor } from "@/app/actions/auth";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CheckCircle, Eye, EyeOff } from "lucide-react";
 import usePlanstore from "@/lib/store/usePricingPlan";
 import { Skeleton } from "@/components/ui/skeleton";
+import useDistributorStore from "@/lib/store/useDistributorStore";
+import usePartnerStore from "@/lib/store/usePaymentStore";
 
 const Map = dynamic(() => import("@/components/map"), { ssr: false });
 
@@ -47,7 +49,10 @@ const baseSteps = [
 export default function DistributorsForm() {
   const router = useRouter();
   const { plans, loading: plansLoading, error: plansError, fetchPricingPlan } = usePlanstore();
-  const [success, setSuccess] = useState(false);
+  const { distributor_id, register, buySubscription, loading, error, success } = useDistributorStore();
+  const { partners, fetchPaymentPartners, loading: partnersLoading } = usePartnerStore();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
   const [formData, setFormData] = useState<DistributorRequest>({
     name: "",
     tin: "",
@@ -75,7 +80,6 @@ export default function DistributorsForm() {
   const [imageError, setImageError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleReset = () => {
     setFormData({
@@ -133,6 +137,12 @@ export default function DistributorsForm() {
     void fetchPricingPlan();
   }, [fetchPricingPlan]);
 
+  useEffect(() => {
+    if (!needsPlanSelection) {
+      void fetchPaymentPartners();
+    }
+  }, [needsPlanSelection, fetchPaymentPartners]);
+
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
   const termToPeriod = (termInMonth: number) => {
     if (termInMonth === 1) return "per month";
@@ -160,20 +170,49 @@ export default function DistributorsForm() {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
     if(formData.password != formData.confirm_password){
-      setLoading(false);
       toast.error("Password don't match")
       return
     }
     try {
-      await RegisterDistributor(formData);
+      await register(formData);
+      if (error) {
+        toast.error(error);
+        return;
+      }
       toast.success("Distributor registered successfully!");
-      setSuccess(true);
+      setShowSuccess(true);
     } catch (e: any) {
-      toast.error(e.message || "Failed to register distributor.");
-    } finally {
-      setLoading(false);
+      toast.error(e?.message || "Failed to register distributor.");
+    }
+  };
+
+  const handleBuySubscription = async () => {
+    if (!plan_id) {
+      toast.error("Please select a plan first.");
+      return;
+    }
+    if (!selectedPartnerId) {
+      toast.error("Please select a payment partner.");
+      return;
+    }
+    try {
+      await buySubscription({
+        distributor_id: distributor_id,
+        subscription_plan_id: Number(plan_id),
+        payment_partner_id: selectedPartnerId,
+      } as any);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      if (success && success.startsWith("http")) {
+        window.location.href = success;
+        return;
+      }
+      toast.success(success || "Subscription initiated successfully.");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to buy subscription.");
     }
   };
 
@@ -186,7 +225,6 @@ export default function DistributorsForm() {
         </p>
       </div>
 
-      {/* Plan selection shown initially when plan is missing */}
       {needsPlanSelection && (
         <Card className="rounded-sm border-2 border-gray-200 shadow-none">
           <CardContent className="pt-6">
@@ -598,16 +636,50 @@ export default function DistributorsForm() {
         </>
       )}
 
-      <Dialog open={success} onOpenChange={setSuccess}>
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
         <DialogContent className="p-6 text-center">
           <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-green-800 mb-2">
             Thank You for Registering!
           </h1>
-          <p className="text-green-700">
-            Our team will get back to you shortly after reviewing your
-            profile information
+          <p className="text-green-700 mb-4">
+            Our team will get back to you shortly after reviewing your profile information.
           </p>
+
+          {/* Subscription payment section */}
+          <div className="text-left space-y-3">
+            <h3 className="text-lg font-semibold">Complete Subscription Payment</h3>
+            <p className="text-sm text-muted-foreground">Select a payment partner and proceed to payment.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+              {partnersLoading && <p className="text-sm text-gray-500">Loading partners...</p>}
+              {!partnersLoading && partners
+                .filter((p) => p.payment_method !== "MANUAL_PAYMENT")
+                .map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPartnerId(p.id)}
+                    className={`border rounded-md p-3 text-left ${selectedPartnerId === p.id ? "border-primary" : "border-gray-200"}`}
+                  >
+                    <div className="font-medium">{p.name}</div>
+                    <div className="text-xs text-muted-foreground">{p.payment_method}</div>
+                  </button>
+                ))}
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button onClick={handleBuySubscription} disabled={!selectedPartnerId || loading}>
+                {loading ? (
+                  <>
+                    <PiSpinner className="animate-spin text-white mr-2" />
+                    Processing
+                  </>
+                ) : (
+                  <>Pay Subscription</>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         </DialogContent>
       </Dialog>
     </div>
