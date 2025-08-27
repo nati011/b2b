@@ -289,6 +289,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
+			log.Printf("failed to create and activate user err: %v", err)
 			return 0, ErrUnknown
 		}
 	}
@@ -301,6 +302,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 	if err != nil {
 		switch err {
 		default:
+			log.Printf("failed to create user provider err: %v", err)
 			u.Remove(ctx, user_id)
 			return 0, ErrUnknown
 		}
@@ -361,7 +363,10 @@ func (u *UserService) CreateAssisted(ctx context.Context, req *CreateAssistedReq
 			log.Printf("failed to find role: %v", req.roleName)
 			log.Printf("failed to assign role to user")
 		} else {
-			u.AssignRole(ctx, user_id, roleId.Id)
+			err = u.AssignRole(ctx, user_id, roleId.Id)
+			if err != nil {
+				log.Printf("failed to assign role to userId: %v err: %v", user_id, err)
+			}
 		}
 	}
 
