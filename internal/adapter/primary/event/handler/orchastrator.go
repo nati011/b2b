@@ -13,7 +13,7 @@ func BuildEventHandler(applicationServices *application_core.Container, domainSe
 		return err
 	}
 
-	err = domain_handler.InitAuth(domainServices.RetailerService, applicationServices.Event)
+	err = domain_handler.InitAuth(domainServices.RetailerService, applicationServices.UserService, applicationServices.Event)
 	if err != nil {
 		return err
 	}
