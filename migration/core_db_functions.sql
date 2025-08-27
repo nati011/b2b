@@ -886,7 +886,7 @@ create or replace function public.add_role_to_user (
 AS $$
     BEGIN
         INSERT INTO public.user_roles (user_id, role_id)
-        VALUES (role_identifier, user_identifier);
+        VALUES (user_identifier, role_identifier);
     END;
 $$;
 
