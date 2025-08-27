@@ -103,9 +103,9 @@ async function handleGoogleSSO(profile: any, account: any) {
       throw new Error(response.data?.message || "SSO authentication failed");
     }
 
-    console.log(response.data.body.AccessToken)
+    console.log(response.data.body.access_token)
 
-    const decoded = jwtDecode<KeycloakJWT>(response.data.body.AccessToken);
+    const decoded = jwtDecode<KeycloakJWT>(response.data.body.access_token);
 
     return {
       ...response.data,
@@ -215,18 +215,18 @@ export const authOptions: AuthOptions = {
         if (account.provider === "google" && (user as any).ssoData) {
           const ssoData = (user as any).ssoData;
           return {
-            accessToken: ssoData.body.AccessToken,
-            refreshToken: ssoData.body.RefreshToken,
+            accessToken: ssoData.body.access_token,
+            refreshToken: ssoData.body.refresh_token,
             accessTokenExpires:
-              jwtDecode<KeycloakJWT>(ssoData.body.AccessToken).exp * 1000,
+              jwtDecode<KeycloakJWT>(ssoData.body.access_token).exp * 1000,
             user: ssoData.user,
           };
         } else {
           return {
-            accessToken: (user as any).body.AccessToken,
-            refreshToken: (user as any).body.RefreshToken,
+            accessToken: (user as any).body.access_token,
+            refreshToken: (user as any).body.refresh_token,
             accessTokenExpires:
-              jwtDecode<KeycloakJWT>((user as any).body.AccessToken).exp * 1000,
+              jwtDecode<KeycloakJWT>((user as any).body.access_token).exp * 1000,
             user: (user as any).user,
           };
         }
