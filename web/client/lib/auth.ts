@@ -87,8 +87,6 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
     };
   }
 }
-
-// Function to handle Google SSO token exchange
 async function handleGoogleSSO(profile: any, account: any) {
   try {
     const response = await axios.post(`${baseURL}/api/v1/auth/sso`, {
@@ -101,12 +99,13 @@ async function handleGoogleSSO(profile: any, account: any) {
     console.log(account.access_token)
 
     console.log(profile)
-    if (response.status !== 200 && response.status !== 201) {
+    if (response.status !== 202) {
       throw new Error(response.data?.message || "SSO authentication failed");
     }
 
-    // Decode the Keycloak token received from your backend
-    const decoded = jwtDecode<KeycloakJWT>(response.data.body.access_token);
+    console.log(response.data.body.AccessToken)
+
+    const decoded = jwtDecode<KeycloakJWT>(response.data.body.AccessToken);
 
     return {
       ...response.data,
@@ -191,13 +190,10 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Handle Google OAuth sign-in
       if (account?.provider === "google" && profile) {
         try {
-          // Call your SSO endpoint to exchange Google token for Keycloak tokens
           const ssoResult = await handleGoogleSSO(profile, account);
           
-          // Store the SSO result in the user object for use in jwt callback
           (user as any).ssoData = ssoResult;
           
           return true;
@@ -219,18 +215,18 @@ export const authOptions: AuthOptions = {
         if (account.provider === "google" && (user as any).ssoData) {
           const ssoData = (user as any).ssoData;
           return {
-            accessToken: ssoData.body.access_token,
-            refreshToken: ssoData.body.refresh_token,
+            accessToken: ssoData.body.AccessToken,
+            refreshToken: ssoData.body.RefreshToken,
             accessTokenExpires:
-              jwtDecode<KeycloakJWT>(ssoData.body.access_token).exp * 1000,
+              jwtDecode<KeycloakJWT>(ssoData.body.AccessToken).exp * 1000,
             user: ssoData.user,
           };
         } else {
           return {
-            accessToken: (user as any).body.access_token,
-            refreshToken: (user as any).body.refresh_token,
+            accessToken: (user as any).body.AccessToken,
+            refreshToken: (user as any).body.RefreshToken,
             accessTokenExpires:
-              jwtDecode<KeycloakJWT>((user as any).body.access_token).exp * 1000,
+              jwtDecode<KeycloakJWT>((user as any).body.AccessToken).exp * 1000,
             user: (user as any).user,
           };
         }
