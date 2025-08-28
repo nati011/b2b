@@ -165,7 +165,7 @@ export default function LoginPage() {
               <div className="border h-[0.1px] w-full"></div>
             </div>
             <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("google", { callbackUrl: "/" })}
               className="border-2 w-full font-semibold rounded p-2 flex justify-center gap-4 items-center"
             >
               <FcGoogle size={24} className="" />

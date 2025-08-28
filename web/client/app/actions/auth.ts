@@ -9,12 +9,12 @@ export const RegisterRetailer = async (profile: RegisterRequest) => {
     return response.data.message;
   } catch (error: any) {
     if (error.response) {
-      throw (
+      throw new Error(
         error.response.data.message ||
         "An error has occured while creating account"
       );
     }
-    throw "An error has occured while creating account";
+    throw new Error("An error has occured while creating account");
   }
 };
 
@@ -25,12 +25,12 @@ export const RegisterDistributor = async(profile: DistributorRequest) => {
     return response.data.body.distributor_id;
   } catch (error: any) {
     if (error.response) {
-      throw (
+      throw new Error(
         error.response.data.message ||
         "An error has occured while creating account"
       );
     }
-    throw "An error has occured while creating account";
+    throw new Error("An error has occured while creating account");
   }
 }
 
@@ -43,12 +43,12 @@ export const InitResetPassword = async (email: string) => {
     return response.data.message;
   } catch (error: any) {
     if (error.response) {
-      throw (
+      throw new Error(
         error.response.data.message ||
         "An error has occured while reseting the password"
       );
     }
-    throw "An error has occured while reseting the password";
+    throw new Error("An error has occured while reseting the password");
   }
 };
 
@@ -61,12 +61,12 @@ export const ResetPassword = async (token: string, password: string) => {
   } catch (error: any) {
     console.log(error);
     if (error.response) {
-      throw (
+      throw new Error(
         error.response.data.message ||
         "An error has occured while creating the product"
       );
     }
-    throw "An error has occured while creating the product";
+    throw new Error("An error has occured while creating the product");
   }
 };
 
@@ -78,27 +78,28 @@ export const UpdateProfile = async (data: Partial<User>) => {
   } catch (error: any) {
     console.log(error);
     if (error.response) {
-      throw (
+      throw new Error(
         error.response.data.message ||
         "An error has occured while updating your profile"
       );
     }
-    throw "An error has occured while updating your profile";
+    throw new Error("An error has occured while updating your profile");
   }
 };
 
 
 export const BuySubscription = async (profile: BuySubscriptionRequest) => {
   try {
-    const response = await axiosIns.post("/distributor/buy_subscription", profile);
+    const response = await axiosIns.post("/subscription", profile);
     return response.data.message;
   } catch (error: any) {
     if (error.response) {
-      throw (
+      console.log(error.response)
+      throw new Error(
         error.response.data.message ||
-        "An error has occured while buying subscription"
+        "An error has occured while buying subscription message"
       );
     }
-    throw "An error has occured while buying subscription";
+    throw new Error("An error has occured while buying subscription");
   }
 };
