@@ -22,7 +22,7 @@ export const RegisterDistributor = async(profile: DistributorRequest) => {
   try {
     const response = await axiosIns.post("/distributor", profile);
     console.log(response.data);
-    return response.data.body.distributor_id;
+    return response.data.body.distributor;
   } catch (error: any) {
     if (error.response) {
       throw new Error(
@@ -91,7 +91,8 @@ export const UpdateProfile = async (data: Partial<User>) => {
 export const BuySubscription = async (profile: BuySubscriptionRequest) => {
   try {
     const response = await axiosIns.post("/subscription", profile);
-    return response.data.message;
+    console.log(response)
+    return response.data.body.id; // FIX ME: change backend dto
   } catch (error: any) {
     if (error.response) {
       console.log(error.response)
