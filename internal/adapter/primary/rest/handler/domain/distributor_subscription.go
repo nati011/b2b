@@ -185,7 +185,13 @@ func (d *Distributor_Subscription) CreateSubscriptionHandler(w http.ResponseWrit
 		util.RequestErrorResponse(w, err)
 		return
 	}
+<<<<<<< HEAD
+	create_req := distributor_Subscription.PlaceRequest(requestBody)
+
+	resp_id, err := d.service.Place(r.Context(), &create_req)
+=======
 	resp_id, err := d.service.Place(r.Context(), (*distributor_Subscription.PlaceRequest)(&requestBody))
+>>>>>>> a80245eca6a996cf9f80d4af529b833f8931d0e7
 	if err != nil {
 		switch err {
 		case distributor_Subscription.ErrUnknown:
