@@ -122,6 +122,12 @@ export const columns: ColumnDef<Order>[] = [
                     border: "border-emerald-200",
                     label: "Accepted"
                 },
+                [CANCELED_STATUS]: {
+                    bg: "bg-red-100/50",
+                    text: "text-red-800",
+                    border: "border-red-200",
+                    label: "Canceled"
+                }
             };
             //   @ts-ignore
             const config = statusConfig[status as string] || {
