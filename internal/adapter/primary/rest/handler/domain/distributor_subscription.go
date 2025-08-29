@@ -61,7 +61,7 @@ func (d *Distributor_Subscription) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/subscription", func(w http.ResponseWriter, r *http.Request) {
-		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.CreateSubscriptionHandler)).ServeHTTP(w, r)
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateSubscriptionHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/plan", func(w http.ResponseWriter, r *http.Request) {
@@ -185,9 +185,13 @@ func (d *Distributor_Subscription) CreateSubscriptionHandler(w http.ResponseWrit
 		util.RequestErrorResponse(w, err)
 		return
 	}
+<<<<<<< HEAD
 	create_req := distributor_Subscription.PlaceRequest(requestBody)
 
 	resp_id, err := d.service.Place(r.Context(), &create_req)
+=======
+	resp_id, err := d.service.Place(r.Context(), (*distributor_Subscription.PlaceRequest)(&requestBody))
+>>>>>>> a80245eca6a996cf9f80d4af529b833f8931d0e7
 	if err != nil {
 		switch err {
 		case distributor_Subscription.ErrUnknown:
