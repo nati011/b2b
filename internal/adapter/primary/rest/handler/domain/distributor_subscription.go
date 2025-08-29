@@ -179,13 +179,14 @@ func (d *Distributor_Subscription) CreateSubscriptionHandler(w http.ResponseWrit
 	}
 	defer r.Body.Close()
 
-	var requestBody CreatePlanRequest
+	var requestBody PlaceRequest
 
 	if err := json.Unmarshal(body, &requestBody); err != nil {
 		util.RequestErrorResponse(w, err)
 		return
 	}
-	create_req := distributor_Subscription.PlaceRequest{}
+	create_req := distributor_Subscription.PlaceRequest(requestBody)
+
 	resp_id, err := d.service.Place(r.Context(), &create_req)
 	if err != nil {
 		switch err {
