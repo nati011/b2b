@@ -13,7 +13,7 @@ export default function StatusBadge({
             bg: "bg-blue-100/50",
             text: "text-blue-800",
             border: "border-blue-200",
-            label: "Dispatched"
+            label: "Canceled"
         },
         [PENDING_STATUS]: {
             bg: "bg-amber-100/50",
