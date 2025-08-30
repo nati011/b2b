@@ -34,12 +34,14 @@ func InitAuth(service retailer.Provider, userService user.Provider, event *event
 	// Start a goroutine to listen for events asynchronously
 	go func() {
 		for msg := range ch {
-			payload, ok := msg.(util.EventRetailerSSOPayload) // or whatever type you publish
+			payload, ok := msg.(util.EventRetailerSSOPayload)
 			if !ok {
 				fmt.Printf("Received unexpected event type: %T\n", msg)
 				continue
 			}
 			ctx := context.Background()
+
+			//check if a user with the same email already exists
 			_, err := handler.userService.GetByParam(ctx, &user.GetByParam{
 				Email: payload.Email,
 			})

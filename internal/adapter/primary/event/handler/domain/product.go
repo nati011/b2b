@@ -26,7 +26,7 @@ func InitProduct(service product.Provider, event *event.Broker) error {
 	// Start a goroutine to listen for events asynchronously
 	go func() {
 		for msg := range ch {
-			id, ok := msg.(string) // or whatever type you publish
+			id, ok := msg.(string)
 			if !ok {
 				fmt.Printf("Received unexpected event type: %T\n", msg)
 				continue
