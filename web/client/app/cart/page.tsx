@@ -229,9 +229,15 @@ const Cart = () => {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="font-medium">
-                          Delivery Estimation:{" "}
+                          Delivery Estimation:
                         </span>
-                        <span className="text-gray-600">8 upto 10 hours</span>
+                        <span className="text-gray-600">30 minutes to 1 hour</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium">
+                          Delivery Fee:
+                        </span>
+                        <span className="text-gray-600">Depends on the location</span>
                       </div>
                     </div>
 

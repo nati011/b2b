@@ -1,4 +1,6 @@
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Smartphone, Twitter } from "lucide-react";
+import { PiTelegramLogo } from "react-icons/pi";
+import { IoLogoTiktok } from "react-icons/io5";
 import Link from "next/link";
 import Image from 'next/image'
 
@@ -6,79 +8,66 @@ export const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <div className="bg-secondary mt-16 w-full print:hidden">
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div className="md:col-span-1">
-                        <Link href="/" className="text-xl font-bold">
-                            <Image src='/logo.png' width={150} height={100} alt="logo" />
+        <footer className="bg-secondary text-secondary-foreground">
+        <div className="container mx-auto px-4 py-12">
+          <div className="flex justify-between items-center">
+            {/* Company Info */}
+            <div>
+            <Link href="/" >
+                            <Image src='/logo.png' width={100} height={100} alt="logo" />
                         </Link>
-                        <p className="mt-4 text-sm text-muted-foreground">
-                            Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                        </p>
-                        <div className="flex mt-6 space-x-4">
-                            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Facebook className="h-5 w-5" />
-                            </a>
-                            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Instagram className="h-5 w-5" />
-                            </a>
-                            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Twitter className="h-5 w-5" />
-                            </a>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 className="font-medium mb-4">Shop</h3>
-                        <ul className="space-y-2 text-sm">
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">All Products</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">New Arrivals</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Featured</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Sale</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 className="font-medium mb-4">Help</h3>
-                        <ul className="space-y-2 text-sm">
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Shipping</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Returns</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">FAQ</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Contact</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 className="font-medium mb-4">About</h3>
-                        <ul className="space-y-2 text-sm">
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Our Story</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Sustainability</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Press</a></li>
-                            <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Careers</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="border-t border-primary mt-12 pt-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center">
-                        <p className="text-sm text-muted-foreground mb-4 md:mb-0 uppercase">
-                            &copy; {currentYear} <a href="https://www.efoyetastore.com/">efoyeta store plc.</a> All rights reserved.
-                        </p>
-                        <div className="flex space-x-6">
-                            <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                                Privacy Policy
-                            </a>
-                            <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                                Terms of Service
-                            </a>
-                            <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                                Cookies
-                            </a>
-                        </div>
-                    </div>
-                </div>
+              <p className="text-sm text-secondary-foreground/80 mb-4">
+              Turning Small Capital into Big Opportunities.              </p>
+              <div className="flex gap-3">
+                <a href="#" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <PiTelegramLogo className="w-4 h-4" />
+                </a>
+                <a href="#" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <IoLogoTiktok className="w-4 h-4" />
+                </a>
+                <a href="#" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <Instagram className="w-4 h-4" />
+                </a>
+              </div>
             </div>
+
+  
+            <div className="flex flex-col items-left mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Smartphone className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold">Get the Efoyeta Store Mobile App</h3>
+            </div>
+            <p className="text-sm text-secondary-foreground/80 mb-6 text-center">
+              Shop wholesale products on the go with our mobile app
+            </p>
+                <a 
+                  href="https://play.google.com/store" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-all hover:scale-105"
+                >
+                  <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+                  </svg>
+                  <div className="text-left">
+                    <div className="text-xs opacity-80">Get it on</div>
+                    <div className="text-sm font-semibold">Google Play</div>
+                  </div>
+                </a>
+              </div>
+
+          </div>
+  
+          {/* Mobile App Download Section */}
+          <div className="mt-12 pt-8 border-t border-border/20">
+
+            
+            <div className="text-center text-sm text-secondary-foreground/60 uppercase">
+            &copy; {currentYear} <a href="https://www.efoyetastore.com/">efoyeta store plc.</a> All rights reserved.
+              
+            </div>
+          </div>
         </div>
+      </footer>
     );
 };

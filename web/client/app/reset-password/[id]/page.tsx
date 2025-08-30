@@ -40,9 +40,9 @@ export default function LoginPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center gap-2 text-left">
               <h1 className="text-2xl font-bold">Reset Password</h1>
-              <p className="text-balance text-sm text-muted-foreground">
+              {/* <p className="text-balance text-sm text-muted-foreground">
                 Lorem Ipsum and so on
-              </p>
+              </p> */}
             </div>
             <div className="grid gap-6">
               {errors.general && (

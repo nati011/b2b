@@ -59,9 +59,9 @@ const CheckYourEmail = () => {
             <h4 className="text-2xl font-semibold text-gray-900 mb-2">
               Email Sent Successfully
             </h4>
-            <p className="text-gray-600 mb-6 max-w-md">
+            {/* <p className="text-gray-600 mb-6 max-w-md">
               Lorem Ipsum and so on. Placeholder text
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

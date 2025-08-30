@@ -72,29 +72,35 @@ const ThankYou = () => {
                   </p>
                 </CardContent>
               </Card>
+              {
+                invoice && (
+                  <>
+ {/* Invoice */}
+ <InvoiceCard loading={loading} invoice={invoice} />
 
-              {/* Invoice */}
-              <InvoiceCard loading={loading} invoice={invoice} />
-
-              {/* Additional Actions */}
-              <div className="mt-8 text-center print:hidden">
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/">
-                    <Button variant="outline" className="w-full sm:w-auto">
-                      Continue Shopping
-                    </Button>
-                  </Link>
-                  <Button
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                      handlePrint();
-                    }}
-                  >
-                    Print Invoice
-                  </Button>
-                </div>
-              </div>
-            </>
+ {/* Additional Actions */}
+ <div className="mt-8 text-center print:hidden">
+   <div className="flex flex-col sm:flex-row gap-4 justify-center">
+     <Link href="/">
+       <Button variant="outline" className="w-full sm:w-auto">
+         Continue Shopping
+       </Button>
+     </Link>
+     <Button
+       className="w-full sm:w-auto"
+       onClick={() => {
+         handlePrint();
+       }}
+     >
+       Print Invoice
+     </Button>
+   </div>
+ </div>
+</>
+                )
+              }
+              </>
+             
           ) : (
             <>
               <div className="w-full flex flex-col gap-6 items-center justify-center text-center py-20">
