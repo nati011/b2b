@@ -26,7 +26,10 @@ export default function OverViewLayout({
   const {
     orders,
   } = useOrdersStore()
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.Total || 0), 0).toLocaleString();
+  const totalRevenue = orders
+  .filter(order => order.PaymentStatus?.toLowerCase() === 'accepted')
+  .reduce((sum, order) => sum + (order.Total || 0), 0)
+  .toLocaleString();
   const activeOrders = orders.filter(order => order.Status === PENDING_STATUS).length.toLocaleString();
   
   const stats = [
