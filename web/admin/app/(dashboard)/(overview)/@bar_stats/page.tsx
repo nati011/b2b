@@ -18,23 +18,15 @@ import {
 } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, Calendar } from 'lucide-react';
+import useOrdersStore from '@/app/libs/store/useOrderStore';
+import { Order } from '@/app/libs/types';
 
-export const description = 'An interactive bar chart showing order analytics';
 
-const chartData = [
-  { date: 'Jan', orders: 120, revenue: 2400 },
-  { date: 'Feb', orders: 180, revenue: 3600 },
-  { date: 'Mar', orders: 150, revenue: 3000 },
-  { date: 'Apr', orders: 220, revenue: 4400 },
-  { date: 'May', orders: 280, revenue: 5600 },
-  { date: 'Jun', orders: 320, revenue: 6400 },
-  { date: 'Jul', orders: 290, revenue: 5800 },
-  { date: 'Aug', orders: 350, revenue: 7000 },
-  { date: 'Sep', orders: 380, revenue: 7600 },
-  { date: 'Oct', orders: 420, revenue: 8400 },
-  { date: 'Nov', orders: 450, revenue: 9000 },
-  { date: 'Dec', orders: 500, revenue: 10000 }
-];
+type ChartData = {
+  date: string;
+  orders: number;
+  revenue: number;
+}
 
 const chartConfig = {
   orders: {
@@ -47,17 +39,63 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
+
+export function mapOrdersToChartDataComplete(orders: Order[]): ChartData[] {
+  const monthlyData = orders.reduce((acc, order) => {
+    const date = new Date(order.CreatedAt);
+    const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+    
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        date: monthKey,
+        orders: 0,
+        revenue: 0
+      };
+    }
+    
+    acc[monthKey].orders += 1;
+    if (order.PaymentStatus=='ACCEPTED'){
+      acc[monthKey].revenue += order.Total;
+    }
+    
+    return acc;
+  }, {} as Record<string, ChartData>);
+  
+  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  return monthOrder.map(month => monthlyData[month] || {
+    date: month,
+    orders: 0,
+    revenue: 0
+  });
+}
+
 export default function BarGraph() {
   const [activeChart, setActiveChart] = React.useState<keyof typeof chartConfig>('orders');
+
   const [timeRange, setTimeRange] = React.useState('12m');
+
+  const {
+    orders,
+    loading
+  } = useOrdersStore()
+
+  const chartData = React.useMemo(() => {
+    if (!orders || orders.length === 0) {
+      return [];
+    }
+    return mapOrdersToChartDataComplete(orders);
+  }, [orders]);
 
   const total = React.useMemo(
     () => ({
       orders: chartData.reduce((acc, curr) => acc + curr.orders, 0),
       revenue: chartData.reduce((acc, curr) => acc + curr.revenue, 0)
     }),
-    []
+    [chartData]
   );
+
 
   const [isClient, setIsClient] = React.useState(false);
 
@@ -92,20 +130,6 @@ export default function BarGraph() {
             Order Analytics
           </CardTitle>
           <CardDescription>Track your order performance over time</CardDescription>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="3m">Last 3 months</SelectItem>
-              <SelectItem value="6m">Last 6 months</SelectItem>
-              <SelectItem value="12m">Last 12 months</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </CardHeader>
       <CardContent className="p-6">
