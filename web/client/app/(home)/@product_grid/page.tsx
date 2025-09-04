@@ -90,7 +90,7 @@ export default function ProductGrid() {
           </>
         )}
       </div>
-      <div className="w-full flex items-center">
+      <div className="flex justify-center my-10">
       <Link href="/product">
           <Button variant="outline">
             Load All

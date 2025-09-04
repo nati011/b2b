@@ -166,7 +166,7 @@ const Cart = () => {
                                   {item.name}
                                 </h3>
                                 <p className="text-sm text-gray-500 mt-1">
-                                  ${item.price.toFixed(2)} each
+                                  {item.price.toLocaleString()} ETB each
                                 </p>
                               </div>
                               <Button
@@ -203,7 +203,7 @@ const Cart = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-gray-900">
-                                  ${(item.price * item.quantity).toFixed(2)}
+                                  {(item.price * item.quantity).toLocaleString()} ETB
                                 </p>
                               </div>
                             </div>
@@ -225,7 +225,7 @@ const Cart = () => {
                         <span className="text-gray-600">
                           Subtotal ({totalItems} items)
                         </span>
-                        <span className="font-medium">${totalPrice}</span>
+                        <span className="font-medium">{totalPrice.toLocaleString()} ETB</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="font-medium">
@@ -248,7 +248,7 @@ const Cart = () => {
                         Total
                       </span>
                       <span className="text-lg font-semibold text-gray-900">
-                        ${totalPrice}
+                        {totalPrice.toLocaleString()} ETB
                       </span>
                     </div>
 
