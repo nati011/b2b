@@ -118,6 +118,37 @@ func (m *Mock) GetByStatus(ctx context.Context, status string) (port.GetAllRespo
 	}, nil
 }
 
+func (m *Mock) GetByPaymentStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	var resp []port.GetResponse
+	for _, i := range m.orders {
+		if i.PaymentStatus == status {
+			items := []port.Item{}
+			for _, i := range i.Items {
+				items = append(items, port.Item{
+					ProductId: i.ProductId,
+					Quantity:  i.Quantity,
+				})
+			}
+			resp = append(resp, port.GetResponse{
+				Id:                 i.Id,
+				RetailerId:         i.RetailerId,
+				Items:              items,
+				Status:             i.Status,
+				PaymentStatus:      i.PaymentStatus,
+				DeliveryStatus:     i.DeliveryStatus,
+				ConfirmationStatus: i.ConfirmationStatus,
+				PaymentMethod:      i.PaymentMethod,
+			})
+		}
+	}
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
 func (m *Mock) GetAll(context.Context) (port.GetAllResponse, error) {
 	var resp []port.GetResponse
 	for _, i := range m.orders {

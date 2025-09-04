@@ -65,6 +65,7 @@ type Reader interface {
 	GetByID(context.Context, int) (GetResponse, error)
 	GetByRetailerID(context.Context, int) (GetAllResponse, error)
 	GetByStatus(context.Context, string) (GetAllResponse, error)
+	GetByPaymentStatus(context.Context, string) (GetAllResponse, error)
 	GetAll(context.Context) (GetAllResponse, error)
 }
 
