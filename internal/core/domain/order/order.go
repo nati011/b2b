@@ -102,8 +102,9 @@ type GetAllResponse struct {
 }
 
 type GetByParamRequest struct {
-	RetailerId int
-	Status     string
+	RetailerId    int
+	Status        string
+	PaymentStatus string
 }
 
 type UpdateRequest struct {
@@ -869,6 +870,50 @@ func (o *OrderService) GetByParam(ctx context.Context, req *GetByParamRequest) (
 
 	if req.Status != "" {
 		resp, err := o.DB.GetByStatus(ctx, req.Status)
+		if err != nil {
+			switch err {
+			case port_commons.ErrSysNoRows:
+				return GetAllResponse{}, ErrEmptyGetResponse
+			default:
+				return GetAllResponse{}, ErrUnknown
+			}
+		}
+
+		for _, i := range resp.List {
+			items := []Item{}
+			for _, i := range i.Items {
+				items = append(items, Item{
+					ProductId:   i.ProductId,
+					Quantity:    i.Quantity,
+					ProductName: i.ProductName,
+				})
+			}
+			alreadyPresent := false
+			for _, j := range return_response.List {
+				if j.Id == i.Id {
+					alreadyPresent = true
+				}
+			}
+			if !alreadyPresent {
+				return_response.List = append(return_response.List, GetResponse{
+					Id:             i.Id,
+					RetailerId:     i.RetailerId,
+					RetailerName:   i.RetailerName,
+					Items:          items,
+					Total:          float32(i.Total),
+					Status:         i.Status,
+					DeliveryStatus: i.DeliveryStatus,
+					PaymentStatus:  i.PaymentStatus,
+					CreatedAt:      i.CreatedAt,
+					ExpiresAt:      i.CreatedAt.Add(time.Duration(time.Duration(expiry_duration.ExpiryDurationInMinues).Minutes())),
+				})
+			}
+		}
+		return_response.TotalCount = resp.TotalCount
+	}
+
+	if req.PaymentStatus != "" {
+		resp, err := o.DB.GetByPaymentStatus(ctx, req.PaymentStatus)
 		if err != nil {
 			switch err {
 			case port_commons.ErrSysNoRows:
