@@ -11,5 +11,6 @@ func InitDefaultConfig(cfg config.Config, applicationService *application_core.C
 	log.Print("# initializing default configs...")
 	superadminRoleId := InitSuperadminRole(cfg, applicationService)
 	InitSuperAdminUser(superadminRoleId, cfg, applicationService)
-	// InitDistributorSuperadminRole(cfg, applicationService)
+	InitDistributorSuperadminRole(cfg, applicationService)
+	InitRetailerSuperadminRole(cfg, applicationService)
 }
