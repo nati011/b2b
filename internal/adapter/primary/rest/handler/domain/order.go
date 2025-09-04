@@ -285,9 +285,10 @@ func (o *Order) PostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 const (
-	CANCEL_COMMAND  = "cancel"
-	CONFIRM_COMMAND = "confirm"
-	REJECT_COMMAND  = "reject"
+	ORDER_CANCEL_COMMAND  = "cancel"
+	ORDER_CONFIRM_COMMAND = "confirm"
+	ORDER_REJECT_COMMAND  = "reject"
+	ORDER_DELIVER_COMMAND = "deliver"
 )
 
 func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
@@ -304,7 +305,7 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		switch paramCommandValue {
-		case CANCEL_COMMAND:
+		case ORDER_CANCEL_COMMAND:
 			err = p.service.Cancel(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
@@ -316,7 +317,7 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-		case CONFIRM_COMMAND:
+		case ORDER_CONFIRM_COMMAND:
 			err = p.service.ConfirmOrder(r.Context(), typedParamId)
 			if err != nil {
 				switch err {
@@ -328,8 +329,23 @@ func (p *Order) CommandHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-		case REJECT_COMMAND:
+		case ORDER_REJECT_COMMAND:
 			err = p.service.RejectOrder(r.Context(), typedParamId)
+			if err != nil {
+				switch err {
+				case product.ErrUnknown:
+					util.ServerErrorResponse(w, err)
+					return
+				default:
+					util.RequestErrorResponse(w, err)
+					return
+				}
+			}
+		case ORDER_DELIVER_COMMAND:
+			_, err = p.service.UpdateDeliveryStatus(r.Context(), &order.UpdateRequest{
+				Id:             typedParamId,
+				DeliveryStatus: order.DELIVERY_COMPLETED_STATUS,
+			})
 			if err != nil {
 				switch err {
 				case product.ErrUnknown:
