@@ -263,6 +263,75 @@ func (p *Postgres) GetByStatus(ctx context.Context, status string) (port.GetAllR
 	return response, nil
 }
 
+func (p *Postgres) GetByPaymentStatus(ctx context.Context, status string) (port.GetAllResponse, error) {
+	var response port.GetAllResponse
+	var responseBase port.GetResponse
+
+	query := "SELECT * FROM public.get_orders_by_payment_status($1, $2, $3);"
+	args := []any{&status, p.Pagination.Limit, p.Pagination.Offset}
+	dest := []any{
+		&responseBase.Id,
+		&responseBase.RetailerId,
+		&responseBase.RetailerName,
+		&responseBase.Status,
+		&responseBase.Total,
+		&responseBase.PaymentStatus,
+		&responseBase.DeliveryStatus,
+		&responseBase.PaymentMethod,
+		&responseBase.CreatedAt,
+		&response.TotalCount,
+		&responseBase.ConfirmationStatus,
+	}
+
+	result, err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(p.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithMultiRowResultSet(args, dest),
+	).DoMultiQuery()
+
+	if err != nil {
+		return port.GetAllResponse{}, err
+	}
+
+	for _, res := range result {
+		v, _ := strconv.ParseFloat(res[4].(string), 64)
+		val := port.GetResponse{
+			Id:                 int(res[0].(int64)),
+			RetailerId:         int(res[1].(int64)),
+			RetailerName:       res[2].(string),
+			Status:             res[3].(string),
+			Total:              v,
+			PaymentStatus:      res[5].(string),
+			DeliveryStatus:     res[6].(string),
+			PaymentMethod:      res[7].(string),
+			CreatedAt:          res[8].(time.Time),
+			ConfirmationStatus: res[10].(string),
+		}
+
+		response.TotalCount = res[9].(int64)
+
+		allOrderItems, err := p.GetAllOrderItems(ctx, val.Id)
+		if err != nil {
+			return port.GetAllResponse{}, err
+		}
+
+		for _, s := range allOrderItems.Items {
+			val.Items = append(val.Items, port.Item{
+				ProductId:    s.ProductId,
+				ProductName:  s.ProductName,
+				ProductPrice: s.Price,
+				Quantity:     s.Quantity,
+				Price:        s.Price,
+			})
+		}
+
+		response.List = append(response.List, val)
+	}
+
+	return response, nil
+}
+
 func (p *Postgres) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	var response port.GetAllResponse
 	var responseBase port.GetResponse

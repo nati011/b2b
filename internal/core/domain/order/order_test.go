@@ -551,6 +551,35 @@ func Test_Get_By_Param_happyPath(t *testing.T) {
 		}
 	})
 
+	t.Run("getByPaymentStatus", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		in := &PlaceRequest{
+			PaymentPartnerId: DigitalPaymentPartnerId,
+			RetailerId:       retailer_id,
+			Items: []Item{
+				{
+					ProductId: productId,
+					Quantity:  19},
+			},
+		}
+		_, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		//check
+		got, err := container.OrderService.GetByParam(ctx, &GetByParamRequest{
+			PaymentStatus: PAYMENT_PENDING_STATUS,
+		})
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: %v", err)
+		}
+		wantLen := 1
+		if len(got.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
 	t.Run("aggregate", func(t *testing.T) {
 		t.Cleanup(teardown)
 		ctx := context.Background()
