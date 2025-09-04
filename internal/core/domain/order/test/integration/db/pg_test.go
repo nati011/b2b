@@ -269,6 +269,44 @@ func Test_Read(t *testing.T) {
 		}
 	})
 
+	t.Run("get_by_payment_status", func(t *testing.T) {
+		t.Cleanup(teardown)
+		setup()
+		ctx := context.Background()
+		in := &order.PlaceRequest{
+			RetailerId: retailer_id,
+			Items: []order.Item{
+				{
+					ProductId: product_id,
+					Quantity:  1},
+			},
+			PaymentPartnerId: digitalPaymentPartnerId,
+		}
+		order_resp, err := container.OrderService.Place(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to place order err: %v", err)
+		}
+		//update
+		_, err = container.OrderService.UpdateStatus(ctx, &order.UpdateRequest{
+			Id:            order_resp.Id,
+			PaymentStatus: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+		//check
+		got, err := container.OrderService.GetByParam(ctx, &order.GetByParamRequest{
+			PaymentStatus: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to fetch order err: err %v", err)
+		}
+		wantLen := 1
+		if len(got.List) != wantLen {
+			t.Errorf("Expected len: %v Got: %v", wantLen, len(got.List))
+		}
+	})
+
 	t.Run("get_all", func(t *testing.T) {
 		t.Cleanup(teardown)
 		setup()
