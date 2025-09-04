@@ -24,7 +24,7 @@ func InitOrderExpiry(s gocron.Scheduler, domainServices *domain_core.Container) 
 	if err != nil {
 		log.Panicf("failed to setup order expiry cron err: %v", err)
 	}
-	log.Printf("init order expiry cron id: %v", j.ID())
+	log.Printf("Init order expiry cron id: %v", j.ID())
 }
 
 const EXPIRE_AFTER time.Duration = 10 * time.Hour
