@@ -66,10 +66,6 @@ func main() {
 	InitCron(s, application_container, domain_container)
 	s.Start()
 
-	InitEventLister(application_container, domain_container)
-
-	InitDefaultConfig(cfg, application_container)
-
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
 	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
 	srv := &http.Server{
@@ -85,4 +81,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	InitEventLister(application_container, domain_container)
+
+	InitDefaultConfig(cfg, application_container)
+
 }
