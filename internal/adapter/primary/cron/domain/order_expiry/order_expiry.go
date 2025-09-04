@@ -34,7 +34,7 @@ func InitOrderExpiry(
 	if err != nil {
 		log.Fatalf("failed to setup order expiry cron err: %v", err)
 	}
-	log.Printf("init order expiry cron id: %v", j.ID())
+	log.Printf("Init order expiry cron id: %v", j.ID())
 }
 
 func CancelExpiredOrders(
