@@ -91,6 +91,9 @@ func (k *KeyCloakAdapter) GetToken(ctx context.Context, clientID, clientSecret, 
 	}
 
 	if resp.IsError() {
+		if string(resp.Body()) == "{\"error\":\"invalid_token\",\"error_description\":\"User already exists\"}" {
+			return nil, fmt.Errorf("token request failed with status %d: email: %v already in use", resp.StatusCode(), resp.String())
+		}
 		return nil, fmt.Errorf("token request failed with status %d: %s", resp.StatusCode(), resp.String())
 	}
 
