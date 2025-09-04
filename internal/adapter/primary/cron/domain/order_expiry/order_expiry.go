@@ -46,7 +46,7 @@ func CancelExpiredOrders(
 	//get all orders
 	ctx := context.Background()
 	orders, err := orderService.GetByParam(ctx, &order.GetByParamRequest{
-		Status: order.PENDING_STATUS,
+		PaymentStatus: order.PAYMENT_PENDING_STATUS,
 	})
 	if err != nil {
 		switch err {
