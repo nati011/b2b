@@ -3382,8 +3382,7 @@ RETURNS TABLE(id INT,
               payment_method VARCHAR(255),
               created_date TIMESTAMP,
               total_count BIGINT,
-              confirmation_status VARCHAR(255)
-              )
+              confirmation_status VARCHAR(255))
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -3412,7 +3411,6 @@ BEGIN
     OFFSET o_offset;
 END;
 $$;
-
 
 CREATE OR REPLACE FUNCTION public.get_all_orders(
     t_limit INT,
