@@ -3367,6 +3367,53 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_orders_by_payment_status(
+    o_p_status VARCHAR(255),
+    o_limit INT,
+    o_offset INT
+)
+RETURNS TABLE(id INT, 
+              retailer_id INT,
+              retailer_name VARCHAR(255),
+              status VARCHAR(255),
+              total DECIMAL(12,2),
+              payment_status VARCHAR(255),
+              delivery_status VARCHAR(255),
+              payment_method VARCHAR(255),
+              created_date TIMESTAMP,
+              total_count BIGINT,
+              confirmation_status VARCHAR(255)
+              )
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT o.id, 
+        o.retailer_id,
+        r.name,
+        o.status, 
+        o.total,
+        o.payment_status,
+        o.delivery_status,
+        par.payment_method,
+        o.created_date,
+        COUNT(*) OVER() AS total_count,
+        o.confirmation_status
+    FROM public.orders o
+    JOIN public.retailer_business_info r
+    ON r.retailer_id = o.retailer_id
+    JOIN public.payments p 
+    ON p.order_id=o.id
+    JOIN payment_partners par
+    ON par.id = p.partner_id
+    WHERE o.payment_status = o_p_status
+    AND o.is_deleted = FALSE
+    LIMIT o_limit
+    OFFSET o_offset;
+END;
+$$;
+
+
 CREATE OR REPLACE FUNCTION public.get_all_orders(
     t_limit INT,
     t_offset INT
