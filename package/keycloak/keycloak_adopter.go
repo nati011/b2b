@@ -3,6 +3,7 @@ package keycloak
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -36,6 +37,11 @@ type TokenOptions struct {
 	Audience         string `json:"audience,omitempty"`
 	SubjectIssuer    string `json:"subject_issuer"`
 }
+
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUnknown           = errors.New("unknown error has occured")
+)
 
 func NewClient(basePath string, realm string) *KeyCloakAdapter {
 	c := KeyCloakAdapter{
@@ -92,7 +98,7 @@ func (k *KeyCloakAdapter) GetToken(ctx context.Context, clientID, clientSecret, 
 
 	if resp.IsError() {
 		if string(resp.Body()) == "{\"error\":\"invalid_token\",\"error_description\":\"User already exists\"}" {
-			return nil, fmt.Errorf("token request failed with status %d: email: %v already in use", resp.StatusCode(), resp.String())
+			return nil, ErrUserAlreadyExists
 		}
 		return nil, fmt.Errorf("token request failed with status %d: %s", resp.StatusCode(), resp.String())
 	}
