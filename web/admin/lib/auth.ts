@@ -242,17 +242,17 @@ export const authOptions: AuthOptions = {
               user,
               userIdentity
             }
-          } catch (error) {
+          } catch (error: any) {
             if (axios.isAxiosError(error)) {
               const axiosError = error as AxiosError<{ message?: string }>
               const errorMessage = axiosError.response?.data?.message || "Authentication failed"
               console.log(axiosError.response?.data)
-              console.error("Authentication 11:", axiosError.response?.data, axiosError.response?.status)
+              console.error("Authentication 11:", axiosError)
               throw new Error(errorMessage)
             }
             
             console.error("Authentication 22:", error)
-            throw new Error("Authentication failed")
+            throw new Error(error.message || "Authentication failed")
           }
         }
       })
