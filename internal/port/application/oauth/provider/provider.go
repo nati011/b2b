@@ -7,8 +7,9 @@ import (
 
 // system errors
 var (
-	ErrSysUnknown       = errors.New("unknown error")
-	ErrSysFailedToLogin = errors.New("authentication failed")
+	ErrSysUnknown        = errors.New("unknown error")
+	ErrSysFailedToLogin  = errors.New("authentication failed")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type OAuthRequest struct {
