@@ -134,8 +134,11 @@ func (a *AuthHandler) SSOHandler(w http.ResponseWriter, r *http.Request) {
 	sso_resp, err := a.oauthService.GoogleSignOn(r.Context(), requestBody)
 	if err != nil {
 		switch err {
-		case auth.ErrUnknown:
+		case oauth.ErrUnknown:
 			util.ServerErrorResponse(w, err)
+			return
+		case oauth.ErrUserAlreadyExists:
+			util.RequestErrorResponse(w, err)
 			return
 		default:
 			util.UnauthorizedResponse(w)
