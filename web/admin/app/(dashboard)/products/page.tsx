@@ -240,7 +240,7 @@ export default function Products() {
             placeholder="Quantity"
             value={stockQuantity}
             type="number"
-            onChange={(e) => e.target.value}
+            onChange={(e) => setStockQuantity(e.target.value)}
             autoFocus
           />
           <AlertDialogFooter>
