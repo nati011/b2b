@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrFailedToAuthenticate = errors.New("failed to authenticate")
+	ErrUserAlreadyExists    = errors.New("user already exists")
 	ErrUnknown              = errors.New("unknown error has occured")
 )
 
@@ -70,6 +71,8 @@ func (o *OAuthService) GoogleSignOn(ctx context.Context, request OAuthRequest) (
 		switch err {
 		case port.ErrSysFailedToLogin:
 			return OAuthResponse{}, ErrFailedToAuthenticate
+		case port.ErrUserAlreadyExists:
+			return OAuthResponse{}, ErrUserAlreadyExists
 		default:
 			return OAuthResponse{}, ErrUnknown
 		}
