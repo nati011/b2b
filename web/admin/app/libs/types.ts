@@ -155,6 +155,7 @@ export type Order = {
   Status: string
   DeliveryStatus: string
   PaymentStatus: string
+  ConfirmationStatus: string
   CreatedAt: string
 }
 

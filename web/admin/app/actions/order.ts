@@ -21,13 +21,17 @@ export async function getOrderById(orderId: number) {
     }
 }
 
-export async function updateOrderStatus(orderId: string, status: string) {
+export async function updateOrderStatus(orderId: number, status: string) {
     try {
-        const response = await axiosIns.put(`/order/${orderId}`, { status });
+        const response = await axiosIns.patch(`/order?id=${orderId}&command=${status}`);
         return response.data;
-    } catch (error) {
-        throw new Error('Failed to update order status');
+    } catch (error: any) {
+        if (error.response) {
+            throw error.response.data.message || "Failed to update order status";
+        }
+        throw "Failed to update order status";
     }
+        
 }
 
 export async function createOrder(orderData: any) {

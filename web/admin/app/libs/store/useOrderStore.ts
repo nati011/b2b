@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import axiosIns from '@/app/libs/axios'
 import { Invoice, Order, Transaction } from '@/app/libs/types';
-import { createOrder, fetchOrders, getOrderById } from '@/app/actions/order';
+import { createOrder, fetchOrders, getOrderById,updateOrderStatus } from '@/app/actions/order';
 import { fetchTransactions } from '@/app/actions/transaction';
 import { fetchInvoice } from '@/app/actions/invoice';
+import { toast } from 'sonner';
 
 interface OrdersStore {
     orders: Order[];
@@ -21,6 +22,7 @@ interface OrdersStore {
     createOrders: (OrdersData: Partial<Order>) => Promise<void>;
     fetchTransactions: (url?: string) => Promise<void>
     fetchInvoice: (order_id?: number) => Promise<void>
+    updateOrderStatus: (status: string, id: number) => Promise<void>
 }
 
 const useOrdersStore = create<OrdersStore>((set) => ({
@@ -34,6 +36,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         Status: '',
         DeliveryStatus: '',
         PaymentStatus: '',
+        ConfirmationStatus:'',
         CreatedAt: ''
     },
     transactions: [],
@@ -99,8 +102,10 @@ const useOrdersStore = create<OrdersStore>((set) => ({
                 transactions: response.data.body.transactions,
                 loading: false
             });
-        } catch (error) {
+        } catch (error: any) {
             set({ error: 'Failed to fetch transactions', loading: false });
+            toast.error(error.message || "Failed to fetch transactions");
+
         }
     },
     fetchInvoice: async (order_id?: number) => {
@@ -114,8 +119,22 @@ const useOrdersStore = create<OrdersStore>((set) => ({
             console.log(response.data)
         } catch (error: any) {
             set({ error: error.message, loading: false });
+            toast.error(error.message || "Failed to fetch invoice");
+
         }
     },
+    updateOrderStatus: async(status: string, order_id: number) =>{
+        set({ loading: true, error: null });
+        try {
+            const response = await updateOrderStatus(order_id, status)
+            
+            await useOrdersStore.getState().fetchOrder(order_id)
+        } catch (error: any) {
+            set({ error: error.message, loading: false });
+            toast.error(error.message || "Failed to update order status");
+
+        }
+    }
 }));
 
 export default useOrdersStore;

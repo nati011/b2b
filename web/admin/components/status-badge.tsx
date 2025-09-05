@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CANCELED_STATUS, COMPLETED_STATUS, PENDING_STATUS } from '@/app/libs/enums';
+import { CANCELED_STATUS, COMPLETED_STATUS, PENDING_STATUS, ACCEPTED_STATUS } from '@/app/libs/enums';
 
 
 export default function StatusBadge({
@@ -10,10 +10,16 @@ export default function StatusBadge({
 }) {
     const statusConfig = {
         [CANCELED_STATUS]: {
+            bg: "bg-red-100/50",
+            text: "text-red-800",
+            border: "border-red-200",
+            label: "Canceled"
+        },
+        [ACCEPTED_STATUS]: {
             bg: "bg-blue-100/50",
             text: "text-blue-800",
             border: "border-blue-200",
-            label: "Canceled"
+            label: "Accepted"
         },
         [PENDING_STATUS]: {
             bg: "bg-amber-100/50",
