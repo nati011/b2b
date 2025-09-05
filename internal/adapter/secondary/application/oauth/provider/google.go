@@ -33,7 +33,12 @@ func (k *KeycloakOAuthProvider) GoogleSignOn(ctx context.Context, request *port.
 	token, err := client.GetToken(ctx, k.KeycloakClientId, k.KeycloakClientSecret, request.Token, "google")
 
 	if err != nil {
-		return port.OAuthResponse{}, port.ErrSysFailedToLogin
+		switch err {
+		case keycloak.ErrUserAlreadyExists:
+			return port.OAuthResponse{}, port.ErrUserAlreadyExists
+		default:
+			return port.OAuthResponse{}, port.ErrSysFailedToLogin
+		}
 	}
 
 	return port.OAuthResponse{
