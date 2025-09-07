@@ -22,7 +22,6 @@ const useDistributorStore = create<DistributorStore>((set) => ({
         set({ loading: true, error: null, success: null });
         try {
             const distributor_id = await RegisterDistributor(profile);
-            console.log(distributor_id)
             set({ loading: false, success: "Distributor registered successfully", distributor_id: distributor_id });
         } catch (error: any) {
             const errMsg = typeof error === "string" ? error : error?.message || "Failed to register distributor";
@@ -32,10 +31,8 @@ const useDistributorStore = create<DistributorStore>((set) => ({
     buySubscription: async (profile: BuySubscriptionRequest) => {
         set({ loading: true, error: null, success: null });
         try {
-            console.log(profile)
             const response = await BuySubscription(profile);
             if (response) {
-                console.log(response)
                 window.location.href = response.checkout_url
             }
             set({ loading: false});

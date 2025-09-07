@@ -27,7 +27,6 @@ export const useUserStore = create<UserStore>((set) => ({
         set({loading: true})
         try{
             const user = await getCurrentUser()
-            console.log(user)
             set({loading:false, user: user})
             
         } catch (error: any) {

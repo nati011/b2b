@@ -61,7 +61,6 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await fetchOrders(10, page, status);
-            console.log(response)
             set({
                 orders: response.List,
                 totalOrder: response.TotalCount,
@@ -75,7 +74,6 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await getOrderById(order_id);
-            console.log(response)
             set({
                 order: response.body.order,
                 loading: false
@@ -93,7 +91,6 @@ const useOrdersStore = create<OrdersStore>((set) => ({
                 invoice: response,
                 invoiceloading: false
             });
-            console.log(response.data)
         } catch (error: any) {
             set({ loading: false, error: error.message });
             toast.error(error.message)
@@ -103,7 +100,6 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await createOrder(request)
-            console.log(response)
             localStorage.setItem("tx_ref", response.tx_ref)
             if (response.checkout_url) {
                 window.location.href = response.checkout_url
@@ -118,7 +114,6 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await completePayment(order_id)
-            console.log(response)
             localStorage.setItem("tx_ref", response)
             if (response) {
                 window.location.href = response.checkout_url

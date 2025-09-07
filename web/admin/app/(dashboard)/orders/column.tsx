@@ -27,7 +27,6 @@ export const columns: ColumnDef<Order>[] = [
         header: "Status",
         cell: ({ row }) => {
             const status = row.getValue("Status");
-            console.log(status)
             const statusConfig = {
                 [CANCELED_STATUS]: {
                     bg: "bg-red-100/50",

@@ -41,7 +41,6 @@ const useInvoiceStore = create<InvoiceStore>((set) => ({
                 invoice: response,
                 loading: false
             });
-            console.log(response.data)
         } catch (error: any) {
 
             set({ error: error.message, loading: false });

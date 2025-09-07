@@ -78,8 +78,6 @@ export default function DistributorsForm() {
             position.coords.latitude,
             position.coords.longitude
           ]
-          console.log(position.coords.latitude,
-            position.coords.longitude)
           setMarkerPosition(newPosition)
           setFormData(prev => ({ ...prev, latitude: newPosition[0].toString(), longitude: newPosition[1].toString() }))
         },

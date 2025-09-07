@@ -133,7 +133,6 @@ export function useAuth() {
   // Handle authentication errors
   useEffect(() => {
     if (extendedSession?.error) {
-      console.error('Authentication error:', extendedSession.error)
       
       if (extendedSession.error === 'RefreshAccessTokenError') {
         const userId = extendedSession.user?.id.toString()

@@ -258,8 +258,6 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log("______________________");
-      console.log(session, token);
       if (
         (token as AppToken).error === "RefreshAccessTokenError" &&
         !(token as AppToken).accessToken

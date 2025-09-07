@@ -12,6 +12,12 @@ import { ACL } from '@/lib/constants'
 
             const token = await getToken({ req: request })
             const pathname = request.nextUrl.pathname
+            // @ts-ignore
+            if(token?.error && protectedPaths.includes(pathname)){
+                const signInUrl = new URL('/auth/signin', request.url)
+                signInUrl.searchParams.set('callbackUrl', request.nextUrl.pathname)
+                return NextResponse.redirect(signInUrl)
+            }
 
             if ((!token) && protectedPaths.includes(pathname)) {
                 const signInUrl = new URL('/auth/signin', request.url)

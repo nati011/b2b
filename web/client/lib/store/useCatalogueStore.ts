@@ -20,7 +20,6 @@ const useCatalogueStore = create<CatalogueStore>((set) => ({
     previous: null,
     catalogue: null,
     setProduct: (product: Catalogue) => {
-        console.log(product)
         set({ catalogue: product })
     },
 }));

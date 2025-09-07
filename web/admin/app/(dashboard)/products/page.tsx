@@ -77,7 +77,6 @@ export default function Products() {
       header: "",
       cell: ({ row }) => {
         const image = row.original.Images[0].ImageUrl
-        console.log(image)
         return <div className="border rounded w-fit">
           <Image src={image} alt="product-image" width={100} height={100} />
         </div>

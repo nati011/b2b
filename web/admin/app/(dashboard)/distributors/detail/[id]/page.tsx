@@ -174,12 +174,10 @@ export default function DistributorDetail() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
                 <Heading page={pages} heading="Distributor Details" subheading={`${distributor?.name || 'Loading...'}`} />
-                <div className="flex items-center gap-2">
+                <div className="ml-auto w-full bg-red">
                     {getStatusBadge()}
                 </div>
-            </div>
 
             <Tabs defaultValue="business" className="w-full">
                 <TabsList className="w-full">
