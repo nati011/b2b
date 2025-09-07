@@ -83,8 +83,10 @@ type Prodvider interface {
 	GetAllPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
 	Place(ctx context.Context, req *PlaceRequest) (SubscribeResponse, error)
 	InitPayment(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
+	GetSubscription(ctx context.Context, subscriptionId int) (GetSubscriptionResponse, error)
 	GetSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
 	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
+	RenewSubscription(ctx context.Context, subscriptionId int) error
 }
 
 type DistributorSubscriptionService struct {
@@ -230,6 +232,12 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 	}, nil
 }
 
+func (d *DistributorSubscriptionService) RenewSubscription(ctx context.Context, subscriptionId int) error {
+	//validate subscription exists
+	// _, err := d.GetSubscription(ctx, subscriptionId)
+	return nil
+}
+
 func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId int) (SubscribeResponse, error) {
 	//get subscription
 	sub, err := d.GetSubscriptionByDistributorId(ctx, distId)
@@ -272,6 +280,26 @@ func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId
 		Id:          sub.Id,
 		CheckoutUrl: pay_resp.CheckoutUrl,
 		TxRef:       pay_resp.TransactionRef,
+	}, nil
+}
+
+func (d *DistributorSubscriptionService) GetSubscription(ctx context.Context, subId int) (GetSubscriptionResponse, error) {
+	resp, err := d.DB.GetSubscription(ctx, subId)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetSubscriptionResponse{}, ErrEmptyGetContent
+		default:
+			log.Printf("failed to get sub: %v", err)
+			return GetSubscriptionResponse{}, ErrUnknown
+		}
+	}
+
+	return GetSubscriptionResponse{
+		Id:                 resp.Id,
+		SubscriptionPlanId: resp.SubscriptionPlanId,
+		DistributorId:      resp.DistributorId,
+		Status:             resp.Status,
 	}, nil
 }
 
