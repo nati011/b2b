@@ -1089,7 +1089,7 @@ AS $$
         JOIN public.db_locations db_loc ON db_loc.business_id = db.id
         LEFT JOIN distributor_reviews dr ON dr.distributor_id = d.id
         JOIN distributor_users du ON du.distributor_id = d.id
-        WHERE du.user_id = 92 AND d.is_deleted = FALSE;
+        WHERE du.user_id = d_user_id AND d.is_deleted = FALSE;
     END;
 $$;
 

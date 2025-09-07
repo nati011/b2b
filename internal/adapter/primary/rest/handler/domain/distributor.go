@@ -46,6 +46,7 @@ type CreateDistributorUserRequest struct {
 	Username  string `json:"username"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
+	Password  string `json:"password"`
 }
 
 type GetDistributorResponse struct {
@@ -249,6 +250,7 @@ func (de *Distributor) CreateUserHandler(w http.ResponseWriter, r *http.Request)
 		Username:      requestBody.Phone,
 		Email:         requestBody.Email,
 		Phone:         requestBody.Phone,
+		Password:      requestBody.Password,
 	})
 	if err != nil {
 		switch err {

@@ -98,6 +98,7 @@ type CreateUserRequest struct {
 	Username      string
 	Email         string
 	Phone         string
+	Password      string
 }
 
 type Provider interface {
@@ -150,6 +151,7 @@ func (d *DistributorService) CreateUser(ctx context.Context, req *CreateUserRequ
 		Username:  req.Username,
 		Email:     req.Email,
 		Phone:     req.Phone,
+		Password:  req.Password,
 	})
 	if err != nil {
 		switch err {
@@ -188,12 +190,13 @@ func (d *DistributorService) Create(ctx context.Context, req *CreateRequest) (in
 	// FIXME: make flexible...hardcoded
 	distributorRoleName := "distributor"
 
-	user_id, err := d.UserService.Create(ctx, user.NewCreateRequestNoPassword(
+	user_id, err := d.UserService.Create(ctx, user.NewCreateRequest(
 		req.FirstName,
 		req.LastName,
 		req.Email,
 		req.Username,
 		req.Phone,
+		req.Password,
 	).WithRole(distributorRoleName))
 	if err != nil {
 		switch err {
