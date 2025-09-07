@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { Distributor, DistributorRequest, DistributorUserRequest, UserDetail } from '@/app/libs/types';
 import { Create, GetAll, GetDistributorUser, GetById, DistributorOnBoardingReview, UpdateDistributorStatus, CreateDistributorUser } from '@/app/actions/distributor';
+import { toast } from 'sonner';
 
 interface DistributorsStore {
     success: string | null
@@ -92,6 +93,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
                 loading: false
             });
         } catch (error: any) {
+            toast.error(error.message)
             set({ error: error.message, loading: false });
         }
     },

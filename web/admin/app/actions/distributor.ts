@@ -40,9 +40,12 @@ export const GetDistributorUser = async () => {
         const response = await axiosIns.get(`/distributor/user`);
         console.log(response.data)
         return response.data.body.users
-    } catch (error) {
-        console.log(error)
-        throw error
+    } catch (error: any) {
+        if (error.response) {
+            console.log(error.response)
+            throw new Error(error.response.data.message)
+        }
+        throw new Error("Failed to fetch agents")
     }
 }
 

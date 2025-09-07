@@ -35,7 +35,7 @@ export default function Distributors() {
         loading={loading}
         button={true}
         buttonObj={{ name: "Register Distributor Agents", url: "/distributors/agents/form" }}
-        search="name"
+        search="Username"
         searchPlaceholder="Search distributor agents..."
       />
     </>
