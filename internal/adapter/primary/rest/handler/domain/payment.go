@@ -74,7 +74,7 @@ func (p *Payment) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/payment/verify", func(w http.ResponseWriter, r *http.Request) {
-		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.VerifyPaymentHandler)).ServeHTTP(w, r)
+		p.authMiddleware.RequireNoAuthentication(http.HandlerFunc(p.VerifyPaymentHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("POST /api/v1/payment/confirm/{tx_ref}", func(w http.ResponseWriter, r *http.Request) {
