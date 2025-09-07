@@ -164,7 +164,7 @@ func (p *PaymentVerificationService) Callback(ctx context.Context, gatewayId int
 		if err != nil {
 			log.Printf("Error Occured while updating payment status: %v", err)
 		}
-		_, err = p.order.UpdateConfirmationStatus(ctx, payment.OrderId, order.PAYMENT_ACCEPTED_STATUS)
+		_, err = p.order.UpdateConfirmationStatus(ctx, payment.OrderId, order.ORDER_CONFIRMED)
 		if err != nil {
 			log.Printf("Error Occured while updating payment status: %v", err)
 		}
