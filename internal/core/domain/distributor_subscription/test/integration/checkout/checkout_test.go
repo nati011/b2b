@@ -136,3 +136,83 @@ func Test_Checkout_happypath(t *testing.T) {
 		}
 	})
 }
+
+// func Test_renew_happypath(t *testing.T) {
+// 	t.Run("generate_renew_url_upon_placement_digital", func(t *testing.T) {
+// 		t.Cleanup(teardown)
+// 		ctx := context.Background()
+// 		planId, err := container.SubscriptionService.CreatePlan(ctx, &distributor_subscription.CreatePlanRequest{
+// 			Name:        "test",
+// 			Price:       101,
+// 			TermInMonth: 11,
+// 			Description: "test",
+// 		})
+// 		if err != nil {
+// 			t.Fatalf("failed to create plan err: %v", err)
+// 		}
+// 		subs_resp, err := container.SubscriptionService.Place(ctx, &distributor_subscription.PlaceRequest{
+// 			SubscriptionPlanId: planId,
+// 			DistributorId:      distributorId,
+// 			PaymentPartnerId:   DigitalPaymentPartnerId,
+// 		})
+// 		if err != nil {
+// 			t.Fatalf("failed to place order err: %v", err)
+// 		}
+// 		if strings.Split(subs_resp.CheckoutUrl, " ") == nil {
+// 			t.Errorf("Expected checkoutUrl different from nil got: %v", subs_resp.CheckoutUrl)
+// 		}
+// 	})
+
+// 	t.Run("checkout_upon_renew_manual", func(t *testing.T) {
+// 		t.Cleanup(teardown)
+// 		ctx := context.Background()
+// 		planId, err := container.SubscriptionService.CreatePlan(ctx, &distributor_subscription.CreatePlanRequest{
+// 			Name:        "test",
+// 			Price:       101,
+// 			TermInMonth: 11,
+// 			Description: "test",
+// 		})
+// 		if err != nil {
+// 			t.Fatalf("failed to create plan err: %v", err)
+// 		}
+// 		_, err = container.SubscriptionService.Place(ctx, &distributor_subscription.PlaceRequest{
+// 			SubscriptionPlanId: planId,
+// 			DistributorId:      distributorId,
+// 			PaymentPartnerId:   ManualPaymentPartnerId,
+// 		})
+// 		if err != nil {
+// 			t.Fatalf("failed to place order err: %v", err)
+// 		}
+// 	})
+
+// 	t.Run("generate_checkout_url_upon_renew", func(t *testing.T) {
+// 		t.Cleanup(teardown)
+// 		t.Cleanup(teardown)
+// 		ctx := context.Background()
+// 		planId, err := container.SubscriptionService.CreatePlan(ctx, &distributor_subscription.CreatePlanRequest{
+// 			Name:        "test",
+// 			Price:       101,
+// 			TermInMonth: 11,
+// 			Description: "test",
+// 		})
+// 		if err != nil {
+// 			t.Fatalf("failed to create plan err: %v", err)
+// 		}
+// 		_, err = container.SubscriptionService.Place(ctx, &distributor_subscription.PlaceRequest{
+// 			SubscriptionPlanId: planId,
+// 			DistributorId:      distributorId,
+// 			PaymentPartnerId:   ManualPaymentPartnerId,
+// 		})
+// 		if err != nil {
+// 			t.Fatalf("failed to place order err: %v", err)
+// 		}
+
+// 		init_resp, err := container.SubscriptionService.InitPayment(ctx, distributorId)
+// 		if err != nil {
+// 			t.Fatalf("Failed to init payment err: %v", err)
+// 		}
+// 		if strings.Split(init_resp.CheckoutUrl, " ") == nil {
+// 			t.Errorf("Expected checkoutUrl different from nil got: %v", init_resp.CheckoutUrl)
+// 		}
+// 	})
+// }
