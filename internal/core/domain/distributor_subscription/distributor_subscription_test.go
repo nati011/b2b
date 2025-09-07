@@ -373,6 +373,7 @@ func Test_GetSubscription_happyPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get subsctiption err: %v", err)
 	}
+
 	all_resp, err := container.SubscriptionService.GetSubscription(ctx, sub.Id)
 	if err != nil {
 		t.Fatalf("failed to get plans err: %v", err)
