@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
+	"time"
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
@@ -21,13 +23,15 @@ var (
 	ErrPriceCannotBeNegative                   = errors.New(" price cannot be negative")
 	ErrSubscriptionAlreadyExistsForDistributor = errors.New(" subscription already exists for distributor")
 	ErrSubscriptionNotFoundForDistributor      = errors.New(" subscription not found for distributor")
+	ErrSubscriptionNotFound                    = errors.New(" subscription not found")
 	ErrPaymentPartnerIdNotSupported            = errors.New(" payment partner not supported")
+	ErrSubsctiptionAlreadyActive               = errors.New(" subscription already active")
 	ErrUnknown                                 = errors.New(" unknown error")
 )
 
 var (
-	STATUS_SUBSCRIPTION_ACTIVE   = "active"
-	STATUS_SUBSCRIPTION_INACTIVE = "inactive"
+	STATUS_SUBSCRIPTION_ACTIVE  = "active"
+	STATUS_SUBSCRIPTION_EXPIRED = "expired"
 )
 
 type PlaceRequest struct {
@@ -37,10 +41,11 @@ type PlaceRequest struct {
 }
 
 type GetSubscriptionResponse struct {
-	Id                 int    `json:"id"`
-	SubscriptionPlanId int    `json:"subscription_plan_id"`
-	DistributorId      int    `json:"distributor_id"`
-	Status             string `json:"status"`
+	Id                 int       `json:"id"`
+	SubscriptionPlanId int       `json:"subscription_plan_id"`
+	DistributorId      int       `json:"distributor_id"`
+	Status             string    `json:"status"`
+	CreatedDate        time.Time `json:"created_date"`
 }
 
 type GetAllSubscriptionResponse struct {
@@ -83,8 +88,10 @@ type Prodvider interface {
 	GetAllPlan(ctx context.Context) (GetAllSubscriptionPlanResponse, error)
 	Place(ctx context.Context, req *PlaceRequest) (SubscribeResponse, error)
 	InitPayment(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
+	GetSubscription(ctx context.Context, subscriptionId int) (GetSubscriptionResponse, error)
 	GetSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
 	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
+	RenewSubscription(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
 }
 
 type DistributorSubscriptionService struct {
@@ -198,6 +205,7 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 
 	//create subscription record
 	sub_id, err := d.DB.Place(ctx, &port.PlaceRequest{
+		PaymentPartnerId:   req.PaymentPartnerId,
 		SubscriptionPlanId: sub_resp.Id,
 		DistributorId:      req.DistributorId,
 		Status:             STATUS_SUBSCRIPTION_ACTIVE,
@@ -228,6 +236,31 @@ func (d *DistributorSubscriptionService) Place(ctx context.Context, req *PlaceRe
 		CheckoutUrl: pay_resp.CheckoutUrl,
 		TxRef:       pay_resp.TransactionRef,
 	}, nil
+}
+
+func (d *DistributorSubscriptionService) RenewSubscription(ctx context.Context, subscriptionId int) (SubscribeResponse, error) {
+	//validate subscription exists
+	sub, err := d.GetSubscription(ctx, subscriptionId)
+	if err != nil {
+		return SubscribeResponse{}, ErrSubscriptionNotFound
+	}
+
+	//validate if subscription has expired
+	if strings.Split(sub.Status, "") == nil {
+		log.Printf("failed to get subscription status")
+		return SubscribeResponse{}, ErrUnknown
+	}
+
+	if sub.Status == STATUS_SUBSCRIPTION_ACTIVE {
+		return SubscribeResponse{}, ErrSubsctiptionAlreadyActive
+	}
+
+	resp, err := d.InitPayment(ctx, sub.DistributorId)
+	if err != nil {
+		log.Printf("faield to init payment %v", err.Error())
+		return SubscribeResponse{}, ErrUnknown
+	}
+	return resp, nil
 }
 
 func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId int) (SubscribeResponse, error) {
@@ -272,6 +305,26 @@ func (d *DistributorSubscriptionService) InitPayment(ctx context.Context, distId
 		Id:          sub.Id,
 		CheckoutUrl: pay_resp.CheckoutUrl,
 		TxRef:       pay_resp.TransactionRef,
+	}, nil
+}
+
+func (d *DistributorSubscriptionService) GetSubscription(ctx context.Context, subId int) (GetSubscriptionResponse, error) {
+	resp, err := d.DB.GetSubscription(ctx, subId)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetSubscriptionResponse{}, ErrEmptyGetContent
+		default:
+			log.Printf("failed to get sub: %v", err)
+			return GetSubscriptionResponse{}, ErrUnknown
+		}
+	}
+
+	return GetSubscriptionResponse{
+		Id:                 resp.Id,
+		SubscriptionPlanId: resp.SubscriptionPlanId,
+		DistributorId:      resp.DistributorId,
+		Status:             resp.Status,
 	}, nil
 }
 
