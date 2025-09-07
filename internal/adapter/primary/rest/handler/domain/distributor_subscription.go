@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -13,6 +14,10 @@ import (
 	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
 	distributor_Subscription "b2b.nati011.github.com/internal/core/domain/distributor_subscription"
+)
+
+var (
+	ErrUnknownDistributorSubsctiptionCommand = errors.New("unknown command")
 )
 
 type CreatePlanRequest struct {
@@ -62,6 +67,10 @@ func (d *Distributor_Subscription) Routes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /api/v1/subscription", func(w http.ResponseWriter, r *http.Request) {
 		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.CreateSubscriptionHandler)).ServeHTTP(w, r)
+	})
+
+	mux.HandleFunc("PUT /api/v1/subscription/{id}", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireNoAuthentication(http.HandlerFunc(d.SubscriptionCommandHandler)).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/plan", func(w http.ResponseWriter, r *http.Request) {
@@ -169,6 +178,30 @@ func (d *Distributor_Subscription) CreateSubscriptionPlanHandler(w http.Response
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"id": resp_id})
+}
+
+var (
+	COMMAND_SUBSCRIPTION_RENEW = "renew"
+)
+
+func (d *Distributor_Subscription) SubscriptionCommandHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamCommand = "command"
+	paramValues := r.URL.Query()
+	paramCommandValue := paramValues.Get(ParamCommand)
+
+	if paramCommandValue != "" {
+		typedParamId, err := util.GetPathParam(r, 4)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		switch paramCommandValue {
+		case COMMAND_SUBSCRIPTION_RENEW:
+			d.service.RenewSubscription(r.Context(), typedParamId)
+		default:
+			util.RequestErrorResponse(w, ErrUnknownDistributorSubsctiptionCommand)
+		}
+	}
 }
 
 func (d *Distributor_Subscription) CreateSubscriptionHandler(w http.ResponseWriter, r *http.Request) {

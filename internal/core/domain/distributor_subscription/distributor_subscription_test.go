@@ -353,6 +353,36 @@ func Test_GetAllSubscriptions_happyPath(t *testing.T) {
 	}
 }
 
+func Test_GetSubscription_happyPath(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	planId, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+		Name:        "test",
+		Price:       101,
+		TermInMonth: 11,
+		Description: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to get subscription err: %v", err)
+	}
+	sub, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
+		SubscriptionPlanId: planId,
+		DistributorId:      distributorId,
+		PaymentPartnerId:   DigitalPaymentPartnerId,
+	})
+	if err != nil {
+		t.Fatalf("failed to get subsctiption err: %v", err)
+	}
+
+	all_resp, err := container.SubscriptionService.GetSubscription(ctx, sub.Id)
+	if err != nil {
+		t.Fatalf("failed to get plans err: %v", err)
+	}
+	if all_resp.Id != sub.Id {
+		t.Errorf("Expected id: %v Got: %v", sub.Id, all_resp.Id)
+	}
+}
+
 func Test_GetAllSubscriptions_unhappyPath(t *testing.T) {
 	t.Run("emptyGetContent", func(t *testing.T) {
 		t.Cleanup(teardown)

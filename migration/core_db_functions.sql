@@ -4186,7 +4186,8 @@ RETURNS TABLE(
     subscription_plan_id INT,
     distributor_id INT,
     p_payment_partner_id INT,
-    staus VARCHAR(255)
+    staus VARCHAR(255),
+    created_date TIMESTAMP
 )
 LANGUAGE plpgsql
 AS $$
@@ -4196,9 +4197,37 @@ BEGIN
            ds.subscription_plan_id,
            ds.distributor_id,
            ds.payment_partner_Id,
-           ds.status
+           ds.status,
+           ds.created_date
     FROM public.distributor_subscriptions ds
     WHERE ds.distributor_id = p_distributor_id
+      AND ds.is_deleted = false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_subscription_by_id(
+    p_sub_id INT
+)
+RETURNS TABLE(
+    id INT,
+    subscription_plan_id INT,
+    distributor_id INT,
+    p_payment_partner_id INT,
+    staus VARCHAR(255),
+    created_date TIMESTAMP
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT ds.id,
+           ds.subscription_plan_id,
+           ds.distributor_id,
+           ds.payment_partner_Id,
+           ds.status,
+           ds.created_date
+    FROM public.distributor_subscriptions ds
+    WHERE ds._id = p_sub_id
       AND ds.is_deleted = false;
 END;
 $$;
@@ -4209,7 +4238,8 @@ RETURNS TABLE(
     subscription_plan_id INT,
     distributor_id INT,
     p_payment_partner_id INT,
-    status VARCHAR(255)
+    status VARCHAR(255),
+    created_date TIMESTAMP
 )
 LANGUAGE plpgsql
 AS $$
@@ -4219,7 +4249,8 @@ BEGIN
            ds.subscription_plan_id,
            ds.distributor_id,
            ds.payment_partner_Id,
-           ds.status
+           ds.status,
+           ds.created_date
     FROM public.distributor_subscriptions ds
     WHERE ds.is_deleted = false;
 END;

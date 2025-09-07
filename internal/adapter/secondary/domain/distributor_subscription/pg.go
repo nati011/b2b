@@ -132,6 +132,32 @@ func (m *Postgres) Place(ctx context.Context, req *port.PlaceRequest) (int, erro
 	return subId, nil
 }
 
+func (m *Postgres) GetSubscription(ctx context.Context, subId int) (port.GetSubscriptionResponse, error) {
+	var response port.GetSubscriptionResponse
+	query := "SELECT * FROM public.get_subscription_by_id($1);"
+	result := []any{
+		&response.Id,
+		&response.SubscriptionPlanId,
+		&response.DistributorId,
+		&response.Status}
+	args := []any{&subId}
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(m.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return port.GetSubscriptionResponse{}, err
+	}
+	response.Id = *result[0].(*int)
+	response.SubscriptionPlanId = *result[1].(*int)
+	response.DistributorId = *result[2].(*int)
+	response.Status = *result[3].(*string)
+
+	return response, nil
+}
+
 func (m *Postgres) GetAllSubscriptions(ctx context.Context) (port.GetAllSubscriptionResponse, error) {
 	var response port.GetAllSubscriptionResponse
 	var responseBase port.GetSubscriptionResponse
