@@ -66,8 +66,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 	response.RetailerName = *result[2].(*string)
 	response.Status = *result[3].(*string)
 	response.Total = *result[4].(*float64)
-	response.DeliveryStatus = *result[5].(*string)
-	response.PaymentStatus = *result[6].(*string)
+	response.PaymentStatus = *result[5].(*string)
+	response.DeliveryStatus = *result[6].(*string)
 	response.ConfirmationStatus = *result[7].(*string)
 	response.CreatedAt = *result[8].(*time.Time)
 
