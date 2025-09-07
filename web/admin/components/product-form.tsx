@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,11 @@ import useProductsStore from "@/app/libs/store/useProductStore";
 import useCategoryStore from "@/app/libs/store/useCategories";
 import useDistributorsStore from "@/app/libs/store/useDistributorStore";
 
+// Define permission interface to match your auth structure
+interface Permission {
+  Name: string;
+}
+
 interface ProductFormProps {
   initialData?: Partial<any>;
   isEdit?: boolean;
@@ -36,8 +42,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
 }) => {
   console.log("Initial Data_________");
   console.log(initialData);
+  
+  const { data: session } = useSession();
   const [product, setProduct] = useState(initialData || {});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const {
     loading,
     success,
@@ -46,13 +55,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
     updateProduct,
     fetchProductDetail,
   } = useProductsStore();
+  
   const { categories, fetchCategories } = useCategoryStore();
-
   const { distributors, fetchDistributors } = useDistributorsStore();
 
+  const hasPermission = (permissionName: string): boolean => {
+    const userPermissions = (session as any)?.user?.permissions?.List || [];
+    return userPermissions.some((perm: Permission) => perm.Name === permissionName);
+  };
+
+  const canAccessDistributors = hasPermission('distributor');
+
   useEffect(() => {
-    fetchDistributors("ALL");
-  }, []);
+    if (canAccessDistributors) {
+      fetchDistributors("ALL");
+    } else {
+      console.log("User does not have distributor permissions - skipping distributor fetch");
+    }
+  }, [canAccessDistributors]);
+
   useEffect(() => {
     fetchCategories();
     if (isEdit && initialData?.Id) {
@@ -86,6 +107,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           },
           {} as Record<string, string>
         ) || {};
+      
       const productData = {
         ...product,
         Id: product.Id,
@@ -132,6 +154,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
     setProduct(initialData || {});
   }, [initialData]);
+
   useEffect(() => {
     if (success != null) {
       toast.success(success);
@@ -143,6 +166,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       toast.error(error);
     }
   }, [error]);
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="space-y-6">
@@ -206,27 +230,30 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     />
                   </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="Distributor">Distributor</Label>
-                    <Select onValueChange={(e)=>setProduct((prev) => ({
-      ...prev,
-      DistributorId: e.valueOf()
-    }))}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a distributor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Distributor</SelectLabel>
-                          {distributors?.map((d) => (
-                            <SelectItem value={d.id.toString()}>
-                              {d.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {canAccessDistributors && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="Distributor">Distributor</Label>
+                      <Select onValueChange={(e) => setProduct((prev) => ({
+                        ...prev,
+                        DistributorId: e.valueOf()
+                      }))}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a distributor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Distributor</SelectLabel>
+                            {distributors?.map((d) => (
+                              <SelectItem key={d.id} value={d.id.toString()}>
+                                {d.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   <div className="grid gap-2">
                     <Label>Categories</Label>
                     <MultiSelect
