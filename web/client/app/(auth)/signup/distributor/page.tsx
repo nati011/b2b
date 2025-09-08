@@ -180,7 +180,6 @@ export default function DistributorsForm() {
         toast.error(error);
         return;
       }
-      toast.success("Distributor registered successfully!");
       setShowSuccess(true);
     } catch (e: any) {
       toast.error(e?.message || "Failed to register distributor.");
