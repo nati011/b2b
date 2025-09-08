@@ -19,6 +19,11 @@ type GetSubscriptionResponse struct {
 	Status             string
 }
 
+type UpdateSubscriptionRequest struct {
+	Id     int
+	Status string
+}
+
 type GetAllSubscriptionResponse struct {
 	List []GetSubscriptionResponse
 }
@@ -53,6 +58,7 @@ type Reader interface {
 type Writer interface {
 	Place(ctx context.Context, req *PlaceRequest) (int, error)
 	CreatePlan(ctx context.Context, req *CreatePlanRequest) (int, error)
+	UpdateStatus(ctx context.Context, req *UpdateSubscriptionRequest) error
 }
 
 type DB interface {

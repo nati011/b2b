@@ -215,3 +215,24 @@ func (m *Postgres) GetSubscriptionByDistributorId(ctx context.Context, distribut
 
 	return response, nil
 }
+
+func (m *Postgres) UpdateStatus(ctx context.Context, req *port.UpdateSubscriptionRequest) error {
+	query := "SELECT * FROM public.update_distributor_subscription_status($1, $2);"
+
+	result := []any{}
+	args := []any{
+		&req.Id,
+		&req.Status,
+	}
+
+	err := query_handler.NewQuery(
+		query_handler.WithCtx(ctx),
+		query_handler.WithDB(m.Pool),
+		query_handler.WithQuery(query),
+		query_handler.WithSingleRowResultSet(args, result),
+	).DoSingleQuery()
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -91,6 +91,7 @@ type Prodvider interface {
 	GetSubscription(ctx context.Context, subscriptionId int) (GetSubscriptionResponse, error)
 	GetSubscriptions(ctx context.Context) (GetAllSubscriptionResponse, error)
 	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
+	ExpireSubscription(ctx context.Context, subscriptionId int) error
 	RenewSubscription(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
 }
 
@@ -368,4 +369,16 @@ func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx cont
 		DistributorId:      resp.DistributorId,
 		Status:             resp.Status,
 	}, nil
+}
+
+func (d *DistributorSubscriptionService) ExpireSubscription(ctx context.Context, subscriptionId int) error {
+	err := d.DB.UpdateStatus(ctx, &port.UpdateSubscriptionRequest{
+		Id:     subscriptionId,
+		Status: STATUS_SUBSCRIPTION_EXPIRED,
+	})
+	if err != nil {
+		log.Printf("failed to expire subsctiption")
+		return ErrUnknown
+	}
+	return nil
 }
