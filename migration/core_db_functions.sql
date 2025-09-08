@@ -4289,6 +4289,17 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.update_distributor_subscription_status(
+    p_id INT,
+    p_status VARCHAR(255)
+) RETURNS void
+LANGUAGE plpgsql AS $$
+BEGIN
+    UPDATE public.distributor_subscriptions
+    SET status = p_status
+    WHERE distributor_subscriptions.id = p_id;
+END;
+$$;
 
 -- subscription_plans ---------------
     

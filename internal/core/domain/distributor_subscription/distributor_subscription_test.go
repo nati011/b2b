@@ -436,3 +436,39 @@ func Test_GetSubscriptionByDistributorId_unhappyPath(t *testing.T) {
 		}
 	})
 }
+
+func Test_ExpireSubscriptionChangesStatusToExpired(t *testing.T) {
+	t.Cleanup(teardown)
+	ctx := context.Background()
+	planId, err := container.SubscriptionService.CreatePlan(ctx, &CreatePlanRequest{
+		Name:        "test",
+		Price:       101,
+		TermInMonth: 11,
+		Description: "test",
+	})
+	if err != nil {
+		t.Fatalf("failed to create plan err: %v", err)
+	}
+	sub, err := container.SubscriptionService.Place(ctx, &PlaceRequest{
+		SubscriptionPlanId: planId,
+		DistributorId:      distributorId,
+		PaymentPartnerId:   DigitalPaymentPartnerId,
+	})
+	if err != nil {
+		t.Fatalf("failed to place order err: %v", err)
+	}
+
+	err = container.SubscriptionService.ExpireSubscription(ctx, sub.Id)
+	if err != nil {
+		t.Fatalf("failed to trigger expre subscription")
+	}
+
+	sub_resp, err := container.SubscriptionService.GetSubscription(ctx, sub.Id)
+	if err != nil {
+		t.Fatalf("failed to get subsctiption")
+	}
+
+	if sub_resp.Status != STATUS_SUBSCRIPTION_EXPIRED {
+		t.Errorf("Expected status: %v Got: %v", STATUS_SUBSCRIPTION_EXPIRED, sub_resp.Status)
+	}
+}
