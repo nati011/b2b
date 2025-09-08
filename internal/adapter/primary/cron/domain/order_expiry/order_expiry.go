@@ -19,10 +19,9 @@ func InitOrderExpiry(
 	PaymentService *payment.Provider,
 	PaymentPartnerService *payment_partner.Provider) {
 
+	const WAIT_DURATION = 10 * time.Minute
 	j, err := s.NewJob(
-		gocron.DurationJob(
-			1*time.Minute,
-		),
+		gocron.DurationJob(WAIT_DURATION),
 		gocron.NewTask(
 			CancelExpiredOrders,
 			*OrderService,
@@ -42,7 +41,7 @@ func CancelExpiredOrders(
 	configService config.Provider,
 	paymentService payment.Provider,
 	paymentPartnerService payment_partner.Provider) {
-	log.Printf("# Autmatic Order expiry cron initiated")
+	log.Printf("# Automatic Order expiry cron initiated")
 	//get all orders
 	ctx := context.Background()
 	orders, err := orderService.GetByParam(ctx, &order.GetByParamRequest{
