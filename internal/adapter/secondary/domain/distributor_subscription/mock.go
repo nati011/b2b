@@ -96,6 +96,26 @@ func (m *DistributorSubscriptionMock) GetSubscription(ctx context.Context, subId
 	return port.GetSubscriptionResponse{}, port_commons.ErrSysNoRows
 }
 
+func (m *DistributorSubscriptionMock) UpdateStatus(ctx context.Context, req *port.UpdateSubscriptionRequest) error {
+	subs := []MockSubscription{}
+	for _, i := range m.Subs {
+		if i.Id == req.Id {
+			subs = append(subs, MockSubscription{
+				Id:                 i.Id,
+				SubscriptionPlanId: i.SubscriptionPlanId,
+				DistributorId:      i.DistributorId,
+				PaymentPartnerId:   i.PaymentPartnerId,
+				Status:             req.Status,
+			})
+		} else {
+			subs = append(subs, MockSubscription(i))
+		}
+
+	}
+	m.Subs = subs
+	return nil
+}
+
 func (m *DistributorSubscriptionMock) GetSubscriptionByDistributorId(ctx context.Context, distributorId int) (port.GetSubscriptionResponse, error) {
 	for _, i := range m.Subs {
 		if i.DistributorId == distributorId {
