@@ -1,4 +1,4 @@
-package order_expiry
+package order
 
 import (
 	"context"
@@ -19,10 +19,9 @@ func InitOrderExpiry(
 	PaymentService *payment.Provider,
 	PaymentPartnerService *payment_partner.Provider) {
 
+	const WAIT_DURATION = 10 * time.Minute
 	j, err := s.NewJob(
-		gocron.DurationJob(
-			1*time.Minute,
-		),
+		gocron.DurationJob(WAIT_DURATION),
 		gocron.NewTask(
 			CancelExpiredOrders,
 			*OrderService,
@@ -42,7 +41,8 @@ func CancelExpiredOrders(
 	configService config.Provider,
 	paymentService payment.Provider,
 	paymentPartnerService payment_partner.Provider) {
-	log.Printf("# Autmatic Order expiry cron initiated")
+
+	log.Printf("# Automatic Order expiry cron initiated")
 	//get all orders
 	ctx := context.Background()
 	orders, err := orderService.GetByParam(ctx, &order.GetByParamRequest{
@@ -78,7 +78,7 @@ func CancelExpiredOrders(
 		if partner.PaymentMethod == payment_partner.PAYMENT_METHOD_DIGITAL && o.PaymentStatus == order.PAYMENT_PENDING_STATUS {
 			// cancel order with digital payment option after x period if unsettled
 			if now.Sub(o.CreatedAt) > time.Duration(expireAfterDurationInMinutes) {
-				log.Printf("# Canceling order Id: %v Placed by retailerId: %v | retailerName: %v", o.RetailerId, o.RetailerName)
+				log.Printf("# Canceling orderId: %v Placed by retailerId: %v | retailerName: %v", o.Id, o.RetailerId, o.RetailerName)
 				err = orderService.Cancel(ctx, o.Id)
 				if err != nil {
 					log.Printf("Failed to cancel order err: %v Order ID: %v", err, o.Id)
@@ -88,7 +88,7 @@ func CancelExpiredOrders(
 			// cancel order with manual payment option after x period if unconfirmed(manual order confirmation)…
 
 			if now.Sub(o.CreatedAt) > time.Duration(expireAfterDurationInMinutes) && o.ConfirmationStatus != order.ORDER_CONFIRMED {
-				log.Printf("# Canceling order Id: %v Placed by retailerId: %v | retailerName: %v", o.RetailerId, o.RetailerName)
+				log.Printf("# Canceling order Id: %v Placed by retailerId: %v | retailerName: %v", o.Id, o.RetailerId, o.RetailerName)
 				err = orderService.Cancel(ctx, o.Id)
 				if err != nil {
 					log.Printf("Failed to cancel order err: %v Order ID: %v", err, o.Id)
