@@ -1,4 +1,4 @@
-package subscriptionexpiry
+package subscription
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 func InitSubscriptionExpiry(
 	s gocron.Scheduler,
-	d distributor_subscription.Prodvider,
+	d *distributor_subscription.Prodvider,
 ) {
 	const WAIT_DURATION = 10 * time.Minute
 	j, err := s.NewJob(

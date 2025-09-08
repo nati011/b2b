@@ -1,4 +1,4 @@
-package order_expiry
+package order
 
 import (
 	"context"
