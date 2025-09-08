@@ -21,6 +21,6 @@ func BuildCrons(scheduler gocron.Scheduler, applicationServices *application_cor
 	//Subscription Expiry
 	subscription.InitSubscriptionExpiry(
 		scheduler,
-		&domainServices.DistributorSubscriptionService)
+		domainServices.DistributorSubscriptionService)
 	return nil
 }
