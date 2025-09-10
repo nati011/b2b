@@ -45,8 +45,8 @@ func (p *Postgres) GetByID(ctx context.Context, id int) (port.GetResponse, error
 		&response.RetailerName,
 		&response.Status,
 		&response.Total,
-		&response.DeliveryStatus,
 		&response.PaymentStatus,
+		&response.DeliveryStatus,
 		&response.ConfirmationStatus,
 		&response.CreatedAt,
 	}

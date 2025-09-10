@@ -26,7 +26,9 @@ func NewIntegrationTestContainer(db *sql.DB) TestContainer {
 	container.SubscriptionService = distributor_subscription.NewDistributorSubscriptionService(
 		adapter.NewPostgres(db),
 		container.CheckoutService,
-		container.PartnerService)
+		container.PartnerService,
+		container.DistributorService,
+	)
 	return container
 }
 
