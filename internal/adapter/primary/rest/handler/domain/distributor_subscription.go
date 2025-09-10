@@ -91,6 +91,10 @@ func (d *Distributor_Subscription) Routes(mux *http.ServeMux) {
 		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetSubscriptionPlanByContextHandler)).ServeHTTP(w, r)
 	})
 
+	mux.HandleFunc("GET /api/v1/subscription/distributor", func(w http.ResponseWriter, r *http.Request) {
+		d.authMiddleware.RequireAuthentication(http.HandlerFunc(d.GetSubscriptionPlanByDistributorIdHandler)).ServeHTTP(w, r)
+	})
+
 }
 
 func (d *Distributor_Subscription) GetSubscriptionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +232,27 @@ func (d *Distributor_Subscription) GetSubscriptionPlanByContextHandler(w http.Re
 		}
 	}
 	util.OperationSuccessResponse(w, util.Envelope{"plan": resp_plan})
+}
 
+func (d *Distributor_Subscription) GetSubscriptionPlanByDistributorIdHandler(w http.ResponseWriter, r *http.Request) {
+	const ParamId = "id"
+	paramValues := r.URL.Query()
+	paramIdValue := paramValues.Get(ParamId)
+	resp := distributor_Subscription.GetSubscriptionResponse{}
+	if paramIdValue != "" {
+		typedParamId, err := strconv.Atoi(paramIdValue)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		resp, err = d.service.GetSubscriptionByDistributorId(r.Context(), typedParamId)
+		if err != nil {
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"subscription": resp})
 }
 
 func (d *Distributor_Subscription) CreateSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
