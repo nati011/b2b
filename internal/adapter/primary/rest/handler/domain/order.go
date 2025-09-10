@@ -79,13 +79,15 @@ func InitOrder() {
 }
 
 type Order struct {
-	authMiddleware middleware.Auth
-	service        order.Provider
+	authMiddleware                   middleware.Auth
+	distribuotSubscriptionMiddleware middleware.DistributorSubscription
+	service                          order.Provider
 }
 
 func (o *Order) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	o.service = domainService.OrderService
 	o.authMiddleware = *applicationServices.AuthMiddleware
+	o.distribuotSubscriptionMiddleware = domainService.DistributorSubscriptonMiddleware
 	return nil
 }
 
@@ -111,7 +113,7 @@ func (o *Order) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("GET /api/v1/orders/distributor", func(w http.ResponseWriter, r *http.Request) {
-		o.authMiddleware.RequireAuthentication(http.HandlerFunc(o.GetDistributorOrders)).ServeHTTP(w, r)
+		o.authMiddleware.RequireAuthentication(o.distribuotSubscriptionMiddleware.RequireSubscription(http.HandlerFunc(o.GetDistributorOrders))).ServeHTTP(w, r)
 	})
 }
 
