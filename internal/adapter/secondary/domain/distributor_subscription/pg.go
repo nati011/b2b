@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"time"
 
 	query_handler "b2b.nati011.github.com/internal/adapter/secondary/sql"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_subscription"
@@ -195,9 +196,13 @@ func (m *Postgres) GetSubscriptionByDistributorId(ctx context.Context, distribut
 	query := "SELECT * FROM public.get_subscription_by_distributor_id($1);"
 	result := []any{
 		&response.Id,
+		&response.SubscriptionName,
 		&response.SubscriptionPlanId,
 		&response.DistributorId,
-		&response.Status}
+		&response.PaymentPartnerId,
+		&response.Status,
+		&response.CreatedDate,
+	}
 	args := []any{&distributorId}
 	err := query_handler.NewQuery(
 		query_handler.WithCtx(ctx),
@@ -209,9 +214,12 @@ func (m *Postgres) GetSubscriptionByDistributorId(ctx context.Context, distribut
 		return port.GetSubscriptionResponse{}, err
 	}
 	response.Id = *result[0].(*int)
-	response.SubscriptionPlanId = *result[1].(*int)
-	response.DistributorId = *result[2].(*int)
-	response.Status = *result[3].(*string)
+	response.SubscriptionName = *result[1].(*string)
+	response.SubscriptionPlanId = *result[2].(*int)
+	response.DistributorId = *result[3].(*int)
+	response.PaymentPartnerId = *result[4].(*int)
+	response.Status = *result[5].(*string)
+	response.CreatedDate = *result[6].(*time.Time)
 
 	return response, nil
 }
