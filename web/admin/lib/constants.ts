@@ -9,5 +9,4 @@ export const ACL: Record<string, string[]> = {
     '/products':['product'],
     '/retailers':['retailer'],
     '/role':['role'],
-    '/transactions':['transaction']
-}
+    '/transactions':['transaction']}
