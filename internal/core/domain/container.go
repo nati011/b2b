@@ -84,8 +84,8 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitInvoiceService()
 	container.InitRetailerService()
 	container.InitDistributorApprovalService()
-	container.InitDistributorSubscriptionService()
 	container.InitDistributorService()
+	container.InitDistributorSubscriptionService()
 	container.InitProductService()
 	container.InitConfigService()
 	container.InitOrderService()
@@ -148,6 +148,7 @@ func (m *Container) InitDistributorSubscriptionService() {
 		distributor_subscription_db_port.NewPostgres(m.db),
 		m.ApplicationServices.CheckoutService,
 		m.ApplicationServices.PaymentPartnerService,
+		m.DistributorService,
 	)
 }
 
