@@ -317,7 +317,6 @@ export const authOptions: AuthOptions = {
           return refreshedToken
         }
 
-        // No refresh token available
         return {
           ...token,
           error: "TokenExpiredError"
@@ -329,7 +328,6 @@ export const authOptions: AuthOptions = {
         
         if (appToken.error === "RefreshAccessTokenError" && !appToken.accessToken) {
           session.user = undefined
-          session.expires = new Date(0).toISOString()
           return session
         }
         

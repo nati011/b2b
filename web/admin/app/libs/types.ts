@@ -238,3 +238,12 @@ export type UserDetail = {
 	Phone:     string
 	Username:  string
 }
+
+export type Subscription = {
+  id: number
+  subscription_plan_name: string
+  subscription_plan_id: number
+  distributor_id: number
+  status: string
+  created_date: Date
+}
