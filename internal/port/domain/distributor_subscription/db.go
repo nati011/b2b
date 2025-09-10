@@ -2,6 +2,7 @@ package distributorApproval
 
 import (
 	"context"
+	"time"
 )
 
 type PlaceRequest struct {
@@ -13,10 +14,12 @@ type PlaceRequest struct {
 
 type GetSubscriptionResponse struct {
 	Id                 int
+	SubscriptionName   string
 	SubscriptionPlanId int
 	DistributorId      int
 	PaymentPartnerId   int
 	Status             string
+	CreatedDate        time.Time
 }
 
 type UpdateSubscriptionRequest struct {
