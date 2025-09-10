@@ -2328,7 +2328,7 @@ BEGIN
     JOIN public.distributor_subscriptions d
     ON d.id = p.distributor_id
     WHERE p.is_deleted = FALSE 
-    AND d.status = 'ACTIVE';
+    AND d.status = 'active';
 END;
 $$;
 
@@ -2619,7 +2619,7 @@ BEGIN
     JOIN public.distributor_subscriptions d
     ON d.id = p.distributor_id
     WHERE p.is_deleted = FALSE 
-    AND d.status = 'ACTIVE';
+    AND d.status = 'active';
 END;
 $$;
 
