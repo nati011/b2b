@@ -21,12 +21,12 @@ type DistributorSubscription struct {
 	distributor              distributor.Provider
 }
 
-func NewDistributorSubscription(
-	ds distributor_subscription.Prodvider,
-	d distributor.Provider) DistributorSubscription {
+func NewDistributorSubscriptionMiddleware(
+	distributor_subscription distributor_subscription.Prodvider,
+	distributor distributor.Provider) DistributorSubscription {
 	return DistributorSubscription{
-		distributor_subscription: ds,
-		distributor:              d,
+		distributor_subscription: distributor_subscription,
+		distributor:              distributor,
 	}
 }
 
