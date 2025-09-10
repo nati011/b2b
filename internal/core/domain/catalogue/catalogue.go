@@ -247,7 +247,7 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 	// configurable products
 	var resp []GetCatalogueResponse
 	products_belonging_to_cps := []int{}
-	cp, err := c.ConfigurableProductservice.GetAll(ctx)
+	cp, err := c.ConfigurableProductservice.Catalogue(ctx)
 	if err != nil {
 		switch err {
 		case configurable_product.ErrEmptyGetContent:
@@ -320,7 +320,7 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 	}
 
 	// standalone products
-	pr, err := c.ProductService.GetAll(ctx)
+	pr, err := c.ProductService.Catalogue(ctx)
 	if err != nil {
 		switch err {
 		case product.ErrEmptyGetContent:

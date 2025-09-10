@@ -86,6 +86,7 @@ type UpdateAttributes struct {
 type Reader interface {
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
+	Catalogue(ctx context.Context) (GetAllResponse, error)
 	GetByName(ctx context.Context, name string) (GetAllResponse, error)
 	GetByExternalId(ctx context.Context, extId string) (GetAllResponse, error)
 }

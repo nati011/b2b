@@ -84,6 +84,7 @@ type Provider interface {
 	Disable(ctx context.Context, id int) error
 	Get(ctx context.Context, id int) (GetResponse, error)
 	GetAll(ctx context.Context) (GetAllResponse, error)
+	Catalogue(ctx context.Context) (GetAllResponse, error)
 	GetByParam(ctx context.Context, req *GetByParamRequest) (GetAllResponse, error)
 	Update(ctx context.Context, req *UpdateRequest) error
 }
@@ -263,6 +264,46 @@ func (c *ConfigurableProductService) GetByParam(ctx context.Context, req *GetByP
 }
 
 func (c *ConfigurableProductService) GetAll(ctx context.Context) (GetAllResponse, error) {
+	resp := []GetResponse{}
+	get_by_name_resp, err := c.DB.GetAll(ctx)
+	if err != nil {
+		switch err {
+		case port_commons.ErrSysNoRows:
+			return GetAllResponse{}, ErrEmptyGetContent
+		default:
+			return GetAllResponse{}, ErrUnknown
+		}
+	}
+	for _, i := range get_by_name_resp.List {
+		var images []Image
+		for _, value := range i.Images {
+			image := Image{
+				ImageUrl: value.ImageUrl,
+				BlurHash: value.BlurHash,
+			}
+			images = append(images, image)
+		}
+		resp = append(resp, GetResponse{
+			Id:            i.Id,
+			Name:          i.Name,
+			Desc:          i.Desc,
+			ExternalId:    i.ExternalId,
+			Products:      i.Products,
+			IsAvailable:   i.IsAvailable,
+			PriceRange:    PriceRangeResponse(i.PriceRange),
+			CategoryId:    i.CategoryId,
+			DistributorId: i.DistributorId,
+			Images:        images,
+			Attributes:    i.Attributes,
+		})
+	}
+
+	return GetAllResponse{
+		List: resp,
+	}, nil
+}
+
+func (c *ConfigurableProductService) Catalogue(ctx context.Context) (GetAllResponse, error) {
 	resp := []GetResponse{}
 	get_by_name_resp, err := c.DB.GetAll(ctx)
 	if err != nil {
