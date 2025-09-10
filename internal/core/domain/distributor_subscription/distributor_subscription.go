@@ -48,6 +48,20 @@ type GetSubscriptionResponse struct {
 	CreatedDate        time.Time `json:"created_date"`
 }
 
+type createExpiryDisabledProductRequest struct {
+	DistributorId int
+	ProductId     int
+}
+
+type getExpiryDisabledProductResponse struct {
+	Id        int
+	ProductId int
+}
+
+type getAllExpiryDisabledProductResponse struct {
+	List []getExpiryDisabledProductResponse
+}
+
 type GetAllSubscriptionResponse struct {
 	List []GetSubscriptionResponse
 }
@@ -93,6 +107,9 @@ type Prodvider interface {
 	GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error)
 	ExpireSubscription(ctx context.Context, subscriptionId int) error
 	RenewSubscription(ctx context.Context, subscriptionId int) (SubscribeResponse, error)
+	CreateExpiryDisabledProduct(ctx context.Context, req *createExpiryDisabledProductRequest) error
+	GetExpiryDisabledProduct(ctx context.Context, distributorId int) (getAllExpiryDisabledProductResponse, error)
+	RemoveExpiryDisableProduct(ctx context.Context, id int) error
 }
 
 type DistributorSubscriptionService struct {
@@ -380,5 +397,17 @@ func (d *DistributorSubscriptionService) ExpireSubscription(ctx context.Context,
 		log.Printf("failed to expire subsctiption")
 		return ErrUnknown
 	}
+	return nil
+}
+
+func (d *DistributorSubscriptionService) CreateExpiryDisabledProduct(ctx context.Context, req *createExpiryDisabledProductRequest) error {
+	return nil
+}
+
+func (d *DistributorSubscriptionService) GetExpiryDisabledProduct(ctx context.Context, distributorId int) (getAllExpiryDisabledProductResponse, error) {
+	return getAllExpiryDisabledProductResponse{}, nil
+}
+
+func (d *DistributorSubscriptionService) RemoveExpiryDisableProduct(ctx context.Context, id int) error {
 	return nil
 }
