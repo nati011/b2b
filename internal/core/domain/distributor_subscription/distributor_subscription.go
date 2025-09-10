@@ -42,11 +42,12 @@ type PlaceRequest struct {
 }
 
 type GetSubscriptionResponse struct {
-	Id                 int       `json:"id"`
-	SubscriptionPlanId int       `json:"subscription_plan_id"`
-	DistributorId      int       `json:"distributor_id"`
-	Status             string    `json:"status"`
-	CreatedDate        time.Time `json:"created_date"`
+	Id                   int       `json:"id"`
+	SubscriptionPlanName string    `json:"subscription_plan_name"`
+	SubscriptionPlanId   int       `json:"subscription_plan_id"`
+	DistributorId        int       `json:"distributor_id"`
+	Status               string    `json:"status"`
+	CreatedDate          time.Time `json:"created_date"`
 }
 
 type GetAllSubscriptionResponse struct {
@@ -388,10 +389,12 @@ func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx cont
 		}
 	}
 	return GetSubscriptionResponse{
-		Id:                 resp.Id,
-		SubscriptionPlanId: resp.SubscriptionPlanId,
-		DistributorId:      resp.DistributorId,
-		Status:             resp.Status,
+		Id:                   resp.Id,
+		SubscriptionPlanName: resp.SubscriptionName,
+		SubscriptionPlanId:   resp.SubscriptionPlanId,
+		DistributorId:        resp.DistributorId,
+		Status:               resp.Status,
+		CreatedDate:          resp.CreatedDate,
 	}, nil
 }
 
