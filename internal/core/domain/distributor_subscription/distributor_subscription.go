@@ -9,6 +9,7 @@ import (
 
 	"b2b.nati011.github.com/internal/core/application/checkout"
 	"b2b.nati011.github.com/internal/core/application/payment_partner"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_subscription"
 )
@@ -41,11 +42,12 @@ type PlaceRequest struct {
 }
 
 type GetSubscriptionResponse struct {
-	Id                 int       `json:"id"`
-	SubscriptionPlanId int       `json:"subscription_plan_id"`
-	DistributorId      int       `json:"distributor_id"`
-	Status             string    `json:"status"`
-	CreatedDate        time.Time `json:"created_date"`
+	Id                   int       `json:"id"`
+	SubscriptionPlanName string    `json:"subscription_plan_name"`
+	SubscriptionPlanId   int       `json:"subscription_plan_id"`
+	DistributorId        int       `json:"distributor_id"`
+	Status               string    `json:"status"`
+	CreatedDate          time.Time `json:"created_date"`
 }
 
 type createExpiryDisabledProductRequest struct {
@@ -110,22 +112,27 @@ type Prodvider interface {
 	CreateExpiryDisabledProduct(ctx context.Context, req *createExpiryDisabledProductRequest) error
 	GetExpiryDisabledProduct(ctx context.Context, distributorId int) (getAllExpiryDisabledProductResponse, error)
 	RemoveExpiryDisableProduct(ctx context.Context, id int) error
+	GetSubscriptionPlansByContext(ctx context.Context, userId int) (GetSubscriptionResponse, error)
 }
 
 type DistributorSubscriptionService struct {
-	DB              port.DB
-	Checkout        checkout.Provider
-	Payment_partner payment_partner.Provider
+	DB                port.DB
+	DistrbutorService distributor.Provider
+	Checkout          checkout.Provider
+	Payment_partner   payment_partner.Provider
 }
 
 func NewDistributorSubscriptionService(
 	db port.DB,
 	checkout checkout.Provider,
-	partner payment_partner.Provider) Prodvider {
+	partner payment_partner.Provider,
+	distributor distributor.Provider,
+) Prodvider {
 	return &DistributorSubscriptionService{
-		DB:              db,
-		Checkout:        checkout,
-		Payment_partner: partner,
+		DB:                db,
+		Checkout:          checkout,
+		Payment_partner:   partner,
+		DistrbutorService: distributor,
 	}
 }
 
@@ -369,6 +376,24 @@ func (d *DistributorSubscriptionService) GetSubscriptions(ctx context.Context) (
 	return response, nil
 }
 
+func (d *DistributorSubscriptionService) GetSubscriptionPlansByContext(ctx context.Context, userId int) (GetSubscriptionResponse, error) {
+	print(userId)
+	dist, err := d.DistrbutorService.GetByUserId(ctx, userId)
+	if err != nil {
+		switch err {
+		case distributor.ErrIdNotFound:
+			return GetSubscriptionResponse{}, distributor.ErrIdNotFound
+		case distributor.ErrUnknown:
+			return GetSubscriptionResponse{}, ErrUnknown
+		}
+	}
+	resp, err := d.GetSubscriptionByDistributorId(ctx, dist.Id)
+	if err != nil {
+		return GetSubscriptionResponse{}, err
+	}
+	return resp, nil
+}
+
 func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx context.Context, distId int) (GetSubscriptionResponse, error) {
 	resp, err := d.DB.GetSubscriptionByDistributorId(ctx, distId)
 	if err != nil {
@@ -381,10 +406,12 @@ func (d *DistributorSubscriptionService) GetSubscriptionByDistributorId(ctx cont
 		}
 	}
 	return GetSubscriptionResponse{
-		Id:                 resp.Id,
-		SubscriptionPlanId: resp.SubscriptionPlanId,
-		DistributorId:      resp.DistributorId,
-		Status:             resp.Status,
+		Id:                   resp.Id,
+		SubscriptionPlanName: resp.SubscriptionName,
+		SubscriptionPlanId:   resp.SubscriptionPlanId,
+		DistributorId:        resp.DistributorId,
+		Status:               resp.Status,
+		CreatedDate:          resp.CreatedDate,
 	}, nil
 }
 

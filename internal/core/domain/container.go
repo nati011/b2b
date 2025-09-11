@@ -151,6 +151,7 @@ func (m *Container) InitDistributorSubscriptionService() {
 		distributor_subscription_db_port.NewPostgres(m.db),
 		m.ApplicationServices.CheckoutService,
 		m.ApplicationServices.PaymentPartnerService,
+		m.DistributorService,
 	)
 }
 

@@ -144,6 +144,33 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	return responses, nil
 }
 
+func (m *Mock) Catalogue(ctx context.Context) (port.GetAllResponse, error) {
+	responses := port.GetAllResponse{}
+	for _, i := range m.products {
+		responses.List = append(responses.List,
+			port.GetResponse{
+				Id:             i.Id,
+				Name:           i.Name,
+				Desc:           i.Desc,
+				ExternalID:     i.ExternalID,
+				Images:         i.Images,
+				Price:          i.Price,
+				Attributes:     i.Attributes,
+				DistributorId:  i.DistributorId,
+				CategoryId:     i.CategoryId,
+				Stock:          i.Stock,
+				AvailableStock: i.Stock - i.ReservedStock,
+				ReservedStock:  i.ReservedStock,
+				IsActive:       i.IsActive,
+			},
+		)
+	}
+	if len(responses.List) == 0 {
+		return responses, port_commons.ErrSysNoRows
+	}
+	return responses, nil
+}
+
 func (m *Mock) GetStockLedger(ctx context.Context, product_id int) (port.GetStockLedgerResponse, error) {
 	responses := port.GetStockLedgerResponse{}
 	for _, i := range m.stockLedger {
