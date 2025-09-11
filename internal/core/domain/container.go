@@ -14,6 +14,7 @@ import (
 	product_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/product/db"
 	retailer_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/retailer/db"
 	application_core "b2b.nati011.github.com/internal/core/application"
+	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/domain/catalogue"
 	"b2b.nati011.github.com/internal/core/domain/category"
 	config_module "b2b.nati011.github.com/internal/core/domain/config"
@@ -56,20 +57,21 @@ import (
 // │   └── DistributorApprovalService
 
 type Container struct {
-	db                             *sql.DB
-	CategoryService                category.Provider
-	ProductService                 product.Provider
-	ConfigurableProductService     configurable_product.Provider
-	InvoiceService                 invoice.Provider
-	OrderService                   order.Provider
-	DistributorService             distributor.Provider
-	RetailerService                retailer.Provider
-	ApplicationServices            application_core.Container
-	CatalogueService               catalogue.Provider
-	PaymentVerificationService     payment_verification.Provider
-	DistributorApprovalService     distributorApproval.Provider
-	DistributorSubscriptionService distributorSubscription.Prodvider
-	ConfigService                  config_module.Provider
+	db                               *sql.DB
+	CategoryService                  category.Provider
+	ProductService                   product.Provider
+	ConfigurableProductService       configurable_product.Provider
+	InvoiceService                   invoice.Provider
+	OrderService                     order.Provider
+	DistributorService               distributor.Provider
+	RetailerService                  retailer.Provider
+	ApplicationServices              application_core.Container
+	CatalogueService                 catalogue.Provider
+	PaymentVerificationService       payment_verification.Provider
+	DistributorApprovalService       distributorApproval.Provider
+	DistributorSubscriptionService   distributorSubscription.Prodvider
+	ConfigService                    config_module.Provider
+	DistributorSubscriptonMiddleware middleware.DistributorSubscription
 }
 
 func NewContainer(application_core application_core.Container, baseUrl string, frontendUrl string, db *sql.DB) *Container {
@@ -84,8 +86,9 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitInvoiceService()
 	container.InitRetailerService()
 	container.InitDistributorApprovalService()
-	container.InitDistributorService()
 	container.InitDistributorSubscriptionService()
+	container.InitDistributorSubscriptionMiddleware()
+	container.InitDistributorService()
 	container.InitProductService()
 	container.InitConfigService()
 	container.InitOrderService()
@@ -148,6 +151,13 @@ func (m *Container) InitDistributorSubscriptionService() {
 		distributor_subscription_db_port.NewPostgres(m.db),
 		m.ApplicationServices.CheckoutService,
 		m.ApplicationServices.PaymentPartnerService,
+		m.DistributorService,
+	)
+}
+
+func (m *Container) InitDistributorSubscriptionMiddleware() {
+	m.DistributorSubscriptonMiddleware = middleware.NewDistributorSubscriptionMiddleware(
+		m.DistributorSubscriptionService,
 		m.DistributorService,
 	)
 }
