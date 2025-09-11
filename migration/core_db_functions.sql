@@ -2297,6 +2297,41 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_all_products_from_distributors_with_active_subscription()
+RETURNS TABLE(id INT, 
+              product_name VARCHAR(255), 
+              product_description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_active BOOLEAN, 
+              distributor_id INT,
+              quantity INT,
+              available_quantity INT,
+              reserved_quantity INT,
+              price DECIMAL(12,2))
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+     SELECT p.id, 
+           p.name, 
+           p.description, 
+           p.external_id, 
+           p.is_active, 
+           p.distributor_id,
+           ps.quantity,
+           (ps.quantity - ps.reserved_quantity) AS available_quantity,
+           ps.reserved_quantity,
+           p.price
+    FROM public.products p
+    JOIN p_stock ps 
+    ON  ps.product_id = p.id
+    JOIN public.distributor_subscriptions d
+    ON d.id = p.distributor_id
+    WHERE p.is_deleted = FALSE 
+    AND d.status = 'active';
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.get_products_by_price_range(
     p_min DECIMAL(12, 2),
     p_max DECIMAL(12, 2)
@@ -2562,6 +2597,29 @@ BEGIN
            cp.is_available
     FROM public.configurable_products cp
     WHERE cp.is_deleted = FALSE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_configurable_products_from_distributors_with_active_subscription()
+RETURNS TABLE(id INT, 
+              name VARCHAR(255), 
+              description VARCHAR(255), 
+              external_id VARCHAR(255), 
+              is_available BOOLEAN)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT cp.id, 
+           cp.name, 
+           cp.description, 
+           cp.external_id, 
+           cp.is_available
+    FROM public.configurable_products cp
+    JOIN public.distributor_subscriptions d
+    ON d.id = p.distributor_id
+    WHERE p.is_deleted = FALSE 
+    AND d.status = 'active';
 END;
 $$;
 
