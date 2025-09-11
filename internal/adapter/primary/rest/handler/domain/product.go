@@ -70,8 +70,9 @@ type GetProductsWithCategoriesRequest struct {
 }
 
 type Product struct {
-	authMiddleware middleware.Auth
-	service        product.Provider
+	authMiddleware                    middleware.Auth
+	distributorSubscriptionMiddleware middleware.DistributorSubscription
+	service                           product.Provider
 }
 
 func InitProduct() {
@@ -102,6 +103,7 @@ func InitProduct() {
 func (p *Product) Init(authMiddleWare *middleware.Auth, applicationServices *application_core.Container, domainService *domain_core.Container) error {
 	p.service = domainService.ProductService
 	p.authMiddleware = *applicationServices.AuthMiddleware
+	p.distributorSubscriptionMiddleware = domainService.DistributorSubscriptonMiddleware
 	return nil
 }
 
@@ -115,7 +117,7 @@ func (p *Product) Routes(mux *http.ServeMux) {
 	})
 
 	mux.HandleFunc("POST /api/v1/product", func(w http.ResponseWriter, r *http.Request) {
-		p.authMiddleware.RequireAuthentication(http.HandlerFunc(p.CreateHandler)).ServeHTTP(w, r)
+		p.authMiddleware.RequireAuthentication(p.distributorSubscriptionMiddleware.RequireSubscription(http.HandlerFunc(p.CreateHandler))).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("PUT /api/v1/product", func(w http.ResponseWriter, r *http.Request) {
