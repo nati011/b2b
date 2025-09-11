@@ -23,7 +23,9 @@ func NewTestContainer() TestContainer {
 	container.SubscriptionService = NewDistributorSubscriptionService(
 		adapter.NewDistributorSubscriptionMock(),
 		container.CheckoutService,
-		container.PartnerService)
+		container.PartnerService,
+		container.DistributorService,
+	)
 	return container
 }
 
@@ -31,5 +33,7 @@ func (t *TestContainer) Teardown() {
 	t.SubscriptionService = NewDistributorSubscriptionService(
 		adapter.NewDistributorSubscriptionMock(),
 		t.CheckoutService,
-		t.PartnerService)
+		t.PartnerService,
+		t.DistributorService,
+	)
 }

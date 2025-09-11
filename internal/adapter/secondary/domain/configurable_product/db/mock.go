@@ -284,6 +284,31 @@ func (m *Mock) GetAll(ctx context.Context) (port.GetAllResponse, error) {
 	}, nil
 }
 
+func (m *Mock) Catalogue(ctx context.Context) (port.GetAllResponse, error) {
+	resp := []port.GetResponse{}
+	for _, i := range m.configurables {
+		resp = append(resp, port.GetResponse{
+			Id:         i.Id,
+			Name:       i.Name,
+			Desc:       i.Desc,
+			ExternalId: i.ExternalId,
+			// Attributes:    i.AttributeKeys,
+			Products:      i.Products,
+			IsAvailable:   i.IsAvailableStatus,
+			CategoryId:    i.CategoryId,
+			DistributorId: i.DistributorId,
+			Images:        i.Images,
+		})
+
+	}
+	if len(resp) == 0 {
+		return port.GetAllResponse{}, port_commons.ErrSysNoRows
+	}
+	return port.GetAllResponse{
+		List: resp,
+	}, nil
+}
+
 func (m *Mock) GetByName(ctx context.Context, name string) (port.GetAllResponse, error) {
 	resp := []port.GetResponse{}
 	for _, i := range m.configurables {

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	port_commons "b2b.nati011.github.com/internal/port/commons/db"
 	port "b2b.nati011.github.com/internal/port/domain/distributor_subscription"
@@ -17,10 +18,12 @@ type MockPlan struct {
 
 type MockSubscription struct {
 	Id                 int
+	SubscriptionName   string
 	SubscriptionPlanId int
 	DistributorId      int
 	PaymentPartnerId   int
 	Status             string
+	CreatedDate        time.Time
 }
 
 type DistributorSubscriptionMock struct {
