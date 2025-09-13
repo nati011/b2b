@@ -19,7 +19,7 @@ import { CardSkeleton } from "@/components/CardSkeleton";
 import { ProductCard } from "@/components/ProductCard";
 import { Catalogue } from "@/lib/types";
 
-const ITEMS_PER_PAGE = 12; // Number of products per page
+const ITEMS_PER_PAGE = 12; 
 
 const Product = () => {
   const [currentPage, setCurrentPage] = useState(0);
