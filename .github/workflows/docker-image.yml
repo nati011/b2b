@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Log in to Docker Hub on GitHub Actions runner
+      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -23,7 +23,7 @@ jobs:
       - name: Verify Docker login
         run: docker info
 
-      # Determine tag based on branch
+      # Set image tag based on branch
       - name: Set image tag
         id: set-tag
         run: |
@@ -35,7 +35,7 @@ jobs:
             echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:latest" >> $GITHUB_OUTPUT
           fi
 
-      # Build and push the Docker image
+      # Build and push Docker image
       - name: Build and push Docker image
         run: |
           IMAGE_NAME="${{ steps.set-tag.outputs.image-name }}"
@@ -64,12 +64,46 @@ jobs:
                 CONTAINER_NAME="my-app"
                 TAG="dev"
                 ENVIRONMENT="development"
+                PORT="${{ secrets.DEV_PORT }}"
+                BASE_URL="${{ secrets.DEV_BASE_URL }}"
+                FRONTEND_URL="${{ secrets.DEV_FRONTEND_URL }}"
+                KEYCLOAK_BASE_URL="${{ secrets.DEV_KEYCLOAK_BASE_URL }}"
+                KEYCLOAK_USER_NAME="${{ secrets.DEV_KEYCLOAK_USER_NAME }}"
+                KEYCLOAK_PASSWORD="${{ secrets.DEV_KEYCLOAK_PASSWORD }}"
+                KEYCLOAK_REALM="${{ secrets.DEV_KEYCLOAK_REALM }}"
+                KEYCLOAK_CLIENT_ID="${{ secrets.DEV_KEYCLOAK_CLIENT_ID }}"
+                KEYCLOAK_APPLICATION_REALM="${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }}"
+                KEYCLOAK_CLIENT_SECRET="${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }}"
+                DB_URL="${{ secrets.DEV_DB_URL }}"
+                SMTP="${{ secrets.DEV_SMTP }}"
+                EMAIL="${{ secrets.DEV_EMAIL }}"
+                DEFAULT_SUPERADMIN_EMAIL="${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }}"
+                CLIENT_VERSION="${{ secrets.DEV_CLIENT_VERSION }}"
+                JWT_SECRET="${{ secrets.DEV_JWT_SECRET }}"
+                EMAIL_PASSWORD="${{ secrets.DEV_EMAIL_PASSWORD }}"
                 ;;
               refs/heads/main)
                 echo "🚀 Deploying to PRODUCTION environment"
                 CONTAINER_NAME="my-app"
                 TAG="latest"
                 ENVIRONMENT="production"
+                PORT="${{ secrets.PROD_PORT }}"
+                BASE_URL="${{ secrets.PROD_BASE_URL }}"
+                FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
+                KEYCLOAK_BASE_URL="${{ secrets.PROD_KEYCLOAK_BASE_URL }}"
+                KEYCLOAK_USER_NAME="${{ secrets.PROD_KEYCLOAK_USER_NAME }}"
+                KEYCLOAK_PASSWORD="${{ secrets.PROD_KEYCLOAK_PASSWORD }}"
+                KEYCLOAK_REALM="${{ secrets.PROD_KEYCLOAK_REALM }}"
+                KEYCLOAK_CLIENT_ID="${{ secrets.PROD_KEYCLOAK_CLIENT_ID }}"
+                KEYCLOAK_APPLICATION_REALM="${{ secrets.PROD_KEYCLOAK_APPLICATION_REALM }}"
+                KEYCLOAK_CLIENT_SECRET="${{ secrets.PROD_KEYCLOAK_CLIENT_SECRET }}"
+                DB_URL="${{ secrets.PROD_DB_URL }}"
+                SMTP="${{ secrets.PROD_SMTP }}"
+                EMAIL="${{ secrets.PROD_EMAIL }}"
+                DEFAULT_SUPERADMIN_EMAIL="${{ secrets.PROD_DEFAULT_SUPERADMIN_EMAIL }}"
+                CLIENT_VERSION="${{ secrets.PROD_CLIENT_VERSION }}"
+                JWT_SECRET="${{ secrets.PROD_JWT_SECRET }}"
+                EMAIL_PASSWORD="${{ secrets.PROD_EMAIL_PASSWORD }}"
                 ;;
               *)
                 echo "❌ Unknown branch: ${{ github.ref }}"
@@ -79,43 +113,42 @@ jobs:
 
             IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
 
-            # Login to Docker Hub
+            echo "Logging into Docker Hub..."
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
-            # Pull latest image
+            echo "Pulling image $IMAGE_NAME..."
             docker pull "$IMAGE_NAME"
 
-            # Stop & remove old container if it exists (exact match)
-            if docker ps -aq -f "name=^${CONTAINER_NAME}$" >/dev/null; then
+            # Stop & remove old container if it exists
+            if docker ps -aq -f "name=^${CONTAINER_NAME}$" | grep -q .; then
+              echo "Stopping and removing old container..."
               docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
             fi
 
-            echo $port="${{ secrets.DEV_PORT }}"
-            echo $port
-            # Run new container with env vars
+            echo "Starting new container..."
             docker run -d \
               --name "$CONTAINER_NAME" \
-              --env PORT=${{ secrets.DEV_PORT }} \
-              --env KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }} \
-              --env KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }} \
-              --env KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }} \
-              --env KEYCLOAK_REALM=${{ secrets.DEV_KEYCLOAK_REALM }} \
-              --env KEYCLOAK_CLIENT_ID=${{ secrets.DEV_KEYCLOAK_CLIENT_ID }} \
-              --env KEYCLOAK_APPLICATION_REALM=${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }} \
-              --env DB_URL=${{ secrets.DEV_DB_URL }} \
-              --env SMTP=${{ secrets.DEV_SMTP }} \
-              --env EMAIL=${{ secrets.DEV_EMAIL }} \
-              --env DEFAULT_SUPERADMIN_EMAIL=${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }} \
-              --env KEYCLOAK_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }} \
-              --env ENV=$ENVIRONMENT \
-              --env BASE_URL=${{ secrets.DEV_BASE_URL }} \
-              --env FRONTEND_URL=${{ secrets.DEV_FRONTEND_URL }} \
-              --env CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }} \
-              --env JWT_SECRET=${{ secrets.DEV_JWT_SECRET }} \
-              --env EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }} \
+              --env PORT="$PORT" \
+              --env KEYCLOAK_BASE_URL="$KEYCLOAK_BASE_URL" \
+              --env KEYCLOAK_USER_NAME="$KEYCLOAK_USER_NAME" \
+              --env KEYCLOAK_PASSWORD="$KEYCLOAK_PASSWORD" \
+              --env KEYCLOAK_REALM="$KEYCLOAK_REALM" \
+              --env KEYCLOAK_CLIENT_ID="$KEYCLOAK_CLIENT_ID" \
+              --env KEYCLOAK_APPLICATION_REALM="$KEYCLOAK_APPLICATION_REALM" \
+              --env DB_URL="$DB_URL" \
+              --env SMTP="$SMTP" \
+              --env EMAIL="$EMAIL" \
+              --env DEFAULT_SUPERADMIN_EMAIL="$DEFAULT_SUPERADMIN_EMAIL" \
+              --env KEYCLOAK_CLIENT_SECRET="$KEYCLOAK_CLIENT_SECRET" \
+              --env ENV="$ENVIRONMENT" \
+              --env BASE_URL="$BASE_URL" \
+              --env FRONTEND_URL="$FRONTEND_URL" \
+              --env CLIENT_VERSION="$CLIENT_VERSION" \
+              --env JWT_SECRET="$JWT_SECRET" \
+              --env EMAIL_PASSWORD="$EMAIL_PASSWORD" \
               "$IMAGE_NAME"
 
-            # Check if container started
+            # Wait and verify container is running
             sleep 5
             if docker ps --filter "name=^${CONTAINER_NAME}$" --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
               echo "✅ Container started successfully"
