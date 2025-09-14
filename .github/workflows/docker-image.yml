@@ -13,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -22,6 +23,7 @@ jobs:
       - name: Verify Docker login
         run: docker info
 
+      # Set image tag based on branch
       - name: Set image tag
         id: set-tag
         run: |
@@ -33,6 +35,7 @@ jobs:
             echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:latest" >> $GITHUB_OUTPUT
           fi
 
+      # Build and push Docker image
       - name: Build and push Docker image
         run: |
           IMAGE_NAME="${{ steps.set-tag.outputs.image-name }}"
@@ -115,42 +118,42 @@ jobs:
             echo "Logging into Docker Hub..."
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
-            echo "Creating environment file..."
-            cat <<EOF >/tmp/app.env
-PORT=$PORT
-BASE_URL=$BASE_URL
-FRONTEND_URL=$FRONTEND_URL
-KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
-KEYCLOAK_USER_NAME=$KEYCLOAK_USER_NAME
-KEYCLOAK_PASSWORD=$KEYCLOAK_PASSWORD
-KEYCLOAK_REALM=$KEYCLOAK_REALM
-KEYCLOAK_CLIENT_ID=$KEYCLOAK_CLIENT_ID
-KEYCLOAK_APPLICATION_REALM=$KEYCLOAK_APPLICATION_REALM
-KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
-DB_URL=$DB_URL
-SMTP=$SMTP
-EMAIL=$EMAIL
-DEFAULT_SUPERADMIN_EMAIL=$DEFAULT_SUPERADMIN_EMAIL
-CLIENT_VERSION=$CLIENT_VERSION
-JWT_SECRET=$JWT_SECRET
-EMAIL_PASSWORD=$EMAIL_PASSWORD
-ENV=$ENVIRONMENT
-EOF
-
             echo "Pulling image $IMAGE_NAME..."
             docker pull "$IMAGE_NAME"
 
-            # Stop & remove old container
+            # Stop & remove old container if it exists
             if docker ps -aq -f "name=^${CONTAINER_NAME}$" | grep -q .; then
               echo "Stopping and removing old container..."
               docker stop "$CONTAINER_NAME"
               docker rm "$CONTAINER_NAME"
             fi
 
-            echo "Starting new container..."
+            # Create a temporary .env file
+            cat <<EOF >/tmp/app.env
+            PORT=$PORT
+            BASE_URL=$BASE_URL
+            FRONTEND_URL=$FRONTEND_URL
+            KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
+            KEYCLOAK_USER_NAME=$KEYCLOAK_USER_NAME
+            KEYCLOAK_PASSWORD=$KEYCLOAK_PASSWORD
+            KEYCLOAK_REALM=$KEYCLOAK_REALM
+            KEYCLOAK_CLIENT_ID=$KEYCLOAK_CLIENT_ID
+            KEYCLOAK_APPLICATION_REALM=$KEYCLOAK_APPLICATION_REALM
+            KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+            DB_URL=$DB_URL
+            SMTP=$SMTP
+            EMAIL=$EMAIL
+            DEFAULT_SUPERADMIN_EMAIL=$DEFAULT_SUPERADMIN_EMAIL
+            CLIENT_VERSION=$CLIENT_VERSION
+            JWT_SECRET=$JWT_SECRET
+            EMAIL_PASSWORD=$EMAIL_PASSWORD
+            ENV=$ENVIRONMENT
+            EOF
+
+            echo "Starting new container with env file..."
             docker run -d --name "$CONTAINER_NAME" --env-file /tmp/app.env "$IMAGE_NAME"
 
-            # Verify container started
+            # Wait and verify container is running
             sleep 5
             if docker ps --filter "name=^${CONTAINER_NAME}$" --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
               echo "✅ Container started successfully"
