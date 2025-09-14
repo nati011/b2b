@@ -32,21 +32,31 @@ jobs:
           docker build -t myusername/my-app:${{ steps.set-tag.outputs.tag }} .
           docker push myusername/my-app:${{ steps.set-tag.outputs.tag }}
 
-  run-container:
+  deploy-to-server:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
-      - uses: actions/checkout@v4
+      - name: SSH and deploy Docker container
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
+              ENV_FILE=.env.development
+              TAG=dev
+            elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+              ENV_FILE=.env.production
+              TAG=latest
+            fi
 
-      - name: Pull and run Docker container
-        run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
-            ENV_FILE=.env.development
-            TAG=dev
-          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            ENV_FILE=.env.production
-            TAG=latest
-          fi
+            # Pull the latest Docker image
+            docker pull myusername/my-app:$TAG
 
-          docker pull myusername/my-app:$TAG
-          docker run --rm --env-file $ENV_FILE myusername/my-app:$TAG
+            # Stop and remove any existing container
+            docker rm -f my-app || true
+
+            # Run the container
+            docker run -d --env-file $ENV_FILE --name my-app -p 8088:8088 myusername/my-app:$TAG
