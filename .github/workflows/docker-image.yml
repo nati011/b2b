@@ -61,13 +61,13 @@ jobs:
             case "${{ github.ref }}" in
               refs/heads/development)
                 echo "🚀 Deploying to DEVELOPMENT environment"
-                CONTAINER_NAME="my-app-dev"
+                CONTAINER_NAME="my-app"
                 TAG="dev"
                 ENVIRONMENT="development"
                 ;;
               refs/heads/main)
                 echo "🚀 Deploying to PRODUCTION environment"
-                CONTAINER_NAME="my-app-prod"
+                CONTAINER_NAME="my-app"
                 TAG="latest"
                 ENVIRONMENT="production"
                 ;;
