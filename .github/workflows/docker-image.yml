@@ -30,6 +30,7 @@ jobs:
             echo "tag=dev" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
 
       # Build and push the Docker image
       - name: Build and push Docker image
