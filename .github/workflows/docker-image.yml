@@ -54,7 +54,6 @@ jobs:
             if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
               CONTAINER_NAME="my-app-dev"
               TAG="dev"
-              PORT_MAPPING="8080:8080"
               # Development environment variables
               ENV_VARS="-e PORT=${{ secrets.DEV_PORT || '8088' }} \
                         -e KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }} \
@@ -116,7 +115,7 @@ jobs:
             
             # Run new container
             echo "Starting new container: $CONTAINER_NAME"
-            docker run -d --name $CONTAINER_NAME -p $PORT_MAPPING $ENV_VARS "$IMAGE_NAME"
+            docker run -d --name $CONTAINER_NAME $ENV_VARS "$IMAGE_NAME"
             
             # Verify container is running
             docker ps | grep $CONTAINER_NAME
