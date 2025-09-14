@@ -90,7 +90,8 @@ jobs:
               docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
             fi
 
-            echo port = ${{ secrets.DEV_PORT }}
+            echo $port="${{ secrets.DEV_PORT }}"
+            echo $port
             # Run new container with env vars
             docker run -d \
               --name "$CONTAINER_NAME" \
