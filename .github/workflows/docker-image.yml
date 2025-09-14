@@ -7,6 +7,39 @@ on:
       - development
 
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.set-tag.outputs.tag }}
+      image-name: ${{ steps.set-tag.outputs.image-name }}
+      container-name: ${{ steps.set-tag.outputs.container-name }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      
+      - name: Set image tag and container name
+        id: set-tag
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
+            echo "tag=dev" >> $GITHUB_OUTPUT
+            echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:dev" >> $GITHUB_OUTPUT
+            echo "container-name=my-app-dev" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:latest" >> $GITHUB_OUTPUT
+            echo "container-name=my-app-prod" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME="${{ steps.set-tag.outputs.image-name }}"
+          docker build -t "$IMAGE_NAME" .
+          docker push "$IMAGE_NAME"
   deploy-to-server:
     runs-on: ubuntu-latest
     needs: build-and-push
