@@ -54,63 +54,22 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
+            #!/bin/bash
             set -euo pipefail
 
-            # Determine environment from branch
+            echo "Determining environment from branch..."
             case "${{ github.ref }}" in
               refs/heads/development)
                 echo "🚀 Deploying to DEVELOPMENT environment"
                 CONTAINER_NAME="my-app-dev"
                 TAG="dev"
                 ENVIRONMENT="development"
-
-               # Create a temporary env file
-                cat <<EOF > /tmp/app.env
-                PORT=${{ secrets.DEV_PORT }}
-                BASE_URL=${{ secrets.DEV_BASE_URL }}
-                FRONTEND_URL=${{ secrets.DEV_FRONTEND_URL }}
-                KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }}
-                KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }}
-                KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }}
-                KEYCLOAK_REALM=${{ secrets.DEV_KEYCLOAK_REALM }}
-                KEYCLOAK_CLIENT_ID=${{ secrets.DEV_KEYCLOAK_CLIENT_ID }}
-                KEYCLOAK_APPLICATION_REALM=${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }}
-                KEYCLOAK_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }}
-                DB_URL=${{ secrets.DEV_DB_URL }}
-                SMTP=${{ secrets.DEV_SMTP }}
-                EMAIL=${{ secrets.DEV_EMAIL }}
-                DEFAULT_SUPERADMIN_EMAIL=${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }}
-                CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }}
-                JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}
-                EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }}
-                ENV=development
-                EOF
-                
-                # Pass it to Docker
-                docker run --env-file /tmp/app.env -d --name "$CONTAINER_NAME" "$IMAGE_NAME"
-              
+                ;;
               refs/heads/main)
                 echo "🚀 Deploying to PRODUCTION environment"
                 CONTAINER_NAME="my-app"
                 TAG="latest"
                 ENVIRONMENT="production"
-                PORT="${{ secrets.PROD_PORT }}"
-                BASE_URL="${{ secrets.PROD_BASE_URL }}"
-                FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
-                KEYCLOAK_BASE_URL="${{ secrets.PROD_KEYCLOAK_BASE_URL }}"
-                KEYCLOAK_USER_NAME="${{ secrets.PROD_KEYCLOAK_USER_NAME }}"
-                KEYCLOAK_PASSWORD="${{ secrets.PROD_KEYCLOAK_PASSWORD }}"
-                KEYCLOAK_REALM="${{ secrets.PROD_KEYCLOAK_REALM }}"
-                KEYCLOAK_CLIENT_ID="${{ secrets.PROD_KEYCLOAK_CLIENT_ID }}"
-                KEYCLOAK_APPLICATION_REALM="${{ secrets.PROD_KEYCLOAK_APPLICATION_REALM }}"
-                KEYCLOAK_CLIENT_SECRET="${{ secrets.PROD_KEYCLOAK_CLIENT_SECRET }}"
-                DB_URL="${{ secrets.PROD_DB_URL }}"
-                SMTP="${{ secrets.PROD_SMTP }}"
-                EMAIL="${{ secrets.PROD_EMAIL }}"
-                DEFAULT_SUPERADMIN_EMAIL="${{ secrets.PROD_DEFAULT_SUPERADMIN_EMAIL }}"
-                CLIENT_VERSION="${{ secrets.PROD_CLIENT_VERSION }}"
-                JWT_SECRET="${{ secrets.PROD_JWT_SECRET }}"
-                EMAIL_PASSWORD="${{ secrets.PROD_EMAIL_PASSWORD }}"
                 ;;
               *)
                 echo "❌ Unknown branch: ${{ github.ref }}"
@@ -123,37 +82,40 @@ jobs:
             echo "Logging into Docker Hub..."
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
+            echo "Creating environment file..."
+            cat <<EOF > /tmp/app.env
+PORT=${{ secrets.DEV_PORT }}
+BASE_URL=${{ secrets.DEV_BASE_URL }}
+FRONTEND_URL=${{ secrets.DEV_FRONTEND_URL }}
+KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }}
+KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }}
+KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }}
+KEYCLOAK_REALM=${{ secrets.DEV_KEYCLOAK_REALM }}
+KEYCLOAK_CLIENT_ID=${{ secrets.DEV_KEYCLOAK_CLIENT_ID }}
+KEYCLOAK_APPLICATION_REALM=${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }}
+KEYCLOAK_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }}
+DB_URL=${{ secrets.DEV_DB_URL }}
+SMTP=${{ secrets.DEV_SMTP }}
+EMAIL=${{ secrets.DEV_EMAIL }}
+DEFAULT_SUPERADMIN_EMAIL=${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }}
+CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }}
+JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}
+EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }}
+ENV=$ENVIRONMENT
+EOF
+
             echo "Pulling image $IMAGE_NAME..."
             docker pull "$IMAGE_NAME"
 
             # Stop & remove old container if it exists
             if docker ps -aq -f "name=^${CONTAINER_NAME}$" | grep -q .; then
               echo "Stopping and removing old container..."
-              docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
+              docker stop "$CONTAINER_NAME"
+              docker rm "$CONTAINER_NAME"
             fi
 
-            echo "Starting new container..."
-            docker run -d \
-              --name "$CONTAINER_NAME" \
-              --env PORT="$PORT" \
-              --env BASE_URL="$BASE_URL" \
-              --env FRONTEND_URL="$FRONTEND_URL" \
-              --env KEYCLOAK_BASE_URL="$KEYCLOAK_BASE_URL" \
-              --env KEYCLOAK_USER_NAME="$KEYCLOAK_USER_NAME" \
-              --env KEYCLOAK_PASSWORD="$KEYCLOAK_PASSWORD" \
-              --env KEYCLOAK_REALM="$KEYCLOAK_REALM" \
-              --env KEYCLOAK_CLIENT_ID="$KEYCLOAK_CLIENT_ID" \
-              --env KEYCLOAK_APPLICATION_REALM="$KEYCLOAK_APPLICATION_REALM" \
-              --env KEYCLOAK_CLIENT_SECRET="$KEYCLOAK_CLIENT_SECRET" \
-              --env DB_URL="$DB_URL" \
-              --env SMTP="$SMTP" \
-              --env EMAIL="$EMAIL" \
-              --env DEFAULT_SUPERADMIN_EMAIL="$DEFAULT_SUPERADMIN_EMAIL" \
-              --env CLIENT_VERSION="$CLIENT_VERSION" \
-              --env JWT_SECRET="$JWT_SECRET" \
-              --env EMAIL_PASSWORD="$EMAIL_PASSWORD" \
-              --env ENV="$ENVIRONMENT" \
-              "$IMAGE_NAME"
+            echo "Starting new container with env file..."
+            docker run -d --name "$CONTAINER_NAME" --env-file /tmp/app.env "$IMAGE_NAME"
 
             # Wait and verify container is running
             sleep 5
