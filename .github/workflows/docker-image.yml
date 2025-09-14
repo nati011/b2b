@@ -106,6 +106,7 @@ jobs:
             fi
             
             echo "Starting container $CONTAINER_NAME with envs"
+            echo $ENV_VARS
             docker run -d --name $CONTAINER_NAME $ENV_VARS "$IMAGE_NAME"
             
             docker ps | grep $CONTAINER_NAME
