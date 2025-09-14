@@ -2,34 +2,36 @@ name: Docker CI/CD
 on:
   push:
     branches: [ "development", "main" ]
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
       image-tag: ${{ steps.set-tag.outputs.tag }}
       image-name: ${{ steps.set-tag.outputs.image-name }}
+      container-name: ${{ steps.set-tag.outputs.container-name }}
     steps:
       - uses: actions/checkout@v4
-      # Log in to Docker Hub on GitHub Actions runner
+      
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      - name: Verify Docker login
-        run: docker info
-      # Determine tag based on branch
-      - name: Set image tag
+      
+      - name: Set image tag and container name
         id: set-tag
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
             echo "tag=dev" >> $GITHUB_OUTPUT
             echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:dev" >> $GITHUB_OUTPUT
+            echo "container-name=my-app-dev" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "tag=latest" >> $GITHUB_OUTPUT
             echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:latest" >> $GITHUB_OUTPUT
+            echo "container-name=my-app-prod" >> $GITHUB_OUTPUT
           fi
-      # Build and push the Docker image
+      
       - name: Build and push Docker image
         run: |
           IMAGE_NAME="${{ steps.set-tag.outputs.image-name }}"
@@ -40,9 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
-      # SSH into the remote server and deploy the container
       - name: SSH and deploy Docker container
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
@@ -51,26 +52,71 @@ jobs:
           script: |
             # Set variables based on branch
             if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-              ENV_FILE=/app/.env.development
-              TAG=dev
+              CONTAINER_NAME="my-app-dev"
+              TAG="dev"
+              PORT_MAPPING="8080:8080"
+              # Development environment variables
+              ENV_VARS="-e PORT=${{ secrets.DEV_PORT || '8088' }} \
+                        -e KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }} \
+                        -e KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }} \
+                        -e KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }} \
+                        -e KEYCLOAK_REALM=${{ secrets.DEV_KEYCLOAK_REALM }} \
+                        -e KEYCLOAK_CLIENT_ID=${{ secrets.DEV_KEYCLOAK_CLIENT_ID }} \
+                        -e KEYCLOAK_APPLICATION_REALM=${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }} \
+                        -e DB_URL=${{ secrets.DEV_DB_URL }} \
+                        -e SMTP=${{ secrets.DEV_SMTP }} \
+                        -e EMAIL=${{ secrets.DEV_EMAIL }} \
+                        -e DEFAULT_SUPERADMIN_EMAIL=${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }} \
+                        -e KEYCLOAK_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }} \
+                        -e ENV=development \
+                        -e BASE_URL=${{ secrets.DEV_BASE_URL }} \
+                        -e FRONTEND_URL=${{ secrets.DEV_FRONTEND_URL }} \
+                        -e CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }} \
+                        -e JWT_SECRET=${{ secrets.DEV_JWT_SECRET }} \
+                        -e EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }}"
             elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              ENV_FILE=/app/.env.production
-              TAG=latest
+              CONTAINER_NAME="my-app-prod"
+              TAG="latest"
+              PORT_MAPPING="8080:8080"
+              # Production environment variables
+              ENV_VARS="-e PORT=${{ secrets.PROD_PORT || '8088' }} \
+                        -e KEYCLOAK_BASE_URL=${{ secrets.PROD_KEYCLOAK_BASE_URL }} \
+                        -e KEYCLOAK_USER_NAME=${{ secrets.PROD_KEYCLOAK_USER_NAME }} \
+                        -e KEYCLOAK_PASSWORD=${{ secrets.PROD_KEYCLOAK_PASSWORD }} \
+                        -e KEYCLOAK_REALM=${{ secrets.PROD_KEYCLOAK_REALM }} \
+                        -e KEYCLOAK_CLIENT_ID=${{ secrets.PROD_KEYCLOAK_CLIENT_ID }} \
+                        -e KEYCLOAK_APPLICATION_REALM=${{ secrets.PROD_KEYCLOAK_APPLICATION_REALM }} \
+                        -e DB_URL=${{ secrets.PROD_DB_URL }} \
+                        -e SMTP=${{ secrets.PROD_SMTP }} \
+                        -e EMAIL=${{ secrets.PROD_EMAIL }} \
+                        -e DEFAULT_SUPERADMIN_EMAIL=${{ secrets.PROD_DEFAULT_SUPERADMIN_EMAIL }} \
+                        -e KEYCLOAK_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_CLIENT_SECRET }} \
+                        -e ENV=production \
+                        -e BASE_URL=${{ secrets.PROD_BASE_URL }} \
+                        -e FRONTEND_URL=${{ secrets.PROD_FRONTEND_URL }} \
+                        -e CLIENT_VERSION=${{ secrets.PROD_CLIENT_VERSION }} \
+                        -e JWT_SECRET=${{ secrets.PROD_JWT_SECRET }} \
+                        -e EMAIL_PASSWORD=${{ secrets.PROD_EMAIL_PASSWORD }}"
             fi
             
             IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
             
-            # Log in to Docker Hub on the server using stdin (more secure)
+            # Login to Docker Hub
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
             
             # Pull latest image
             docker pull "$IMAGE_NAME"
             
             # Stop and remove existing container if it exists
-            if [ $(docker ps -aq -f name=my-app) ]; then
-              docker stop my-app
-              docker rm my-app
+            if [ $(docker ps -aq -f name=$CONTAINER_NAME) ]; then
+              echo "Stopping existing container: $CONTAINER_NAME"
+              docker stop $CONTAINER_NAME
+              docker rm $CONTAINER_NAME
             fi
             
-            # Run new container with proper name
-            docker run -d --name my-app --env-file "$ENV_FILE" -p 8088:8088 "$IMAGE_NAME"
+            # Run new container
+            echo "Starting new container: $CONTAINER_NAME"
+            docker run -d --name $CONTAINER_NAME -p $PORT_MAPPING $ENV_VARS "$IMAGE_NAME"
+            
+            # Verify container is running
+            docker ps | grep $CONTAINER_NAME
