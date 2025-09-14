@@ -74,4 +74,6 @@ jobs:
             fi
 
             # Run new container
-            docker run -d --env-file $ENV_FILE -p 8088:8088 $IMAGE_NAME
+            CONTAINER_NAME="$DOCKER_USERNAME-my-app-$TAG"
+            docker run -d --env-file "$ENV_FILE" -p 8088:8088 --name "$CONTAINER_NAME" "$IMAGE_NAME"
+
