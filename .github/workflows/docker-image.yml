@@ -79,7 +79,7 @@ jobs:
 
             echo "🔑 Writing env file: $ENV_FILE"
 
-            if [[ "$CONTAINER_NAME" == "my-app-dev" ]]; then
+            if [[ "$CONTAINER_NAME" == "my-app" ]]; then
               cat > "$ENV_FILE" << EOF
               PORT=${{ secrets.DEV_PORT }}
               KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }}
