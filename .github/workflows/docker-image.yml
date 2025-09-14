@@ -54,9 +54,8 @@ jobs:
           script: |
             #!/bin/bash
             set -euo pipefail
-
             # Determine environment from branch
-            case "${github.ref}" in
+            case "${{ github.ref }}" in
               refs/heads/development)
                 echo "🚀 Deploying to DEVELOPMENT environment"
                 CONTAINER_NAME="my-app-dev"
@@ -70,7 +69,7 @@ jobs:
                 PORT_MAPPING="8088:8080"
                 ;;
               *)
-                echo "❌ Unknown branch: ${github.ref}"
+                echo "❌ Unknown branch: ${{ github.ref }}"
                 exit 1
                 ;;
             esac
