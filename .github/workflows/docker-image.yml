@@ -51,31 +51,30 @@ jobs:
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
             # Set variables based on branch
-            ENV_VARS="-e PORT=${{ secrets.DEV_PORT || '8080' }} \
-                      -e KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }} \
-                      -e KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }} \
-                      -e KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }} \
-                      -e KEYCLOAK_REALM=${{ secrets.DEV_KEYCLOAK_REALM }} \
-                      -e KEYCLOAK_CLIENT_ID=${{ secrets.DEV_KEYCLOAK_CLIENT_ID }} \
-                      -e KEYCLOAK_APPLICATION_REALM=${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }} \
-                      -e DB_URL=${{ secrets.DEV_DB_URL }} \
-                      -e SMTP=${{ secrets.DEV_SMTP }} \
-                      -e EMAIL=${{ secrets.DEV_EMAIL }} \
-                      -e DEFAULT_SUPERADMIN_EMAIL=${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }} \
-                      -e KEYCLOAK_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }} \
-                      -e ENV=development \
-                      -e BASE_URL=${{ secrets.DEV_BASE_URL }} \
-                      -e FRONTEND_URL=${{ secrets.DEV_FRONTEND_URL }} \
-                      -e CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }} \
-                      -e JWT_SECRET=${{ secrets.DEV_JWT_SECRET }} \
-                      -e EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }}"
-
             if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
               echo "🚀 Deploying to DEVELOPMENT environment"
               CONTAINER_NAME="my-app-dev"
               TAG="dev"
               PORT_MAPPING="8089:8080"
               # Development environment variables
+              ENV_VARS="-e PORT=${{ secrets.DEV_PORT || '8080' }} \
+                        -e KEYCLOAK_BASE_URL='${{ secrets.DEV_KEYCLOAK_BASE_URL }}' \
+                        -e KEYCLOAK_USER_NAME='${{ secrets.DEV_KEYCLOAK_USER_NAME }}' \
+                        -e KEYCLOAK_PASSWORD='${{ secrets.DEV_KEYCLOAK_PASSWORD }}' \
+                        -e KEYCLOAK_REALM='${{ secrets.DEV_KEYCLOAK_REALM }}' \
+                        -e KEYCLOAK_CLIENT_ID='${{ secrets.DEV_KEYCLOAK_CLIENT_ID }}' \
+                        -e KEYCLOAK_APPLICATION_REALM='${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }}' \
+                        -e DB_URL='${{ secrets.DEV_DB_URL }}' \
+                        -e SMTP='${{ secrets.DEV_SMTP }}' \
+                        -e EMAIL='${{ secrets.DEV_EMAIL }}' \
+                        -e DEFAULT_SUPERADMIN_EMAIL='${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }}' \
+                        -e KEYCLOAK_CLIENT_SECRET='${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }}' \
+                        -e ENV=development \
+                        -e BASE_URL='${{ secrets.DEV_BASE_URL }}' \
+                        -e FRONTEND_URL='${{ secrets.DEV_FRONTEND_URL }}' \
+                        -e CLIENT_VERSION='${{ secrets.DEV_CLIENT_VERSION }}' \
+                        -e JWT_SECRET='${{ secrets.DEV_JWT_SECRET }}' \
+                        -e EMAIL_PASSWORD='${{ secrets.DEV_EMAIL_PASSWORD }}'"
             elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
               echo "🚀 Deploying to PRODUCTION environment"
               CONTAINER_NAME="my-app-prod"
