@@ -51,6 +51,9 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_SSH_PORT }}
+          env:
+            DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+            DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           script: |
             if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
               ENV_FILE=.env.development
@@ -60,16 +63,18 @@ jobs:
               TAG=latest
             fi
 
-            IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG
+            IMAGE_NAME=$DOCKER_USERNAME/my-app:$TAG
 
             # Log in to Docker Hub on the server
-            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
             # Pull latest image
             docker pull $IMAGE_NAME
 
-            # Stop and remove existing container
-            docker rm -f my-app || true
+            # Stop and remove existing container if it exists
+            if [ $(docker ps -aq -f name=my-app) ]; then
+              docker rm -f my-app
+            fi
 
             # Run new container
             docker run -d --env-file $ENV_FILE --name my-app -p 8088:8088 $IMAGE_NAME
