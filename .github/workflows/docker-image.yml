@@ -54,17 +54,15 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            #!/bin/bash
             set -euo pipefail
 
-            echo "Determining environment from branch..."
+            # Determine environment from branch
             case "${{ github.ref }}" in
               refs/heads/development)
                 echo "🚀 Deploying to DEVELOPMENT environment"
                 CONTAINER_NAME="my-app-dev"
                 TAG="dev"
-                ENVIRONMENT="development"
-
+                ENVIRONMENT="production"
                 PORT="${{ secrets.DEV_PORT }}"
                 BASE_URL="${{ secrets.DEV_BASE_URL }}"
                 FRONTEND_URL="${{ secrets.DEV_FRONTEND_URL }}"
@@ -88,7 +86,6 @@ jobs:
                 CONTAINER_NAME="my-app"
                 TAG="latest"
                 ENVIRONMENT="production"
-
                 PORT="${{ secrets.PROD_PORT }}"
                 BASE_URL="${{ secrets.PROD_BASE_URL }}"
                 FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
@@ -124,38 +121,31 @@ jobs:
             # Stop & remove old container if it exists
             if docker ps -aq -f "name=^${CONTAINER_NAME}$" | grep -q .; then
               echo "Stopping and removing old container..."
-              docker stop "$CONTAINER_NAME"
-              docker rm "$CONTAINER_NAME"
+              docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
             fi
 
-            # Create temporary .env file
-            cat <<EOF >/tmp/app.env
-            PORT=$PORT
-            BASE_URL=$BASE_URL
-            FRONTEND_URL=$FRONTEND_URL
-            KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
-            KEYCLOAK_USER_NAME=$KEYCLOAK_USER_NAME
-            KEYCLOAK_PASSWORD=$KEYCLOAK_PASSWORD
-            KEYCLOAK_REALM=$KEYCLOAK_REALM
-            KEYCLOAK_CLIENT_ID=$KEYCLOAK_CLIENT_ID
-            KEYCLOAK_APPLICATION_REALM=$KEYCLOAK_APPLICATION_REALM
-            KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
-            DB_URL=$DB_URL
-            SMTP=$SMTP
-            EMAIL=$EMAIL
-            DEFAULT_SUPERADMIN_EMAIL=$DEFAULT_SUPERADMIN_EMAIL
-            CLIENT_VERSION=$CLIENT_VERSION
-            JWT_SECRET=$JWT_SECRET
-            EMAIL_PASSWORD=$EMAIL_PASSWORD
-            ENV=$ENVIRONMENT
-            EOF
-
-            # Print .env for debugging (be cautious with secrets)
-            echo "✅ Contents of /tmp/app.env:"
-            cat /tmp/app.env
-
-            echo "Starting new container with env file..."
-            docker run -d --name "$CONTAINER_NAME" --env-file /tmp/app.env "$IMAGE_NAME"
+            echo "Starting new container..."
+            docker run -d \
+              --name "$CONTAINER_NAME" \
+              --env PORT="$PORT" \
+              --env BASE_URL="$BASE_URL" \
+              --env FRONTEND_URL="$FRONTEND_URL" \
+              --env KEYCLOAK_BASE_URL="$KEYCLOAK_BASE_URL" \
+              --env KEYCLOAK_USER_NAME="$KEYCLOAK_USER_NAME" \
+              --env KEYCLOAK_PASSWORD="$KEYCLOAK_PASSWORD" \
+              --env KEYCLOAK_REALM="$KEYCLOAK_REALM" \
+              --env KEYCLOAK_CLIENT_ID="$KEYCLOAK_CLIENT_ID" \
+              --env KEYCLOAK_APPLICATION_REALM="$KEYCLOAK_APPLICATION_REALM" \
+              --env KEYCLOAK_CLIENT_SECRET="$KEYCLOAK_CLIENT_SECRET" \
+              --env DB_URL="$DB_URL" \
+              --env SMTP="$SMTP" \
+              --env EMAIL="$EMAIL" \
+              --env DEFAULT_SUPERADMIN_EMAIL="$DEFAULT_SUPERADMIN_EMAIL" \
+              --env CLIENT_VERSION="$CLIENT_VERSION" \
+              --env JWT_SECRET="$JWT_SECRET" \
+              --env EMAIL_PASSWORD="$EMAIL_PASSWORD" \
+              --env ENV="$ENVIRONMENT" \
+              "$IMAGE_NAME"
 
             # Wait and verify container is running
             sleep 5
