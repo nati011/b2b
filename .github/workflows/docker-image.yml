@@ -42,6 +42,48 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
+      - name: Set environment variables for deployment
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
+            echo 'ENV_VARS=-e PORT=${{ secrets.DEV_PORT }} \
+              -e KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }} \
+              -e KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }} \
+              -e KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }} \
+              -e KEYCLOAK_REALM=${{ secrets.DEV_KEYCLOAK_REALM }} \
+              -e KEYCLOAK_CLIENT_ID=${{ secrets.DEV_KEYCLOAK_CLIENT_ID }} \
+              -e KEYCLOAK_APPLICATION_REALM=${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }} \
+              -e DB_URL=${{ secrets.DEV_DB_URL }} \
+              -e SMTP=${{ secrets.DEV_SMTP }} \
+              -e EMAIL=${{ secrets.DEV_EMAIL }} \
+              -e DEFAULT_SUPERADMIN_EMAIL=${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }} \
+              -e KEYCLOAK_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }} \
+              -e ENV=development \
+              -e BASE_URL=${{ secrets.DEV_BASE_URL }} \
+              -e FRONTEND_URL=${{ secrets.DEV_FRONTEND_URL }} \
+              -e CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }} \
+              -e JWT_SECRET=${{ secrets.DEV_JWT_SECRET }} \
+              -e EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }}' >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo 'ENV_VARS=-e PORT=${{ secrets.PROD_PORT }} \
+              -e KEYCLOAK_BASE_URL=${{ secrets.PROD_KEYCLOAK_BASE_URL }} \
+              -e KEYCLOAK_USER_NAME=${{ secrets.PROD_KEYCLOAK_USER_NAME }} \
+              -e KEYCLOAK_PASSWORD=${{ secrets.PROD_KEYCLOAK_PASSWORD }} \
+              -e KEYCLOAK_REALM=${{ secrets.PROD_KEYCLOAK_REALM }} \
+              -e KEYCLOAK_CLIENT_ID=${{ secrets.PROD_KEYCLOAK_CLIENT_ID }} \
+              -e KEYCLOAK_APPLICATION_REALM=${{ secrets.PROD_KEYCLOAK_APPLICATION_REALM }} \
+              -e DB_URL=${{ secrets.PROD_DB_URL }} \
+              -e SMTP=${{ secrets.PROD_SMTP }} \
+              -e EMAIL=${{ secrets.PROD_EMAIL }} \
+              -e DEFAULT_SUPERADMIN_EMAIL=${{ secrets.PROD_DEFAULT_SUPERADMIN_EMAIL }} \
+              -e KEYCLOAK_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_CLIENT_SECRET }} \
+              -e ENV=production \
+              -e BASE_URL=${{ secrets.PROD_BASE_URL }} \
+              -e FRONTEND_URL=${{ secrets.PROD_FRONTEND_URL }} \
+              -e CLIENT_VERSION=${{ secrets.PROD_CLIENT_VERSION }} \
+              -e JWT_SECRET=${{ secrets.PROD_JWT_SECRET }} \
+              -e EMAIL_PASSWORD=${{ secrets.PROD_EMAIL_PASSWORD }}' >> $GITHUB_ENV
+          fi
+
       - name: SSH and deploy Docker container
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -50,87 +92,22 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            # Set variables based on branch
-            if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-              CONTAINER_NAME="my-app-dev"
-              TAG="dev"
-              PORT_MAPPING="8089:8080"
-              # Development environment variables
-              ENV_VARS="-e PORT=${{ secrets.DEV_PORT || 8081 }} \
-                        -e KEYCLOAK_BASE_URL='${{ secrets.DEV_KEYCLOAK_BASE_URL }}' \
-                        -e KEYCLOAK_USER_NAME='${{ secrets.DEV_KEYCLOAK_USER_NAME }}' \
-                        -e KEYCLOAK_PASSWORD='${{ secrets.DEV_KEYCLOAK_PASSWORD }}' \
-                        -e KEYCLOAK_REALM='${{ secrets.DEV_KEYCLOAK_REALM }}' \
-                        -e KEYCLOAK_CLIENT_ID='${{ secrets.DEV_KEYCLOAK_CLIENT_ID }}' \
-                        -e KEYCLOAK_APPLICATION_REALM='${{ secrets.DEV_KEYCLOAK_APPLICATION_REALM }}' \
-                        -e DB_URL='${{ secrets.DEV_DB_URL }}' \
-                        -e SMTP='${{ secrets.DEV_SMTP }}' \
-                        -e EMAIL='${{ secrets.DEV_EMAIL }}' \
-                        -e DEFAULT_SUPERADMIN_EMAIL='${{ secrets.DEV_DEFAULT_SUPERADMIN_EMAIL }}' \
-                        -e KEYCLOAK_CLIENT_SECRET='${{ secrets.DEV_KEYCLOAK_CLIENT_SECRET }}' \
-                        -e ENV=development \
-                        -e BASE_URL='${{ secrets.DEV_BASE_URL }}' \
-                        -e FRONTEND_URL='${{ secrets.DEV_FRONTEND_URL }}' \
-                        -e CLIENT_VERSION='${{ secrets.DEV_CLIENT_VERSION }}' \
-                        -e JWT_SECRET='${{ secrets.DEV_JWT_SECRET }}' \
-                        -e EMAIL_PASSWORD='${{ secrets.DEV_EMAIL_PASSWORD }}'"
-            elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              CONTAINER_NAME="my-app-prod"
-              TAG="latest"
-              PORT_MAPPING="8088:8080"
-              # Production environment variables
-              ENV_VARS="-e PORT=${{ secrets.PROD_PORT || '8080' }} \
-                        -e KEYCLOAK_BASE_URL='${{ secrets.PROD_KEYCLOAK_BASE_URL }}' \
-                        -e KEYCLOAK_USER_NAME='${{ secrets.PROD_KEYCLOAK_USER_NAME }}' \
-                        -e KEYCLOAK_PASSWORD='${{ secrets.PROD_KEYCLOAK_PASSWORD }}' \
-                        -e KEYCLOAK_REALM='${{ secrets.PROD_KEYCLOAK_REALM }}' \
-                        -e KEYCLOAK_CLIENT_ID='${{ secrets.PROD_KEYCLOAK_CLIENT_ID }}' \
-                        -e KEYCLOAK_APPLICATION_REALM='${{ secrets.PROD_KEYCLOAK_APPLICATION_REALM }}' \
-                        -e DB_URL='${{ secrets.PROD_DB_URL }}' \
-                        -e SMTP='${{ secrets.PROD_SMTP }}' \
-                        -e EMAIL='${{ secrets.PROD_EMAIL }}' \
-                        -e DEFAULT_SUPERADMIN_EMAIL='${{ secrets.PROD_DEFAULT_SUPERADMIN_EMAIL }}' \
-                        -e KEYCLOAK_CLIENT_SECRET='${{ secrets.PROD_KEYCLOAK_CLIENT_SECRET }}' \
-                        -e ENV=production \
-                        -e BASE_URL='${{ secrets.PROD_BASE_URL }}' \
-                        -e FRONTEND_URL='${{ secrets.PROD_FRONTEND_URL }}' \
-                        -e CLIENT_VERSION='${{ secrets.PROD_CLIENT_VERSION }}' \
-                        -e JWT_SECRET='${{ secrets.PROD_JWT_SECRET }}' \
-                        -e EMAIL_PASSWORD='${{ secrets.PROD_EMAIL_PASSWORD }}'"
-            fi
-            
+            CONTAINER_NAME="${{ needs.build-and-push.outputs.container-name }}"
+            TAG="${{ needs.build-and-push.outputs.image-tag }}"
             IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
             
-            # Login to Docker Hub
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
             
-            # Pull latest image
             docker pull "$IMAGE_NAME"
             
-            # Stop and remove existing container if it exists
             if [ $(docker ps -aq -f name=$CONTAINER_NAME) ]; then
-              echo "Stopping existing container: $CONTAINER_NAME"
               docker stop $CONTAINER_NAME
               docker rm $CONTAINER_NAME
             fi
             
-            # Debug output
-            echo "Image: $IMAGE_NAME"
-            echo "Container: $CONTAINER_NAME"
-            echo "Port mapping: $PORT_MAPPING"
+            echo "Starting container $CONTAINER_NAME with envs"
+            docker run -d --name $CONTAINER_NAME $ENV_VARS "$IMAGE_NAME"
             
-            # Run new container with port mapping
-            echo "Starting new container: $CONTAINER_NAME"
-            docker run -d --name $CONTAINER_NAME -p $PORT_MAPPING $ENV_VARS "$IMAGE_NAME"
-            
-            # Verify container is running
-            echo "Container status:"
             docker ps | grep $CONTAINER_NAME
-            
-            # Show container logs for debugging
-            echo "Container logs:"
             docker logs $CONTAINER_NAME --tail 20
-            
-            # Additional debugging
-            echo "Container environment check:"
             docker exec -t $CONTAINER_NAME env | grep -E "(PORT|ENV)" || true
