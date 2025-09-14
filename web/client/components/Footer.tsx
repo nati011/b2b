@@ -19,13 +19,13 @@ export const Footer = () => {
               <p className="text-sm text-secondary-foreground/80 mb-4">
               Turning Small Capital into Big Opportunities.              </p>
               <div className="flex gap-3">
-                <a href="#" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                <a href="https://t.me/efoyetastore1" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
                   <PiTelegramLogo className="w-4 h-4" />
                 </a>
-                <a href="#" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                <a href="https://www.tiktok.com/@efoyeta" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
                   <IoLogoTiktok className="w-4 h-4" />
                 </a>
-                <a href="#" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                <a href="https://www.instagram.com/efoyetastore?igsh=MTJodTNtZXRwaGgwOQ==" className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
                   <Instagram className="w-4 h-4" />
                 </a>
               </div>
