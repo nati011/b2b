@@ -54,17 +54,15 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            #!/bin/bash
             set -euo pipefail
 
-            echo "Determining environment from branch..."
+            # Determine environment from branch
             case "${{ github.ref }}" in
               refs/heads/development)
                 echo "🚀 Deploying to DEVELOPMENT environment"
                 CONTAINER_NAME="my-app-dev"
                 TAG="dev"
                 ENVIRONMENT="development"
-
                 PORT="${{ secrets.DEV_PORT }}"
                 BASE_URL="${{ secrets.DEV_BASE_URL }}"
                 FRONTEND_URL="${{ secrets.DEV_FRONTEND_URL }}"
@@ -88,7 +86,6 @@ jobs:
                 CONTAINER_NAME="my-app"
                 TAG="latest"
                 ENVIRONMENT="production"
-
                 PORT="${{ secrets.PROD_PORT }}"
                 BASE_URL="${{ secrets.PROD_BASE_URL }}"
                 FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
@@ -124,19 +121,8 @@ jobs:
             # Stop & remove old container if it exists
             if docker ps -aq -f "name=^${CONTAINER_NAME}$" | grep -q .; then
               echo "Stopping and removing old container..."
-              docker stop "$CONTAINER_NAME"
-              docker rm "$CONTAINER_NAME"
+              docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
             fi
-
-            # Debug: show variable names safely
-            echo "✅ Environment variables set:"
-            echo "PORT=$PORT"
-            echo "BASE_URL set"
-            echo "FRONTEND_URL set"
-            echo "KEYCLOAK_* variables set"
-            echo "DB_URL set"
-            echo "EMAIL set"
-            echo "CLIENT_VERSION set"
 
             echo "Starting new container..."
             docker run -d \
