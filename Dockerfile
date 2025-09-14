@@ -31,4 +31,4 @@ CMD env && ./main \
     --min_compatible_client_version $CLIENT_VERSION \
     --jwt_secret $JWT_SECRET \
     --email_password $EMAIL_PASSWORD 
-EXPOSE 8080
+EXPOSE $PORT
