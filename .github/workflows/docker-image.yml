@@ -61,7 +61,7 @@ jobs:
             case "${{ github.ref }}" in
               refs/heads/development)
                 echo "🚀 Deploying to DEVELOPMENT environment"
-                CONTAINER_NAME="my-app"
+                CONTAINER_NAME="my-app-dev"
                 TAG="dev"
                 ENVIRONMENT="development"
                 ;;
@@ -69,7 +69,6 @@ jobs:
                 echo "🚀 Deploying to PRODUCTION environment"
                 CONTAINER_NAME="my-app-prod"
                 TAG="latest"
-                PORT_MAPPING="8088:8080"
                 ENVIRONMENT="production"
                 ;;
               *)
