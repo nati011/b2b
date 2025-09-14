@@ -52,7 +52,7 @@ jobs:
           script: |
             # Set variables based on branch
             if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-              CONTAINER_NAME="my-app-dev"
+              CONTAINER_NAME="my-app"
               TAG="dev"
               # Development environment variables
               ENV_VARS="-e PORT=${{ secrets.DEV_PORT || '8088' }} \
@@ -99,6 +99,8 @@ jobs:
             fi
             
             IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
+            echo "${{ IMAGE_NAME }}
+            echo "${{ CONTAINER_NAME }}
             
             # Login to Docker Hub
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
