@@ -18,6 +18,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Verify Docker login
+        run: docker info
+
       - name: Set image tag
         id: set-tag
         run: |
@@ -52,7 +55,8 @@ jobs:
               TAG=latest
             fi
 
-            # Pull the latest Docker image
+            # Pull the latest Docker image from Docker Hub
+            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
             docker pull myusername/my-app:$TAG
 
             # Stop and remove any existing container
