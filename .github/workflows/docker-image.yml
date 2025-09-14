@@ -12,13 +12,18 @@ jobs:
       image-name: ${{ steps.set-tag.outputs.image-name }}
     steps:
       - uses: actions/checkout@v4
+
+      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
       - name: Verify Docker login
         run: docker info
+
+      # Set image tag based on branch
       - name: Set image tag
         id: set-tag
         run: |
@@ -29,6 +34,8 @@ jobs:
             echo "tag=latest" >> $GITHUB_OUTPUT
             echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:latest" >> $GITHUB_OUTPUT
           fi
+
+      # Build and push Docker image
       - name: Build and push Docker image
         run: |
           IMAGE_NAME="${{ steps.set-tag.outputs.image-name }}"
@@ -57,6 +64,7 @@ jobs:
                 CONTAINER_NAME="my-app-dev"
                 TAG="dev"
                 ENVIRONMENT="development"
+
                 PORT="${{ secrets.DEV_PORT }}"
                 BASE_URL="${{ secrets.DEV_BASE_URL }}"
                 FRONTEND_URL="${{ secrets.DEV_FRONTEND_URL }}"
@@ -80,6 +88,7 @@ jobs:
                 CONTAINER_NAME="my-app"
                 TAG="latest"
                 ENVIRONMENT="production"
+
                 PORT="${{ secrets.PROD_PORT }}"
                 BASE_URL="${{ secrets.PROD_BASE_URL }}"
                 FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
@@ -105,15 +114,21 @@ jobs:
             esac
 
             IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
+
             echo "Logging into Docker Hub..."
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
             echo "Pulling image $IMAGE_NAME..."
             docker pull "$IMAGE_NAME"
+
+            # Stop & remove old container if it exists
             if docker ps -aq -f "name=^${CONTAINER_NAME}$" | grep -q .; then
               echo "Stopping and removing old container..."
               docker stop "$CONTAINER_NAME"
               docker rm "$CONTAINER_NAME"
             fi
+
+            # Create temporary .env file
             cat <<EOF >/tmp/app.env
             PORT=$PORT
             BASE_URL=$BASE_URL
@@ -134,8 +149,15 @@ jobs:
             EMAIL_PASSWORD=$EMAIL_PASSWORD
             ENV=$ENVIRONMENT
             EOF
+
+            # Print .env for debugging (be cautious with secrets)
+            echo "✅ Contents of /tmp/app.env:"
+            cat /tmp/app.env
+
             echo "Starting new container with env file..."
             docker run -d --name "$CONTAINER_NAME" --env-file /tmp/app.env "$IMAGE_NAME"
+
+            # Wait and verify container is running
             sleep 5
             if docker ps --filter "name=^${CONTAINER_NAME}$" --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
               echo "✅ Container started successfully"
