@@ -1,29 +1,52 @@
-name: Docker Image CI
+name: Docker CI/CD
 
 on:
   push:
-    branches: [ "development", "main" ]  # main for prod
-  pull_request:
     branches: [ "development", "main" ]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
-
+    outputs:
+      image-tag: ${{ steps.set-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t my-app:latest .
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Set environment file
-        id: set_env
+      - name: Set image tag
+        id: set-tag
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
-            echo "ENV_FILE=.env.development" >> $GITHUB_ENV
+            echo "tag=dev" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            echo "ENV_FILE=.env.production" >> $GITHUB_ENV
+            echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run Docker container with environment
-        run: docker run --rm --env-file $ENV_FILE my-app:latest
+      - name: Build and push Docker image
+        run: |
+          docker build -t myusername/my-app:${{ steps.set-tag.outputs.tag }} .
+          docker push myusername/my-app:${{ steps.set-tag.outputs.tag }}
+
+  run-container:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull and run Docker container
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
+            ENV_FILE=.env.development
+            TAG=dev
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            ENV_FILE=.env.production
+            TAG=latest
+          fi
+
+          docker pull myusername/my-app:$TAG
+          docker run --rm --env-file $ENV_FILE myusername/my-app:$TAG
