@@ -2,6 +2,7 @@
 import { PENDING_STATUS } from '@/app/libs/enums';
 import useOrdersStore from '@/app/libs/store/useOrderStore';
 import PageContainer from '@/components/page-container';
+import SubscriptionMessage from '@/components/subscritption';
 import {
   Card,
   CardHeader,
@@ -61,6 +62,8 @@ export default function OverViewLayout({
 
   return (
     <PageContainer>
+                      <SubscriptionMessage/>
+
       <div className='flex flex-1 flex-col space-y-6 animate-fade-in'>
         {/* Header */}
         <div className='flex items-center justify-between'>

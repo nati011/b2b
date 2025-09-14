@@ -38,12 +38,8 @@ export function withAuthMiddleware(middleware: CustomMiddleware) {
       secret: process.env.NEXTAUTH_SECRET 
     })
     console.log(token)
-    if (token?.error) {
-        signOut()
-    }
-
-    if (!token) {
-        signOut()
+    if ((token?.error != null && token?.error != "ForbiddenError") || !token ) {
+      return NextResponse.redirect(new URL('/auth/signin', request.url))
     }
 
     const requiredPermission = ACL[pathname]

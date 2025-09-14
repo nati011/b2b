@@ -135,13 +135,8 @@ export function useAuth() {
     if (extendedSession?.error) {
       
       if (extendedSession.error === 'RefreshAccessTokenError') {
-        const userId = extendedSession.user?.id.toString()
-        
-        if (userId && refreshManager.isMaxAttemptsReached(userId)) {
-          toast.error('Session expired due to too many refresh attempts. Please sign in again.')
-        } else {
-          toast.error('Your session has expired. Please sign in again.')
-        }
+        extendedSession.user?.id.toString()
+
         logout()
       }
     }

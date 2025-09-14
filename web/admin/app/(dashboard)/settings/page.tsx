@@ -213,7 +213,7 @@ export default function Settings() {
                   {subscription?.subscription_plan_name || "Unknown Plan"}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Purchased on 
+                  Purchased on {formatDate(subscription?.created_date.toLocaleString())}
                 </p>
               </div>
 
