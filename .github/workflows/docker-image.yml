@@ -51,10 +51,10 @@ jobs:
           script: |
             # Set variables based on branch
             if [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-              ENV_FILE=.env.development
+              ENV_FILE=/app/.env.development
               TAG=dev
             elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              ENV_FILE=.env.production
+              ENV_FILE=/app/.env.production
               TAG=latest
             fi
             
