@@ -2,17 +2,28 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "development" ]
+    branches: [ "development", "main" ]  # main for prod
   pull_request:
-    branches: [ "development" ]
+    branches: [ "development", "main" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: tets
-      run: echo "Hello, Actions!"
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t my-app:latest .
+
+      - name: Set environment file
+        id: set_env
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/development" ]]; then
+            echo "ENV_FILE=.env.development" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "ENV_FILE=.env.production" >> $GITHUB_ENV
+          fi
+
+      - name: Run Docker container with environment
+        run: docker run --rm --env-file $ENV_FILE my-app:latest
