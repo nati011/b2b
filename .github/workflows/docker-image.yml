@@ -99,8 +99,6 @@ jobs:
             fi
             
             IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
-            echo "${{ IMAGE_NAME }}
-            echo "${{ CONTAINER_NAME }}
             
             # Login to Docker Hub
             echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
@@ -114,7 +112,8 @@ jobs:
               docker stop $CONTAINER_NAME
               docker rm $CONTAINER_NAME
             fi
-            
+            echo "${{ IMAGE_NAME }}"
+            echo "${{ CONTAINER_NAME }}"
             # Run new container
             echo "Starting new container: $CONTAINER_NAME"
             docker run -d --name $CONTAINER_NAME $ENV_VARS "$IMAGE_NAME"
