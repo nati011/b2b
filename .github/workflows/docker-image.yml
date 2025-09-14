@@ -125,7 +125,7 @@ jobs:
             fi
 
             echo "Starting new container..."
-            docker run -d \
+            docker run -d -p 8081:8081 \
               --name "$CONTAINER_NAME" \
               --env PORT="$PORT" \
               --env BASE_URL="$BASE_URL" \
