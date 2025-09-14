@@ -7,11 +7,11 @@ deploy-to-server:
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}  # 👈 Use private key instead of password
+        password: ${{ secrets.SERVER_PASSWORD }}
         port: ${{ secrets.SERVER_SSH_PORT }}
         script: |
           #!/bin/bash
-          set -euo pipefail  # Exit on error, undefined vars, pipe failures
+          set -euo pipefail
 
           # Determine environment from branch
           case "${GITHUB_REF}" in
@@ -20,27 +20,27 @@ deploy-to-server:
               CONTAINER_NAME="my-app-dev"
               TAG="dev"
               PORT_MAPPING="8089:8080"
-              ENV_FILE="/tmp/dev-env.txt"
               ;;
             refs/heads/main)
               echo "🚀 Deploying to PRODUCTION environment"
               CONTAINER_NAME="my-app-prod"
               TAG="latest"
               PORT_MAPPING="8088:8080"
-              ENV_FILE="/tmp/prod-env.txt"
               ;;
             *)
               echo "❌ Unknown branch: ${GITHUB_REF}"
-              echo "This workflow only supports 'main' and 'development' branches"
               exit 1
               ;;
           esac
 
           IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/my-app:$TAG"
+          ENV_FILE="/tmp/${CONTAINER_NAME}.env"
 
-          # Write environment variables to a file (safe, avoids shell injection)
-          cat > "$ENV_FILE" << 'EOF'
-PORT=${{ secrets.DEV_PORT || '8080' }}
+          echo "🔑 Writing env file: $ENV_FILE"
+
+          if [[ "$CONTAINER_NAME" == "my-app-dev" ]]; then
+            cat > "$ENV_FILE" << EOF
+PORT=${{ secrets.DEV_PORT }}
 KEYCLOAK_BASE_URL=${{ secrets.DEV_KEYCLOAK_BASE_URL }}
 KEYCLOAK_USER_NAME=${{ secrets.DEV_KEYCLOAK_USER_NAME }}
 KEYCLOAK_PASSWORD=${{ secrets.DEV_KEYCLOAK_PASSWORD }}
@@ -59,11 +59,9 @@ CLIENT_VERSION=${{ secrets.DEV_CLIENT_VERSION }}
 JWT_SECRET=${{ secrets.DEV_JWT_SECRET }}
 EMAIL_PASSWORD=${{ secrets.DEV_EMAIL_PASSWORD }}
 EOF
-
-          # Override for production
-          if [[ "$CONTAINER_NAME" == "my-app-prod" ]]; then
-            cat > "$ENV_FILE" << 'EOF'
-PORT=${{ secrets.PROD_PORT || '8080' }}
+          else
+            cat > "$ENV_FILE" << EOF
+PORT=${{ secrets.PROD_PORT }}
 KEYCLOAK_BASE_URL=${{ secrets.PROD_KEYCLOAK_BASE_URL }}
 KEYCLOAK_USER_NAME=${{ secrets.PROD_KEYCLOAK_USER_NAME }}
 KEYCLOAK_PASSWORD=${{ secrets.PROD_KEYCLOAK_PASSWORD }}
@@ -88,43 +86,29 @@ EOF
           echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
           # Pull image
-          echo "Pulling image: $IMAGE_NAME"
           docker pull "$IMAGE_NAME"
 
-          # Stop and remove existing container
+          # Stop old container if exists
           if docker ps -aq -f name="$CONTAINER_NAME" >/dev/null; then
-            echo "Stopping and removing existing container: $CONTAINER_NAME"
             docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
           fi
 
-          # Build docker run command with env file (SAFE!)
-          echo "Starting new container: $CONTAINER_NAME"
-          echo "Port mapping: $PORT_MAPPING"
-          echo "Image: $IMAGE_NAME"
-
-          # Use --env-file to avoid shell injection risks
+          # Run new container
           docker run -d \
             --name "$CONTAINER_NAME" \
             -p "$PORT_MAPPING" \
             --env-file "$ENV_FILE" \
             "$IMAGE_NAME"
 
-          # Wait and check status
           sleep 5
 
-          # Verify container is running
           if docker ps --filter "name=$CONTAINER_NAME" --format "{{.Names}}" | grep -q "$CONTAINER_NAME"; then
             echo "✅ Container started successfully"
-            docker ps --filter "name=$CONTAINER_NAME"
-            echo "=== Container Logs (last 20 lines) ==="
             docker logs "$CONTAINER_NAME" --tail 20
-            echo "=== Environment Inside Container ==="
-            docker exec "$CONTAINER_NAME" env | grep -E "(PORT|ENV|KEYCLOAK|DB_URL|BASE_URL)" || true
           else
             echo "❌ Failed to start container"
             docker ps -a --filter "name=$CONTAINER_NAME"
             exit 1
           fi
 
-          # Cleanup temp file
           rm -f "$ENV_FILE"
