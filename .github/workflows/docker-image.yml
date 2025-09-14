@@ -78,3 +78,5 @@ jobs:
 
             # Run new container
             docker run -d --env-file $ENV_FILE --name my-app -p 8088:8088 $IMAGE_NAME
+
+            
