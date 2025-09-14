@@ -13,7 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -23,7 +22,6 @@ jobs:
       - name: Verify Docker login
         run: docker info
 
-      # Set image tag based on branch
       - name: Set image tag
         id: set-tag
         run: |
@@ -35,7 +33,6 @@ jobs:
             echo "image-name=${{ secrets.DOCKER_HUB_USERNAME }}/my-app:latest" >> $GITHUB_OUTPUT
           fi
 
-      # Build and push Docker image
       - name: Build and push Docker image
         run: |
           IMAGE_NAME="${{ steps.set-tag.outputs.image-name }}"
@@ -128,7 +125,7 @@ jobs:
               docker rm "$CONTAINER_NAME"
             fi
 
-            # Create a temporary .env file
+            # Create temporary .env file
             cat <<EOF >/tmp/app.env
             PORT=$PORT
             BASE_URL=$BASE_URL
