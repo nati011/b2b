@@ -2,7 +2,7 @@ import { getSession } from "@/app/actions/getSession";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-const apiUrl = "https://b2b-67gk.onrender.com/api/v1";
+const apiUrl = "http://api.efoyetastore.com/api/v1";
 
 const axiosIns = axios.create({
     baseURL: apiUrl
