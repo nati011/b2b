@@ -27,7 +27,6 @@ export const columns: ColumnDef<Order>[] = [
         header: "Status",
         cell: ({ row }) => {
             const status = row.getValue("Status");
-            console.log(status)
             const statusConfig = {
                 [CANCELED_STATUS]: {
                     bg: "bg-red-100/50",
@@ -73,7 +72,7 @@ export const columns: ColumnDef<Order>[] = [
                     bg: "bg-blue-100/50",
                     text: "text-blue-800",
                     border: "border-blue-200",
-                    label: "Dispatched"
+                    label: "Canceled"
                 },
                 [PENDING_STATUS]: {
                     bg: "bg-amber-100/50",
@@ -122,6 +121,12 @@ export const columns: ColumnDef<Order>[] = [
                     border: "border-emerald-200",
                     label: "Accepted"
                 },
+                [CANCELED_STATUS]: {
+                    bg: "bg-red-100/50",
+                    text: "text-red-800",
+                    border: "border-red-200",
+                    label: "Canceled"
+                }
             };
             //   @ts-ignore
             const config = statusConfig[status as string] || {

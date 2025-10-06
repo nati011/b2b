@@ -1,7 +1,4 @@
 import { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-
-import axios from 'axios'
 import { NextMiddlewareResult } from "next/dist/server/web/types"
 
 

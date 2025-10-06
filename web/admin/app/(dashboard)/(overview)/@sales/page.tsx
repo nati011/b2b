@@ -66,7 +66,9 @@ export default function RecentSales() {
   }
 
   const recentOrders = orders.slice(0, 4);
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.Total || 0), 0);
+  const totalRevenue = orders.filter(order => order.PaymentStatus?.toLowerCase() === 'accepted')
+  .reduce((sum, order) => sum + (order.Total || 0), 0)
+  .toLocaleString();
   const completedOrders = orders.filter(order => order.Status === COMPLETED_STATUS).length;
   const pendingOrders = orders.filter(order => order.Status === PENDING_STATUS).length;
 

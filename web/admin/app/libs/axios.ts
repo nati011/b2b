@@ -2,7 +2,7 @@ import { getSession } from "@/app/actions/getSession";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { signOut } from "next-auth/react";
 
-// Extend the Session type to include our custom properties
+
 interface ExtendedSession {
   user?: {
     id: string;
@@ -16,27 +16,23 @@ interface ExtendedSession {
   expires: string;
 }
 
-// API configuration
-const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://b2b-67gk.onrender.com/api/v1";
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds timeout
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add authentication token
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
       const session = await getSession() as ExtendedSession;
-
       if (session?.accessToken) {
         config.headers.Authorization = `Bearer ${session.accessToken}`;
       }
-
       return config;
     } catch (error) {
       console.error("Error in request interceptor:", error);
@@ -49,7 +45,6 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh and errors
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
@@ -57,25 +52,17 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized errors
     if (error.response?.status === 401 && originalRequest) {
-      // Check if this request has already been retried
       const retryCount = (originalRequest as any)._retryCount || 0;
-      const MAX_RETRY_ATTEMPTS = 2; // Limit to 2 retry attempts
+      const MAX_RETRY_ATTEMPTS = 2;
 
       if (retryCount < MAX_RETRY_ATTEMPTS) {
         try {
-          // Mark this request as retried
           (originalRequest as any)._retryCount = retryCount + 1;
-
-          // Try to refresh the token
+          
           const session = await getSession() as ExtendedSession;
-
           if (session?.accessToken) {
-            // Update the authorization header with the new token
             originalRequest.headers.Authorization = `Bearer ${session.accessToken}`;
-
-            // Retry the original request
             return axiosInstance(originalRequest);
           }
         } catch (refreshError) {
@@ -85,19 +72,28 @@ axiosInstance.interceptors.response.use(
         console.error("Maximum retry attempts exceeded for 401 error");
       }
 
-      // If refresh fails or max retries exceeded, sign out the user
-      // Only call signOut on the client side
       if (typeof window !== 'undefined') {
-        await signOut({
-          callbackUrl: '/auth/signin',
-          redirect: true
-        });
+        try {
+          await signOut({
+            callbackUrl: '/auth/signin',
+            redirect: true
+          });
+        } catch (signOutError) {
+          console.error("SignOut failed, using fallback redirect:", signOutError);
+          window.location.replace('/auth/signin');
+        }
       }
     }
 
-    // Handle other errors
     if (error.response?.status === 403) {
       console.error("Forbidden: User doesn't have permission to access this resource");
+      
+      const forbiddenError = new Error("FORBIDDEN_ACCESS");
+      forbiddenError.name = "ForbiddenError";
+      (forbiddenError as any).redirectTo = "/forbidden";
+      (forbiddenError as any).statusCode = 403;
+      
+      return Promise.reject(forbiddenError);
     }
 
     if (error.response?.status === 404) {
@@ -112,8 +108,5 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Export the configured instance
 export default axiosInstance;
-
-// Export a function to get the base URL for external use
 export const getApiBaseUrl = () => API_BASE_URL;

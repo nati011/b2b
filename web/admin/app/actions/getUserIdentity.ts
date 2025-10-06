@@ -1,10 +1,9 @@
 "use server"
 import axios from 'axios'
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/auth"
 import { UserIdentity } from '@/app/libs/types'
 
-// Environment variables
 const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
 
 // Extended session type to include userIdentity
@@ -32,7 +31,6 @@ type IdentityResponse  = {
  */
 export async function getUserIdentityWithToken(accessToken: string): Promise<UserIdentity | null> {
   try {
-    console.log(accessToken)
     const response = await axios.get<{ body: IdentityResponse }>(
       `${API_BASE_URL}/api/v1/identity/user`,
       {
@@ -43,6 +41,8 @@ export async function getUserIdentityWithToken(accessToken: string): Promise<Use
         timeout: 10000,
       }
     )
+
+    console.log(response.data)
 
     if (!response.data?.body.user) {
       console.error("No user data received from API")
@@ -62,14 +62,12 @@ export async function getUserIdentityWithToken(accessToken: string): Promise<Use
  */
 export async function getUserIdentityFromSession(): Promise<UserIdentity | null> {
   try {
-    // First, try to get user identity from the session
     const session = await getServerSession(authOptions) as ExtendedSession
     
     if (session?.userIdentity) {
       return session.userIdentity
     }
 
-    // If not in session, fetch from API using the access token
     if (session?.accessToken) {
       return await getUserIdentityWithToken(session.accessToken)
     }

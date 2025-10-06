@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { PiSpinner } from 'react-icons/pi'
 import { FcGoogle } from "react-icons/fc"
+import { Eye, EyeOff } from "lucide-react"
 import { toast } from 'sonner'
 
 import { InitResetPassword } from '@/app/actions/auth'
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   
   const callbackUrl = searchParams.get("callbackUrl") || "/"
   const error = searchParams.get("error")
@@ -100,7 +102,10 @@ export default function LoginPage() {
     }
   }
 
-  // Show loading state while checking authentication
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -148,15 +153,34 @@ export default function LoginPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={errors.password ? "border-red-500" : ""}
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`pr-10 ${errors.password ? "border-red-500" : ""}`}
+                  disabled={loading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={togglePasswordVisibility}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="sr-only">
+                    {showPassword ? "Hide password" : "Show password"}
+                  </span>
+                </Button>
+              </div>
               {errors.password && (
                 <span className="text-sm text-red-500">{errors.password}</span>
               )}
@@ -166,7 +190,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="link"
-                className="px-0 text-sm"
+                className="px-0 text-sm "
                 onClick={handleInitResetPassword}
                 disabled={loading}
               >
@@ -185,7 +209,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
@@ -199,7 +223,7 @@ export default function LoginPage() {
             <Button type="button" variant="outline" className="w-full">
               <FcGoogle className="mr-2 h-4 w-4" />
               Sign in with Google
-            </Button>
+            </Button> */}
           </form>
         </div>
       </div>

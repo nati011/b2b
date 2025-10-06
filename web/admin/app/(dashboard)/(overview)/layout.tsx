@@ -2,6 +2,7 @@
 import { PENDING_STATUS } from '@/app/libs/enums';
 import useOrdersStore from '@/app/libs/store/useOrderStore';
 import PageContainer from '@/components/page-container';
+import SubscriptionMessage from '@/components/subscritption';
 import {
   Card,
   CardHeader,
@@ -24,11 +25,12 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
 }) {
   const {
-    loading,
     orders,
-    fetchOrders,
   } = useOrdersStore()
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.Total || 0), 0).toLocaleString();
+  const totalRevenue = orders
+  .filter(order => order.PaymentStatus?.toLowerCase() === 'accepted')
+  .reduce((sum, order) => sum + (order.Total || 0), 0)
+  .toLocaleString();
   const activeOrders = orders.filter(order => order.Status === PENDING_STATUS).length.toLocaleString();
   
   const stats = [
@@ -60,11 +62,13 @@ export default function OverViewLayout({
 
   return (
     <PageContainer>
+                      <SubscriptionMessage/>
+
       <div className='flex flex-1 flex-col space-y-6 animate-fade-in'>
         {/* Header */}
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-3xl font-bold tracking-tight'>
+            <h1 className='text-3xl font-bold tracking-tight text-primary'>
               Dashboard Overview
             </h1>
             <p className='text-muted-foreground mt-1'>
@@ -78,13 +82,13 @@ export default function OverViewLayout({
           {stats.map((stat, index) => (
             <Card key={index} className='card-hover border-0 shadow-sm bg-gradient-to-br from-card to-card/50'>
               <CardHeader className='flex flex-row items-center justify-between space-y-0'>
-                <CardTitle className='text-sm font-medium text-muted-foreground'>
+                <CardTitle className='text-sm font-medium text-muted-'>
                   {stat.title}
                 </CardTitle>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </CardHeader>
               <CardContent>
-                <div className='text-2xl font-bold'>{stat.value}</div>
+                <div className='text-2xl font-bold text-primary'>{stat.value}</div>
               </CardContent>
             </Card>
           ))}

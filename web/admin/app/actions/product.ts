@@ -32,6 +32,7 @@ export const updateProduct = async (ProductsData: Partial<ProductForm>) => {
 
 export const createProduct = async (productData: any) => {
     try {
+        console.log(productData)
         const response = await axiosIns.post("/product", productData);
         return response.data.detail
     } catch (error: any) {

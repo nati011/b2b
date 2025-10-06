@@ -55,8 +55,6 @@ export default function Retailers() {
         columns={columns}
         data={retailers}
         loading={loading}
-        button={true}
-        buttonObj={{ name: "Register Retailers", url: "/Retailers/form" }}
         search="name"
         searchPlaceholder="Search Retailers..."
         onNext={handleNext}

@@ -29,6 +29,7 @@ const ThankYou = () => {
     if (verified) {
       fetchInvoice(parseInt(routeParam.id));
     }
+    console.log(invoice)
   }, [verified]);
 
   const handlePrint = () => {
@@ -60,7 +61,10 @@ const ThankYou = () => {
         <div className="max-w-6xl mx-auto">
           {verified ? (
             <>
-              {/* Success Message */}
+              {
+                invoice?.Id !=0 ? (
+                  <>
+                                {/* Success Message */}
               <Card className="mb-8 border-green-200 bg-green-50 shadow-none rounded-sm print:hidden">
                 <CardContent className="p-6 text-center">
                   <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
@@ -72,29 +76,43 @@ const ThankYou = () => {
                   </p>
                 </CardContent>
               </Card>
+ {/* Invoice */}
+ <InvoiceCard loading={loading} invoice={invoice} />
 
-              {/* Invoice */}
-              <InvoiceCard loading={loading} invoice={invoice} />
+ {/* Additional Actions */}
+ <div className="mt-8 text-center print:hidden">
+   <div className="flex flex-col sm:flex-row gap-4 justify-center">
+     <Link href="/">
+       <Button variant="outline" className="w-full sm:w-auto">
+         Continue Shopping
+       </Button>
+     </Link>
+     <Button
+       className="w-full sm:w-auto"
+       onClick={() => {
+         handlePrint();
+       }}
+     >
+       Print Invoice
+     </Button>
+   </div>
+ </div>
+</>
+                ) :(
+                  <div className="h-screen flex flex-col items-center justify-center">
+                                     <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                    <h1 className="text-3xl font-bold text-green-800 mb-2">
+                      Thank You for Your Purchase!
+                    </h1>
+                    <p className="text-green-700">
+                      Your order has been confirmed and will be processed shortly.
+                    </p>                                          
+                  </div>
 
-              {/* Additional Actions */}
-              <div className="mt-8 text-center print:hidden">
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/">
-                    <Button variant="outline" className="w-full sm:w-auto">
-                      Continue Shopping
-                    </Button>
-                  </Link>
-                  <Button
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                      handlePrint();
-                    }}
-                  >
-                    Print Invoice
-                  </Button>
-                </div>
-              </div>
-            </>
+                )
+              }
+              </>
+             
           ) : (
             <>
               <div className="w-full flex flex-col gap-6 items-center justify-center text-center py-20">

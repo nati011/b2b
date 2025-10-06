@@ -20,8 +20,8 @@ export const ProductCard: React.FC<Props> = ({ product }) => {
     const maxPrice = Math.max(...prices);
 
     return minPrice === maxPrice
-      ? `$${minPrice}`
-      : `$${minPrice} - $${maxPrice}`;
+      ? `${minPrice.toLocaleString()} ETB`
+      : `${minPrice.toLocaleString()} ETB - ${maxPrice.toLocaleString()} ETB`;
   };
 
   const isAllOutOfStock = (product: Catalogue) => {
@@ -46,8 +46,8 @@ export const ProductCard: React.FC<Props> = ({ product }) => {
           loading="lazy"
         />
       </div>
-      <h3 className="text-lg font-medium mb-2">{product.name}</h3>
-      <p className="text-sm">
+      <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
+      <p className="text-md text-gray-800">
         {getPriceRange(product)}
         {isAllOutOfStock(product) && (
           <span className="text-red-500 ml-2">(Out of Stock)</span>

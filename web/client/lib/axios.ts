@@ -2,7 +2,7 @@ import { getSession } from "@/app/actions/getSession";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-const apiUrl = "http://localhost:3000/api/v1";
+const apiUrl = "http://api.efoyetastore.com/api/v1";
 
 const axiosIns = axios.create({
     baseURL: apiUrl
@@ -17,11 +17,9 @@ axiosIns.interceptors.request.use(
             config.headers.Authorization = `Bearer ${session.accessToken}`;
         }
 
-        // console.log(config.baseURL, 'Config Here')
         return config;
     },
     (error) => {
-        console.log(error, "Errorin interceptor");
         Promise.reject(error);
     }
 );

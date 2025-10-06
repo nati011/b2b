@@ -1,17 +1,15 @@
 'use server'
 import axiosIns from "@/app/libs/axios";
 import { UserIdentity } from "../libs/types";
+import { withErrorHandling } from "@/app/libs/error-handling";
 
 
 export const FetchUserDetail = async (id: number) => {
-    try {
+    return withErrorHandling(async () => {
         const response = await axiosIns.get(`/user?id=${id}`);
         console.log(response.data)
         return response.data.body.user
-    } catch (error) {
-        console.log(error)
-        throw error
-    }
+      });
 }
 
 
@@ -47,15 +45,9 @@ export const ResetPassword = async (token: string, password: string) => {
 }
 
 export const UpdateProfile  = async (data: Partial<UserIdentity>) =>{
-    try{
+    return withErrorHandling(async () => {
         const response = await axiosIns.patch("/user", data)
         console.log(response.data)
         return response.data.message
-    } catch (error: any) {
-        console.log(error)
-        if (error.response) {
-            throw error.response.data.message || "An error has occured while updating your profile"
-        }
-        throw "An error has occured while updating your profile"
-    }
+      });
 }

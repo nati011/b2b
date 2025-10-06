@@ -18,46 +18,84 @@ import {
 } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, Calendar } from 'lucide-react';
+import useOrdersStore from '@/app/libs/store/useOrderStore';
+import { Order } from '@/app/libs/types';
 
-export const description = 'An interactive bar chart showing order analytics';
 
-const chartData = [
-  { date: 'Jan', orders: 120, revenue: 2400 },
-  { date: 'Feb', orders: 180, revenue: 3600 },
-  { date: 'Mar', orders: 150, revenue: 3000 },
-  { date: 'Apr', orders: 220, revenue: 4400 },
-  { date: 'May', orders: 280, revenue: 5600 },
-  { date: 'Jun', orders: 320, revenue: 6400 },
-  { date: 'Jul', orders: 290, revenue: 5800 },
-  { date: 'Aug', orders: 350, revenue: 7000 },
-  { date: 'Sep', orders: 380, revenue: 7600 },
-  { date: 'Oct', orders: 420, revenue: 8400 },
-  { date: 'Nov', orders: 450, revenue: 9000 },
-  { date: 'Dec', orders: 500, revenue: 10000 }
-];
+type ChartData = {
+  date: string;
+  orders: number;
+  revenue: number;
+}
 
 const chartConfig = {
   orders: {
     label: 'Orders',
-    color: 'hsl(var(--primary))'
+    color: '#179FDB'
   },
   revenue: {
     label: 'Revenue',
-    color: 'hsl(var(--chart-1))'
+    color: '#65C4BC'
   }
 } satisfies ChartConfig;
 
+
+export function mapOrdersToChartDataComplete(orders: Order[]): ChartData[] {
+  const monthlyData = orders.reduce((acc, order) => {
+    const date = new Date(order.CreatedAt);
+    const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+    
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        date: monthKey,
+        orders: 0,
+        revenue: 0
+      };
+    }
+    
+    acc[monthKey].orders += 1;
+    if (order.PaymentStatus=='ACCEPTED'){
+      acc[monthKey].revenue += order.Total;
+    }
+    
+    return acc;
+  }, {} as Record<string, ChartData>);
+  
+  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  return monthOrder.map(month => monthlyData[month] || {
+    date: month,
+    orders: 0,
+    revenue: 0
+  });
+}
+
 export default function BarGraph() {
   const [activeChart, setActiveChart] = React.useState<keyof typeof chartConfig>('orders');
+
   const [timeRange, setTimeRange] = React.useState('12m');
+
+  const {
+    orders,
+    loading
+  } = useOrdersStore()
+
+  const chartData = React.useMemo(() => {
+    if (!orders || orders.length === 0) {
+      return [];
+    }
+    return mapOrdersToChartDataComplete(orders);
+  }, [orders]);
 
   const total = React.useMemo(
     () => ({
       orders: chartData.reduce((acc, curr) => acc + curr.orders, 0),
       revenue: chartData.reduce((acc, curr) => acc + curr.revenue, 0)
     }),
-    []
+    [chartData]
   );
+
 
   const [isClient, setIsClient] = React.useState(false);
 
@@ -93,30 +131,16 @@ export default function BarGraph() {
           </CardTitle>
           <CardDescription>Track your order performance over time</CardDescription>
         </div>
-        <div className="flex items-center space-x-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="3m">Last 3 months</SelectItem>
-              <SelectItem value="6m">Last 6 months</SelectItem>
-              <SelectItem value="12m">Last 12 months</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Orders</p>
-            <p className="text-2xl font-bold">{total.orders.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-primary">{total.orders.toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Total Revenue</p>
-            <p className="text-2xl font-bold">${total.revenue.toLocaleString()}</p>
+            <p className="text-2xl text-primary font-bold">${total.revenue.toLocaleString()}</p>
           </div>
         </div>
         
@@ -138,24 +162,24 @@ export default function BarGraph() {
                 <linearGradient id="fillBar" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor="hsl(var(--primary))"
+                    stopColor="#179FDB"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="100%"
-                    stopColor="hsl(var(--primary))"
+                    stopColor="#179FDB"
                     stopOpacity={0.2}
                   />
                 </linearGradient>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor="hsl(var(--chart-1))"
+                    stopColor="#65C4BC"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="100%"
-                    stopColor="hsl(var(--chart-1))"
+                    stopColor="#65C4BC"
                     stopOpacity={0.2}
                   />
                 </linearGradient>

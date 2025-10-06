@@ -31,7 +31,6 @@ export default function DistributorDetail() {
         distributorUser,
         loading,
         error,
-        fetchDistributorUser,
         fetchDistributorDetail,
         approveDistributor,
         rejectDistributor,
@@ -175,12 +174,10 @@ export default function DistributorDetail() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
                 <Heading page={pages} heading="Distributor Details" subheading={`${distributor?.name || 'Loading...'}`} />
-                <div className="flex items-center gap-2">
+                <div className="ml-auto w-full bg-red">
                     {getStatusBadge()}
                 </div>
-            </div>
 
             <Tabs defaultValue="business" className="w-full">
                 <TabsList className="w-full">
@@ -261,13 +258,13 @@ export default function DistributorDetail() {
                             <CardTitle>Profile Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {distributorUser.id ? (
+                            {user?.id ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="firstName">First Name</Label>
                                         <Input
                                             id="firstName"
-                                            value={distributorUser.first_name || ''}
+                                            value={user?.first_name || ''}
                                             readOnly
                                             className="bg-gray-50"
                                         />
@@ -276,7 +273,7 @@ export default function DistributorDetail() {
                                         <Label htmlFor="lastName">Last Name</Label>
                                         <Input
                                             id="lastName"
-                                            value={distributorUser.last_name || ''}
+                                            value={user?.last_name || ''}
                                             readOnly
                                             className="bg-gray-50"
                                         />
@@ -285,7 +282,7 @@ export default function DistributorDetail() {
                                         <Label htmlFor="email">Email</Label>
                                         <Input
                                             id="email"
-                                            value={distributorUser.email || ''}
+                                            value={user?.email || ''}
                                             readOnly
                                             className="bg-gray-50"
                                         />
@@ -294,7 +291,7 @@ export default function DistributorDetail() {
                                         <Label htmlFor="phone">Phone</Label>
                                         <Input
                                             id="phone"
-                                            value={distributorUser.phone || ''}
+                                            value={user?.phone || ''}
                                             readOnly
                                             className="bg-gray-50"
                                         />
@@ -303,7 +300,7 @@ export default function DistributorDetail() {
                                         <Label htmlFor="username">Username</Label>
                                         <Input
                                             id="username"
-                                            value={distributorUser.username || ''}
+                                            value={user?.username || ''}
                                             readOnly
                                             className="bg-gray-50"
                                         />
@@ -312,7 +309,7 @@ export default function DistributorDetail() {
                                         <Label htmlFor="dob">Date of Birth</Label>
                                         <Input
                                             id="dob"
-                                            value={distributorUser.dob || ''}
+                                            value={user?.dob || ''}
                                             readOnly
                                             className="bg-gray-50"
                                         />

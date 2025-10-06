@@ -7,9 +7,10 @@ import "@/app/globals.css";
 import Topnav from "@/components/topnav";
 import SessionProvider from "@/app/sessionprovider";
 import { Provider } from "@/app/themeprovider";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
-import { Separator } from "@/components/ui/separator";
+import { Footer } from "@/components/footer";
+
 
 const font = DM_Sans({
   weight: ['100', '300', '400', '500', '600', '700'],
@@ -21,7 +22,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies()
   return (
     <SessionProvider>
       <Provider>
@@ -31,10 +31,11 @@ export default async function RootLayout({
             <SidebarInset className="flex-1">
               <div className="flex flex-col min-h-screen">
                 <Topnav />
-                <main className="flex-1 p-6 space-y-6">
-                  <div className="animate-fade-in">
+                <main className="flex-1 space-y-6">
+                  <div className="animate-fade-in px-6 pt-6 min-h-screen">
                     {children}
                   </div>
+                  <Footer/> 
                 </main>
               </div>
             </SidebarInset>
