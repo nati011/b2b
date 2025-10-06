@@ -111,6 +111,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await createProduct(productData);
+      console.log(productData)
       await useProductsStore.getState().fetchProducts();
       set({ loading: false, success: response });
     } catch (error: any) {

@@ -78,8 +78,6 @@ export default function DistributorsForm() {
             position.coords.latitude,
             position.coords.longitude
           ]
-          console.log(position.coords.latitude,
-            position.coords.longitude)
           setMarkerPosition(newPosition)
           setFormData(prev => ({ ...prev, latitude: newPosition[0].toString(), longitude: newPosition[1].toString() }))
         },
@@ -92,7 +90,6 @@ export default function DistributorsForm() {
 
   useEffect(() => {
     if (error != null) {
-      console.log(error)
       toast.error(error)
     }
     if (success != null) {

@@ -13,7 +13,7 @@ export default function WhyChooseUs() {
       id: "1",
       title: "Wholesale Pricing",
       description:
-        "Competitive pricing with volume discounts starting at just $500 minimum order value",
+        "Competitive pricing with volume discounts",
       icon: <Shield className="h-8 w-8 text-primary" />,
     },
     {

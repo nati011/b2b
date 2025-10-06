@@ -6,7 +6,7 @@ export const statusConfig = {
         bg: "bg-red-800",
         text: "text-red-800",
         border: "border-red-200",
-        label: "Dispatched"
+        label: "Canceled"
     },
     [PENDING_STATUS]: {
         bg: "bg-amber-500",

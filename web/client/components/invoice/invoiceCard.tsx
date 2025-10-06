@@ -19,9 +19,8 @@ export const InvoiceCard: React.FC<Props> = ({ loading, invoice }) => {
           <div className="flex items-center">
             <Image src="/logo.svg" width={100} height={50} alt="logo" className="mr-4" />
             <div className="">
-              <p className="font-semibold text-lg text-blue-900">
-                Efoyeta Store
-              </p>
+              <p className="font-semibold text-lg text-blue-900 uppercase">
+              efoyetastore general trading plc              </p>
               <p className="text-gray-600 text-sm">+2519234567132</p>
               <p className="text-gray-600 text-sm">Addis Ababa, Ethiopia</p>
             </div>
