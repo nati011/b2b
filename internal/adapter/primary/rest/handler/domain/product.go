@@ -108,6 +108,7 @@ func (p *Product) Init(authMiddleWare *middleware.Auth, applicationServices *app
 	p.service = domainService.ProductService
 	p.authMiddleware = *applicationServices.AuthMiddleware
 	p.distributorSubscriptionMiddleware = domainService.DistributorSubscriptonMiddleware
+	p.distributorService = domainService.DistributorService
 	return nil
 }
 
