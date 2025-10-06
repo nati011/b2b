@@ -1,15 +1,14 @@
 'use server'
 import axiosIns from "@/app/libs/axios";
+import { withErrorHandling } from "@/app/libs/error-handling";
 
 export async function fetchOrders(offset: number) {
-    try {
+    return withErrorHandling(async () => {
         const response = await axiosIns.get(`/order?limit=10&offset=${offset}`);
         console.log(response.data)
         return response.data.body;
-    } catch (error) {
-        console.log(error)
-        throw new Error('Failed to fetch orders');
-    }
+      });
+
 }
 
 export async function getOrderById(orderId: number) {
@@ -22,13 +21,17 @@ export async function getOrderById(orderId: number) {
     }
 }
 
-export async function updateOrderStatus(orderId: string, status: string) {
+export async function updateOrderStatus(orderId: number, status: string) {
     try {
-        const response = await axiosIns.put(`/order/${orderId}`, { status });
+        const response = await axiosIns.patch(`/order?id=${orderId}&command=${status}`);
         return response.data;
-    } catch (error) {
-        throw new Error('Failed to update order status');
+    } catch (error: any) {
+        if (error.response) {
+            throw error.response.data.message || "Failed to update order status";
+        }
+        throw "Failed to update order status";
     }
+        
 }
 
 export async function createOrder(orderData: any) {

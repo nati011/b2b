@@ -131,6 +131,14 @@ export type DistributorRequest = {
 }
 
 
+export type DistributorUserRequest = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  username: string;
+}
+
 export type Item = {
   ProductId: number
   ProductName: string
@@ -147,6 +155,7 @@ export type Order = {
   Status: string
   DeliveryStatus: string
   PaymentStatus: string
+  ConfirmationStatus: string
   CreatedAt: string
 }
 
@@ -170,6 +179,7 @@ export type Role = {
 export type Resource = {
   id: number;
   name: string;
+  resource: string;
   action: string;
 };
 
@@ -205,6 +215,7 @@ export type Permissions = {
   Id: number
   Name: string
   Action: string
+  Resources: string
 }
 export type UserIdentity = {
   id: number
@@ -226,4 +237,13 @@ export type UserDetail = {
 	Email:     string
 	Phone:     string
 	Username:  string
+}
+
+export type Subscription = {
+  id: number
+  subscription_plan_name: string
+  subscription_plan_id: number
+  distributor_id: number
+  status: string
+  created_date: Date
 }

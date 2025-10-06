@@ -166,7 +166,7 @@ const Cart = () => {
                                   {item.name}
                                 </h3>
                                 <p className="text-sm text-gray-500 mt-1">
-                                  ${item.price.toFixed(2)} each
+                                  {item.price.toLocaleString()} ETB each
                                 </p>
                               </div>
                               <Button
@@ -203,7 +203,7 @@ const Cart = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-gray-900">
-                                  ${(item.price * item.quantity).toFixed(2)}
+                                  {(item.price * item.quantity).toLocaleString()} ETB
                                 </p>
                               </div>
                             </div>
@@ -225,13 +225,19 @@ const Cart = () => {
                         <span className="text-gray-600">
                           Subtotal ({totalItems} items)
                         </span>
-                        <span className="font-medium">${totalPrice}</span>
+                        <span className="font-medium">{totalPrice.toLocaleString()} ETB</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="font-medium">
-                          Delivery Estimation:{" "}
+                          Delivery Estimation:
                         </span>
-                        <span className="text-gray-600">8 upto 10 hours</span>
+                        <span className="text-gray-600">30 minutes to 1 hour</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium">
+                          Delivery Fee:
+                        </span>
+                        <span className="text-gray-600">Depends on the location</span>
                       </div>
                     </div>
 
@@ -242,7 +248,7 @@ const Cart = () => {
                         Total
                       </span>
                       <span className="text-lg font-semibold text-gray-900">
-                        ${totalPrice}
+                        {totalPrice.toLocaleString()} ETB
                       </span>
                     </div>
 
@@ -280,9 +286,9 @@ const Cart = () => {
               </div>
             ) : (
               <div
-                className={`grid sm:grid-cols-${partners.length} grid-cols-2  gap-4`}
+                className={`grid sm:grid-cols-${partners?.length} grid-cols-2  gap-4`}
               >
-                {partners.map((partner) => (
+                {partners?.map((partner) => (
                   <Card
                     key={partner.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${

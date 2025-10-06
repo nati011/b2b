@@ -1,103 +1,97 @@
-import { Star } from "lucide-react";
+"use client";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
+import usePlanstore from "@/lib/store/usePricingPlan";
+import Link from "next/link";
 
-interface Testimonial {
-  id: string;
-  name: string;
-  position: string;
-  company: string;
-  content: string;
-  rating: number;
-  image: string;
-}
+export default function PricingSection(){
+  const { plans, loading, error, fetchPricingPlan } = usePlanstore();
 
-export default function Testimonials() {
-  const testimonials: Testimonial[] = [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      position: "Retail Operations Manager",
-      company: "Urban Boutique Group",
-      content:
-        "Efoyeta's wholesale platform has transformed our inventory management. Their curated collections consistently outperform other suppliers, and the analytics dashboard gives us valuable insights for better purchasing decisions.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: "2",
-      name: "Michael Chen",
-      position: "Owner",
-      company: "Modern Home Store",
-      content:
-        "Since partnering with Efoyeta two years ago, our average basket size has increased by 28%. The quality of their products and reliability of their supply chain has made them our go-to wholesale partner.",
-      rating: 5,
-      image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: "3",
-      name: "Emma Rodriguez",
-      position: "Purchasing Director",
-      company: "HomeStyle Inc.",
-      content:
-        "The flexible minimum order quantities and seasonal discounts have allowed us to experiment with new product categories with minimal risk. Their account management team provides exceptional support.",
-      rating: 4,
-      image:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
-    },
-  ];
+  useEffect(() => {
+    void fetchPricingPlan();
+  }, [fetchPricingPlan]);
+
+  const formatPrice = (price: number) => `${price.toLocaleString()} ETB`;
+  const termToPeriod = (termInMonth: number) => {
+    if (termInMonth === 1) return "per month";
+    if (termInMonth === 12) return "per year";
+    return `for ${termInMonth} months`;
+  };
+
+  const isRecommended = (name: string) => /annual|annunal/i.test(name);
 
   return (
-    <section className="py-16 container mx-auto px-4">
-      <div className="flex flex-col items-center mb-12">
-        <h2 className="text-3xl font-medium mb-4">What Our Retailers Say</h2>
-        <div className="h-1 w-20 bg-primary mb-6"></div>
-        <p className="text-lg text-center text-muted-foreground mb-4 max-w-2xl">
-          Trusted by hundreds of retailers across the country
-        </p>
-      </div>
+    <section className="py-16 bg-secondary/30">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col items-center mb-12">
+          <h2 className="text-3xl font-medium mb-4">Distributor Pricing</h2>
+          <div className="h-1 w-20 bg-primary mb-6"></div>
+          <p className="text-lg text-center text-muted-foreground mb-4 max-w-2xl">
+            Choose the package that fits your business needs and growth goals
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {testimonials.map((testimonial) => (
-          <div
-            key={testimonial.id}
-            className="bg-secondary/20 p-6 rounded-lg border"
-          >
-            <div className="flex items-center mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-5 w-5 ${
-                    i < testimonial.rating
-                      ? "fill-primary text-primary"
-                      : "fill-muted text-muted"
-                  }`}
-                />
-              ))}
-            </div>
+        {error && (
+          <div className="text-center text-destructive mb-8">{error}</div>
+        )}
 
-            <p className="text-muted-foreground mb-6 italic">
-              "{testimonial.content}"
-            </p>
-
-            <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-full h-full object-cover"
-                />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {loading && plans.length === 0 && (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="relative bg-background p-8 rounded-lg border border-border">
+                <div className="text-center mb-6">
+                  <Skeleton className="h-6 w-32 mx-auto mb-2" />
+                  <Skeleton className="h-8 w-24 mx-auto mb-1" />
+                  <Skeleton className="h-4 w-28 mx-auto" />
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-3 w-56 mx-auto" />
+                    <Skeleton className="h-3 w-44 mx-auto" />
+                  </div>
+                </div>
+                <div className="space-y-3 mb-8">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+                <Skeleton className="h-9 w-full" />
               </div>
-              <div>
-                <h4 className="font-medium">{testimonial.name}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {testimonial.position}, {testimonial.company}
-                </p>
+            ))
+          )}
+
+          {!loading && plans.length === 0 && !error && (
+            <div className="md:col-span-3 text-center text-muted-foreground">No pricing plans available.</div>
+          )}
+
+          {plans.map(plan => (
+            <div 
+              key={plan.name}
+              className={`relative bg-background p-8 rounded-lg border ${isRecommended(plan.name) ? "border-primary shadow-lg scale-105" : "border-border"}`}
+            >
+              {isRecommended(plan.name) && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                  Recommended
+                </div>
+              )}
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-medium mb-2">{plan.name}</h3>
+                <div className="text-3xl font-bold text-primary mb-1">{formatPrice(plan.price)}</div>
+                <div className="text-sm text-muted-foreground">{termToPeriod(plan.term_in_month)}</div>
+                <p className="text-sm text-muted-foreground mt-4">{String((plan as any).desc ?? "")}</p>
               </div>
+
+              <Link href={`/signup/distributor/?plan_id=${plan.id}`}>
+              <Button 
+                variant="default"
+                className="w-full"
+              >
+                Get Started
+              </Button>
+              </Link>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
-}
+};

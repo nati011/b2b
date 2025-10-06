@@ -1,6 +1,7 @@
 import { create } from 'zustand'
-import { Distributor, DistributorRequest, UserDetail } from '@/app/libs/types';
-import { Create, GetAll, GetDistributorUser, GetById, DistributorOnBoardingReview, UpdateDistributorStatus } from '@/app/actions/distributor';
+import { Distributor, DistributorRequest, DistributorUserRequest, UserDetail } from '@/app/libs/types';
+import { Create, GetAll, GetDistributorUser, GetById, DistributorOnBoardingReview, UpdateDistributorStatus, CreateDistributorUser } from '@/app/actions/distributor';
+import { toast } from 'sonner';
 
 interface DistributorsStore {
     success: string | null
@@ -22,6 +23,7 @@ interface DistributorsStore {
     rejectDistributor: (id: number, comment: string) => Promise<void>
     activateDistributor: (id: number) => Promise<void>
     deactivateDistributor: (id: number) => Promise<void>
+    createDistirbutorUser: (user: DistributorUserRequest) => Promise<void>
 }
 
 const useDistributorsStore = create<DistributorsStore>((set) => ({
@@ -40,6 +42,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await GetAll(status)
+            console.log(response)
             set({
                 distributors: response.distributors,
                 totalCount: response.total_count,
@@ -90,6 +93,7 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
                 loading: false
             });
         } catch (error: any) {
+            toast.error(error.message)
             set({ error: error.message, loading: false });
         }
     },
@@ -132,6 +136,17 @@ const useDistributorsStore = create<DistributorsStore>((set) => ({
             await useDistributorsStore.getState().fetchDistributorDetail(id);
         } catch (error: any) {
             set({ error: error.message || "Error occured while rejecting distributor.", loading: false });
+        }
+    },
+
+    createDistirbutorUser: async(user: DistributorUserRequest) =>{
+        set({ loading: true, error: null })
+        try {
+            const response = await CreateDistributorUser(user)
+            set({ success: response, loading: false })
+            await useDistributorsStore.getState().fetchDistributorUser()
+        } catch (error: any) {
+            set({ error: error.message || "Error occured while creating distributor user.", loading: false });
         }
     }
 }));

@@ -2,6 +2,7 @@ import { DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
 import { Provider } from "@/app/themeprovider";
 import "@/app/globals.css";
+import { Footer } from "@/components/footer";
 
 const font = DM_Sans({
     weight: ['100', '300', '700'],

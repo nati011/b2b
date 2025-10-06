@@ -25,7 +25,6 @@ const ConfigurableProductAttributeForm: React.FC<ConfigurableProductAttributeFor
             }
 
             onChange([...attributes, newAttribute]);
-            console.log("HERE", attributes)
             setNewAttribute("");
         }
     };

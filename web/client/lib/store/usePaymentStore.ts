@@ -25,7 +25,6 @@ const usePartnerStore = create<PartnerStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await fetchPaymentPartners()
-
             set({
                 partners: response,
                 loading: false,

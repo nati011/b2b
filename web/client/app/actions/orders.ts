@@ -75,6 +75,7 @@ export async function verifyPayment(tx_ref: string) {
     try {
         console.log(tx_ref, "Tx Ref")
         const response = await axiosIns.post(`/payment/verify?tx_ref=${tx_ref}`);
+        console.log("Here____________")
         console.log(response.data, "Response")
         return response.data.body
     } catch (error: any) {
