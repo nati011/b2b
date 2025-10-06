@@ -7,12 +7,15 @@ import (
 	"net/http"
 	"strconv"
 
+	"context"
+
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
 	application_core "b2b.nati011.github.com/internal/core/application"
 	"b2b.nati011.github.com/internal/core/application/middleware"
 	"b2b.nati011.github.com/internal/core/application/resource"
 	domain_core "b2b.nati011.github.com/internal/core/domain"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/product"
 )
 
@@ -48,7 +51,7 @@ type GetProductByParamRequest struct {
 type UpdateProductRequest struct {
 	Id         int      `json:"id"`
 	Name       string   `json:"name"`
-	ExternalID string   `json:"extenal_id"`
+	ExternalID string   `json:"external_id"`
 	Price      float64  `json:"price"`
 	Desc       string   `json:"desc"`
 	Images     []string `json:"images"`
@@ -73,6 +76,7 @@ type Product struct {
 	authMiddleware                    middleware.Auth
 	distributorSubscriptionMiddleware middleware.DistributorSubscription
 	service                           product.Provider
+	distributorService                distributor.Provider
 }
 
 func InitProduct() {
@@ -133,6 +137,17 @@ func (p *Product) Routes(mux *http.ServeMux) {
 	})
 }
 
+func (p *Product) withDistributorContext(w http.ResponseWriter, r *http.Request) (context.Context, int, error) {
+	id := r.Context().Value("userId").(int)
+	resp, err := p.distributorService.GetByUserId(r.Context(), id)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return r.Context(), 0, err
+	}
+	ctx := context.WithValue(r.Context(), "distributorId", resp.Id)
+	return ctx, resp.Id, nil
+}
+
 func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamId = "product_id"
 	paramValues := r.URL.Query()
@@ -184,6 +199,11 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 	ParamPriceMaxValue := paramValues.Get(ParamPriceMax)
 	ParamSearchValue := paramValues.Get(ParamSearch)
 
+	ctx, distributorId, err := p.withDistributorContext(w, r)
+	if err != nil {
+		return
+	}
+
 	paramIdValue := paramValues.Get(ParamId)
 	if paramIdValue != "" {
 		typedParamId, err := strconv.Atoi(paramIdValue)
@@ -191,10 +211,12 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := p.service.Get(r.Context(), typedParamId)
+		resp, err := p.service.Get(ctx, typedParamId)
 		if err != nil {
 			switch err {
 			case product.ErrIdNotFound:
+				util.RequestErrorResponse(w, err)
+				return
 			default:
 				util.ServerErrorResponse(w, err)
 				return
@@ -202,7 +224,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		util.OperationSuccessResponse(w, resp)
-	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" {
+	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" || distributorId != 0 {
 		var typedCategoryId int
 		var err error
 		if ParamCategoryIdValue != "" {
@@ -231,24 +253,18 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		var resp product.GetAllResponse
+		req := &product.GetByParamRequest{
+			Name:          paramNameValue,
+			ExternalID:    ParamExternalIdValue,
+			PriceMin:      typedPriceMin,
+			PriceMax:      typedPriceMax,
+			DistributorId: distributorId,
+		}
 		if typedCategoryId != 0 {
-			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
-				Name:       paramNameValue,
-				ExternalID: ParamExternalIdValue,
-				CategoryId: []int{typedCategoryId},
-				PriceMin:   typedPriceMin,
-				PriceMax:   typedPriceMax,
-			})
-		} else {
-			resp, err = p.service.GetByParam(r.Context(), &product.GetByParamRequest{
-				Name:       paramNameValue,
-				ExternalID: ParamExternalIdValue,
-				PriceMin:   typedPriceMin,
-				PriceMax:   typedPriceMax,
-			})
+			req.CategoryId = []int{typedCategoryId}
 		}
 
+		resp, err := p.service.GetByParam(ctx, req)
 		if err != nil {
 			switch err {
 			case product.ErrUnknown:
@@ -261,9 +277,11 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else if ParamSearchValue != "" {
-		resp, err := p.service.GetByParam(r.Context(), &product.GetByParamRequest{
-			Name: ParamSearchValue,
-		})
+		req := &product.GetByParamRequest{
+			Name:          ParamSearchValue,
+			DistributorId: distributorId,
+		}
+		resp, err := p.service.GetByParam(ctx, req)
 		if err != nil {
 			switch err {
 			case product.ErrUnknown:
@@ -276,7 +294,10 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
-		resp, err := p.service.GetAll(r.Context())
+		req := &product.GetByParamRequest{
+			DistributorId: distributorId,
+		}
+		resp, err := p.service.GetByParam(ctx, req)
 		if err != nil {
 			switch err {
 			case product.ErrEmptyGetContent:
@@ -285,8 +306,7 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
-		util.OperationSuccessResponse(w, resp)
+		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	}
 }
 
@@ -303,6 +323,15 @@ func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
+	if requestBody.DistributorId == 0 {
+		_, distributorId, err := p.withDistributorContext(w, r)
+		if err != nil {
+			return
+		}
+
+		requestBody.DistributorId = distributorId
+	}
+
 	id, err := p.service.Create(r.Context(), (*product.CreateRequest)(&requestBody))
 	if err != nil {
 		switch err {
@@ -330,6 +359,13 @@ func (p *Product) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		util.RequestErrorResponse(w, err)
 		return
 	}
+
+	// TODO: Add distributor id on update
+	// ctx, distributorId, err := p.withDistributorContext(w, r)
+	// if err != nil {
+	// 	return
+	// }
+
 	id, err := p.service.Update(r.Context(), (*product.UpdateRequest)(&requestBody))
 	if err != nil {
 		switch err {
@@ -353,6 +389,12 @@ func (p *Product) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	const ParamCommand = "command"
 	paramValues := r.URL.Query()
 	paramCommandValue := paramValues.Get(ParamCommand)
+
+	// TODO: add distributor id on commands
+	// ctx, distributorId, err := p.withDistributorContext(w, r)
+	// if err != nil {
+	// 	return
+	// }
 
 	if paramCommandValue != "" {
 		typedParamId, err := util.GetPathParam(r, 4)
@@ -438,6 +480,7 @@ func (p *Product) StockHandler(w http.ResponseWriter, r *http.Request) {
 			err = p.service.Dispatch(r.Context(), &product.DispatchRequest{
 				Id:     typedParamId,
 				Amount: typedParamAmount,
+				// Optionally, add DistributorId if needed in the request struct
 			})
 			if err != nil {
 				switch err {
