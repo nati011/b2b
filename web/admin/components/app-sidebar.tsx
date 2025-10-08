@@ -27,20 +27,13 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { getUserIdentityFromSession } from "@/app/actions/getUserIdentity";
-import { ACL } from "@/lib/constants";
+import { canAccessPath } from "@/lib/acl";
 
 export async function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const user = await getUserIdentityFromSession();
-    //@ts-ignore
-  const permissions = user?.permissions.List || [];
-  console.log(permissions)
-  function hasPermission(required: string[]) {
-    console.log(required,"Required")
-    console.log(permissions)
-    return permissions.some((perm: any) => required?.includes(perm.Name));
-  }
+  const permissions = user?.permissions;
 
   const data = {
     navMain: [
@@ -122,17 +115,15 @@ export async function AppSidebar({
   const filteredNavMain = data.navMain
     .map((item) => {
       if (item.items) {
-        console.log(item.items)
         const filteredSubItems = item.items.filter((subItem) =>
-          hasPermission(ACL[subItem.url])
+          canAccessPath(permissions, subItem.url)
         );
         if (filteredSubItems.length > 0) {
           return { ...item, items: filteredSubItems };
         }
         return null;
       }
-      console.log(ACL[item.url])
-      return hasPermission(ACL[item.url]) ? item : null;
+      return canAccessPath(permissions, item.url) ? item : null;
     })
     .filter(Boolean);
 
