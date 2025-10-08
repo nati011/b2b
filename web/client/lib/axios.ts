@@ -2,7 +2,7 @@ import { getSession } from "@/app/actions/getSession";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-const apiUrl = "http://api.efoyetastore.com/api/v1";
+const apiUrl = process.env.NEXT_PUBLIC_BASE_URL
 
 const axiosIns = axios.create({
     baseURL: apiUrl
