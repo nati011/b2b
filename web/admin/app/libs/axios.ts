@@ -86,14 +86,15 @@ axiosInstance.interceptors.response.use(
     }
 
     if (error.response?.status === 403) {
-      console.error("Forbidden: User doesn't have permission to access this resource");
+      console.log(error.request, "______________")
+      console.log("Forbidden: User doesn't have permission to access this resource");
       
       const forbiddenError = new Error("FORBIDDEN_ACCESS");
       forbiddenError.name = "ForbiddenError";
       (forbiddenError as any).redirectTo = "/forbidden";
       (forbiddenError as any).statusCode = 403;
       
-      return Promise.reject(forbiddenError);
+      // return Promise.reject(forbiddenError);
     }
 
     if (error.response?.status === 404) {

@@ -74,11 +74,11 @@ const useProductsStore = create<ProductsStore>((set) => ({
       const resp = await fetchProducts()
       console.log(resp)
       set({
-        products: resp.body.List,
+        products: resp.products.List,
         loading: false,
       });
-    } catch (error) {
-      set({ error: "Failed to fetch products", loading: false });
+    } catch (error:any) {
+      set({ error: error.message, loading: false });
     }
   },
   fetchConfigurableProducts: async (url?: string) => {

@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { jwtDecode } from "jwt-decode"
 import axios, { AxiosError } from "axios"
 import { getUserIdentityWithToken } from "@/app/actions/getUserIdentity"
+import { extractPermissionNames } from "@/lib/acl"
 import { Permissions } from "@/app/libs/types"
 
 const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
@@ -62,9 +63,8 @@ interface AppToken extends TokenSet {
     refreshToken: string
     accessTokenExpires: number
     user: UserToken & {
-        permissions?: {
-            List: Permissions[]
-        }
+        // store minimal permissions as names to reduce cookie size
+        permissions?: string[]
     }
     userIdentity?: UserIdentity
     error?: "RefreshAccessTokenError" | "TokenExpiredError"
@@ -130,6 +130,9 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
 
       const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
 
+      // Reduce token size: store only permission names
+      const permissionNames = extractPermissionNames(userIdentity?.permissions)
+
       return {
         ...token,
         accessToken: response.data.body.access_token,
@@ -137,8 +140,8 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
         accessTokenExpires: decoded.exp * 1000,
         user: {
           ...user,
-          // @ts-expect-error
-          permissions: userIdentity?.permissions || []
+          // keep only names to minimize cookie size
+          permissions: permissionNames
         },
         error: undefined,
         refreshAttempts: 0
@@ -231,10 +234,7 @@ export const authOptions: AuthOptions = {
 
             const decoded = decodeToken(response.data.body.access_token)
             const user = createUserFromToken(decoded)
-            console.log('User created from token:', user)
-
             const userIdentity = await getUserIdentityWithToken(response.data.body.access_token)
-            console.log('User identity:', userIdentity)
 
             return {
               id: user.id,
@@ -246,12 +246,9 @@ export const authOptions: AuthOptions = {
             if (axios.isAxiosError(error)) {
               const axiosError = error as AxiosError<{ message?: string }>
               const errorMessage = axiosError.response?.data?.message || "Authentication failed"
-              console.log(axiosError.response?.data)
-              console.error("Authentication 11:", axiosError)
               throw new Error(errorMessage)
             }
             
-            console.error("Authentication 22:", error)
             throw new Error(error.message || "Authentication failed")
           }
         }
@@ -277,7 +274,8 @@ export const authOptions: AuthOptions = {
         if (user && account) {
           const userData = user as any
           const decoded = decodeToken(userData.body.access_token)
-          console.log('JWT callback - userData:', userData)
+          // reduce payload: map permissions to names only
+          const permissionNames = extractPermissionNames(userData?.userIdentity?.permissions)
           
           return {
             accessToken: userData.body.access_token,
@@ -287,7 +285,8 @@ export const authOptions: AuthOptions = {
               id: userData.user.id,
               name: userData.user.name,
               email: userData.user.email,
-              permissions: userData.userIdentity?.permissions
+              // keep minimal permissions
+              permissions: permissionNames
             },
             refreshAttempts: 0,
           }
@@ -341,9 +340,8 @@ export const authOptions: AuthOptions = {
         customSession.user = {
           ...session.user,
           id: appToken.user.id,
-          first_name: appToken?.userIdentity?.first_name,
-          last_name: appToken?.userIdentity?.last_name,
-          permissions: appToken.user?.permissions || appToken.userIdentity?.permissions
+          // keep minimal permissions on session
+          permissions: appToken.user?.permissions || []
         }
         customSession.accessToken = appToken.accessToken
         customSession.error = appToken.error
