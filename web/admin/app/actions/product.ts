@@ -6,7 +6,7 @@ export const fetchProducts = async (url?: string) => {
     try {
         const response = await axiosIns.get("/product");
         console.log(response.data)
-        return response.data
+        return response.data.body
     } catch (error) {
         throw error
     }
