@@ -295,8 +295,10 @@ func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
 	} else {
-		req := &product.GetByParamRequest{
-			DistributorId: distributorId,
+		req := &product.GetByParamRequest{}
+
+		if distributorId != 0 {
+			req.DistributorId = distributorId
 		}
 		resp, err := p.service.GetByParam(ctx, req)
 		if err != nil {
