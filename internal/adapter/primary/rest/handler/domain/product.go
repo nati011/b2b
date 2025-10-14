@@ -184,133 +184,169 @@ func (p *Product) GetStockLedgerHandler(w http.ResponseWriter, r *http.Request) 
 
 }
 func (p *Product) GetHandler(w http.ResponseWriter, r *http.Request) {
-	const ParamId = "id"
-	const ParamName = "name"
-	const ParamExternalId = "external_id"
-	const ParamCategoryId = "category_id"
-	const ParamPriceMin = "price_min"
-	const ParamPriceMax = "price_max"
-	const ParamSearch = "search"
+	const (
+		ParamId         = "id"
+		ParamName       = "name"
+		ParamExternalId = "external_id"
+		ParamCategoryId = "category_id"
+		ParamPriceMin   = "price_min"
+		ParamPriceMax   = "price_max"
+		ParamSearch     = "search"
+	)
 
-	paramValues := r.URL.Query()
-	paramNameValue := paramValues.Get(ParamName)
-	ParamExternalIdValue := paramValues.Get(ParamExternalId)
-	ParamCategoryIdValue := paramValues.Get(ParamCategoryId)
-	ParamPriceMinValue := paramValues.Get(ParamPriceMin)
-	ParamPriceMaxValue := paramValues.Get(ParamPriceMax)
-	ParamSearchValue := paramValues.Get(ParamSearch)
+	// Extract query parameters
+	params := r.URL.Query()
+	paramId := params.Get(ParamId)
+	paramName := params.Get(ParamName)
+	paramExternalId := params.Get(ParamExternalId)
+	paramCategoryId := params.Get(ParamCategoryId)
+	paramPriceMin := params.Get(ParamPriceMin)
+	paramPriceMax := params.Get(ParamPriceMax)
+	paramSearch := params.Get(ParamSearch)
 
-	ctx, distributorId, err := p.withDistributorContext(w, r)
+	// Get distributor ID from user context
+	userId := r.Context().Value("userId").(int)
+	d, err := p.distributorService.GetByUserId(r.Context(), userId)
 	if err != nil {
+		switch err {
+		case distributor.ErrIdNotFound:
+		default:
+			util.ServerErrorResponse(w, err)
+			return
+		}
+	}
+	distributorId := d.Id
+
+	// Handle single product retrieval by ID
+	if paramId != "" {
+		p.handleGetById(w, r, paramId)
 		return
 	}
 
-	paramIdValue := paramValues.Get(ParamId)
-	if paramIdValue != "" {
-		typedParamId, err := strconv.Atoi(paramIdValue)
+	// Handle search query
+	if paramSearch != "" {
+		p.handleSearch(w, r, paramSearch, distributorId)
+		return
+	}
+
+	// Handle filtered query
+	if paramCategoryId != "" || paramPriceMin != "" || paramPriceMax != "" {
+		p.handleFilteredQuery(w, r, paramName, paramExternalId, paramCategoryId, paramPriceMin, paramPriceMax, distributorId)
+		return
+	}
+
+	// Handle get all products
+	p.handleGetAll(w, r, distributorId)
+}
+
+func (p *Product) handleGetById(w http.ResponseWriter, r *http.Request, paramId string) {
+	id, err := strconv.Atoi(paramId)
+	if err != nil {
+		util.RequestErrorResponse(w, err)
+		return
+	}
+
+	resp, err := p.service.Get(r.Context(), id)
+	if err != nil {
+		if err == product.ErrIdNotFound {
+			util.RequestErrorResponse(w, err)
+		} else {
+			util.ServerErrorResponse(w, err)
+		}
+		return
+	}
+
+	util.OperationSuccessResponse(w, resp)
+}
+
+func (p *Product) handleSearch(w http.ResponseWriter, r *http.Request, search string, distributorId int) {
+	req := &product.GetByParamRequest{
+		Name:          search,
+		DistributorId: distributorId,
+	}
+
+	resp, err := p.service.GetByParam(r.Context(), req)
+	if err != nil {
+		if err == product.ErrUnknown {
+			util.ServerErrorResponse(w, err)
+		} else {
+			util.RequestErrorResponse(w, err)
+		}
+		return
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+}
+
+func (p *Product) handleFilteredQuery(w http.ResponseWriter, r *http.Request, name, externalId, categoryId, priceMin, priceMax string, distributorId int) {
+	req := &product.GetByParamRequest{
+		Name:          name,
+		ExternalID:    externalId,
+		DistributorId: distributorId,
+	}
+
+	// Parse category ID
+	if categoryId != "" {
+		id, err := strconv.Atoi(categoryId)
 		if err != nil {
 			util.RequestErrorResponse(w, err)
 			return
 		}
-		resp, err := p.service.Get(ctx, typedParamId)
-		if err != nil {
-			switch err {
-			case product.ErrIdNotFound:
-				util.RequestErrorResponse(w, err)
-				return
-			default:
-				util.ServerErrorResponse(w, err)
-				return
-			}
-		}
-
-		util.OperationSuccessResponse(w, resp)
-	} else if ParamCategoryIdValue != "" || ParamPriceMinValue != "" || ParamPriceMaxValue != "" || distributorId != 0 {
-		var typedCategoryId int
-		var err error
-		if ParamCategoryIdValue != "" {
-			typedCategoryId, err = strconv.Atoi(ParamCategoryIdValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-
-		var typedPriceMin int
-		if ParamPriceMinValue != "" {
-			typedPriceMin, err = strconv.Atoi(ParamPriceMinValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-
-		var typedPriceMax int
-		if ParamPriceMaxValue != "" {
-			typedPriceMax, err = strconv.Atoi(ParamPriceMaxValue)
-			if err != nil {
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-
-		req := &product.GetByParamRequest{
-			Name:          paramNameValue,
-			ExternalID:    ParamExternalIdValue,
-			PriceMin:      typedPriceMin,
-			PriceMax:      typedPriceMax,
-			DistributorId: distributorId,
-		}
-		if typedCategoryId != 0 {
-			req.CategoryId = []int{typedCategoryId}
-		}
-
-		resp, err := p.service.GetByParam(ctx, req)
-		if err != nil {
-			switch err {
-			case product.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
-	} else if ParamSearchValue != "" {
-		req := &product.GetByParamRequest{
-			Name:          ParamSearchValue,
-			DistributorId: distributorId,
-		}
-		resp, err := p.service.GetByParam(ctx, req)
-		if err != nil {
-			switch err {
-			case product.ErrUnknown:
-				util.ServerErrorResponse(w, err)
-				return
-			default:
-				util.RequestErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
-	} else {
-		req := &product.GetByParamRequest{}
-
-		if distributorId != 0 {
-			req.DistributorId = distributorId
-		}
-		resp, err := p.service.GetByParam(ctx, req)
-		if err != nil {
-			switch err {
-			case product.ErrEmptyGetContent:
-			default:
-				util.ServerErrorResponse(w, err)
-				return
-			}
-		}
-		util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+		req.CategoryId = []int{id}
 	}
+
+	// Parse price min
+	if priceMin != "" {
+		min, err := strconv.Atoi(priceMin)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		req.PriceMin = min
+	}
+
+	// Parse price max
+	if priceMax != "" {
+		max, err := strconv.Atoi(priceMax)
+		if err != nil {
+			util.RequestErrorResponse(w, err)
+			return
+		}
+		req.PriceMax = max
+	}
+
+	resp, err := p.service.GetByParam(r.Context(), req)
+	if err != nil {
+		if err == product.ErrUnknown {
+			util.ServerErrorResponse(w, err)
+		} else {
+			util.RequestErrorResponse(w, err)
+		}
+		return
+	}
+
+	util.OperationSuccessResponse(w, util.Envelope{"products": resp})
+}
+
+func (p *Product) handleGetAll(w http.ResponseWriter, r *http.Request, distributorId int) {
+	var resp product.GetAllResponse
+	var err error
+
+	if distributorId != 0 {
+		req := &product.GetByParamRequest{
+			DistributorId: distributorId,
+		}
+		resp, err = p.service.GetByParam(r.Context(), req)
+	} else {
+		resp, err = p.service.GetAll(r.Context())
+	}
+
+	if err != nil && err != product.ErrEmptyGetContent {
+		util.ServerErrorResponse(w, err)
+		return
+	}
+
+	util.OperationSuccessResponse(w, resp)
 }
 
 func (p *Product) CreateHandler(w http.ResponseWriter, r *http.Request) {
