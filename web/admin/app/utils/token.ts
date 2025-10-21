@@ -98,7 +98,7 @@ export async function refreshToken(refreshToken: string, apiUrl: string): Promis
   refreshToken: string
   user: UserInfo
 }> {
-  const response = await fetch(`${apiUrl}/api/v1/auth/refresh`, {
+  const response = await fetch(`${apiUrl}/auth/refresh`, {
     method: 'POST',
     body: JSON.stringify({ refresh_token: refreshToken }),
   })

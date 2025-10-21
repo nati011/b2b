@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
+	"b2b.nati011.github.com/internal/core/application/role"
+	"b2b.nati011.github.com/internal/core/application/user"
 	"b2b.nati011.github.com/internal/core/domain/distributor"
 	"b2b.nati011.github.com/internal/core/domain/distributor_subscription"
 )
@@ -16,17 +18,28 @@ var (
 	ErrUnknown             = errors.New(" unknown error has occured")
 )
 
+const (
+	SUPERADMIN_ROLE_NAME = "superadmin"
+	ADMIN_ROLE_NAME      = "admin"
+)
+
 type DistributorSubscription struct {
 	distributor_subscription distributor_subscription.Prodvider
 	distributor              distributor.Provider
+	userService              user.Provider
+	roleService              role.Provider
 }
 
 func NewDistributorSubscriptionMiddleware(
 	distributor_subscription distributor_subscription.Prodvider,
-	distributor distributor.Provider) DistributorSubscription {
+	distributor distributor.Provider,
+	userService user.Provider,
+	roleService role.Provider) DistributorSubscription {
 	return DistributorSubscription{
 		distributor_subscription: distributor_subscription,
 		distributor:              distributor,
+		userService:              userService,
+		roleService:              roleService,
 	}
 }
 
@@ -38,6 +51,33 @@ func (ds *DistributorSubscription) RequireSubscription(next http.Handler, option
 			log.Printf("user not found in context or is not an integer")
 			util.ServerErrorResponse(w, ErrUserIdNotFound)
 			return
+		}
+
+		// check if user has admin or superadmin role - bypass subscription check
+		assignedRoles, err := ds.userService.GetAllAssignedRoles(r.Context(), userId)
+		if err != nil {
+			switch err {
+			case user.ErrNoRoleAssigned:
+				// User has no roles, continue with subscription check
+			default:
+				log.Printf("failed to get assigned roles: %v", err)
+				util.RequestErrorResponse(w, ErrUnknown)
+				return
+			}
+		} else {
+			// Check if user has admin or superadmin role
+			for _, assignedRole := range assignedRoles.List {
+				roleDetails, err := ds.roleService.Get(r.Context(), &role.GetRequest{Id: assignedRole.Id})
+				if err != nil {
+					log.Printf("failed to get role details for roleId %d: %v", assignedRole.Id, err)
+					continue
+				}
+				if roleDetails.Name == SUPERADMIN_ROLE_NAME || roleDetails.Name == ADMIN_ROLE_NAME {
+					log.Printf("User %d has %s role, bypassing subscription check", userId, roleDetails.Name)
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
 		}
 
 		// get distributor from userId

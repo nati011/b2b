@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
-const baseURL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com";
+const baseURL = process.env.NEXT_BASE_URL;
 
 interface KeycloakJWT {
   exp: number;

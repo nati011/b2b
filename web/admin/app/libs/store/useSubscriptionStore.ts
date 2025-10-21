@@ -27,10 +27,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set) => ({
                 subscriptionLoading: false,
             });
         } catch (error: any) {
-            set({
-                subscriptionError: error.message || "Failed to fetch roles",
-                subscriptionLoading: false,
-            });
+            // set({
+            //     subscriptionError: error.message || "Failed to fetch roles",
+            //     subscriptionLoading: false,
+            // });
             toast.error(error.message || "Failed to fetch roles");
         }
    }
