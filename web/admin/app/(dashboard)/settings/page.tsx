@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUserStore } from "@/app/libs/store/useAuthStore";
 import { useSubscriptionStore } from "@/app/libs/store/useSubscriptionStore";
+import { useSession } from "next-auth/react";
 
 interface ProfileFormData {
   first_name: string;
@@ -20,6 +21,9 @@ interface ProfileFormData {
 }
 
 export default function Settings() {
+  const { data: session } = useSession()
+  const roles: string[] = (session as any)?.user?.roles || []
+  const isAdminUser = roles.includes('superadmin') || roles.includes('admin')
   const {
     user,
     loading: profileLoading,
@@ -55,8 +59,10 @@ export default function Settings() {
 
   useEffect(() => {
     fetchUser();
-    fetchSubscription();
-  }, [fetchUser, fetchSubscription]);
+    if (!isAdminUser) {
+      fetchSubscription();
+    }
+  }, [fetchUser, fetchSubscription, isAdminUser]);
 
   useEffect(() => {
     if (user) {
@@ -192,6 +198,7 @@ export default function Settings() {
       </Card>
 
       {/* Subscription Section */}
+      {!isAdminUser && (
       <Card className="rounded-sm border-2 border-gray-200 shadow-none">
         <CardContent className="pt-6">
           <div className="mb-6">
@@ -213,7 +220,7 @@ export default function Settings() {
                   {subscription?.subscription_plan_name || "Unknown Plan"}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Purchased on {formatDate(subscription?.created_date.toLocaleString())}
+                  Purchased on {formatDate(subscription?.created_date?.toLocaleString())}
                 </p>
               </div>
 
@@ -238,6 +245,7 @@ export default function Settings() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

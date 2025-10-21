@@ -159,6 +159,8 @@ func (m *Container) InitDistributorSubscriptionMiddleware() {
 	m.DistributorSubscriptonMiddleware = middleware.NewDistributorSubscriptionMiddleware(
 		m.DistributorSubscriptionService,
 		m.DistributorService,
+		m.ApplicationServices.UserService,
+		m.ApplicationServices.RoleService,
 	)
 }
 

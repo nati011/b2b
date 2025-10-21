@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { UserIdentity } from '@/app/libs/types'
 
-const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
+const API_BASE_URL = process.env.NEXT_BASE_URL
 
 // Extended session type to include userIdentity
 interface ExtendedSession {
@@ -32,7 +32,7 @@ type IdentityResponse  = {
 export async function getUserIdentityWithToken(accessToken: string): Promise<UserIdentity | null> {
   try {
     const response = await axios.get<{ body: IdentityResponse }>(
-      `${API_BASE_URL}/api/v1/identity/user`,
+      `${API_BASE_URL}/identity/user`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,

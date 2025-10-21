@@ -59,20 +59,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const { categories, fetchCategories } = useCategoryStore();
   const { distributors, fetchDistributors } = useDistributorsStore();
 
-  const hasPermission = (permissionName: string): boolean => {
-    const userPermissions = (session as any)?.user?.permissions?.List || [];
-    return userPermissions.some((perm: Permission) => perm.Name === permissionName);
-  };
-
-  const canAccessDistributors = hasPermission('distributor');
+  const roles: string[] = (session as any)?.user?.roles || []
+  const isAdminUser = roles.includes('superadmin') || roles.includes('admin')
 
   useEffect(() => {
-    if (canAccessDistributors) {
+    if (isAdminUser) {
       fetchDistributors("ALL");
     } else {
       console.log("User does not have distributor permissions - skipping distributor fetch");
     }
-  }, [canAccessDistributors]);
+  }, [isAdminUser]);
 
   useEffect(() => {
     fetchCategories();
@@ -230,7 +226,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     />
                   </div>
 
-                  {canAccessDistributors && (
+                  {isAdminUser && (
                     <div className="grid gap-2">
                       <Label htmlFor="Distributor">Distributor</Label>
                       <Select onValueChange={(e) => setProduct((prev) => ({

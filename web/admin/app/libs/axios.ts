@@ -16,7 +16,7 @@ interface ExtendedSession {
   expires: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://b2b-67gk.onrender.com/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -86,8 +86,7 @@ axiosInstance.interceptors.response.use(
     }
 
     if (error.response?.status === 403) {
-      console.log(error.request, "______________")
-      console.log("Forbidden: User doesn't have permission to access this resource");
+      console.log(error.response?.data);
       
       const forbiddenError = new Error("FORBIDDEN_ACCESS");
       forbiddenError.name = "ForbiddenError";

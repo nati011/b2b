@@ -74,7 +74,7 @@ const useProductsStore = create<ProductsStore>((set) => ({
       const resp = await fetchProducts()
       console.log(resp)
       set({
-        products: resp.products.List,
+        products: resp.List,
         loading: false,
       });
     } catch (error:any) {

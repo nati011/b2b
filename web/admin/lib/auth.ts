@@ -8,7 +8,7 @@ import { getUserIdentityWithToken } from "@/app/actions/getUserIdentity"
 import { extractPermissionNames } from "@/lib/acl"
 import { Permissions } from "@/app/libs/types"
 
-const API_BASE_URL = process.env.NEXT_BASE_URL || "https://b2b-67gk.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
@@ -113,13 +113,15 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
     }
 
     try {
-      const response = await axios.post<AuthResponse>(`${API_BASE_URL}/api/v1/auth/refresh`, {
+      const response = await axios.post<AuthResponse>(`${API_BASE_URL}/auth/refresh`, {
         refresh_token: token.refreshToken,
       }, {
         headers: {
           'Content-Type': 'application/json',
         }
       })
+
+      console.log(response)
 
       if (!response.data.body?.access_token) {
         throw new Error("Invalid refresh response")
@@ -140,8 +142,8 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
         accessTokenExpires: decoded.exp * 1000,
         user: {
           ...user,
-          // keep only names to minimize cookie size
-          permissions: permissionNames
+          permissions: permissionNames,
+          roles: user.roles || []
         },
         error: undefined,
         refreshAttempts: 0
@@ -213,7 +215,7 @@ export const authOptions: AuthOptions = {
 
           try {
             const response = await axios.post<AuthResponse>(
-              `${API_BASE_URL}/api/v1/auth/login`,
+              `${API_BASE_URL}/auth/login`,
               {
                 email: credentials.email,
                 password: credentials.password
@@ -243,6 +245,7 @@ export const authOptions: AuthOptions = {
               userIdentity
             }
           } catch (error: any) {
+            console.log(error)
             if (axios.isAxiosError(error)) {
               const axiosError = error as AxiosError<{ message?: string }>
               const errorMessage = axiosError.response?.data?.message || "Authentication failed"
@@ -285,8 +288,8 @@ export const authOptions: AuthOptions = {
               id: userData.user.id,
               name: userData.user.name,
               email: userData.user.email,
-              // keep minimal permissions
-              permissions: permissionNames
+              permissions: permissionNames,
+              roles: userData.user.roles || []
             },
             refreshAttempts: 0,
           }
@@ -340,8 +343,8 @@ export const authOptions: AuthOptions = {
         customSession.user = {
           ...session.user,
           id: appToken.user.id,
-          // keep minimal permissions on session
-          permissions: appToken.user?.permissions || []
+          permissions: appToken.user?.permissions || [],
+          roles: appToken.user?.roles || []
         }
         customSession.accessToken = appToken.accessToken
         customSession.error = appToken.error
