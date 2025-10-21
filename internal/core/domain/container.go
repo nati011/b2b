@@ -82,6 +82,7 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	// ORDER ORDER!!
 	//  messing up the order creates chaos
 	container.InitCategoryService()
+	container.InitProductService()
 	container.InitConfigrableProductService()
 	container.InitInvoiceService()
 	container.InitRetailerService()
@@ -89,7 +90,6 @@ func NewContainer(application_core application_core.Container, baseUrl string, f
 	container.InitDistributorService()
 	container.InitDistributorSubscriptionService()
 	container.InitDistributorSubscriptionMiddleware()
-	container.InitProductService()
 	container.InitConfigService()
 	container.InitOrderService()
 	container.InitCatalogueService()
