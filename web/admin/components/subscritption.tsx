@@ -3,6 +3,7 @@ import { useSubscriptionStore } from "@/app/libs/store/useSubscriptionStore";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return "N/A";
@@ -16,6 +17,9 @@ const formatDate = (dateString: string | undefined): string => {
   };
 
 const SubscriptionMessage = () => {
+  const { data: session } = useSession()
+  const roles: string[] = (session as any)?.user?.roles || []
+  const isAdminUser = roles.includes('superadmin') || roles.includes('admin')
   const {
     subscription,
     subscriptionError,
@@ -25,8 +29,14 @@ const SubscriptionMessage = () => {
 
 
   useEffect(() => {
-    fetchSubscription();
-  }, [fetchSubscription]);
+    if (!isAdminUser) {
+      fetchSubscription();
+    }
+  }, [fetchSubscription, isAdminUser]);
+
+    if (isAdminUser || !subscription) {
+      return null
+    }
 
     return (
         <div className="w-full h-10 bg-amber-300/50 border-b-3 border-amber-300 px-4">
@@ -36,7 +46,7 @@ const SubscriptionMessage = () => {
                   {subscription?.subscription_plan_name || "Unknown Plan"}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  Purchased on {formatDate(subscription?.created_date.toLocaleString())}
+                  Purchased on {formatDate(subscription?.created_date?.toLocaleString())}
                 </p>
               </div>
 

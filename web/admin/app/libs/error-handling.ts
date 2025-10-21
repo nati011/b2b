@@ -44,7 +44,7 @@ export async function withErrorHandling<T>(
 
       switch (status) {
         case 400:
-          throw new Error(`Validation Error: ${message}`);
+          throw new Error(`${message}`);
         case 401:
           redirect("/auth/signin");
         case 422:

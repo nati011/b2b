@@ -21,7 +21,7 @@ export const GetAll = async (status?: string) => {
 
 export const Create = async (DistributorsData: DistributorRequest) => {
     return withErrorHandling(async () => {
-        const response = await axiosIns.post('/distributor/', DistributorsData);
+        const response = await axiosIns.post('/distributor', DistributorsData);
         console.log(response)
         return response.data.detail
       });

@@ -27,8 +27,9 @@ CREATE TABLE IF NOT EXISTS public."users"
   username VARCHAR(255) NOT NULL,
   birth_date DATE,
   is_active BOOLEAN DEFAULT FALSE,
+  is_admin BOOLEAN DEFAULT FALSE,
   external_id VARCHAR(255)
-) INHERITS (public."base");
+) INHERITS (public."base"); 
 
 COMMENT ON TABLE public."users" IS 'stores agent that interacts with the application.';
 

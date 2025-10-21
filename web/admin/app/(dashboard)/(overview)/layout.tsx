@@ -16,6 +16,7 @@ import {
   DollarSign,
 } from 'lucide-react';
 import React from 'react';
+import { useSession } from 'next-auth/react';
 
 export default function OverViewLayout({
   sales,
@@ -27,6 +28,9 @@ export default function OverViewLayout({
   const {
     orders,
   } = useOrdersStore()
+  const { data: session } = useSession()
+  const roles: string[] = (session as any)?.user?.roles || []
+  const isAdminUser = roles.includes('superadmin') || roles.includes('admin')
   const totalRevenue = orders
   .filter(order => order.PaymentStatus?.toLowerCase() === 'accepted')
   .reduce((sum, order) => sum + (order.Total || 0), 0)
@@ -62,7 +66,7 @@ export default function OverViewLayout({
 
   return (
     <PageContainer>
-                      <SubscriptionMessage/>
+                      {!isAdminUser && <SubscriptionMessage/>}
 
       <div className='flex flex-1 flex-col space-y-6 animate-fade-in'>
         {/* Header */}
