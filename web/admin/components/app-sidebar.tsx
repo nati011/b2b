@@ -162,7 +162,7 @@ export async function AppSidebar({
           <SidebarMenu>
             {filteredNavMain.map((item) => (
               <SidebarMenuItem key={item?.title}>
-                <Link href={item?.url || ""}>
+                <Link href={item?.url || ""} prefetch={true}>
                   <SidebarMenuButton
                     tooltip={item?.title}
                     className="hover:bg-accent/50 transition-all duration-200 group"
@@ -183,6 +183,7 @@ export async function AppSidebar({
                         <SidebarMenuSubButton asChild>
                           <Link
                             href={subItem.url}
+                            prefetch={true}
                             className="hover:bg-accent/30 transition-colors"
                           >
                             {subItem.title}

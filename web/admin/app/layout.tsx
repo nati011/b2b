@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner"
 import { Provider } from "@/app/themeprovider";
@@ -6,8 +7,19 @@ import { Footer } from "@/components/footer";
 
 const font = DM_Sans({
     weight: ['100', '300', '700'],
-    subsets: ['latin']
+    subsets: ['latin'],
+    display: "swap",
+    fallback: ["system-ui", "arial"],
 });
+
+export const metadata: Metadata = {
+  title: "Efoyeta Store Admin",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
+};
 
 export default async function RootLayout({
     children,

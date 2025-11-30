@@ -2,6 +2,7 @@ package core
 
 import (
 	"database/sql"
+	"time"
 
 	category_db_port "b2b.nati011.github.com/internal/adapter/secondary/domain/category/db"
 	config_db_adapter "b2b.nati011.github.com/internal/adapter/secondary/domain/config"
@@ -104,9 +105,16 @@ func (m *Container) InitCategoryService() {
 }
 
 func (m *Container) InitCatalogueService() {
-	m.CatalogueService = catalogue.NewCatalogueService(
+	// Create base catalogue service
+	baseService := catalogue.NewCatalogueService(
 		m.ProductService,
 		m.ConfigurableProductService)
+	
+	// Wrap with caching layer (5 minutes for GetAll, 2 minutes for Search)
+	m.CatalogueService = catalogue.NewCachedCatalogueService(
+		baseService,
+		5*time.Minute, // GetAll cache TTL
+		2*time.Minute) // Search cache TTL
 }
 
 func (m *Container) InitProductService() {

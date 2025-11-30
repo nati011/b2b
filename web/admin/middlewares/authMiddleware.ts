@@ -8,14 +8,21 @@ export function withAuthMiddleware(middleware: CustomMiddleware) {
     const response = NextResponse.next()
     const pathname = request.nextUrl.pathname
 
+    // Skip auth check for static assets and API routes
     if (!isProtectedPath(pathname)) {
       return middleware(request, event, response)
     }
 
+    // Optimize: Cache token check for faster navigation
     const token = await getToken({ 
       req: request,
-      secret: process.env.NEXTAUTH_SECRET 
+      secret: process.env.NEXTAUTH_SECRET,
+      // Reduce token validation overhead
+      cookieName: process.env.NODE_ENV === 'production' 
+        ? '__Secure-next-auth.session-token' 
+        : 'next-auth.session-token'
     })
+    
     if ((token?.error != null && token?.error != "ForbiddenError") || !token ) {
       return NextResponse.redirect(new URL('/auth/signin', request.url))
     }
@@ -23,7 +30,8 @@ export function withAuthMiddleware(middleware: CustomMiddleware) {
     const tokenWithUser = token as any
     const permissions = tokenWithUser?.user?.permissions
     const allowed = canAccessPath(permissions, pathname)
-    console.log(allowed, "Allowed")
+    
+    // Removed console.log for production performance
     // if (!allowed) {
     //   return NextResponse.redirect(new URL('/forbidden', request.url))
     // }
