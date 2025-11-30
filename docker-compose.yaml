@@ -1,16 +1,111 @@
 services:
-  app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8082:8080"
     restart: unless-stopped
-    env_file:
-      - .env
     networks:
-      - backend
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PORT=8080
+      - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-b2b}
+      - ENV=${ENV:-development}
+      - BASE_URL=${BASE_URL:-http://localhost:8082}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3001}
+      - KEYCLOAK_BASE_URL=${KEYCLOAK_BASE_URL:-http://localhost:8080}
+      - KEYCLOAK_USER_NAME=${KEYCLOAK_USER_NAME:-admin}
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD:-admin}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-master}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-b2b-client}
+      - KEYCLOAK_APPLICATION_REALM=${KEYCLOAK_APPLICATION_REALM:-b2b}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET:-secret}
+      - SMTP=${SMTP:-smtp.example.com:587}
+      - EMAIL=${EMAIL:-noreply@example.com}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-password}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - DEFAULT_SUPERADMIN_EMAIL=${DEFAULT_SUPERADMIN_EMAIL:-superadmin@example.com}
+      - CLIENT_VERSION=${CLIENT_VERSION:-1.0.0}
+      - JWT_SECRET=${JWT_SECRET:-}
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  admin:
+    build:
+      context: ./web/admin
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - app-network
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_BASE_URL=${BASE_URL:-http://localhost:8082}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key-change-in-production}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-286726142980-uvab0hji7kpsfi8r0c67b7kdh18hs48e.apps.googleusercontent.com}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-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}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  client:
+    build:
+      context: ./web/client
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    networks:
+      - app-network
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_BASE_URL=${BASE_URL:-http://localhost:8082}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3001}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key-change-in-production}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-286726142980-uvab0hji7kpsfi8r0c67b7kdh18hs48e.apps.googleusercontent.com}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-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}
+    volumes:
+      - ./web/client:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-b2b}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
-  backend:
+  app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
