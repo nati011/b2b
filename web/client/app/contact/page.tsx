@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin, PhoneIcon } from "lucide-react";
+import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function Contact() {
   const [loading, setLoading] = useState(false);
@@ -19,184 +21,227 @@ export default function Contact() {
     const apiEndpoint = "/api/email";
     try {
       setLoading(true);
+      setError(false);
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+      
+      if (response.ok) {
+        setSuccess(true);
+        setFormData({ name: "", email: "", subject: "", message: "" });
+        setTimeout(() => {
+          setSuccess(false);
+        }, 5000);
+      } else {
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 5000);
+      }
     } catch (err) {
       setError(true);
-      setLoading(false);
       setTimeout(() => {
         setError(false);
       }, 5000);
+    } finally {
+      setLoading(false);
     }
   }
 
+  const contactInfo = [
+    {
+      icon: Mail,
+      title: "Email us",
+      content: "info@efoyetastore.com",
+      href: "mailto:info@efoyetastore.com",
+    },
+    {
+      icon: Phone,
+      title: "Call us",
+      content: "+251912345678",
+      href: "tel:+251912345678",
+    },
+    {
+      icon: MapPin,
+      title: "Visit us",
+      content: "Addis Ababa, Ethiopia",
+      href: "#",
+    },
+  ];
+
   return (
-    <main className="mx-4">
-      <div className="text-center lg:px-[8rem] grid grid-cols-1 gap-10 py-[6rem]">
-        <div className=" text-center">
-          <p className="text-md font-semibold text-[#06516D]">
-            Let&apos;s start a conversation.{" "}
+    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        {/* Header Section */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <p className="text-sm font-semibold text-primary mb-3 uppercase tracking-wide">
+            Let&apos;s start a conversation
           </p>
-          <p className="lg:text-[34px] text-lg font-bold text-[#032B3A]">
-            Get in touch with us.
-          </p>
-          <p className=" text-gray-600 my-4">
-            Have a project in mind or just want to learn more about how efoyeta
-            store can elevate your business? We&apos;re here to help. Reach out
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            Get in touch with us
+          </h1>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Have a project in mind or just want to learn more about how Efoyeta
+            Store can elevate your business? We&apos;re here to help. Reach out
             to us, and let&apos;s start a conversation.
           </p>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-[80px] my-10">
-          <div className="flex gap-4 items-center">
-            <div className="h-20 w-20 p-10 rounded-full bg-[#FFDD1F] flex justify-center items-center">
-              <span className="text-2xl text-[#043A4E]">
-                <Mail />
-              </span>
-            </div>
-            <div className="flex flex-col text-left ">
-              <p className="font-semibold text-[24px] text-[#043A4E]">
-                Email us
-              </p>
-              <p className="text-[18px] text-[#043A4E] font-light">
-                <a href="mailto:info@efoyeta store.com">
-                  info@efoyeta store.com
-                </a>
-              </p>
-            </div>
-          </div>
 
-          <div className="flex gap-4 items-center">
-            <div className="h-20 w-20 p-10 rounded-full bg-[#FFDD1F] flex justify-center items-center">
-              <span className="text-2xl text-[#043A4E]">
-                <PhoneIcon />
-              </span>
-            </div>
-            <div className="flex flex-col text-left">
-              <p className="font-semibold text-[24px] text-[#043A4E]">
-                Call us
-              </p>
+        {/* Contact Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-16">
+          {contactInfo.map((info, index) => {
+            const Icon = info.icon;
+            return (
               <a
-                className="text-[18px] font-light text-[#043A4E]"
-                href="tel:+251912345678"
+                key={index}
+                href={info.href}
+                className="group bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-primary/20"
               >
-                +251912345678
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                    <Icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {info.title}
+                  </h3>
+                  <p className="text-gray-600 group-hover:text-primary transition-colors">
+                    {info.content}
+                  </p>
+                </div>
               </a>
-            </div>
-          </div>
-
-          <div className="flex gap-4 items-center">
-            <div className="h-20 w-20 p-10 rounded-full bg-[#FFDD1F] flex justify-center items-center">
-              <span className="text-2xl text-[#043A4E]">
-                <MapPin />
-              </span>
-            </div>
-            <div className="flex flex-col text-left">
-              <p className="font-semibold text-[24px] text-[#043A4E]">
-                Visit us
-              </p>
-              <p className="text-[18px] font-light text-[#043A4E]">
-                Addis Ababa, Ethiopia
-              </p>
-            </div>
-          </div>
+            );
+          })}
         </div>
-        <div className="px-4 py-6 rounded-lg text-left bg-white border border-gray-100">
-          <form onSubmit={(e) => sendEmail(e)}>
-            <p className="text-[#032B3A] font-semibold">
-              Submit the form, and a member of our team will get back to you as
-              soon as possible.
-            </p>
-            <div className="my-4">
-              {error && (
-                <p className="text-red-500">
+
+        {/* Contact Form */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Send us a message
+              </h2>
+              <p className="text-gray-600">
+                Submit the form, and a member of our team will get back to you as
+                soon as possible.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">
                   An error occurred. Please try again.
                 </p>
-              )}
-              {success && <p>Your message has been sent.</p>}
-            </div>
-            <div className="flex gap-2 flex-col items-left mt-4">
-              <div className="grid sm:grid-cols-3 gap-2">
-                <div className="">
-                  <label htmlFor="name" className="text-[#032B3A]">
-                    Name:{" "}
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-600 text-sm">
+                  Your message has been sent successfully! We&apos;ll get back to you soon.
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={sendEmail} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="name"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Name
                   </label>
-                  <input
+                  <Input
+                    id="name"
                     type="text"
                     placeholder="John Doe"
-                    className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-0 sm:text-sm sm:leading-6  dark:bg-white dark:text-gray-900"
-                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                    className="w-full"
                   />
                 </div>
-                <div className="w-full">
-                  <label htmlFor="email" className="text-[#032B3A]">
-                    Email:{" "}
+                <div className="space-y-2">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Email
                   </label>
-                  <input
+                  <Input
+                    id="email"
                     type="email"
                     placeholder="john.doe@example.com"
-                    className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-0 sm:text-sm sm:leading-6 dark:bg-white dark:text-gray-900"
-                    id="email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    required
+                    className="w-full"
                   />
                 </div>
-                <div className="">
-                  <label htmlFor="subject" className="text-[#032B3A]">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="subject"
+                    className="text-sm font-medium text-gray-700"
+                  >
                     Subject
                   </label>
-                  <input
+                  <Input
+                    id="subject"
                     type="text"
                     placeholder="Subject"
-                    className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-0 sm:text-sm sm:leading-6  dark:bg-white dark:text-gray-900"
-                    id="subject"
                     value={formData.subject}
                     onChange={(e) =>
                       setFormData({ ...formData, subject: e.target.value })
                     }
+                    required
+                    className="w-full"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1">
-                <label htmlFor="message" className="text-[#032B3A]">
-                  Message:{" "}
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="message"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Message
                 </label>
                 <textarea
-                  name=""
                   id="message"
-                  cols={30}
-                  rows={10}
-                  className="p-2 border border-gray-300 focus:outline-none focus:ring-none rounded-lg  dark:bg-white dark:text-gray-900"
-                  placeholder="Write text here ..."
+                  rows={8}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  placeholder="Write your message here..."
                   value={formData.message}
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })
                   }
-                ></textarea>
+                  required
+                />
               </div>
-              <div className="grid grid-cols-1">
+
+              <Button
+                type="submit"
+                size="lg"
+                disabled={loading}
+                className="w-full md:w-auto bg-primary hover:bg-primary/90 text-white"
+              >
                 {loading ? (
-                  <input
-                    type="submit"
-                    value="Loading..."
-                    disabled={true}
-                    style={{ cursor: "not-allowed" }}
-                    className="p-2 border border-gray-300 focus:outline-none focus:ring-none rounded-lg bg-black text-white"
-                  />
+                  "Sending..."
                 ) : (
-                  <input
-                    type="submit"
-                    value="Submit"
-                    className="p-2 border border-gray-300 focus:outline-none focus:ring-none rounded-lg bg-black text-white"
-                  />
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Message
+                  </>
                 )}
-              </div>
-            </div>
-          </form>
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </main>

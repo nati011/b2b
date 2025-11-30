@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useTransition } from "react";
 import { Filter, ShoppingBagIcon } from "lucide-react";
 import Link from "next/link";
 import { IoWarning } from "react-icons/io5";
@@ -25,28 +25,27 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string>();
   const [categories, setCategories] = useState([{ id: 0, name: "All" }]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Catalogue[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(0);
-
-  const loadCategories = async () => {
-    try {
-      const fetchedCategories = await GetAllCategories();
-      setCategories([{ id: 0, name: "All" }, ...fetchedCategories]);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
+  const [isPending, startTransition] = useTransition();
 
   const loadProducts = async () => {
     setLoading(true);
     try {
-      await loadCategories();
-      const productList = await GetAllCatalogues();
-      setProducts(productList);
+      // Load both in parallel for better performance
+      const [fetchedCategories, productList] = await Promise.all([
+        GetAllCategories().catch(() => []),
+        GetAllCatalogues().catch(() => [])
+      ]);
+      
+      startTransition(() => {
+        setCategories([{ id: 0, name: "All" }, ...fetchedCategories]);
+        setProducts(productList);
+        setLoading(false);
+      });
     } catch (error: any) {
       setError(error.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -72,8 +71,17 @@ const Product = () => {
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
-      setCurrentPage(newPage);
+      startTransition(() => {
+        setCurrentPage(newPage);
+      });
     }
+  };
+
+  const handleCategoryChange = (categoryId: number) => {
+    startTransition(() => {
+      setSelectedCategory(categoryId);
+      setCurrentPage(0); // Reset to first page when category changes
+    });
   };
 
   if (error) {
@@ -107,8 +115,9 @@ const Product = () => {
                 {categories.map((category) => (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`shrink-0 px-4 py-2 rounded-lg border text-sm transition-colors whitespace-nowrap ${
+                    onClick={() => handleCategoryChange(category.id)}
+                    disabled={isPending}
+                    className={`shrink-0 px-4 py-2 rounded-lg border text-sm transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${
                       selectedCategory === category.id
                         ? "bg-primary text-white"
                         : "bg-secondary text-primary hover:bg-opacity-80"
@@ -124,8 +133,8 @@ const Product = () => {
 
         {loading ? (
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {[...Array(10)].map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(12)].map((_, i) => (
                 <CardSkeleton key={i} />
               ))}
             </div>
@@ -151,9 +160,9 @@ const Product = () => {
             ) : (
               <div className="space-y-6">
                 <section id="products" className="container mx-auto px-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                  <div className={`grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6 transition-opacity duration-200 ${isPending ? 'opacity-70' : 'opacity-100'}`}>
                     {paginatedProducts.map((product, index) => (
-                      <ProductCard product={product} key={index} />
+                      <ProductCard product={product} key={`${product.name}-${index}`} />
                     ))}
                   </div>
                 </section>

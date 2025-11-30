@@ -4,7 +4,10 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
-const baseURL = process.env.NEXT_BASE_URL;
+// For server-side requests, use internal Docker network URL
+// For client-side requests, use external URL
+const baseURL = process.env.NEXT_PUBLIC_BASE_URL || 
+               (typeof window === 'undefined' ? 'http://backend:8080' : 'http://localhost:8082');
 
 interface KeycloakJWT {
   exp: number;
@@ -38,7 +41,10 @@ interface AppToken extends TokenSet {
 
 async function refreshAccessToken(token: AppToken): Promise<AppToken> {
   try {
-    const response = await axios.post(`${baseURL}/api/v1/auth/refresh`, {
+    // Use internal Docker network URL for server-side requests
+    const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+    
+    const response = await axios.post(`${apiBaseURL}/api/v1/auth/refresh`, {
       refresh_token: token.refreshToken,
     });
 
@@ -89,21 +95,19 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
 }
 async function handleGoogleSSO(profile: any, account: any) {
   try {
-    const response = await axios.post(`${baseURL}/api/v1/auth/sso`, {
+    // Use internal Docker network URL for server-side requests
+    const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+    
+    const response = await axios.post(`${apiBaseURL}/api/v1/auth/sso`, {
       token: account.access_token,
       first_name: profile.given_name || profile.name?.split(' ')[0] || '',
       last_name: profile.family_name || profile.name?.split(' ').slice(1).join(' ') || '',
       email: profile.email,
     });
 
-    console.log(account.access_token)
-
-    console.log(profile)
     if (response.status !== 202) {
       throw new Error(response.data?.message || "SSO authentication failed");
     }
-
-    console.log(response.data.body.access_token)
 
     const decoded = jwtDecode<KeycloakJWT>(response.data.body.access_token);
 
@@ -130,15 +134,17 @@ async function handleGoogleSSO(profile: any, account: any) {
 
 export const authOptions: AuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      authorization: {
-        params: {
-          scope: 'openid email profile'
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        authorization: {
+          params: {
+            scope: 'openid email profile'
+          }
         }
-      }
-    }),
+      })
+    ] : []),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -147,8 +153,11 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
+          // Use internal Docker network URL for server-side requests
+          const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+          
           const response = await axios.post(
-            `${baseURL}/api/v1/auth/login`,
+            `${apiBaseURL}/api/v1/auth/login`,
             credentials
           );
 
