@@ -1,111 +1,84 @@
-# Database Seeding Scripts
+# Database Scripts
 
-This directory contains scripts for seeding the database with dummy data for testing purposes.
+This directory contains scripts for managing the database.
 
-## Files
+## Scripts
 
-- `seed_dummy_data.sql` - SQL script containing all the seed data
-- `seed_database.sh` - Bash script to easily run the seed SQL file
+### `clear_database.sql`
+SQL script that truncates all tables in the database, removing all data while preserving the schema structure. It also resets all sequences to start from 1.
 
-## Usage
+### `seed_dummy_data.sql`
+SQL script that seeds the database with dummy data for testing purposes, including:
+- Categories
+- Test user and distributor
+- Products (simple and configurable)
+- Subscriptions
 
-### Option 1: Using the Bash Script (Recommended)
-
+### `clear_and_seed.sh`
+Bash script that clears the database and then seeds it with fresh data. Can be run manually:
 ```bash
+./scripts/clear_and_seed.sh
+```
+
+### `seed_database.sh`
+Bash script that seeds the database with dummy data (without clearing first).
+
+## Automatic Database Initialization
+
+The `docker-compose.yaml` includes a `db-init` service that automatically clears and seeds the database when you start the containers.
+
+### Enable/Disable Auto-Seeding
+
+To control automatic seeding, set the `AUTO_SEED` environment variable:
+
+**Enable auto-seeding (default):**
+```bash
+docker-compose up
+# or explicitly:
+AUTO_SEED=true docker-compose up
+```
+
+**Disable auto-seeding:**
+```bash
+AUTO_SEED=false docker-compose up
+```
+
+### Manual Database Management
+
+If you want to manage the database manually without the auto-init service:
+
+1. **Remove the db-init service** from `docker-compose.yaml`, or
+2. **Set AUTO_SEED=false** when starting containers
+
+Then use the scripts manually:
+```bash
+# Clear and seed
+./scripts/clear_and_seed.sh
+
+# Or just seed (without clearing)
 ./scripts/seed_database.sh
 ```
 
-This script will:
-- Check if Docker is running
-- Check if the database container is running (and start it if needed)
-- Run the SQL seed file
-- Display verification statistics
+## Usage Examples
 
-### Option 2: Using Docker Compose Directly
-
+### Start containers with auto-seeding (default)
 ```bash
-docker compose exec db psql -U postgres -d b2b < scripts/seed_dummy_data.sql
+docker-compose up -d
 ```
 
-### Option 3: Using psql directly (if you have direct database access)
-
+### Start containers without auto-seeding
 ```bash
-psql -U postgres -d b2b -f scripts/seed_dummy_data.sql
+AUTO_SEED=false docker-compose up -d
 ```
 
-## What Gets Created
-
-The seed script creates:
-
-1. **Categories** (8 categories):
-   - Electronics
-   - Clothing
-   - Home & Kitchen
-   - Sports & Outdoors
-   - Beauty & Personal Care
-   - Books
-   - Toys & Games
-   - Automotive
-
-2. **Test User and Distributor**:
-   - Test distributor user account
-   - Active distributor with business info
-   - Active subscription (Year Plan)
-
-3. **Simple Products** (6 products):
-   - Wireless Bluetooth Headphones (Electronics)
-   - Premium Cotton T-Shirt (Clothing)
-   - Automatic Coffee Maker (Home & Kitchen)
-   - Professional Running Shoes (Sports & Outdoors)
-   - Hydrating Face Moisturizer (Beauty & Personal Care)
-   - Complete Guide to Web Development (Books)
-
-4. **Configurable Products** (2 configurable products):
-   - **Smartphone Pro** with 3 variants (64GB, 128GB, 256GB)
-   - **Gaming Laptop** with 2 variants (8GB RAM, 16GB RAM)
-
-All products include:
-- Images (using Unsplash placeholders)
-- Categories
-- Stock quantities
-- Active status
-
-## Verification
-
-After running the seed script, you can verify the data with:
-
-```sql
--- Count categories
-SELECT COUNT(*) as total_categories FROM public.category WHERE is_deleted = false;
-
--- Count active products
-SELECT COUNT(*) as total_products FROM public.products WHERE is_deleted = false AND is_active = true;
-
--- Count configurable products
-SELECT COUNT(*) as total_configurable_products FROM public.configurable_products WHERE is_deleted = false AND is_available = true;
-
--- Check distributor subscription
-SELECT d.id, d.is_active, ds.status 
-FROM public.distributors d 
-JOIN public.distributor_subscriptions ds ON d.id = ds.distributor_id 
-WHERE d.is_deleted = false AND ds.status = 'active';
+### Manually clear and seed after containers are running
+```bash
+./scripts/clear_and_seed.sh
 ```
 
-## Notes
-
-- The script uses `BEGIN` and `COMMIT` transactions, so all data is created atomically
-- If categories or subscription plans already exist, they won't be duplicated
-- The script is idempotent - you can run it multiple times safely
-- All products are created with active status and stock quantities
-- Images use Unsplash placeholder URLs
-
-## Troubleshooting
-
-If you encounter errors:
-
-1. **Docker not running**: Make sure Docker is running
-2. **Database container not running**: The script will try to start it automatically
-3. **Permission denied**: Make sure the script is executable: `chmod +x scripts/seed_database.sh`
-4. **SQL errors**: Check the error messages for specific issues
-
-
+### Stop containers
+```bash
+./scripts/stop_containers.sh
+# or
+docker-compose stop client admin
+```

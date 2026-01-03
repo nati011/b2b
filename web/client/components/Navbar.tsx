@@ -55,7 +55,7 @@ export const Navbar = () => {
                             width={180} 
                             height={90} 
                             alt="Efoyeta Store Logo" 
-                            className="h-12 md:h-14 w-auto"
+                            className="h-16 md:h-20 w-auto"
                         />
                         <span className="sr-only">EFOYETA STORE</span>
                     </Link>

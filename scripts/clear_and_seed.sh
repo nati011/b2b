@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # ============================================
-# Database Seeding Script
+# Clear Database and Seed Script
 # ============================================
-# This script seeds the database with dummy data for testing
-# Usage: ./scripts/seed_database.sh
+# This script clears all data from the database
+# and then seeds it with fresh dummy data
 # ============================================
 
 set -e  # Exit on error
@@ -20,7 +20,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}Database Seeding Script${NC}"
+echo -e "${GREEN}Clear Database and Seed Script${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
@@ -44,20 +44,32 @@ if ! docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" ps db | grep -q "Up";
     sleep 5
 fi
 
-# SQL file path
-SQL_FILE="$SCRIPT_DIR/seed_dummy_data.sql"
+# SQL files
+CLEAR_FILE="$SCRIPT_DIR/clear_database.sql"
+SEED_FILE="$SCRIPT_DIR/seed_dummy_data.sql"
 
-# Check if SQL file exists
-if [ ! -f "$SQL_FILE" ]; then
-    echo -e "${RED}Error: SQL file not found at $SQL_FILE${NC}"
+# Check if SQL files exist
+if [ ! -f "$CLEAR_FILE" ]; then
+    echo -e "${RED}Error: Clear SQL file not found at $CLEAR_FILE${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}Seeding database with dummy data...${NC}"
-echo ""
+if [ ! -f "$SEED_FILE" ]; then
+    echo -e "${RED}Error: Seed SQL file not found at $SEED_FILE${NC}"
+    exit 1
+fi
 
-# Run the SQL file
-if docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" exec -T db psql -U postgres -d b2b < "$SQL_FILE"; then
+echo -e "${YELLOW}Step 1: Clearing all database data...${NC}"
+if docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" exec -T db psql -U postgres -d b2b < "$CLEAR_FILE"; then
+    echo -e "${GREEN}✓ Database cleared successfully!${NC}"
+else
+    echo -e "${RED}✗ Error clearing database.${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "${YELLOW}Step 2: Seeding database with dummy data...${NC}"
+if docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" exec -T db psql -U postgres -d b2b < "$SEED_FILE"; then
     echo ""
     echo -e "${GREEN}✓ Database seeded successfully!${NC}"
     echo ""
@@ -72,13 +84,10 @@ if docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" exec -T db psql -U post
     "
     
     echo ""
-    echo -e "${GREEN}Done! You can now see products in the application.${NC}"
+    echo -e "${GREEN}Done! Database has been cleared and reseeded.${NC}"
 else
     echo ""
     echo -e "${RED}✗ Error seeding database. Please check the error messages above.${NC}"
     exit 1
 fi
-
-
-
 

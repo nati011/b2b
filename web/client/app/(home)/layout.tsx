@@ -31,7 +31,7 @@ export default function OverViewLayout({
               Join thousands of retailers who trust Efoyeta Store for their wholesale needs. 
               Start your journey today and unlock exclusive benefits.
             </p>
-            <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
                 size="lg"
                 variant="secondary"
@@ -40,6 +40,16 @@ export default function OverViewLayout({
               >
                 <Link href="/product" prefetch={true}>
                   Browse Products <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-transparent border-2 border-white text-white hover:bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-6 text-lg font-semibold"
+                asChild
+              >
+                <Link href="/signup/distributor" prefetch={true}>
+                  Partner with Us <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
