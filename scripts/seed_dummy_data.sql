@@ -62,6 +62,11 @@ DECLARE
     cp1_var3_id INT;
     cp2_var1_id INT;
     cp2_var2_id INT;
+    
+    -- Attribute IDs
+    attr_storage_id INT;
+    attr_ram_id INT;
+    attr_color_id INT;
 BEGIN
     -- Get category IDs
     SELECT id INTO cat_electronics_id FROM public.category WHERE name = 'Electronics' AND is_deleted = false LIMIT 1;
@@ -78,7 +83,7 @@ BEGIN
     
     IF user_id_var IS NULL THEN
         INSERT INTO public.users (firstName, lastName, email, phone_number, username, birth_date, is_active, is_deleted)
-        VALUES ('Test', 'Distributor', 'test.distributor@efoyeta.com', '+251911234567', 'testdistributor', '1990-01-01', true, false)
+        VALUES ('Test', 'Distributor', 'test.distributor@efoyetastore.com', '+251911234567', 'testdistributor', '1990-01-01', true, false)
         RETURNING id INTO user_id_var;
     END IF;
 
@@ -268,6 +273,41 @@ BEGIN
     UPDATE public.products SET is_active = true WHERE id = cp1_var3_id;
     PERFORM public.add_product_to_configurable_product(cp1_id, cp1_var3_id);
 
+    -- ============================================
+    -- 9. Create Attributes for Smartphone Pro
+    -- ============================================
+    
+    -- Create Storage attribute if it doesn't exist
+    SELECT id INTO attr_storage_id FROM public.p_attributes WHERE name = 'Storage' AND is_deleted = false LIMIT 1;
+    IF attr_storage_id IS NULL THEN
+        SELECT * FROM public.create_product_attribute('Storage') INTO attr_storage_id;
+    END IF;
+    
+    -- Create Color attribute if it doesn't exist
+    SELECT id INTO attr_color_id FROM public.p_attributes WHERE name = 'Color' AND is_deleted = false LIMIT 1;
+    IF attr_color_id IS NULL THEN
+        SELECT * FROM public.create_product_attribute('Color') INTO attr_color_id;
+    END IF;
+    
+    -- Add Storage attribute to configurable product
+    PERFORM public.add_attribute_to_configurable_product(attr_storage_id, cp1_id);
+    
+    -- Add Color attribute to configurable product
+    PERFORM public.add_attribute_to_configurable_product(attr_color_id, cp1_id);
+    
+    -- Add attribute values to variant products
+    -- Variant 1: 64GB, Black
+    PERFORM public.create_product_attribute_value('64GB', cp1_var1_id, attr_storage_id);
+    PERFORM public.create_product_attribute_value('Black', cp1_var1_id, attr_color_id);
+    
+    -- Variant 2: 128GB, Black
+    PERFORM public.create_product_attribute_value('128GB', cp1_var2_id, attr_storage_id);
+    PERFORM public.create_product_attribute_value('Black', cp1_var2_id, attr_color_id);
+    
+    -- Variant 3: 256GB, Black
+    PERFORM public.create_product_attribute_value('256GB', cp1_var3_id, attr_storage_id);
+    PERFORM public.create_product_attribute_value('Black', cp1_var3_id, attr_color_id);
+    
     -- Activate configurable product
     UPDATE public.configurable_products SET is_available = true WHERE id = cp1_id;
 
@@ -308,6 +348,26 @@ BEGIN
     UPDATE public.products SET is_active = true WHERE id = cp2_var2_id;
     PERFORM public.add_product_to_configurable_product(cp2_id, cp2_var2_id);
 
+    -- ============================================
+    -- 10. Create Attributes for Gaming Laptop
+    -- ============================================
+    
+    -- Create RAM attribute if it doesn't exist
+    SELECT id INTO attr_ram_id FROM public.p_attributes WHERE name = 'RAM' AND is_deleted = false LIMIT 1;
+    IF attr_ram_id IS NULL THEN
+        SELECT * FROM public.create_product_attribute('RAM') INTO attr_ram_id;
+    END IF;
+    
+    -- Add RAM attribute to configurable product
+    PERFORM public.add_attribute_to_configurable_product(attr_ram_id, cp2_id);
+    
+    -- Add attribute values to variant products
+    -- Variant 1: 8GB RAM
+    PERFORM public.create_product_attribute_value('8GB', cp2_var1_id, attr_ram_id);
+    
+    -- Variant 2: 16GB RAM
+    PERFORM public.create_product_attribute_value('16GB', cp2_var2_id, attr_ram_id);
+    
     UPDATE public.configurable_products SET is_available = true WHERE id = cp2_id;
 
     RAISE NOTICE 'Seed data created successfully!';
