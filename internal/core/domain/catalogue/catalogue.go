@@ -301,8 +301,21 @@ func (c *CatalogueService) Search(ctx context.Context, req *SearchCatalogueReque
 			})
 
 			// Build configurable attributes map
-			for _, key := range j.Attributes {
-				if attrVal, exists := productResp.Attributes[key]; exists {
+			// If j.Attributes is provided, use it as a filter
+			// Otherwise, derive from all product attributes
+			if len(j.Attributes) > 0 {
+				// Use provided attribute keys as filter
+				for _, key := range j.Attributes {
+					if attrVal, exists := productResp.Attributes[key]; exists {
+						configurableAttribute[key] = append(configurableAttribute[key], CatalogueConfigurableAttributesResponse{
+							ProductId:      productResp.Id,
+							AttributeValue: attrVal,
+						})
+					}
+				}
+			} else {
+				// Derive from all product attributes
+				for key, attrVal := range productResp.Attributes {
 					configurableAttribute[key] = append(configurableAttribute[key], CatalogueConfigurableAttributesResponse{
 						ProductId:      productResp.Id,
 						AttributeValue: attrVal,
@@ -467,8 +480,21 @@ func (c *CatalogueService) GetAll(ctx context.Context) (GetAllCatalogueResponse,
 			})
 
 			// Build configurable attributes map
-			for _, key := range j.Attributes {
-				if attrVal, exists := productResp.Attributes[key]; exists {
+			// If j.Attributes is provided, use it as a filter
+			// Otherwise, derive from all product attributes
+			if len(j.Attributes) > 0 {
+				// Use provided attribute keys as filter
+				for _, key := range j.Attributes {
+					if attrVal, exists := productResp.Attributes[key]; exists {
+						configurableAttribute[key] = append(configurableAttribute[key], CatalogueConfigurableAttributesResponse{
+							ProductId:      productResp.Id,
+							AttributeValue: attrVal,
+						})
+					}
+				}
+			} else {
+				// Derive from all product attributes
+				for key, attrVal := range productResp.Attributes {
 					configurableAttribute[key] = append(configurableAttribute[key], CatalogueConfigurableAttributesResponse{
 						ProductId:      productResp.Id,
 						AttributeValue: attrVal,

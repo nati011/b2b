@@ -27,4 +27,6 @@ USER nextjs
 EXPOSE 3000
 
 # Start in production if build succeeded, otherwise use dev mode
-CMD ["sh", "-c", "if [ -f .next/BUILD_ID ]; then npm start; else echo 'Starting in dev mode (build failed)' && npm run dev -- -p 3000; fi"] 
+# Handle SIGTERM properly for graceful shutdown
+# Use exec to ensure signals are properly forwarded to the Node.js process
+CMD ["sh", "-c", "if [ -f .next/BUILD_ID ]; then exec npm start; else echo 'Starting in dev mode (build failed)' && exec npm run dev -- -p 3000; fi"]
