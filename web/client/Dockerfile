@@ -13,9 +13,9 @@ RUN for i in 1 2 3; do npm ci --legacy-peer-deps && break || (npm install --lega
 # Copy the rest of the application
 COPY . .
 
-# Build the application with retry logic for network issues
+# Build the application
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build || echo "Build failed, will use dev mode"
+RUN npm run build
 
 ENV NODE_ENV production
 
@@ -26,5 +26,6 @@ USER nextjs
 
 EXPOSE 3000
 
-# Start in production if build succeeded, otherwise use dev mode
-CMD ["sh", "-c", "if [ -f .next/BUILD_ID ]; then npm start; else echo 'Starting in dev mode (build failed)' && npm run dev -- -p 3000; fi"] 
+# Start in production mode
+# Use exec to ensure proper signal forwarding
+CMD ["sh", "-c", "exec npm start"] 

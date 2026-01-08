@@ -1,10 +1,9 @@
-"use server";
 import axiosIns from "@/lib/axios";
 import { BuySubscriptionRequest, DistributorRequest, RegisterRequest, User } from "@/lib/types";
 
 export const RegisterRetailer = async (profile: RegisterRequest) => {
   try {
-    const response = await axiosIns.post("/retailer", profile);
+    const response = await axiosIns.post("/api/v1/retailer", profile);
     console.log(response.data);
     return response.data.message;
   } catch (error: any) {
@@ -20,8 +19,25 @@ export const RegisterRetailer = async (profile: RegisterRequest) => {
 
 export const RegisterDistributor = async(profile: DistributorRequest) => {
   try {
-    const response = await axiosIns.post("/distributor", profile);
+    // Filter out fields that backend doesn't expect
+    const requestPayload = {
+      tin: profile.tin,
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+      general_zone: profile.general_zone,
+      region: profile.region,
+      woreda: profile.woreda,
+      licence_url: profile.licence_url || "",
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      email: profile.email,
+      phone: profile.phone,
+      password: profile.password,
+      // username will be set by backend from phone
+    };
+    const response = await axiosIns.post("/api/v1/distributor", requestPayload);
     console.log(response.data);
+    // Backend returns user_id as distributor id
     return response.data.body.distributor;
   } catch (error: any) {
     if (error.response) {
@@ -90,9 +106,16 @@ export const UpdateProfile = async (data: Partial<User>) => {
 
 export const BuySubscription = async (profile: BuySubscriptionRequest) => {
   try {
-    const response = await axiosIns.post("/subscription", profile);
+    const response = await axiosIns.post("/api/v1/subscription", profile);
     console.log(response)
-    return response.data.body.id; // FIX ME: change backend dto
+    // Backend returns: {body: {id: {id: ..., checkout_url: ..., tx_ref: ...}}}
+    // The "id" key contains the SubscribeResponse object
+    const subscribeResponse = response.data.body.id;
+    return {
+      id: subscribeResponse.id,
+      checkout_url: subscribeResponse.checkout_url,
+      tx_ref: subscribeResponse.tx_ref
+    };
   } catch (error: any) {
     if (error.response) {
       console.log(error.response)

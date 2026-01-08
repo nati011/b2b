@@ -6,8 +6,9 @@ import { AuthOptions, TokenSet } from "next-auth";
 
 // For server-side requests, use internal Docker network URL
 // For client-side requests, use external URL
-const baseURL = process.env.NEXT_PUBLIC_BASE_URL || 
-               (typeof window === 'undefined' ? 'http://backend:8080' : 'http://localhost:8082');
+const baseURL = typeof window === 'undefined'
+  ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080')
+  : 'http://localhost:8082';
 
 interface KeycloakJWT {
   exp: number;
@@ -42,7 +43,7 @@ interface AppToken extends TokenSet {
 async function refreshAccessToken(token: AppToken): Promise<AppToken> {
   try {
     // Use internal Docker network URL for server-side requests
-    const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
     
     const response = await axios.post(`${apiBaseURL}/api/v1/auth/refresh`, {
       refresh_token: token.refreshToken,
@@ -96,7 +97,7 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
 async function handleGoogleSSO(profile: any, account: any) {
   try {
     // Use internal Docker network URL for server-side requests
-    const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
     
     const response = await axios.post(`${apiBaseURL}/api/v1/auth/sso`, {
       token: account.access_token,
@@ -153,8 +154,8 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          // Use internal Docker network URL for server-side requests
-          const apiBaseURL = process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+          // Use internal Docker network URL for server-side requests (this is always server-side)
+          const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
           
           const response = await axios.post(
             `${apiBaseURL}/api/v1/auth/login`,
