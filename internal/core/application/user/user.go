@@ -325,7 +325,7 @@ func (u *UserService) Create(ctx context.Context, req *CreateRequest) (int, erro
 }
 
 func (u *UserService) CreateAssisted(ctx context.Context, req *CreateAssistedRequest) (int, error) {
-	var providerResponse auth.RegisterUserResponse
+	// Create user without auth provider for assisted registration
 	user_id, err := u.db.CreateAndActivate(ctx, &port.CreateRequest{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -334,7 +334,6 @@ func (u *UserService) CreateAssisted(ctx context.Context, req *CreateAssistedReq
 	})
 	if err != nil {
 		log.Printf("Failed to create and activate user: %v err:%v", req.Email, err)
-		u.auth_service.DeleteClient(ctx, providerResponse.Id)
 		switch err {
 		default:
 			return 0, ErrUnknown
@@ -342,17 +341,8 @@ func (u *UserService) CreateAssisted(ctx context.Context, req *CreateAssistedReq
 	}
 
 	log.Printf("Registered User %v", user_id)
-	err = u.db.CreateUserProvider(ctx, &port.CreateUserProviderRequest{
-		UserId:     user_id,
-		ProviderId: providerResponse.Id,
-	})
-	if err != nil {
-		switch err {
-		default:
-			u.Remove(ctx, user_id)
-			return 0, ErrUnknown
-		}
-	}
+	// Note: For assisted registration, we don't create a user provider
+	// as there's no auth provider created. This is intentional for assisted flows.
 
 	log.Printf("assign User role: %v", req.roleName)
 	if req.roleName != "" {

@@ -11,26 +11,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - .env.development
     environment:
+      # Variables that need special handling or defaults
       - PORT=8080
       - DB_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-b2b}
-      - ENV=${ENV:-development}
-      - BASE_URL=${BASE_URL:-http://localhost:8082}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-      - KEYCLOAK_BASE_URL=${KEYCLOAK_BASE_URL:-http://localhost:8080}
-      - KEYCLOAK_USER_NAME=${KEYCLOAK_USER_NAME:-admin}
-      - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD:-admin}
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-master}
-      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-b2b-client}
-      - KEYCLOAK_APPLICATION_REALM=${KEYCLOAK_APPLICATION_REALM:-b2b}
-      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET:-secret}
-      - SMTP=${SMTP:-smtp.example.com:587}
-      - EMAIL=${EMAIL:-noreply@example.com}
-      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-password}
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
-      - DEFAULT_SUPERADMIN_EMAIL=${DEFAULT_SUPERADMIN_EMAIL:-superadmin@example.com}
-      - CLIENT_VERSION=${CLIENT_VERSION:-1.0.0}
-      - JWT_SECRET=${JWT_SECRET:-}
+      # All variables from .env.development (including all Keycloak variables) 
+      # are automatically loaded into the container via env_file above.
+      # Only variables that need defaults or special handling are listed here.
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 10s
@@ -52,7 +41,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - NEXT_PUBLIC_BASE_URL=${BASE_URL:-http://localhost:8082}
+      - NEXT_PUBLIC_BASE_URL=http://backend:8082
+      - API_BASE_URL=http://backend:8082
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3001}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key-change-in-production}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-286726142980-uvab0hji7kpsfi8r0c67b7kdh18hs48e.apps.googleusercontent.com}
@@ -68,14 +58,16 @@ services:
     ports:
       - "3000:3000"
     restart: on-failure
-    stop_grace_period: 10s
+    stop_grace_period: 30s
     stop_signal: SIGTERM
+    init: true
     networks:
       - app-network
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - NEXT_PUBLIC_BASE_URL=${BASE_URL:-http://localhost:8082}
+      - NEXT_PUBLIC_BASE_URL=http://backend:8080
+      - API_BASE_URL=http://backend:8080
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key-change-in-production}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-286726142980-uvab0hji7kpsfi8r0c67b7kdh18hs48e.apps.googleusercontent.com}
@@ -131,11 +123,12 @@ services:
         condition: service_healthy
     command: >
       sh -c "
+        echo 'Waiting for database to be ready...' &&
+        until pg_isready -h db -U $${POSTGRES_USER:-postgres}; do
+          sleep 1
+        done &&
+        export PGPASSWORD=$${POSTGRES_PASSWORD:-postgres} &&
         if [ \"$${AUTO_SEED:-true}\" = \"true\" ]; then
-          echo 'Waiting for database to be ready...' &&
-          until pg_isready -h db -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-b2b}; do
-            sleep 1
-          done &&
           echo 'Clearing database...' &&
           psql -h db -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-b2b} -f /scripts/clear_database.sql &&
           echo 'Seeding database...' &&

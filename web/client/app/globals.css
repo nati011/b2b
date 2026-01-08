@@ -132,4 +132,13 @@
   .border-b2b-accent-border {
     border-color: var(--b2b-accent-border) !important;
   }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
