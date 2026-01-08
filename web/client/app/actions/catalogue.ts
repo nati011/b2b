@@ -1,4 +1,3 @@
-"use server";
 import axiosIns from "@/lib/axios";
 
 export const GetAllCatalogues = async (url?: string) => {

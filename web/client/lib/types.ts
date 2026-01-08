@@ -205,5 +205,5 @@ export type PricingPlan = {
     name: string;
     price: number;
     term_in_month: number;
-    desc: number;
+    desc: string;
 }

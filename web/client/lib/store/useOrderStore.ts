@@ -114,9 +114,14 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await completePayment(order_id)
-            localStorage.setItem("tx_ref", response)
-            if (response) {
+            if (response && response.tx_ref) {
+                localStorage.setItem("tx_ref", response.tx_ref)
+            }
+            if (response && response.checkout_url) {
                 window.location.href = response.checkout_url
+            } else {
+                set({ loading: false });
+                toast.error("Failed to get checkout URL")
             }
         } catch (error: any) {
             set({ loading: false });

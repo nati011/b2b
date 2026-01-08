@@ -1,19 +1,20 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import usePlanstore from "@/lib/store/usePricingPlan";
 import Link from "next/link";
 
 export default function PricingSection(){
   const { plans, loading, error, fetchPricingPlan } = usePlanstore();
+  const [mounted, setMounted] = useState(false);
 
+  // Ensure this only runs on client-side
   useEffect(() => {
-    // Only fetch if plans are empty (cache will handle the rest)
-    if (plans.length === 0) {
-      void fetchPricingPlan();
-    }
-  }, [fetchPricingPlan, plans.length]);
+    setMounted(true);
+    console.log('PricingSection mounted on client, fetching plans...');
+    void fetchPricingPlan();
+  }, []); // Empty dependency array - only run on mount
 
   const formatPrice = (price: number) => `${price.toLocaleString()} ETB`;
   const termToPeriod = (termInMonth: number) => {
@@ -41,7 +42,16 @@ export default function PricingSection(){
         </div>
 
         {error && (
-          <div className="text-center text-destructive mb-8">{error}</div>
+          <div className="text-center mb-8">
+            <div className="text-destructive mb-4">{error}</div>
+            <Button 
+              onClick={() => void fetchPricingPlan()} 
+              variant="outline"
+              className="mt-2"
+            >
+              Retry
+            </Button>
+          </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -73,7 +83,7 @@ export default function PricingSection(){
 
           {plans.map(plan => (
             <div 
-              key={plan.name}
+              key={plan.id}
               className={`relative bg-white p-8 rounded-2xl border transition-all duration-300 hover:shadow-xl ${
                 isRecommended(plan.name) 
                   ? "border-primary shadow-lg scale-105 ring-2 ring-primary/20" 
@@ -89,7 +99,7 @@ export default function PricingSection(){
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{plan.name}</h3>
                 <div className="text-4xl font-bold text-primary mb-2">{formatPrice(plan.price)}</div>
                 <div className="text-sm text-gray-600 mb-4">{termToPeriod(plan.term_in_month)}</div>
-                <p className="text-sm text-gray-600 mt-4">{String((plan as any).desc ?? "")}</p>
+                <p className="text-sm text-gray-600 mt-4">{plan.desc || ""}</p>
               </div>
 
               <Link href={`/signup/distributor/?plan_id=${plan.id}`}>

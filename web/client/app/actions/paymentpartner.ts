@@ -1,4 +1,3 @@
-"use server";
 import axiosIns from "@/lib/axios";
 
 export async function fetchPaymentPartners() {
