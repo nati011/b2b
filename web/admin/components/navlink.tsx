@@ -1,4 +1,4 @@
-'use clint'
+'use client'
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -17,6 +17,7 @@ export const NavLink: React.FC<Props> = ({ heading, icon: Icon, link }) => {
     return (
         <Link
             href={`/${link}`}
+            prefetch={true}
             className={`
         flex items-center group pl-8 py-3
         hover:border-r-4 hover:border-blue-900/[0.5] hover:bg-blue-900/[0.1]

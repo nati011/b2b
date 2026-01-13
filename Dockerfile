@@ -1,5 +1,7 @@
 FROM golang:1.23-alpine
 
+RUN apk add --no-cache wget netcat-openbsd
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -31,4 +33,4 @@ CMD env && ./main \
     --min_compatible_client_version $CLIENT_VERSION \
     --jwt_secret $JWT_SECRET \
     --email_password $EMAIL_PASSWORD 
-EXPOSE $PORT
+EXPOSE 8080

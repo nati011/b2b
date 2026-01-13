@@ -1,3 +1,5 @@
+"use client";
+import React, { useMemo } from "react";
 import useCatalogueStore from "@/lib/store/useCatalogueStore";
 import { Catalogue } from "@/lib/types";
 import Image from "next/image";
@@ -7,10 +9,10 @@ interface Props {
   product: Catalogue;
 }
 
-export const ProductCard: React.FC<Props> = ({ product }) => {
+export const ProductCard: React.FC<Props> = React.memo(({ product }) => {
   const setProduct = useCatalogueStore((state) => state.setProduct);
 
-  const getPriceRange = (product: Catalogue) => {
+  const priceRange = useMemo(() => {
     if (!product.configurables || product.configurables.length === 0) {
       return `$${product.price}`;
     }
@@ -22,13 +24,13 @@ export const ProductCard: React.FC<Props> = ({ product }) => {
     return minPrice === maxPrice
       ? `${minPrice.toLocaleString()} ETB`
       : `${minPrice.toLocaleString()} ETB - ${maxPrice.toLocaleString()} ETB`;
-  };
+  }, [product.configurables, product.price]);
 
-  const isAllOutOfStock = (product: Catalogue) => {
+  const isOutOfStock = useMemo(() => {
     return product.configurables.every(
       (configurable) => configurable.stock === 0
     );
-  };
+  }, [product.configurables]);
 
   return (
     <Link
@@ -36,23 +38,35 @@ export const ProductCard: React.FC<Props> = ({ product }) => {
       className="group animate-fade-in"
       onClick={() => setProduct(product)}
     >
-      <div className="aspect-square overflow-hidden rounded-lg bg-secondary mb-4">
-        <Image
-          width={400}
-          height={400}
-          src={product?.images?.[0]?.ImageUrl ?? ""}
-          alt={product.name}
-          className="w-full h-full object-cover transform transition-transform group-hover:scale-105"
-          loading="lazy"
-        />
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+        <div className="aspect-square overflow-hidden bg-gray-50 relative">
+          <Image
+            width={400}
+            height={400}
+            src={product?.images?.[0]?.ImageUrl ?? ""}
+            alt={product.name}
+            className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            quality={85}
+          />
+          {isOutOfStock && (
+            <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+              Out of Stock
+            </div>
+          )}
+        </div>
+        <div className="p-5">
+          <h3 className="text-lg font-semibold mb-2 text-gray-900 group-hover:text-primary transition-colors line-clamp-2">
+            {product.name}
+          </h3>
+          <p className="text-lg font-bold text-primary">
+            {priceRange}
+          </p>
+        </div>
       </div>
-      <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-      <p className="text-md text-gray-800">
-        {getPriceRange(product)}
-        {isAllOutOfStock(product) && (
-          <span className="text-red-500 ml-2">(Out of Stock)</span>
-        )}
-      </p>
     </Link>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';

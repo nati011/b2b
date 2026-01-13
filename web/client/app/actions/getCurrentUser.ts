@@ -1,4 +1,3 @@
-"use server"
 import axiosIns from "@/lib/axios";
 import { UserIdentity } from "@/lib/types";
 
