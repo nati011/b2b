@@ -1,10 +1,8 @@
-"use server";
 import axiosIns from "@/lib/axios";
 
 export const GetAllCatalogues = async (url?: string) => {
   try {
-    const response = await axiosIns.get("/catalogue");
-    console.log(response.data.body.products);
+    const response = await axiosIns.get("/api/v1/catalogue");
     return response.data.body.products;
   } catch (error: any) {
     if (error.response) {

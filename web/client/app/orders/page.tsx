@@ -34,9 +34,7 @@ const Orders = () => {
 
   useEffect(() => {
     fetchOrders(currentPage, selectedStatus);
-    console.log(orders);
-    console.log(orders?.length)
-  }, [currentPage, selectedStatus]);
+  }, [currentPage, selectedStatus, fetchOrders]);
 
   if (error) {
     return (

@@ -1,188 +1,129 @@
 "use client";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/ui/carousel";
+import Link from "next/link";
 
 export default function Hero() {
-  const slides = [
-    {
-      id: 1,
-      title: "Premium home goods for modern retailers",
-      subtitle: "Curated collections of high-margin products",
-      description:
-        "Elevate your retail space with our exclusive wholesale collections designed to maximize profitability and customer engagement.",
-      cta: "View Wholesale Catalog",
-      secondaryCta: "Become a Partner",
-      image:
-        "https://images.unsplash.com/photo-1532372320572-cda25653a26d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      bgColor: "bg-white",
-    },
-    {
-      id: 2,
-      title: "Exclusive wholesale pricing",
-      subtitle: "Up to 50% off retail prices",
-      description:
-        "Partner with us to access exclusive wholesale pricing and boost your profit margins with our premium product lines.",
-      cta: "See Pricing",
-      secondaryCta: "Contact Sales",
-      image:
-        "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      bgColor: "bg-white",
-    },
-    {
-      id: 3,
-      title: "Full retailer support",
-      subtitle: "Marketing materials included",
-      description:
-        "Get access to ready-to-use marketing materials, product training, and dedicated account management.",
-      cta: "Learn More",
-      secondaryCta: "Schedule Demo",
-      image:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      bgColor: "bg-white",
-    },
-  ];
-
-  const [api, setApi] = useState<any>(null);
-  const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    if (!api) return;
-
-    const interval = setInterval(() => {
-      api.scrollNext();
-    }, 5000); // Auto-rotate every 5 seconds
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-
-    return () => {
-      clearInterval(interval);
-      api.off("select");
-    };
-  }, [api]);
-
   return (
-    <section className="w-full overflow-hidden">
-      {/* Main Hero Carousel */}
-      <Carousel
-        className="w-full"
-        opts={{
-          loop: true,
-          duration: 50,
-        }}
-        setApi={setApi}
-      >
-        <CarouselContent>
-          {slides.map((slide) => (
-            <CarouselItem key={slide.id}>
-              <div
-                className={`w-full ${slide.bgColor} transition-all duration-500`}
-              >
-                <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 min-h-[600px]">
-                  <div className="flex flex-col justify-center px-8 py-16 order-2 md:order-1">
-                    <h2 className="text-lg md:text-xl text-primary/80 font-normal mb-2 animate-slideUp">
-                      {slide.subtitle}
-                    </h2>
+    <section className="w-full relative bg-gradient-to-b from-gray-50 via-white to-white overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20"></div>
+        
+        {/* Geometric shapes */}
+        <div className="absolute top-20 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 -right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-3xl"></div>
+        
+        {/* Subtle diagonal lines */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-1/4 left-0 w-px h-64 bg-gradient-to-b from-transparent via-primary/10 to-transparent"></div>
+          <div className="absolute top-1/3 right-0 w-px h-64 bg-gradient-to-b from-transparent via-primary/10 to-transparent"></div>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center justify-center mb-6">
+            <span className="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-full uppercase tracking-wide">
+              Welcome to Efoyeta Store
+            </span>
+          </div>
 
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight mb-6 animate-fadeIn">
-                      {slide.title}
-                    </h1>
+          {/* Main Heading */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            Turning Small Capital into{" "}
+            <span className="text-primary">Big Opportunities</span>
+          </h1>
 
-                    <p className="text-lg text-muted-foreground mb-8 max-w-md animate-slideUp">
-                      {slide.description}
-                    </p>
+          {/* Description */}
+          <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Elevate your retail business with our exclusive wholesale collections. 
+            Access premium products, competitive pricing, and dedicated support to maximize your profitability.
+          </p>
 
-                    <div
-                      className="flex flex-col sm:flex-row gap-4 animate-slideUp"
-                      style={{ animationDelay: "0.2s" }}
-                    >
-                      <Button
-                        size="lg"
-                        className="bg-primary hover:bg-primary/90"
-                        asChild
-                      >
-                        <a href="#products">
-                          {slide.cta} <ArrowRight className="ml-2 h-4 w-4" />
-                        </a>
-                      </Button>
-                      <Button variant="outline" size="lg">
-                        {slide.secondaryCta}
-                      </Button>
-                    </div>
-                  </div>
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-6 text-base font-semibold"
+              asChild
+            >
+              <Link href="/product" prefetch={true}>
+                Explore Products <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-2 border-gray-300 hover:bg-gray-50 hover:border-primary transition-all duration-300 px-8 py-6 text-base font-semibold"
+              asChild
+            >
+              <Link href="#pricing">Become a Partner</Link>
+            </Button>
+          </div>
 
-                  <div className="relative order-1 md:order-2">
-                    <div className="h-[300px] md:h-[600px] w-full">
-                      <div
-                        className="h-full w-full bg-cover bg-center animate-fadeIn transition-all duration-500"
-                        style={{ backgroundImage: `url(${slide.image})` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+        </div>
+      </div>
+
+      {/* Mobile App Banner */}
+      <div className="w-full bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-t border-b border-primary/20 mt-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center justify-center w-14 h-14 bg-primary rounded-xl shadow-lg flex-shrink-0">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
               </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-2 justify-center">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => api?.scrollTo(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
-                current === index ? "bg-primary w-6" : "bg-primary/30"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Get the Mobile App
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Shop wholesale products on the go with our mobile app
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              {/* Google Play - Coming Soon */}
+              <a 
+                href="#" 
+                onClick={(e) => e.preventDefault()}
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-900 rounded-lg opacity-60 cursor-not-allowed transition-all duration-300 shadow-lg relative"
+                title="Coming Soon"
+              >
+                <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+                </svg>
+                <div className="text-left">
+                  <div className="text-xs opacity-80">Get it on</div>
+                  <div className="text-sm font-semibold">Google Play</div>
+                </div>
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">Soon</span>
+              </a>
+              {/* App Store - Coming Soon */}
+              <a 
+                href="#" 
+                onClick={(e) => e.preventDefault()}
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-900 rounded-lg opacity-60 cursor-not-allowed transition-all duration-300 shadow-lg relative"
+                title="Coming Soon"
+              >
+                <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C1.79 15.25 2.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                </svg>
+                <div className="text-left">
+                  <div className="text-xs opacity-80">Download on the</div>
+                  <div className="text-sm font-semibold">App Store</div>
+                </div>
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">Soon</span>
+              </a>
+            </div>
+          </div>
         </div>
-
-        <div className="hidden md:flex absolute bottom-8 right-8 z-10 gap-2">
-          <CarouselPrevious className="static translate-y-0 h-10 w-10" />
-          <CarouselNext className="static translate-y-0 h-10 w-10" />
-        </div>
-      </Carousel>
-
-      {/* Highlights Section */}
-      {/* <div className="container mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 border-b">
-                <div className="flex items-center animate-slideUp" style={{ animationDelay: "0.3s" }}>
-                    <div className="rounded-full bg-primary/10 p-3 mr-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M21.2 8.4c.5.38.8.96.8 1.6 0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2 0-.64.3-1.22.8-1.6" /><path d="m5.5 8.4 1.1-3.36a1 1 0 0 1 .95-.64h8.9c.45 0 .85.29.95.64L18.5 8.4" /><path d="M4 14h.01" /><path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" /><path d="M20 14h.01" /><path d="M4 19h.01" /><path d="M8 19h.01" /><path d="M12 19h.01" /><path d="M16 19h.01" /><path d="M20 19h.01" /></svg>
-                    </div>
-                    <div>
-                        <h3 className="font-medium">Wholesale Pricing</h3>
-                        <p className="text-sm text-muted-foreground">Up to 50% off retail</p>
-                    </div>
-                </div>
-                <div className="flex items-center animate-slideUp" style={{ animationDelay: "0.4s" }}>
-                    <div className="rounded-full bg-primary/10 p-3 mr-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" /><path d="M18 14h-8" /><path d="M15 18h-5" /><path d="M10 6h8v4h-8V6Z" /></svg>
-                    </div>
-                    <div>
-                        <h3 className="font-medium">Low MOQ</h3>
-                        <p className="text-sm text-muted-foreground">Starting at $500</p>
-                    </div>
-                </div>
-                <div className="flex items-center animate-slideUp" style={{ animationDelay: "0.5s" }}>
-                    <div className="rounded-full bg-primary/10 p-3 mr-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" /></svg>
-                    </div>
-                    <div>
-                        <h3 className="font-medium">Retailer Support</h3>
-                        <p className="text-sm text-muted-foreground">Marketing materials included</p>
-                    </div>
-                </div>
-            </div> */}
+      </div>
     </section>
   );
 }

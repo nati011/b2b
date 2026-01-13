@@ -20,14 +20,23 @@ const useDistributorStore = create<DistributorStore>((set) => ({
     distributor_id: null,
 
     register: async (profile: DistributorRequest) => {
-        set({ loading: true, error: null, success: null });
+        set({ loading: true, error: null, success: null, distributor_id: null });
         try {
             const distributor_id = await RegisterDistributor(profile);
-            set({ loading: false, success: "Distributor registered successfully", distributor_id: distributor_id });
+            // Only set success if we got a valid distributor_id
+            if (distributor_id) {
+                set({ loading: false, success: "Distributor registered successfully", distributor_id: distributor_id, error: null });
+            } else {
+                const errMsg = "Registration succeeded but no distributor ID was returned";
+                toast.error(errMsg);
+                set({ loading: false, error: errMsg, success: null, distributor_id: null });
+                throw new Error(errMsg);
+            }
         } catch (error: any) {
             const errMsg = typeof error === "string" ? error : error?.message || "Failed to register distributor";
-            toast.error(errMsg)
-            set({ loading: false });
+            toast.error(errMsg);
+            set({ loading: false, error: errMsg, success: null, distributor_id: null });
+            throw error; // Re-throw to allow component to handle it
         }
     },
     buySubscription: async (profile: BuySubscriptionRequest) => {
@@ -39,11 +48,11 @@ const useDistributorStore = create<DistributorStore>((set) => ({
             if (response) {
                 window.location.href = response.checkout_url
             }
-            set({ loading: false});
+            set({ loading: false, error: null });
         } catch (error: any) {
             const errMsg = typeof error === "string" ? error : error?.message || "Failed to buy subscription";
             toast.error(errMsg)
-            set({ loading: false});
+            set({ loading: false, error: errMsg });
         }
     },
 }));

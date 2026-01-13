@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { ArrowLeft, Minus, Plus, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -46,14 +46,17 @@ const Cart = () => {
     payment_method: "",
   });
 
-  const viewPartnerDialog = () => {
+  const viewPartnerDialog = useCallback(() => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
     }
     setPartnerDialog(true);
-    fetchPaymentPartners();
-  };
+    // Only fetch if not already loaded
+    if (partners.length === 0 && !loading) {
+      fetchPaymentPartners();
+    }
+  }, [cartItems.length, partners.length, loading, fetchPaymentPartners]);
 
   const handleCheckout = () => {
     const request: CheckoutRequest = {
@@ -75,18 +78,13 @@ const Cart = () => {
     router.push("/product");
   };
 
-  const handleQuantityDecrease = (item: any) => {
-    if (item.quantity === 1) {
-      removeCartItems(item);
-    } else {
-      const updatedItem = { ...item, quantity: item.quantity - 1 };
-      removeCartItems(item);
-    }
-  };
+  const handleQuantityDecrease = useCallback((item: any) => {
+    addCartItems(item, -1);
+  }, [addCartItems]);
 
-  const handleQuantityIncrease = (item: any) => {
+  const handleQuantityIncrease = useCallback((item: any) => {
     addCartItems(item, 1);
-  };
+  }, [addCartItems]);
 
   useEffect(() => {
     if (error != null) {
@@ -145,7 +143,9 @@ const Cart = () => {
                   </div>
 
                   <div className="space-y-3">
-                    {cartItems.map((item) => (
+                    {cartItems.map((item) => {
+                      const itemTotal = item.price * item.quantity;
+                      return (
                       <div
                         key={item.id}
                         className="bg-white rounded-lg  border p-4 border-gray-100 transition-shadow"
@@ -203,14 +203,15 @@ const Cart = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-gray-900">
-                                  {(item.price * item.quantity).toLocaleString()} ETB
+                                  {itemTotal.toLocaleString()} ETB
                                 </p>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

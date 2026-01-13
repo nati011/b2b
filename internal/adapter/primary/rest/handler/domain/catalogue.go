@@ -1,8 +1,10 @@
 package domain
 
 import (
+	"compress/gzip"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"b2b.nati011.github.com/internal/adapter/primary/rest/handler"
 	util "b2b.nati011.github.com/internal/adapter/primary/rest/handler/util"
@@ -104,12 +106,57 @@ func (c *Catalogue) Init(authMiddleWare *middleware.Auth, applicationServices *a
 
 func (c *Catalogue) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/catalogue", func(w http.ResponseWriter, r *http.Request) {
-		c.authMiddleware.RequireNoAuthentication(http.HandlerFunc(c.GetCatalogueHandler)).ServeHTTP(w, r)
+		c.authMiddleware.RequireNoAuthentication(
+			gzipMiddleware(http.HandlerFunc(c.GetCatalogueHandler)),
+		).ServeHTTP(w, r)
 	})
 
 	mux.HandleFunc("GET /api/v1/catalogue/search", func(w http.ResponseWriter, r *http.Request) {
-		c.authMiddleware.RequireNoAuthentication(http.HandlerFunc(c.SearchCatalogueHandler)).ServeHTTP(w, r)
+		c.authMiddleware.RequireNoAuthentication(
+			gzipMiddleware(http.HandlerFunc(c.SearchCatalogueHandler)),
+		).ServeHTTP(w, r)
 	})
+}
+
+// gzipMiddleware compresses responses with gzip if the client supports it
+func gzipMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if client accepts gzip encoding
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Create gzip writer
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		// Set headers
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Vary", "Accept-Encoding")
+
+		// Wrap response writer
+		gzw := &gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		next.ServeHTTP(gzw, r)
+	})
+}
+
+// gzipResponseWriter wraps http.ResponseWriter to support gzip compression
+type gzipResponseWriter struct {
+	*gzip.Writer
+	http.ResponseWriter
+}
+
+func (w *gzipResponseWriter) Header() http.Header {
+	return w.ResponseWriter.Header()
+}
+
+func (w *gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func (w *gzipResponseWriter) WriteHeader(statusCode int) {
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 func (c *Catalogue) GetCatalogueHandler(w http.ResponseWriter, r *http.Request) {

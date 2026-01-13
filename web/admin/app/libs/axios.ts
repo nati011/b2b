@@ -16,7 +16,11 @@ interface ExtendedSession {
   expires: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// For server-side requests, use internal Docker network URL
+// For client-side requests, use external URL
+const API_BASE_URL = typeof window === 'undefined'
+  ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080')
+  : 'http://localhost:8082';
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
