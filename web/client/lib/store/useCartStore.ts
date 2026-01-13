@@ -2,6 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem } from '@/lib/types';
 
+// Helper function to calculate totals efficiently
+const calculateTotals = (items: CartItem[]) => {
+    let totalItems = 0;
+    let totalPrice = 0;
+    for (const item of items) {
+        totalItems += item.quantity;
+        totalPrice += item.price * item.quantity;
+    }
+    return { totalItems, totalPrice };
+};
+
 interface CartStore {
     success: string | null;
     totalItems: number;
@@ -32,41 +43,59 @@ const useCartStore = create<CartStore>()(
                     (item) => item.id === product.id
                 );
 
+                let updatedItems: CartItem[];
                 if (existingItemIndex >= 0) {
-                    const updatedItems = [...state.cartItems];
-                    updatedItems[existingItemIndex] = {
-                        ...updatedItems[existingItemIndex],
-                        quantity: updatedItems[existingItemIndex].quantity + quantity
-                    };
-                    return {
-                        cartItems: updatedItems,
-                        totalItems: updatedItems.reduce((total, item) => total + item.quantity, 0),
-                        totalPrice: updatedItems.reduce((total, item) => total + item.price * item.quantity, 0),
-                        success: 'Item quantity updated in cart'
-                    };
+                    updatedItems = [...state.cartItems];
+                    const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
+                    if (newQuantity <= 0) {
+                        // Remove item if quantity becomes 0 or negative
+                        updatedItems = updatedItems.filter((_, idx) => idx !== existingItemIndex);
+                    } else {
+                        updatedItems[existingItemIndex] = {
+                            ...updatedItems[existingItemIndex],
+                            quantity: newQuantity
+                        };
+                    }
                 } else {
-                    const newItem = { ...product, quantity };
-                    const cartItems = [...state.cartItems, newItem];
-                    return {
-                        cartItems,
-                        totalItems: cartItems.reduce((total, item) => total + item.quantity, 0),
-                        totalPrice: cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
-                        success: 'Item added to cart'
-                    };
+                    if (quantity > 0) {
+                        const newItem = { ...product, quantity };
+                        updatedItems = [...state.cartItems, newItem];
+                    } else {
+                        updatedItems = state.cartItems;
+                    }
                 }
+                
+                const { totalItems, totalPrice } = calculateTotals(updatedItems);
+                return {
+                    cartItems: updatedItems,
+                    totalItems,
+                    totalPrice,
+                    success: existingItemIndex >= 0 ? 'Item quantity updated in cart' : 'Item added to cart'
+                };
             }),
             removeCartItems: (cartItem) => set((state) => {
                 const updatedCartItems = state.cartItems.filter((item) => item.id !== cartItem.id);
+                const { totalItems, totalPrice } = calculateTotals(updatedCartItems);
                 return {
                     cartItems: updatedCartItems,
-                    totalItems: updatedCartItems.reduce((total, item) => total + item.quantity, 0),
-                    totalPrice: updatedCartItems.reduce((total, item) => total + item.price * item.quantity, 0),
+                    totalItems,
+                    totalPrice,
                     success: 'Item removed from cart'
                 };
             }),
         }),
         {
             name: 'cart-storage',
+            // Optimize persistence - only persist cartItems, recalculate totals on load
+            partialize: (state) => ({ cartItems: state.cartItems }),
+            // Recalculate totals when loading from storage
+            onRehydrateStorage: () => (state) => {
+                if (state?.cartItems) {
+                    const { totalItems, totalPrice } = calculateTotals(state.cartItems);
+                    state.totalItems = totalItems;
+                    state.totalPrice = totalPrice;
+                }
+            },
         }
     )
 );

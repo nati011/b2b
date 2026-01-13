@@ -66,8 +66,9 @@ func main() {
 	InitCron(s, application_container, domain_container)
 	s.Start()
 
+	corsMiddleware := middleware.NewCorsMiddleware([]string{"*"}) // Allow all origins
 	loggingingMiddleware := middleware.NewLoggingMiddleware()
-	handler := paginationMiddleware.Paginate(loggingingMiddleware.Log(mux))
+	handler := corsMiddleware.CORS(paginationMiddleware.Paginate(loggingingMiddleware.Log(mux)))
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Handler:      handler,
