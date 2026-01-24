@@ -1,0 +1,73 @@
+# Application Configuration for Docker
+# All fields are required unless marked as optional
+
+app:
+  name: "nucleus"
+  version: "0.5.0-Snapshot"
+  env: "development"  # Options: development, staging, production
+
+server:
+  host: "0.0.0.0"  # Listen on all interfaces in Docker
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 60s
+
+logging:
+  # Options: debug, info, warn, error
+  level: "info"
+  # Options: json, text
+  format: "json"
+  # Include source file and line number in logs (can be expensive in production)
+  source_location: false
+  # Sampling rate: 1.0 = log all, 0.5 = log 50%, 0.1 = log 10% (for high-volume endpoints)
+  sampling_rate: 1.0
+  # Use async buffered logging for high-throughput scenarios
+  async: false
+  # Enable sensitive data sanitization (redacts passwords, tokens, emails, credit cards, SSNs)
+  sanitize: false
+
+db:
+  driver: postgres  # Options: postgres, mysql, sqlite
+  host: postgres  # Use Docker service name
+  port: 5432
+  user: postgres
+  password: postgres
+  database: core
+  # Optional: postgres-specific SSL mode (e.g., disable, require, verify-full)
+  sslmode: disable
+
+auth:
+  # Options: basic, oauth2
+  mode: basic
+  basic:
+    realm: "Nucleus Admin"
+    # Default values for superadmin user creation
+    email_domain: "@admin.local"
+    user_prefix: "admin-"
+    user_name: "Super Administrator"
+    users:
+      - username: "superadmin"
+        password: "changeme"
+  
+  # Optional: OAuth2 configuration (only required when mode: oauth2)
+  # oauth2:
+  #   client_id: "my-client"
+  #   client_secret: "my-secret"
+  #   authorize_url: "https://provider.com/oauth/authorize"
+  #   token_url: "https://provider.com/oauth/token"
+  #   redirect_url: "https://myapp/callback"
+  #   scopes:
+  #     - "email"
+  #     - "profile"
+
+resources:
+  # Path to the resources.yaml manifest file
+  # If not specified, defaults to "config/resources.yaml"
+  path: "config/resources.yaml"
+
+roles:
+  # Path to the roles.yaml file containing default role definitions
+  # If not specified, defaults to "config/roles.yaml"
+  path: "config/roles.yaml"
+

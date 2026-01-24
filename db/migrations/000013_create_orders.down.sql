@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS public.orders CASCADE;
+DROP TABLE IF EXISTS public.o_items CASCADE;
