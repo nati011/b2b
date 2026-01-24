@@ -27,21 +27,22 @@ export default function Hero() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center justify-center mb-6">
-            <span className="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-full uppercase tracking-wide">
-              Welcome to Efoyeta Store
+            <span className="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold tracking-wide rounded-full">
+              <span className="typing-text">Turning Small Capital into Big Opportunities</span>
             </span>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Turning Small Capital into{" "}
-            <span className="text-primary">Big Opportunities</span>
+            Welcome to{" "}
+            <span className="text-primary">Efoyetastore</span>
           </h1>
 
           {/* Description */}
           <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Elevate your retail business with our exclusive wholesale collections. 
-            Access premium products, competitive pricing, and dedicated support to maximize your profitability.
+            Your one-stop online store for high-quality products delivered directly to your doorstep. We
+            bring a wide selection of items through our trusted partner suppliers, combining convenience,
+            affordability, and reliability.
           </p>
 
           {/* CTA Buttons */}
