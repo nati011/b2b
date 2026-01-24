@@ -2,5 +2,6 @@
 .env
 */cfg.env
 web/*/node_modules/*
+mobile/**/node_modules/
 */.vite/
 web/*/.next/*
