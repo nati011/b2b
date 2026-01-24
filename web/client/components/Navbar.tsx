@@ -60,9 +60,9 @@ export const Navbar = () => {
                         <span className="sr-only">EFOYETA STORE</span>
                     </Link>
 
-                    {/* Desktop Navigation - Centered */}
-                    <nav className="hidden lg:flex items-center justify-center flex-1 px-8">
-                        <div className="flex items-center space-x-1">
+                    {/* Navigation - Centered */}
+                    <nav className="flex items-center justify-center flex-1 px-4 sm:px-6 lg:px-8">
+                        <div className="hidden lg:flex items-center space-x-1">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.name}
@@ -193,29 +193,37 @@ export const Navbar = () => {
                                 )}
 
                                 {/* Mobile Menu */}
-                                <Sheet>
+                                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                                     <SheetTrigger asChild>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            className="md:hidden text-gray-600 hover:text-gray-900"
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="lg:hidden text-gray-600 hover:text-gray-900"
                                         >
                                             <Menu className="h-5 w-5" />
+                                            <span className="sr-only">Open menu</span>
                                         </Button>
                                     </SheetTrigger>
                                     <SheetContent side="right" className="w-80">
                                         <div className="flex flex-col space-y-4 mt-8">
-                                            {navLinks.map((link) => (
-                                                <Link
-                                                    key={link.name}
-                                                    href={link.href}
-                                                    prefetch={true}
-                                                    className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2"
-                                                    onClick={() => setMobileMenuOpen(false)}
-                                                >
-                                                    {link.name}
-                                                </Link>
-                                            ))}
+                                        {navLinks.map((link) => (
+                                            <Link
+                                                key={link.name}
+                                                href={link.href}
+                                                prefetch={true}
+                                                className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                {link.name}
+                                            </Link>
+                                        ))}
+                                        {!user && (
+                                            <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                                <Button className="w-full justify-start" variant="outline">
+                                                    Sign In
+                                                </Button>
+                                            </Link>
+                                        )}
                                             <div className="pt-4 border-t border-gray-200">
                                                 <Button
                                                     onClick={toggleSearch}

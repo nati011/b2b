@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Overpass } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -7,10 +7,11 @@ import { Toaster } from "@/components/ui/sonner";
 import SessionProvider from "@/app/SessionProvider";
 import TawkChat from "@/components/TawkChat";
 
-const inter = Inter({
+const overpass = Overpass({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-overpass",
+  weight: ["400", "500", "600", "700"],
   fallback: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "sans-serif"],
 });
 
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} font-sans antialiased min-h-screen`}
+        className={`${overpass.variable} font-sans antialiased min-h-screen`}
       >
         <SessionProvider>
           <Navbar />
