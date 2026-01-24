@@ -11,30 +11,26 @@ export default function WhyChooseUs() {
   const features: Feature[] = [
     {
       id: "1",
-      title: "Wholesale Pricing",
-      description:
-        "Competitive pricing with volume discounts",
+      title: "Wide Variety of Products",
+      description: "Shop a broad range of carefully selected items for every need.",
       icon: <Shield className="h-8 w-8 text-primary" />,
     },
     {
       id: "2",
-      title: "Quality Guaranteed",
-      description:
-        "Every product backed by our satisfaction guarantee with hassle-free returns",
+      title: "Honest Delivery Times",
+      description: "Clear, reliable delivery timelines you can plan around.",
       icon: <Award className="h-8 w-8 text-primary" />,
     },
     {
       id: "3",
-      title: "Retailer Support",
-      description:
-        "Dedicated account managers and marketing materials to boost your sales",
+      title: "Trusted Partner Suppliers",
+      description: "We work closely with reliable suppliers to maintain quality.",
       icon: <Handshake className="h-8 w-8 text-primary" />,
     },
     {
       id: "4",
-      title: "Trend Forecasting",
-      description:
-        "Quarterly trend reports and data-driven recommendations for your store",
+      title: "Support via WhatsApp & Email",
+      description: "Get quick help and updates from our friendly support team.",
       icon: <BookOpen className="h-8 w-8 text-primary" />,
     },
   ];
@@ -44,14 +40,14 @@ export default function WhyChooseUs() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            Why Choose Us
+            Why shop with us
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Why Partner With Us
+            Why Shop With Efoyetastore
           </h2>
           <div className="h-1 w-24 bg-primary mx-auto mb-6 rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover the advantages of making Efoyeta your wholesale partner
+            Wide selection, honest delivery times, trusted suppliers, and responsive support.
           </p>
         </div>
 
