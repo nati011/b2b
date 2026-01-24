@@ -53,21 +53,32 @@ const Search = () => {
         </div>
 
         {/* Category Filters */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4">
-          {categories.map((category) => (
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4">
+          <div className="flex gap-2 flex-1 overflow-x-auto scrollbar-hide">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-sm whitespace-nowrap btn-press transition-colors shrink-0",
+                  selectedCategory === category
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          {selectedCategory !== 'All' && (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-sm whitespace-nowrap btn-press transition-colors",
-                selectedCategory === category
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
-              )}
+              onClick={() => setSelectedCategory('All')}
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-sm btn-press transition-colors shrink-0"
+              aria-label="Clear category filter"
             >
-              {category}
+              <X className="w-4 h-4" />
             </button>
-          ))}
+          )}
         </div>
       </div>
 

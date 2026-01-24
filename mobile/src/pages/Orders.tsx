@@ -12,11 +12,6 @@ const Orders = () => {
       animate={{ opacity: 1 }}
       className="page-transition pb-20"
     >
-      {/* Header */}
-      <div className="p-4 border-b border-border">
-        <h1 className="font-display text-xl font-semibold">Order History</h1>
-      </div>
-
       {/* Orders List */}
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 px-4">

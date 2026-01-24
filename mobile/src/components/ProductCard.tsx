@@ -58,11 +58,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
             </p>
             <div className="flex items-center gap-2 pt-1">
               <span className="text-base font-bold text-primary">
-                ${product.price.toLocaleString()}
+                {product.price.toLocaleString()} ETB
               </span>
               {hasDiscount && (
                 <span className="text-xs text-muted-foreground line-through">
-                  ${product.originalPrice?.toLocaleString()}
+                  {product.originalPrice?.toLocaleString()} ETB
                 </span>
               )}
             </div>

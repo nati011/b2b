@@ -13,13 +13,6 @@ const Cart = () => {
       animate={{ opacity: 1 }}
       className="page-transition pb-20"
     >
-      {/* Header */}
-      <div className="sticky top-0 bg-background z-10 border-b border-border">
-        <div className="flex items-center p-4">
-          <h1 className="font-display text-xl font-semibold">Cart</h1>
-        </div>
-      </div>
-
       {/* Items */}
       <div className="min-h-[calc(100vh-200px)]">
         {items.length === 0 ? (
@@ -87,7 +80,7 @@ const Cart = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium">
-                          ${(item.product.price * item.quantity).toLocaleString()}
+                          {((item.product.price * item.quantity).toLocaleString())} ETB
                         </span>
                         <button
                           onClick={() => removeItem(item.product.id, item.size, item.color)}
@@ -106,7 +99,7 @@ const Cart = () => {
             <div className="sticky bottom-0 bg-background border-t border-border p-4 space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Subtotal</span>
-                <span className="text-lg font-medium">${subtotal.toLocaleString()}</span>
+                <span className="text-lg font-medium">{subtotal.toLocaleString()} ETB</span>
               </div>
               <p className="text-xs text-muted-foreground">
                 Shipping and taxes calculated at checkout

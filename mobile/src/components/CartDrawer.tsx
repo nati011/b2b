@@ -99,7 +99,7 @@ export const CartDrawer = () => {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-sm font-medium">
-                              ${(item.product.price * item.quantity).toLocaleString()}
+                              {(item.product.price * item.quantity).toLocaleString()} ETB
                             </span>
                             <button
                               onClick={() => removeItem(item.product.id, item.size, item.color)}
@@ -121,7 +121,7 @@ export const CartDrawer = () => {
               <div className="p-4 border-t border-border space-y-4 safe-bottom">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Subtotal</span>
-                  <span className="text-lg font-medium">${subtotal.toLocaleString()}</span>
+                  <span className="text-lg font-medium">{subtotal.toLocaleString()} ETB</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Shipping and taxes calculated at checkout

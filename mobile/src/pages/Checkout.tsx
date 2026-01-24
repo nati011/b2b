@@ -220,7 +220,7 @@ const Checkout = () => {
                     <p className="text-xs text-muted-foreground">
                       {item.size} / {item.color} × {item.quantity}
                     </p>
-                    <p className="text-sm mt-1">${(item.product.price * item.quantity).toLocaleString()}</p>
+                    <p className="text-sm mt-1">{(item.product.price * item.quantity).toLocaleString()} ETB</p>
                   </div>
                 </div>
               ))}
@@ -230,7 +230,7 @@ const Checkout = () => {
             <div className="border-t border-border pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${subtotal.toLocaleString()}</span>
+                <span>{subtotal.toLocaleString()} ETB</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
@@ -238,11 +238,11 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax</span>
-                <span>${Math.round(subtotal * 0.08).toLocaleString()}</span>
+                <span>{Math.round(subtotal * 0.08).toLocaleString()} ETB</span>
               </div>
               <div className="flex justify-between text-base font-medium pt-2 border-t border-border">
                 <span>Total</span>
-                <span>${Math.round(subtotal * 1.08).toLocaleString()}</span>
+                <span>{Math.round(subtotal * 1.08).toLocaleString()} ETB</span>
               </div>
             </div>
           </motion.div>
