@@ -14,6 +14,9 @@ import (
 	customerrepo "marketplace/internal/core/customer/repository"
 	customerservice "marketplace/internal/core/customer/service"
 	orderhttp "marketplace/internal/core/order/api/http"
+	supplierhttp "marketplace/internal/core/supplier/api/http"
+	supplierrepo "marketplace/internal/core/supplier/repository"
+	supplierservice "marketplace/internal/core/supplier/service"
 	orderrepo "marketplace/internal/core/order/repository"
 	orderservice "marketplace/internal/core/order/service"
 	producthttp "marketplace/internal/core/product/api/http"
@@ -67,6 +70,9 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 		provideCustomerRepository,
 		provideCustomerService,
 		provideCustomerHandler,
+		provideSupplierRepository,
+		provideSupplierService,
+		provideSupplierHandler,
 		provideProductRepository,
 		provideProductService,
 		provideProductHandler,
@@ -167,6 +173,21 @@ func provideCustomerService(repo *customerrepo.CustomerRepository) *customerserv
 // provideCustomerHandler creates a customer HTTP handler.
 func provideCustomerHandler(service *customerservice.CustomerService) *customerhttp.CustomerHandler {
 	return customerhttp.NewCustomerHandler(service)
+}
+
+// provideSupplierRepository creates a supplier repository.
+func provideSupplierRepository(dbConn *sql.DB) *supplierrepo.SupplierRepository {
+	return supplierrepo.NewSupplierRepository(dbConn)
+}
+
+// provideSupplierService creates a supplier service.
+func provideSupplierService(repo *supplierrepo.SupplierRepository) *supplierservice.SupplierService {
+	return supplierservice.NewSupplierService(repo)
+}
+
+// provideSupplierHandler creates a supplier HTTP handler.
+func provideSupplierHandler(service *supplierservice.SupplierService) *supplierhttp.SupplierHandler {
+	return supplierhttp.NewSupplierHandler(service)
 }
 
 // provideProductRepository creates a product repository.
@@ -330,13 +351,14 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 }
 
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware) stdhttp.Handler {
+func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware) stdhttp.Handler {
 	mux := stdhttp.NewServeMux()
 	userhttp.RegisterHTTPRoutes(mux, userHandler)
 	rolehttp.RegisterHTTPRoutes(mux, roleHandler)
 	permissionhttp.RegisterHTTPRoutes(mux, permHandler)
 	basicauthhttp.RegisterHTTPRoutes(mux, basicAuthHandler)
 	customerhttp.RegisterHTTPRoutes(mux, customerHandler)
+	supplierhttp.RegisterHTTPRoutes(mux, supplierHandler)
 	producthttp.RegisterHTTPRoutes(mux, productHandler)
 	orderhttp.RegisterHTTPRoutes(mux, orderHandler)
 
@@ -357,6 +379,7 @@ type applicationServices struct {
 	resourceService  *resourceservice.Service
 	basicAuthService *basicauthservice.Service
 	customerService  *customerservice.CustomerService
+	supplierService  *supplierservice.SupplierService
 	productService   *productservice.Service
 	orderService     *orderservice.Service
 }
@@ -364,8 +387,9 @@ type applicationServices struct {
 type applicationHandlers struct {
 	userHandler     *userhttp.UserHandler
 	roleHandler     *rolehttp.RoleHandler
-	permHandler     *permissionhttp.PermissionHandler
+	permHandler      *permissionhttp.PermissionHandler
 	customerHandler *customerhttp.CustomerHandler
+	supplierHandler *supplierhttp.SupplierHandler
 	productHandler  *producthttp.ProductHandler
 	orderHandler    *orderhttp.OrderHandler
 }
@@ -384,7 +408,7 @@ func provideApplicationInfrastructure(cfg *config.Config, dbConn *sql.DB, server
 	}
 }
 
-func provideApplicationServices(userService *userservice.Service, roleService *roleservice.RoleService, permService *permissionservice.PermissionService, resourceService *resourceservice.Service, basicAuthService *basicauthservice.Service, customerService *customerservice.CustomerService, productService *productservice.Service, orderService *orderservice.Service) applicationServices {
+func provideApplicationServices(userService *userservice.Service, roleService *roleservice.RoleService, permService *permissionservice.PermissionService, resourceService *resourceservice.Service, basicAuthService *basicauthservice.Service, customerService *customerservice.CustomerService, supplierService *supplierservice.SupplierService, productService *productservice.Service, orderService *orderservice.Service) applicationServices {
 	return applicationServices{
 		userService:      userService,
 		roleService:      roleService,
@@ -392,17 +416,19 @@ func provideApplicationServices(userService *userservice.Service, roleService *r
 		resourceService:  resourceService,
 		basicAuthService: basicAuthService,
 		customerService:  customerService,
+		supplierService:  supplierService,
 		productService:   productService,
 		orderService:     orderService,
 	}
 }
 
-func provideApplicationHandlers(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, customerHandler *customerhttp.CustomerHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler) applicationHandlers {
+func provideApplicationHandlers(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler) applicationHandlers {
 	return applicationHandlers{
 		userHandler:     userHandler,
 		roleHandler:     roleHandler,
 		permHandler:     permHandler,
 		customerHandler: customerHandler,
+		supplierHandler: supplierHandler,
 		productHandler:  productHandler,
 		orderHandler:    orderHandler,
 	}
@@ -423,6 +449,8 @@ func provideApplication(infra applicationInfrastructure, services applicationSer
 		BasicAuthService: services.basicAuthService,
 		CustomerService:  services.customerService,
 		CustomerHandler:  handlers.customerHandler,
+		SupplierService:  services.supplierService,
+		SupplierHandler:  handlers.supplierHandler,
 		ProductService:   services.productService,
 		ProductHandler:   handlers.productHandler,
 		OrderService:     services.orderService,

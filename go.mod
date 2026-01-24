@@ -84,4 +84,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/nucleus-proj/validate/v2 => ./third_party/nucleus-validate
+replace github.com/nucleus-proj/validate/v2 => github.com/nucleus-proj/validate v0.0.0-20251118151956-b4e03a612fe1

@@ -6,6 +6,8 @@ import (
 	"marketplace/internal/config"
 	customerhttp "marketplace/internal/core/customer/api/http"
 	customerservice "marketplace/internal/core/customer/service"
+	supplierhttp "marketplace/internal/core/supplier/api/http"
+	supplierservice "marketplace/internal/core/supplier/service"
 	orderhttp "marketplace/internal/core/order/api/http"
 	orderservice "marketplace/internal/core/order/service"
 	producthttp "marketplace/internal/core/product/api/http"
@@ -35,6 +37,8 @@ type Application struct {
 	BasicAuthService *basicauthservice.Service
 	CustomerService  *customerservice.CustomerService
 	CustomerHandler  *customerhttp.CustomerHandler
+	SupplierService  *supplierservice.SupplierService
+	SupplierHandler  *supplierhttp.SupplierHandler
 	ProductService   *productservice.Service
 	ProductHandler   *producthttp.ProductHandler
 	OrderService     *orderservice.Service
