@@ -25,7 +25,7 @@ export const Footer = () => {
                             />
                         </Link>
                         <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left max-w-xs leading-relaxed">
-                            Turning Small Capital into Big Opportunities.
+                            Your one-stop online store for high-quality products delivered directly to your doorstep.
                         </p>
                     </div>
 
