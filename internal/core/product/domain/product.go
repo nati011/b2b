@@ -3,6 +3,8 @@ package domain
 import (
 	"encoding/json"
 	"time"
+
+	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 // Product represents a catalog product and its snapshot metadata.
@@ -15,7 +17,7 @@ type Product struct {
 	Unit              string
 	IsActive          bool
 	SupplierID        int64
-	Price             *float64
+	Price             *goodmoney.Money
 	TotalQuantity     int
 	ReservedQuantity  int
 	AvailableQuantity int
@@ -31,7 +33,7 @@ type ProductMetadata struct {
 	Attributes       json.RawMessage
 	Unit             string
 	IsActive         bool
-	Price            *float64
+	Price            *goodmoney.Money
 	TotalQuantity    int
 	ReservedQuantity int
 	CategoryIDs      []int64

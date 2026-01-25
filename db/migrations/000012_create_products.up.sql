@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   unit VARCHAR(50),
   is_active BOOLEAN DEFAULT FALSE,
   supplier_id INT,
-  price DECIMAL(12,2),
+  price JSONB,
   total_quantity INT,
   reserved_quantity INT DEFAULT 0,
   available_quantity INT GENERATED ALWAYS AS (total_quantity - reserved_quantity) STORED,

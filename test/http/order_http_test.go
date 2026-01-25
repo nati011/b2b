@@ -1,6 +1,7 @@
 package http
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,9 +9,13 @@ import (
 	"testing"
 
 	customerhttp "marketplace/internal/core/customer/api/http"
+	customerrepo "marketplace/internal/core/customer/repository"
+	customerservice "marketplace/internal/core/customer/service"
 	orderhttp "marketplace/internal/core/order/api/http"
 	orderrepo "marketplace/internal/core/order/repository"
 	orderservice "marketplace/internal/core/order/service"
+	producthttp "marketplace/internal/core/product/api/http"
+	supplierhttp "marketplace/internal/core/supplier/api/http"
 	"marketplace/internal/infra/idempotency"
 	pkgmiddleware "marketplace/pkg/http/middleware"
 	testutil "marketplace/test"
@@ -21,12 +26,12 @@ import (
 const orderPath = "/order"
 
 func TestOrderHTTPCreateAndGet(t *testing.T) {
-	server, cleanup := newOrderHTTPServer(t)
-	defer cleanup()
+	db, cleanupDB := testutil.SetupTestDB(t)
+	defer cleanupDB()
 
-	// Create customer and supplier first
-	customerServer, customerCleanup := newCustomerHTTPServer(t)
-	defer customerCleanup()
+	// Create both servers with the same database
+	orderServer := newOrderHTTPServerWithDB(t, db)
+	customerServer := newCustomerHTTPServerWithDB(t, db)
 
 	customerPayload := customerhttp.CreateCustomerRequest{
 		FullName:    "Order Customer",
@@ -36,6 +41,28 @@ func TestOrderHTTPCreateAndGet(t *testing.T) {
 	}
 	customer := doCreateCustomer(t, customerServer, customerPayload, http.StatusCreated)
 
+	// Create supplier and product
+	supplierServer := newSupplierHTTPServerWithDB(t, db)
+	productServer := newProductHTTPServerWithDB(t, db)
+
+	supplierPayload := supplierhttp.CreateSupplierRequest{
+		BusinessName: "Order Supplier",
+		SupportEmail: "ordersupplier@example.com",
+		SupportPhone: "0912345678",
+		Status:       "active",
+	}
+	supplier := doCreateSupplier(t, supplierServer, supplierPayload, http.StatusCreated)
+
+	price := 99.99
+	productPayload := producthttp.CreateProductRequest{
+		Name:          "Order Product",
+		SupplierID:    supplier.ID,
+		Price:         &price,
+		TotalQuantity: 100,
+		IsActive:      true,
+	}
+	product := doCreateProduct(t, productServer, productPayload, http.StatusCreated)
+
 	// Create order
 	total := 199.99
 	createPayload := orderhttp.CreateOrderRequest{
@@ -44,17 +71,18 @@ func TestOrderHTTPCreateAndGet(t *testing.T) {
 		Total:      &total,
 		Items: []orderhttp.OrderItemRequest{
 			{
-				Quantity: 2,
-				Price:    &total,
+				ProductID: product.ID,
+				Quantity:  2,
+				Price:     &total,
 			},
 		},
 	}
 
-	createdOrder := doCreateOrder(t, server, createPayload, http.StatusCreated)
+	createdOrder := doCreateOrder(t, orderServer, createPayload, http.StatusCreated)
 
 	// Get order
-	getURL := fmt.Sprintf("%s%s?id=%d", server.URL, orderPath, createdOrder.ID)
-	resp := doJSONRequest(t, server.Client(), http.MethodGet, getURL, nil)
+	getURL := fmt.Sprintf("%s%s?id=%d", orderServer.URL, orderPath, createdOrder.ID)
+	resp := doJSONRequest(t, orderServer.Client(), http.MethodGet, getURL, nil)
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -71,12 +99,12 @@ func TestOrderHTTPCreateAndGet(t *testing.T) {
 }
 
 func TestOrderHTTPListCustomerOrders(t *testing.T) {
-	server, cleanup := newOrderHTTPServer(t)
-	defer cleanup()
+	db, cleanupDB := testutil.SetupTestDB(t)
+	defer cleanupDB()
 
-	// Create customer
-	customerServer, customerCleanup := newCustomerHTTPServer(t)
-	defer customerCleanup()
+	// Create both servers with the same database
+	orderServer := newOrderHTTPServerWithDB(t, db)
+	customerServer := newCustomerHTTPServerWithDB(t, db)
 
 	customerPayload := customerhttp.CreateCustomerRequest{
 		FullName:    "List Customer",
@@ -85,6 +113,35 @@ func TestOrderHTTPListCustomerOrders(t *testing.T) {
 		Status:      "active",
 	}
 	customer := doCreateCustomer(t, customerServer, customerPayload, http.StatusCreated)
+
+	// Create supplier and products
+	supplierServer := newSupplierHTTPServerWithDB(t, db)
+	productServer := newProductHTTPServerWithDB(t, db)
+
+	supplierPayload := supplierhttp.CreateSupplierRequest{
+		BusinessName: "List Supplier",
+		SupportEmail: "listsupplier@example.com",
+		SupportPhone: "0911111111",
+		Status:       "active",
+	}
+	supplier := doCreateSupplier(t, supplierServer, supplierPayload, http.StatusCreated)
+
+	price1 := 50.0
+	price2 := 100.0
+	product1 := doCreateProduct(t, productServer, producthttp.CreateProductRequest{
+		Name:          "Product 1",
+		SupplierID:    supplier.ID,
+		Price:         &price1,
+		TotalQuantity: 50,
+		IsActive:      true,
+	}, http.StatusCreated)
+	product2 := doCreateProduct(t, productServer, producthttp.CreateProductRequest{
+		Name:          "Product 2",
+		SupplierID:    supplier.ID,
+		Price:         &price2,
+		TotalQuantity: 75,
+		IsActive:      true,
+	}, http.StatusCreated)
 
 	// Create multiple orders
 	total1 := 100.0
@@ -95,7 +152,7 @@ func TestOrderHTTPListCustomerOrders(t *testing.T) {
 			Status:     "pending",
 			Total:      &total1,
 			Items: []orderhttp.OrderItemRequest{
-				{Quantity: 1, Price: &total1},
+				{ProductID: product1.ID, Quantity: 1, Price: &total1},
 			},
 		},
 		{
@@ -103,17 +160,17 @@ func TestOrderHTTPListCustomerOrders(t *testing.T) {
 			Status:     "confirmed",
 			Total:      &total2,
 			Items: []orderhttp.OrderItemRequest{
-				{Quantity: 2, Price: &total2},
+				{ProductID: product2.ID, Quantity: 2, Price: &total2},
 			},
 		},
 	}
 
 	for _, payload := range payloads {
-		doCreateOrder(t, server, payload, http.StatusCreated)
+		doCreateOrder(t, orderServer, payload, http.StatusCreated)
 	}
 
-	listURL := fmt.Sprintf("%s/orders/customer?customer_id=%d&limit=10&offset=0", server.URL, customer.ID)
-	resp := doJSONRequest(t, server.Client(), http.MethodGet, listURL, nil)
+	listURL := fmt.Sprintf("%s/orders/customer?customer_id=%d&limit=10&offset=0", orderServer.URL, customer.ID)
+	resp := doJSONRequest(t, orderServer.Client(), http.MethodGet, listURL, nil)
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -127,12 +184,12 @@ func TestOrderHTTPListCustomerOrders(t *testing.T) {
 }
 
 func TestOrderHTTPUpdateStatus(t *testing.T) {
-	server, cleanup := newOrderHTTPServer(t)
-	defer cleanup()
+	db, cleanupDB := testutil.SetupTestDB(t)
+	defer cleanupDB()
 
-	// Create customer
-	customerServer, customerCleanup := newCustomerHTTPServer(t)
-	defer customerCleanup()
+	// Create both servers with the same database
+	orderServer := newOrderHTTPServerWithDB(t, db)
+	customerServer := newCustomerHTTPServerWithDB(t, db)
 
 	customerPayload := customerhttp.CreateCustomerRequest{
 		FullName:    "Update Customer",
@@ -142,6 +199,27 @@ func TestOrderHTTPUpdateStatus(t *testing.T) {
 	}
 	customer := doCreateCustomer(t, customerServer, customerPayload, http.StatusCreated)
 
+	// Create supplier and product
+	supplierServer := newSupplierHTTPServerWithDB(t, db)
+	productServer := newProductHTTPServerWithDB(t, db)
+
+	supplierPayload := supplierhttp.CreateSupplierRequest{
+		BusinessName: "Update Supplier",
+		SupportEmail: "updatesupplier@example.com",
+		SupportPhone: "0920000000",
+		Status:       "active",
+	}
+	supplier := doCreateSupplier(t, supplierServer, supplierPayload, http.StatusCreated)
+
+	price := 150.0
+	product := doCreateProduct(t, productServer, producthttp.CreateProductRequest{
+		Name:          "Update Product",
+		SupplierID:    supplier.ID,
+		Price:         &price,
+		TotalQuantity: 100,
+		IsActive:      true,
+	}, http.StatusCreated)
+
 	// Create order
 	total := 150.0
 	createPayload := orderhttp.CreateOrderRequest{
@@ -149,16 +227,16 @@ func TestOrderHTTPUpdateStatus(t *testing.T) {
 		Status:     "pending",
 		Total:      &total,
 		Items: []orderhttp.OrderItemRequest{
-			{Quantity: 1, Price: &total},
+			{ProductID: product.ID, Quantity: 1, Price: &total},
 		},
 	}
 
-	created := doCreateOrder(t, server, createPayload, http.StatusCreated)
+	created := doCreateOrder(t, orderServer, createPayload, http.StatusCreated)
 	require.Equal(t, "pending", created.Status)
 
 	// Update status
-	updateURL := fmt.Sprintf("%s%s?id=%d&command=confirmed", server.URL, orderPath, created.ID)
-	resp := doJSONRequest(t, server.Client(), http.MethodPatch, updateURL, nil)
+	updateURL := fmt.Sprintf("%s%s?id=%d&command=confirmed", orderServer.URL, orderPath, created.ID)
+	resp := doJSONRequest(t, orderServer.Client(), http.MethodPatch, updateURL, nil)
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -174,6 +252,11 @@ func newOrderHTTPServer(t *testing.T) (*httptest.Server, func()) {
 	t.Helper()
 
 	db, cleanupDB := testutil.SetupTestDB(t)
+	return newOrderHTTPServerWithDB(t, db), cleanupDB
+}
+
+func newOrderHTTPServerWithDB(t *testing.T, db *sql.DB) *httptest.Server {
+	t.Helper()
 
 	repo := orderrepo.NewRepository(db)
 	service := orderservice.NewService(repo)
@@ -184,14 +267,22 @@ func newOrderHTTPServer(t *testing.T) (*httptest.Server, func()) {
 	mux := http.NewServeMux()
 	orderhttp.RegisterHTTPRoutes(mux, handler)
 
-	server := httptest.NewServer(idempoMiddleware.Handle(mux))
+	return httptest.NewServer(idempoMiddleware.Handle(mux))
+}
 
-	cleanup := func() {
-		server.Close()
-		cleanupDB()
-	}
+func newCustomerHTTPServerWithDB(t *testing.T, db *sql.DB) *httptest.Server {
+	t.Helper()
 
-	return server, cleanup
+	repo := customerrepo.NewCustomerRepository(db)
+	service := customerservice.NewCustomerService(repo)
+	handler := customerhttp.NewCustomerHandler(service)
+	idempoStore := idempotency.NewStore(db)
+	idempoMiddleware := pkgmiddleware.NewIdempotencyMiddleware(idempoStore)
+
+	mux := http.NewServeMux()
+	customerhttp.RegisterHTTPRoutes(mux, handler)
+
+	return httptest.NewServer(idempoMiddleware.Handle(mux))
 }
 
 func doCreateOrder(t *testing.T, server *httptest.Server, payload orderhttp.CreateOrderRequest, expectedStatus int) orderhttp.OrderResponse {
@@ -200,6 +291,11 @@ func doCreateOrder(t *testing.T, server *httptest.Server, payload orderhttp.Crea
 	resp := doJSONRequest(t, server.Client(), http.MethodPost, server.URL+orderPath, payload)
 	defer resp.Body.Close()
 
+	if resp.StatusCode != expectedStatus {
+		bodyBytes := make([]byte, 1024)
+		n, _ := resp.Body.Read(bodyBytes)
+		t.Logf("Response body: %s", string(bodyBytes[:n]))
+	}
 	require.Equal(t, expectedStatus, resp.StatusCode, "expected status %d, got %d", expectedStatus, resp.StatusCode)
 
 	var created orderhttp.OrderResponse
@@ -209,4 +305,3 @@ func doCreateOrder(t *testing.T, server *httptest.Server, payload orderhttp.Crea
 
 	return created
 }
-

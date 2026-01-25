@@ -10,6 +10,8 @@ import (
 
 	"marketplace/internal/core/order/domain"
 	orderservice "marketplace/internal/core/order/service"
+
+	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 var (
@@ -38,6 +40,15 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 		}
 	}()
 
+	var totalValue interface{}
+	if order.Total != nil {
+		var valErr error
+		totalValue, valErr = order.Total.Value()
+		if valErr != nil {
+			return valErr
+		}
+	}
+
 	query := `
 		INSERT INTO orders (
 			customer_id,
@@ -46,7 +57,6 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 			delivery_status,
 			confirmation_status,
 			total,
-			currency,
 			customer_snapshot,
 			shipping_address_snapshot,
 			billing_address_snapshot,
@@ -54,7 +64,7 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 			last_modified,
 			is_deleted
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, FALSE)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE)
 		RETURNING id
 	`
 
@@ -66,8 +76,7 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 		nullableString(order.PaymentStatus),
 		nullableString(order.DeliveryStatus),
 		nullableString(order.ConfirmationStatus),
-		order.Total,
-		nullableString(order.Currency),
+		totalValue,
 		order.CustomerSnapshot,
 		order.ShippingAddressSnapshot,
 		order.BillingAddressSnapshot,
@@ -95,13 +104,21 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 		item.OrderID = order.ID
 		item.CreatedAt = time.Now()
 		item.UpdatedAt = item.CreatedAt
+		var priceValue interface{}
+		if item.Price != nil {
+			var valErr error
+			priceValue, valErr = item.Price.Value()
+			if valErr != nil {
+				return valErr
+			}
+		}
 		if _, err = tx.ExecContext(
 			ctx,
 			itemQuery,
 			order.ID,
 			item.ProductID,
 			item.Quantity,
-			item.Price,
+			priceValue,
 			item.CreatedAt,
 			item.UpdatedAt,
 		); err != nil {
@@ -114,6 +131,15 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 
 // Update modifies an existing order record.
 func (r *Repository) Update(ctx context.Context, order *domain.Order) error {
+	var totalValue interface{}
+	if order.Total != nil {
+		var valErr error
+		totalValue, valErr = order.Total.Value()
+		if valErr != nil {
+			return valErr
+		}
+	}
+
 	query := `
 		UPDATE orders
 		SET status = $2,
@@ -121,11 +147,10 @@ func (r *Repository) Update(ctx context.Context, order *domain.Order) error {
 		    delivery_status = $4,
 		    confirmation_status = $5,
 		    total = $6,
-		    currency = $7,
-		    customer_snapshot = $8,
-		    shipping_address_snapshot = $9,
-		    billing_address_snapshot = $10,
-		    last_modified = $11
+		    customer_snapshot = $7,
+		    shipping_address_snapshot = $8,
+		    billing_address_snapshot = $9,
+		    last_modified = $10
 		WHERE id = $1 AND is_deleted = FALSE
 	`
 
@@ -137,8 +162,7 @@ func (r *Repository) Update(ctx context.Context, order *domain.Order) error {
 		nullableString(order.PaymentStatus),
 		nullableString(order.DeliveryStatus),
 		nullableString(order.ConfirmationStatus),
-		order.Total,
-		nullableString(order.Currency),
+		totalValue,
 		order.CustomerSnapshot,
 		order.ShippingAddressSnapshot,
 		order.BillingAddressSnapshot,
@@ -185,7 +209,7 @@ func (r *Repository) UpdateStatus(ctx context.Context, orderID int64, status dom
 func (r *Repository) FindByID(ctx context.Context, id int64) (*domain.Order, error) {
 	query := `
 		SELECT id, customer_id, status, payment_status, delivery_status, confirmation_status,
-		       total, currency, customer_snapshot, shipping_address_snapshot, billing_address_snapshot,
+		       total, customer_snapshot, shipping_address_snapshot, billing_address_snapshot,
 		       created_date, last_modified
 		FROM orders
 		WHERE id = $1 AND is_deleted = FALSE
@@ -243,7 +267,7 @@ func (r *Repository) ListByCustomer(ctx context.Context, query orderservice.Cust
 	args = append(args, limit, offset)
 	listQuery := fmt.Sprintf(`
 		SELECT id, customer_id, status, payment_status, delivery_status, confirmation_status,
-		       total, currency, customer_snapshot, shipping_address_snapshot, billing_address_snapshot,
+		       total, customer_snapshot, shipping_address_snapshot, billing_address_snapshot,
 		       created_date, last_modified
 		FROM orders
 		%s
@@ -289,7 +313,7 @@ func (r *Repository) findItems(ctx context.Context, orderID int64) ([]domain.Ord
 	var items []domain.OrderItem
 	for rows.Next() {
 		var item domain.OrderItem
-		var price sql.NullFloat64
+		var price goodmoney.Money
 		if err := rows.Scan(
 			&item.OrderID,
 			&item.ProductID,
@@ -300,9 +324,8 @@ func (r *Repository) findItems(ctx context.Context, orderID int64) ([]domain.Ord
 		); err != nil {
 			return nil, err
 		}
-		if price.Valid {
-			value := price.Float64
-			item.Price = &value
+		if price.Currency() != "" {
+			item.Price = &price
 		}
 		items = append(items, item)
 	}
@@ -322,8 +345,7 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 	var paymentStatus sql.NullString
 	var deliveryStatus sql.NullString
 	var confirmationStatus sql.NullString
-	var total sql.NullFloat64
-	var currency sql.NullString
+	var total goodmoney.Money
 	var customerSnapshot []byte
 	var shippingSnapshot []byte
 	var billingSnapshot []byte
@@ -336,7 +358,6 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 		&deliveryStatus,
 		&confirmationStatus,
 		&total,
-		&currency,
 		&customerSnapshot,
 		&shippingSnapshot,
 		&billingSnapshot,
@@ -360,12 +381,8 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 	if confirmationStatus.Valid {
 		order.ConfirmationStatus = confirmationStatus.String
 	}
-	if total.Valid {
-		value := total.Float64
-		order.Total = &value
-	}
-	if currency.Valid {
-		order.Currency = currency.String
+	if total.Currency() != "" {
+		order.Total = &total
 	}
 	if len(customerSnapshot) > 0 {
 		order.CustomerSnapshot = customerSnapshot

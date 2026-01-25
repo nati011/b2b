@@ -12,6 +12,8 @@ import (
 	orderservice "marketplace/internal/core/order/service"
 	producthttp "marketplace/internal/core/product/api/http"
 	productservice "marketplace/internal/core/product/service"
+	referralhttp "marketplace/internal/core/referral/api/http"
+	referralservice "marketplace/internal/core/referral/service"
 	basicauthservice "marketplace/internal/infra/auth/basic/service"
 	permissionhttp "marketplace/internal/infra/authz/permission/api/http"
 	permissionservice "marketplace/internal/infra/authz/permission/service"
@@ -43,6 +45,8 @@ type Application struct {
 	ProductHandler   *producthttp.ProductHandler
 	OrderService     *orderservice.Service
 	OrderHandler     *orderhttp.OrderHandler
+	ReferralService  *referralservice.ReferralService
+	ReferralHandler  *referralhttp.ReferralHandler
 }
 
 // Bootstrap seeds resources, creates default roles, and creates admin users.

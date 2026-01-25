@@ -10,6 +10,8 @@ import (
 
 	"marketplace/internal/core/product/domain"
 	productservice "marketplace/internal/core/product/service"
+
+	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 var (
@@ -58,6 +60,15 @@ func (r *Repository) Create(ctx context.Context, product *domain.Product) error 
 		RETURNING id, available_quantity
 	`
 
+	var priceValue interface{}
+	if product.Price != nil {
+		var valErr error
+		priceValue, valErr = product.Price.Value()
+		if valErr != nil {
+			return valErr
+		}
+	}
+
 	if err = tx.QueryRowContext(
 		ctx,
 		query,
@@ -68,9 +79,9 @@ func (r *Repository) Create(ctx context.Context, product *domain.Product) error 
 		nullableString(product.Unit),
 		product.IsActive,
 		product.SupplierID,
-		product.Price,
-		nullableInt(product.TotalQuantity),
-		nullableInt(product.ReservedQuantity),
+		priceValue,
+		product.TotalQuantity,
+		product.ReservedQuantity,
 		product.CreatedAt,
 		product.UpdatedAt,
 	).Scan(&product.ID, &product.AvailableQuantity); err != nil {
@@ -112,6 +123,15 @@ func (r *Repository) Update(ctx context.Context, product *domain.Product) error 
 		RETURNING available_quantity
 	`
 
+	var priceValue interface{}
+	if product.Price != nil {
+		var valErr error
+		priceValue, valErr = product.Price.Value()
+		if valErr != nil {
+			return valErr
+		}
+	}
+
 	var available int
 	result := tx.QueryRowContext(
 		ctx,
@@ -123,9 +143,9 @@ func (r *Repository) Update(ctx context.Context, product *domain.Product) error 
 		product.Attributes,
 		nullableString(product.Unit),
 		product.IsActive,
-		product.Price,
-		nullableInt(product.TotalQuantity),
-		nullableInt(product.ReservedQuantity),
+		priceValue,
+		product.TotalQuantity,
+		product.ReservedQuantity,
 		product.UpdatedAt,
 	)
 	if err = result.Scan(&available); err != nil {
@@ -291,7 +311,7 @@ func scanProduct(scanner productScanner) (*domain.Product, error) {
 	var externalID sql.NullString
 	var attributes []byte
 	var unit sql.NullString
-	var price sql.NullFloat64
+	var price goodmoney.Money
 	var total sql.NullInt64
 	var reserved sql.NullInt64
 	var available sql.NullInt64
@@ -327,9 +347,8 @@ func scanProduct(scanner productScanner) (*domain.Product, error) {
 	if unit.Valid {
 		product.Unit = unit.String
 	}
-	if price.Valid {
-		value := price.Float64
-		product.Price = &value
+	if price.Currency() != "" {
+		product.Price = &price
 	}
 	if total.Valid {
 		product.TotalQuantity = int(total.Int64)
@@ -350,7 +369,7 @@ func scanProductWithCategory(scanner productScanner) (*domain.Product, *int64, e
 	var externalID sql.NullString
 	var attributes []byte
 	var unit sql.NullString
-	var price sql.NullFloat64
+	var price goodmoney.Money
 	var total sql.NullInt64
 	var reserved sql.NullInt64
 	var available sql.NullInt64
@@ -388,9 +407,8 @@ func scanProductWithCategory(scanner productScanner) (*domain.Product, *int64, e
 	if unit.Valid {
 		product.Unit = unit.String
 	}
-	if price.Valid {
-		value := price.Float64
-		product.Price = &value
+	if price.Currency() != "" {
+		product.Price = &price
 	}
 	if total.Valid {
 		product.TotalQuantity = int(total.Int64)

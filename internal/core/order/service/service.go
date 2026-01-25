@@ -7,6 +7,8 @@ import (
 
 	"marketplace/internal/core/order/domain"
 	"marketplace/pkg/logger"
+
+	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 var (
@@ -19,6 +21,7 @@ type OrderItemInput struct {
 	ProductID int64
 	Quantity  int
 	Price     *float64
+	Currency  string
 }
 
 // OrderInput captures order fields for creation or updates.
@@ -64,21 +67,47 @@ func NewService(repository Repository) *Service {
 
 // Create registers a new order with line items.
 func (s *Service) Create(ctx context.Context, input OrderInput) (*domain.Order, error) {
+	// Default currency to ETB if not provided
+	currency := input.Currency
+	if currency == "" {
+		currency = "ETB"
+	}
+
 	items := make([]domain.OrderItem, len(input.Items))
 	for i, item := range input.Items {
+		var price *goodmoney.Money
+		if item.Price != nil {
+			itemCurrency := item.Currency
+			if itemCurrency == "" {
+				itemCurrency = currency
+			}
+			m, err := goodmoney.New(*item.Price, itemCurrency)
+			if err != nil {
+				return nil, err
+			}
+			price = m
+		}
 		items[i] = domain.OrderItem{
 			ProductID: item.ProductID,
 			Quantity:  item.Quantity,
-			Price:     item.Price,
+			Price:     price,
 		}
+	}
+
+	var total *goodmoney.Money
+	if input.Total != nil {
+		m, err := goodmoney.New(*input.Total, currency)
+		if err != nil {
+			return nil, err
+		}
+		total = m
 	}
 
 	metadata := domain.OrderMetadata{
 		PaymentStatus:           input.PaymentStatus,
 		DeliveryStatus:          input.DeliveryStatus,
 		ConfirmationStatus:      input.ConfirmationStatus,
-		Total:                   input.Total,
-		Currency:                input.Currency,
+		Total:                   total,
 		CustomerSnapshot:        input.CustomerSnapshot,
 		ShippingAddressSnapshot: input.ShippingAddressSnapshot,
 		BillingAddressSnapshot:  input.BillingAddressSnapshot,

@@ -90,7 +90,11 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	items, err := toOrderItemInputs(req.Items)
+	currency := req.Currency
+	if currency == "" {
+		currency = "ETB"
+	}
+	items, err := toOrderItemInputs(req.Items, currency)
 	if err != nil {
 		httputil.Error(w, http.StatusBadRequest, err)
 		return
@@ -207,6 +211,14 @@ func (h *OrderHandler) ListCustomerOrders(w http.ResponseWriter, r *http.Request
 
 // ToOrderResponse converts a domain order into a DTO.
 func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
+	var total *float64
+	var currency string
+	if order.Total != nil {
+		amount := order.Total.Amount()
+		total = &amount
+		currency = order.Total.Currency()
+	}
+
 	resp := OrderResponse{
 		ID:                      order.ID,
 		CustomerID:              order.CustomerID,
@@ -214,8 +226,8 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 		PaymentStatus:           order.PaymentStatus,
 		DeliveryStatus:          order.DeliveryStatus,
 		ConfirmationStatus:      order.ConfirmationStatus,
-		Total:                   order.Total,
-		Currency:                order.Currency,
+		Total:                   total,
+		Currency:                currency,
 		CustomerSnapshot:        order.CustomerSnapshot,
 		ShippingAddressSnapshot: order.ShippingAddressSnapshot,
 		BillingAddressSnapshot:  order.BillingAddressSnapshot,
@@ -226,10 +238,15 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 	if includeItems && len(order.Items) > 0 {
 		resp.Items = make([]OrderItemResponse, len(order.Items))
 		for i, item := range order.Items {
+			var price *float64
+			if item.Price != nil {
+				amount := item.Price.Amount()
+				price = &amount
+			}
 			resp.Items[i] = OrderItemResponse{
 				ProductID: item.ProductID,
 				Quantity:  item.Quantity,
-				Price:     item.Price,
+				Price:     price,
 			}
 		}
 	}
@@ -246,7 +263,7 @@ func (h *OrderHandler) writeError(w http.ResponseWriter, err error) {
 	}
 }
 
-func toOrderItemInputs(items []OrderItemRequest) ([]orderservice.OrderItemInput, error) {
+func toOrderItemInputs(items []OrderItemRequest, currency string) ([]orderservice.OrderItemInput, error) {
 	result := make([]orderservice.OrderItemInput, len(items))
 	for i, item := range items {
 		productID := item.ProductID
@@ -260,6 +277,7 @@ func toOrderItemInputs(items []OrderItemRequest) ([]orderservice.OrderItemInput,
 			ProductID: productID,
 			Quantity:  item.Quantity,
 			Price:     item.Price,
+			Currency:  currency,
 		}
 	}
 	return result, nil

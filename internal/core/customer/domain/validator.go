@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	validator "github.com/nucleus-proj/validate/v2"
+	"marketplace/pkg/validate"
 )
 
 // ParseCustomerStatus normalizes and validates a customer status value.
@@ -25,35 +25,35 @@ func ParseCustomerStatus(value string) (CustomerStatus, error) {
 		}
 	}
 
-	return "", validator.NewJSONError([]string{"invalid status"})
+	return "", validate.NewJSONError([]string{"invalid status"})
 }
 
 // ValidateCustomerInput validates core customer fields.
 func ValidateCustomerInput(fullName, city, region, woreda, phoneNumber, email string) error {
 	if strings.TrimSpace(email) == "" && strings.TrimSpace(phoneNumber) == "" {
-		return validator.NewJSONError([]string{"either email or phone number must be provided"})
+		return validate.NewJSONError([]string{"either email or phone number must be provided"})
 	}
 
-	result := validator.New().
-		And(validator.NonEmpty(fullName)).
-		And(validator.MaxLen(fullName, 255)).
-		And(validator.MaxLen(city, 100)).
-		And(validator.MaxLen(region, 100)).
-		And(validator.MaxLen(woreda, 100))
+	result := validate.New().
+		And(validate.NonEmpty(fullName)).
+		And(validate.MaxLen(fullName, 255)).
+		And(validate.MaxLen(city, 100)).
+		And(validate.MaxLen(region, 100)).
+		And(validate.MaxLen(woreda, 100))
 
 	if email != "" {
-		result.And(validator.EmailValid(email)).
-			And(validator.MaxLen(email, 255))
+		result.And(validate.EmailValid(email)).
+			And(validate.MaxLen(email, 255))
 	}
 
 	if phoneNumber != "" {
-		result.And(validator.MinLen(phoneNumber, 10)).
-			And(validator.MaxLen(phoneNumber, 20))
+		result.And(validate.MinLen(phoneNumber, 10)).
+			And(validate.MaxLen(phoneNumber, 20))
 	}
 
 	validation := result.Validate()
 	if !validation.IsValid {
-		return validator.NewJSONError(validation.Message)
+		return validate.NewJSONError(validation.Message)
 	}
 
 	return nil

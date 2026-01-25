@@ -9,7 +9,7 @@ import (
 
 type Result struct {
 	IsValid bool
-	Message string
+	Message []string
 }
 
 type Rule func() (bool, string)
@@ -30,20 +30,27 @@ func (v *Validator) And(rule Rule) *Validator {
 }
 
 func (v *Validator) Validate() Result {
+	var messages []string
 	for _, rule := range v.rules {
 		valid, message := rule()
 		if !valid {
-			return Result{IsValid: false, Message: message}
+			messages = append(messages, message)
 		}
+	}
+	if len(messages) > 0 {
+		return Result{IsValid: false, Message: messages}
 	}
 	return Result{IsValid: true}
 }
 
-func NewJSONError(message string) error {
-	if message == "" {
+func NewJSONError(messages []string) error {
+	if len(messages) == 0 {
 		return errors.New("validation failed")
 	}
-	return errors.New(message)
+	if len(messages) == 1 {
+		return errors.New(messages[0])
+	}
+	return errors.New(strings.Join(messages, "; "))
 }
 
 func NonEmpty(value string) Rule {

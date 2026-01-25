@@ -3,6 +3,8 @@ package domain
 import (
 	"encoding/json"
 	"time"
+
+	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 // OrderStatus captures the lifecycle state of an order.
@@ -21,7 +23,7 @@ type OrderItem struct {
 	OrderID   int64
 	ProductID int64
 	Quantity  int
-	Price     *float64
+	Price     *goodmoney.Money
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -34,8 +36,7 @@ type Order struct {
 	PaymentStatus           string
 	DeliveryStatus          string
 	ConfirmationStatus      string
-	Total                   *float64
-	Currency                string
+	Total                   *goodmoney.Money
 	CustomerSnapshot        json.RawMessage
 	ShippingAddressSnapshot json.RawMessage
 	BillingAddressSnapshot  json.RawMessage
@@ -49,8 +50,7 @@ type OrderMetadata struct {
 	PaymentStatus           string
 	DeliveryStatus          string
 	ConfirmationStatus      string
-	Total                   *float64
-	Currency                string
+	Total                   *goodmoney.Money
 	CustomerSnapshot        json.RawMessage
 	ShippingAddressSnapshot json.RawMessage
 	BillingAddressSnapshot  json.RawMessage
@@ -62,7 +62,7 @@ func NewOrder(customerID int64, status string, metadata OrderMetadata, items []O
 	if err != nil {
 		return nil, err
 	}
-	if err := ValidateOrderInput(customerID, metadata.PaymentStatus, metadata.DeliveryStatus, metadata.ConfirmationStatus, metadata.Currency, items); err != nil {
+	if err := ValidateOrderInput(customerID, metadata.PaymentStatus, metadata.DeliveryStatus, metadata.ConfirmationStatus, items); err != nil {
 		return nil, err
 	}
 
@@ -74,7 +74,6 @@ func NewOrder(customerID int64, status string, metadata OrderMetadata, items []O
 		DeliveryStatus:          metadata.DeliveryStatus,
 		ConfirmationStatus:      metadata.ConfirmationStatus,
 		Total:                   metadata.Total,
-		Currency:                metadata.Currency,
 		CustomerSnapshot:        metadata.CustomerSnapshot,
 		ShippingAddressSnapshot: metadata.ShippingAddressSnapshot,
 		BillingAddressSnapshot:  metadata.BillingAddressSnapshot,
@@ -90,7 +89,7 @@ func (o *Order) Update(status string, metadata OrderMetadata) error {
 	if err != nil {
 		return err
 	}
-	if err := ValidateOrderMetadata(metadata.PaymentStatus, metadata.DeliveryStatus, metadata.ConfirmationStatus, metadata.Currency); err != nil {
+	if err := ValidateOrderMetadata(metadata.PaymentStatus, metadata.DeliveryStatus, metadata.ConfirmationStatus); err != nil {
 		return err
 	}
 
@@ -99,7 +98,6 @@ func (o *Order) Update(status string, metadata OrderMetadata) error {
 	o.DeliveryStatus = metadata.DeliveryStatus
 	o.ConfirmationStatus = metadata.ConfirmationStatus
 	o.Total = metadata.Total
-	o.Currency = metadata.Currency
 	o.CustomerSnapshot = metadata.CustomerSnapshot
 	o.ShippingAddressSnapshot = metadata.ShippingAddressSnapshot
 	o.BillingAddressSnapshot = metadata.BillingAddressSnapshot

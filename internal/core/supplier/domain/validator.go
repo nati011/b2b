@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	validator "github.com/nucleus-proj/validate/v2"
+	"marketplace/pkg/validate"
 )
 
 // ParseSupplierStatus normalizes and validates a supplier status value.
@@ -25,32 +25,32 @@ func ParseSupplierStatus(value string) (SupplierStatus, error) {
 		}
 	}
 
-	return "", validator.NewJSONError([]string{"invalid status"})
+	return "", validate.NewJSONError([]string{"invalid status"})
 }
 
 // ValidateSupplierInput validates core supplier fields.
 func ValidateSupplierInput(businessName, supportEmail, supportPhone string) error {
 	if strings.TrimSpace(supportEmail) == "" && strings.TrimSpace(supportPhone) == "" {
-		return validator.NewJSONError([]string{"either support email or support phone must be provided"})
+		return validate.NewJSONError([]string{"either support email or support phone must be provided"})
 	}
 
-	result := validator.New().
-		And(validator.NonEmpty(businessName)).
-		And(validator.MaxLen(businessName, 255))
+	result := validate.New().
+		And(validate.NonEmpty(businessName)).
+		And(validate.MaxLen(businessName, 255))
 
 	if supportEmail != "" {
-		result.And(validator.EmailValid(supportEmail)).
-			And(validator.MaxLen(supportEmail, 255))
+		result.And(validate.EmailValid(supportEmail)).
+			And(validate.MaxLen(supportEmail, 255))
 	}
 
 	if supportPhone != "" {
-		result.And(validator.MinLen(supportPhone, 10)).
-			And(validator.MaxLen(supportPhone, 50))
+		result.And(validate.MinLen(supportPhone, 10)).
+			And(validate.MaxLen(supportPhone, 50))
 	}
 
 	validation := result.Validate()
 	if !validation.IsValid {
-		return validator.NewJSONError(validation.Message)
+		return validate.NewJSONError(validation.Message)
 	}
 
 	return nil
