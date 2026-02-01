@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	roleDomain "marketplace/internal/infra/authz/role/domain"
 	"marketplace/internal/infra/user/domain"
 	"marketplace/pkg/logger"
 	"marketplace/pkg/pagination"
-	"errors"
 )
 
 // Business logic errors
@@ -59,6 +59,7 @@ type Service struct {
 	roles                    RoleReader
 	phoneValidation          *PhoneValidationService
 	registrationTokenService *RegistrationTokenService
+	userTypeRoleMapping      map[string]string // Maps user_type (as stored in DB) to role name
 }
 
 // NewService creates a new user service with the given repository
@@ -68,6 +69,14 @@ func NewService(repo Repository, roles RoleReader, phoneValidation *PhoneValidat
 		roles:                    roles,
 		phoneValidation:          phoneValidation,
 		registrationTokenService: registrationTokenService,
+		userTypeRoleMapping:      make(map[string]string),
+	}
+}
+
+// SetUserTypeRoleMapping sets the mapping from user_type to role name
+func (s *Service) SetUserTypeRoleMapping(mapping map[string]string) {
+	if mapping != nil {
+		s.userTypeRoleMapping = mapping
 	}
 }
 
@@ -111,6 +120,17 @@ func (s *Service) Create(ctx context.Context, externalID string, email domain.Em
 		return nil, err
 	}
 
+	// Automatically assign role based on user type if mapping is configured
+	userTypeStr := string(userType)
+	if roleName, ok := s.userTypeRoleMapping[userTypeStr]; ok {
+		if err := s.assignRoleByName(ctx, user.ID, roleName); err != nil {
+			// Log error but don't fail user creation
+			logger.Warn("Failed to assign role to user", "user_id", user.ID, "user_type", userTypeStr, "role_name", roleName, "error", err)
+		} else {
+			logger.Info("Role assigned to user", "user_id", user.ID, "user_type", userTypeStr, "role_name", roleName)
+		}
+	}
+
 	// Generate registration token
 	var registrationToken string
 	token, err := s.registrationTokenService.GenerateToken(ctx, user.ID)
@@ -126,6 +146,15 @@ func (s *Service) Create(ctx context.Context, externalID string, email domain.Em
 		User:              user,
 		RegistrationToken: registrationToken,
 	}, nil
+}
+
+// assignRoleByName assigns a role to a user by looking up the role by name
+func (s *Service) assignRoleByName(ctx context.Context, userID, roleName string) error {
+	role, err := s.roles.GetByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+	return s.repository.AssignRole(ctx, userID, role.ID)
 }
 
 // Get retrieves a user by ID

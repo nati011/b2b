@@ -17,7 +17,7 @@ func ValidateProductInput(supplierID int64, name string, metadata ProductMetadat
 		And(validate.MaxLen(metadata.ExternalID, 255)).
 		And(validate.MaxLen(metadata.Unit, 50))
 
-	if metadata.Price != nil && metadata.Price.IsNegative() {
+	if metadata.Price != nil && *metadata.Price < 0 {
 		return validate.NewJSONError([]string{"price must be non-negative"})
 	}
 

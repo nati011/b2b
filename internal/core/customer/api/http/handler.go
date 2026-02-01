@@ -226,6 +226,20 @@ func (h *CustomerHandler) ListCustomers(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Check if email query parameter is provided
+	email := strings.TrimSpace(r.URL.Query().Get("email"))
+	if email != "" {
+		// If email is provided, return customer by email
+		ctx := r.Context()
+		customer, err := h.service.GetByEmail(ctx, email)
+		if err != nil {
+			h.writeError(w, err)
+			return
+		}
+		httputil.JSON(w, http.StatusOK, ToCustomerResponse(customer))
+		return
+	}
+
 	pageReq := pagination.FromRequest(r)
 	ctx := r.Context()
 	result, err := h.service.List(ctx, pageReq)

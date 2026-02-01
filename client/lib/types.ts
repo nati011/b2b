@@ -43,6 +43,7 @@ type Configurables = {
 }
 
 export type Catalogue = {
+    id?: number; // Product ID from backend
     name: string;
     desc: string;
     price?: GLfloat
@@ -80,6 +81,30 @@ export type User = {
     external_id?: string
 }
 
+// Backend Order Response (snake_case from API)
+export type BackendOrder = {
+    id: number;
+    customer_id: number;
+    status: string;
+    payment_status?: string;
+    delivery_status?: string;
+    confirmation_status?: string;
+    total?: number;
+    customer_snapshot?: string | object;
+    cart_snapshot: string | object; // Always included, can be empty array []
+    items?: OrderItem[];
+    created_at: string;
+    updated_at: string;
+}
+
+// Backend Order Item Response
+export type OrderItem = {
+    product_id: number;
+    quantity: number;
+    price?: number;
+}
+
+// Frontend Order (camelCase for component usage)
 export type Order = {
     Id: number;
     CustomerId: number;
@@ -92,6 +117,8 @@ export type Order = {
     ConfirmationStatus: string
     CreatedAt: string
     ExpiresAt: string
+    CartSnapshot?: string | object; // New field from backend
+    CustomerSnapshot?: string | object; // New field from backend
 }
 
 export interface CartItem {

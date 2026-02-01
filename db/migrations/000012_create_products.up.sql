@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   unit VARCHAR(50),
   is_active BOOLEAN DEFAULT FALSE,
   supplier_id INT,
-  price JSONB,
+  price DECIMAL(10,2),
   total_quantity INT,
   reserved_quantity INT DEFAULT 0,
   available_quantity INT GENERATED ALWAYS AS (total_quantity - reserved_quantity) STORED,
@@ -30,3 +30,11 @@ CREATE TABLE IF NOT EXISTS public.product_categories (
 
 COMMENT ON TABLE public.products IS 'stores products';
 COMMENT ON TABLE public.product_categories IS 'maps products to multiple categories';
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_products_external_id ON public.products(external_id) WHERE is_deleted = FALSE AND external_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_products_supplier_id ON public.products(supplier_id) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_products_is_active ON public.products(is_active) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_products_name ON public.products(name) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_product_categories_product_id ON public.product_categories(product_id) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_product_categories_category_id ON public.product_categories(category_id) WHERE is_deleted = FALSE;

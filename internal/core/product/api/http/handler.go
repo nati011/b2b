@@ -99,7 +99,6 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		Unit:             req.Unit,
 		IsActive:         req.IsActive,
 		Price:            req.Price,
-		Currency:         "ETB", // Default currency
 		TotalQuantity:    req.TotalQuantity,
 		ReservedQuantity: req.ReservedQuantity,
 		CategoryIDs:      req.CategoryIDs,
@@ -161,7 +160,6 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		Unit:             req.Unit,
 		IsActive:         req.IsActive,
 		Price:            req.Price,
-		Currency:         "ETB", // Default currency
 		TotalQuantity:    req.TotalQuantity,
 		ReservedQuantity: req.ReservedQuantity,
 		CategoryIDs:      req.CategoryIDs,
@@ -242,11 +240,6 @@ func (h *ProductHandler) listProducts(w http.ResponseWriter, r *http.Request) {
 
 // ToProductResponse converts a domain product into a DTO.
 func ToProductResponse(product *domain.Product) ProductResponse {
-	var price *float64
-	if product.Price != nil {
-		amount := product.Price.Amount()
-		price = &amount
-	}
 	return ProductResponse{
 		ID:                product.ID,
 		Name:              product.Name,
@@ -256,7 +249,7 @@ func ToProductResponse(product *domain.Product) ProductResponse {
 		Unit:              product.Unit,
 		IsActive:          product.IsActive,
 		SupplierID:        product.SupplierID,
-		Price:             price,
+		Price:             product.Price,
 		TotalQuantity:     product.TotalQuantity,
 		ReservedQuantity:  product.ReservedQuantity,
 		AvailableQuantity: product.AvailableQuantity,

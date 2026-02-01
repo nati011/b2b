@@ -8,7 +8,7 @@ import { AuthOptions, TokenSet } from "next-auth";
 // For client-side requests, use external URL
 const baseURL = typeof window === 'undefined'
   ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080')
-  : 'http://localhost:8082';
+  : 'http://localhost:8090';
 
 interface KeycloakJWT {
   exp: number;

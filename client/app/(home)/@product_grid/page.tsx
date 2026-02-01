@@ -3,30 +3,133 @@ import { useState, useEffect, useMemo } from "react";
 import { Filter, ShoppingBagIcon, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { GetAllCategories } from "@/app/actions/category";
-import { GetAllCatalogues } from "@/app/actions/catalogue";
-import { Catalogue } from "@/lib/types";
+import { ListProducts, ProductResponse } from "@/app/actions/product";
+import { Catalogue, Image } from "@/lib/types";
 import { CardSkeleton } from "@/components/CardSkeleton";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
+import useSearchStore from "@/lib/store/useSearchStore";
+
+// Helper function to extract images from attributes
+const extractImagesFromAttributes = (attributes: any): Image[] => {
+  if (!attributes) return [];
+  
+  // Parse attributes if it's a string
+  let attrs = attributes;
+  if (typeof attributes === 'string') {
+    try {
+      attrs = JSON.parse(attributes);
+    } catch {
+      return [];
+    }
+  }
+  
+  if (!attrs.images) return [];
+  
+  // Handle different image formats
+  if (Array.isArray(attrs.images)) {
+    return attrs.images
+      .map((img: any) => {
+        if (typeof img === 'string') {
+          return { ImageUrl: img, BlurHash: '' };
+        }
+        if (img?.ImageUrl || img?.url || img?.imageUrl) {
+          return {
+            ImageUrl: img.ImageUrl || img.url || img.imageUrl,
+            BlurHash: img.BlurHash || img.blurHash || ''
+          };
+        }
+        return null;
+      })
+      .filter((img: Image | null): img is Image => img !== null);
+  }
+  
+  // Single image as string
+  if (typeof attrs.images === 'string') {
+    return [{ ImageUrl: attrs.images, BlurHash: '' }];
+  }
+  
+  // Single image as object
+  if (attrs.images?.ImageUrl || attrs.images?.url || attrs.images?.imageUrl) {
+    return [{
+      ImageUrl: attrs.images.ImageUrl || attrs.images.url || attrs.images.imageUrl,
+      BlurHash: attrs.images.BlurHash || attrs.images.blurHash || ''
+    }];
+  }
+  
+  return [];
+};
 
 export default function ProductGrid() {
   const [categories, setCategories] = useState([{ id: 0, name: "All" }]);
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Catalogue[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(0);
+  const searchQuery = useSearchStore((state) => state.searchQuery);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         // Load both in parallel for better performance
-        const [fetchedCategories, productList] = await Promise.all([
+        const [fetchedCategories, productResponse] = await Promise.all([
           GetAllCategories().catch(() => []),
-          GetAllCatalogues().catch(() => [])
+          ListProducts({ is_active: true, limit: 100 }).catch(() => ({ products: [], total: 0, limit: 100, offset: 0 }))
         ]);
         
         setCategories([{ id: 0, name: "All" }, ...fetchedCategories]);
-        setProducts(productList);
+        
+        // Convert ProductResponse[] to Catalogue[] format for compatibility
+        // Store category_ids in configurable_attributes for filtering
+        const catalogueProducts: Catalogue[] = (productResponse.products || []).map((p: ProductResponse) => {
+          // Parse attributes if it's a string
+          let parsedAttributes = p.attributes;
+          if (typeof p.attributes === 'string') {
+            try {
+              parsedAttributes = JSON.parse(p.attributes);
+            } catch {
+              parsedAttributes = {};
+            }
+          }
+          
+          // Extract images from attributes
+          const images = extractImagesFromAttributes(parsedAttributes);
+          
+          // Create configurables from the product if it has attributes that could be configurable
+          // For now, create a single configurable from the product itself
+          const configurables = p.available_quantity > 0 ? [{
+            id: p.id,
+            name: p.name,
+            desc: p.description || '',
+            price: p.price || 0,
+            stock: p.available_quantity,
+            external_id: p.external_id || '',
+            attributes: parsedAttributes || {},
+            images: images,
+            supplier_id: p.supplier_id,
+            categories: p.category_ids || [],
+            is_active: p.is_active
+          }] : [];
+          
+          return {
+            id: p.id,
+            name: p.name,
+            desc: p.description || '',
+            price: p.price,
+            is_active: p.is_active,
+            images: images,
+            configurable_attributes: {
+              ...(parsedAttributes || {}),
+              category_ids: p.category_ids || [], // Store category_ids for filtering
+              available_quantity: p.available_quantity, // Store available quantity for stock display
+              total_quantity: p.total_quantity,
+              reserved_quantity: p.reserved_quantity
+            },
+            configurables: configurables
+          };
+        });
+        
+        setProducts(catalogueProducts);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
@@ -41,16 +144,34 @@ export default function ProductGrid() {
     if (!products) return [];
 
     let filtered = products;
+    
+    // Filter by search query
+    if (searchQuery && searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((product) => {
+        const nameMatch = product.name?.toLowerCase().includes(query);
+        const descMatch = product.desc?.toLowerCase().includes(query);
+        // Also check configurables for search matches
+        const configurableMatch = product.configurables?.some((config) =>
+          config.name?.toLowerCase().includes(query) ||
+          config.desc?.toLowerCase().includes(query)
+        );
+        return nameMatch || descMatch || configurableMatch;
+      });
+    }
+    
+    // Filter by category
     if (selectedCategory !== 0) {
-      filtered = products.filter((product) =>
-        product.configurables.some((configurable) =>
-          configurable.categories?.includes(selectedCategory)
-        )
-      );
+      // Filter by category_ids stored in configurable_attributes
+      filtered = filtered.filter((product) => {
+        const categoryIds = product.configurable_attributes?.category_ids || [];
+        return categoryIds.includes(selectedCategory);
+      });
     }
 
-    return filtered.slice(0, 4);
-  }, [products, selectedCategory]);
+    // When searching, show all matching results. Otherwise, limit to 4 for display
+    return searchQuery.trim() ? filtered : filtered.slice(0, 4);
+  }, [products, selectedCategory, searchQuery]);
 
   return (
     <section id="products" className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-white">
@@ -107,7 +228,7 @@ export default function ProductGrid() {
           </div>
         ) : (
           displayedProducts.map((product) => (
-            <ProductCard product={product} key={product.name} />
+            <ProductCard product={product} key={product.id || product.name} />
           ))
         )}
       </div>
@@ -115,12 +236,11 @@ export default function ProductGrid() {
       <div className="flex justify-center mt-12">
         <Link href="/product" prefetch={true}>
           <Button 
-            variant="outline" 
             size="lg"
-            className="border-2 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300"
+            className="bg-primary text-white hover:bg-primary/90 border-2 border-primary transition-all duration-300 px-8 py-6 text-base font-semibold h-auto"
           >
             View All Products
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
       </div>

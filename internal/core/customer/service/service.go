@@ -96,6 +96,21 @@ func (s *CustomerService) Get(ctx context.Context, id int64) (*domain.Customer, 
 	return customer, nil
 }
 
+// GetByEmail fetches a customer by email address.
+func (s *CustomerService) GetByEmail(ctx context.Context, email string) (*domain.Customer, error) {
+	customer, err := s.repository.FindByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, ErrCustomerNotFound) {
+			logger.Debug("Customer retrieval failed: customer not found", "email", email)
+		} else {
+			logger.Error("Customer retrieval failed: repository error", "email", email, "error", err)
+		}
+		return nil, err
+	}
+	logger.Debug("Customer retrieved successfully", "email", email, "customer_id", customer.ID)
+	return customer, nil
+}
+
 // Update modifies an existing customer.
 func (s *CustomerService) Update(ctx context.Context, id int64, input CustomerInput) (*domain.Customer, error) {
 	customer, err := s.repository.FindByID(ctx, id)

@@ -1,59 +1,290 @@
 import axiosIns from "@/lib/axios";
-import { CheckoutRequest } from "@/lib/types";
 
-export async function fetchOrders(limit: number, offset: number, status: string) {
-    try {
-        console.log(status, "STatus")
-        let req_url = `/orders/customer?limit=${limit}&offset=${limit * offset}`
-        if (status != "ALL") {
-            req_url = `/orders/customer?limit=${limit}&offset=${limit * offset}&status=${status}`
-        }
-        const response = await axiosIns.get(req_url);
-        console.log(response.data)
-        return response.data.body.orders;
-    } catch (error) {
-        console.log(error)
-        throw new Error('Failed to fetch orders');
-    }
+// Order types matching mobile app and backend
+export interface OrderItemRequest {
+  id?: number;
+  product_id?: number;
+  quantity: number;
+  price?: number;
 }
 
-export async function getOrderById(orderId: number) {
+export interface OrderItemResponse {
+  product_id: number;
+  quantity: number;
+  price?: number;
+}
+
+export interface CreateOrderRequest {
+  customer_id: number;
+  status?: string;
+  payment_status?: string;
+  delivery_status?: string;
+  confirmation_status?: string;
+  total?: number;
+  customer_snapshot?: any;
+  shipping_address_snapshot?: any;
+  billing_address_snapshot?: any;
+  items: OrderItemRequest[];
+}
+
+export interface OrderResponse {
+  id: number;
+  customer_id: number;
+  status: string;
+  payment_status?: string;
+  delivery_status?: string;
+  confirmation_status?: string;
+  total?: number;
+  customer_snapshot?: any;
+  cart_snapshot?: any;
+  items?: OrderItemResponse[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderListResponse {
+  orders: OrderResponse[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// Map backend order to frontend Order type (for backward compatibility)
+function mapOrderToFrontendFormat(order: OrderResponse): any {
+  // Parse cart_snapshot if it's a string
+  let items: any[] = [];
+  if (order.cart_snapshot) {
     try {
-        const response = await axiosIns.get(`/order?id=${orderId}`);
-        return response.data;
-    } catch (error) {
-        throw new Error('Failed to fetch order');
+      const cartSnapshot = typeof order.cart_snapshot === 'string' 
+        ? JSON.parse(order.cart_snapshot) 
+        : order.cart_snapshot;
+      
+      if (Array.isArray(cartSnapshot)) {
+        items = cartSnapshot.map((item: any) => ({
+          ProductId: item.product_id || item.ProductId || 0,
+          ProductName: item.product_name || item.ProductName || '',
+          ProductPrice: item.price || item.ProductPrice || 0,
+          Quantity: item.quantity || item.Quantity || 0
+        }));
+      }
+    } catch (e) {
+      console.warn('Failed to parse cart_snapshot:', e);
     }
+  }
+  
+  // Parse customer_snapshot to get customer name
+  let customerName = '';
+  if (order.customer_snapshot) {
+    try {
+      const customerSnapshot = typeof order.customer_snapshot === 'string'
+        ? JSON.parse(order.customer_snapshot)
+        : order.customer_snapshot;
+      customerName = customerSnapshot?.full_name || customerSnapshot?.name || '';
+    } catch (e) {
+      console.warn('Failed to parse customer_snapshot:', e);
+    }
+  }
+
+  return {
+    Id: order.id,
+    CustomerId: order.customer_id,
+    CustomerName: customerName,
+    Items: items,
+    Total: order.total || 0,
+    Status: order.status || '',
+    DeliveryStatus: order.delivery_status || '',
+    PaymentStatus: order.payment_status || '',
+    ConfirmationStatus: order.confirmation_status || '',
+    CreatedAt: order.created_at,
+    ExpiresAt: '',
+    CartSnapshot: order.cart_snapshot,
+    CustomerSnapshot: order.customer_snapshot
+  };
+}
+
+export async function ListCustomerOrders(params: {
+  customer_id: number;
+  status?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<OrderListResponse> {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('customer_id', params.customer_id.toString());
+    if (params.status) queryParams.append('status', params.status);
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+
+    const url = `/orders/customer?${queryParams.toString()}`;
+    console.log('📡 Fetching orders from:', url);
+    
+    const response = await axiosIns.get(url);
+    console.log('✅ Orders response received:', {
+      status: response.status,
+      dataKeys: Object.keys(response.data || {}),
+      hasBody: !!response.data?.body,
+      ordersCount: response.data?.body?.orders?.length || response.data?.orders?.length || 0,
+    });
+    
+    // Handle response wrapped in body or direct
+    const data = response.data?.body || response.data;
+    
+    // Ensure we have the expected structure
+    if (data && (data.orders || Array.isArray(data))) {
+      const result = {
+        orders: data.orders || data,
+        total: data.total || (data.orders ? data.orders.length : 0),
+        limit: data.limit || params.limit || 10,
+        offset: data.offset || params.offset || 0,
+      };
+      console.log('📦 Processed orders result:', {
+        ordersCount: result.orders.length,
+        total: result.total,
+      });
+      return result;
+    }
+    
+    console.warn('⚠️ Unexpected orders response structure:', data);
+    return data;
+  } catch (error: any) {
+    console.error('Error fetching orders:', error);
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while fetching orders';
+      throw new Error(errorMessage);
+    }
+    throw new Error('An error occurred while fetching orders');
+  }
+}
+
+export async function fetchOrders(limit: number, offset: number, status: string, customerId?: number) {
+  try {
+    const queryParams = new URLSearchParams();
+    if (customerId) queryParams.append('customer_id', customerId.toString());
+    if (status && status !== 'ALL') queryParams.append('status', status);
+    queryParams.append('limit', limit.toString());
+    queryParams.append('offset', (limit * offset).toString());
+
+    const url = `/orders/customer?${queryParams.toString()}`;
+    console.log('📡 Fetching orders from:', url);
+    
+    const response = await axiosIns.get(url);
+    console.log('✅ Orders response received:', {
+      status: response.status,
+      dataKeys: Object.keys(response.data || {}),
+      ordersCount: response.data?.orders?.length || 0,
+    });
+    
+    // Backend returns: { orders: [], total: 0, limit: 10, offset: 0 } directly
+    const orderData: OrderListResponse = response.data;
+    
+    // Map backend orders to frontend format for backward compatibility
+    const mappedOrders = (orderData.orders || []).map((order: OrderResponse) => 
+      mapOrderToFrontendFormat(order)
+    );
+    
+    return {
+      List: mappedOrders,
+      TotalCount: orderData.total || 0,
+      Limit: orderData.limit || limit,
+      Offset: orderData.offset || offset
+    };
+  } catch (error: any) {
+    console.error('❌ Error fetching orders:', error);
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while fetching orders';
+      throw new Error(errorMessage);
+    }
+    throw new Error('An error occurred while fetching orders');
+  }
+}
+
+export async function getOrderById(orderId: number): Promise<OrderResponse> {
+  try {
+    const response = await axiosIns.get(`/order?id=${orderId}`);
+    // Backend returns OrderResponse directly (not wrapped in body)
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while fetching order';
+      throw new Error(errorMessage);
+    }
+    throw new Error('An error occurred while fetching order');
+  }
 }
 
 
 export async function getInvoice(orderId: number) {
-    try {
-        const response = await axiosIns.get(`/invoice?order_id=${orderId}`);
-        return response.data.body.invoice.List[0];
-    } catch (error) {
-        throw new Error('Failed to fetch invoice');
+  try {
+    const response = await axiosIns.get(`/invoice?order_id=${orderId}`);
+    return response.data.body.invoice.List[0];
+  } catch (error: any) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while fetching invoice';
+      throw new Error(errorMessage);
     }
+    throw new Error('An error occurred while fetching invoice');
+  }
 }
 
 
-export async function updateOrderStatus(orderId: string, status: string) {
-    try {
-        const response = await axiosIns.patch(`/order?id=${orderId}&command=${status}`);
-        return response.data;
-    } catch (error) {
-        throw new Error('Failed to update order status');
+export async function updateOrderStatus(orderId: string, command: string): Promise<OrderResponse> {
+  try {
+    const response = await axiosIns.patch(`/order?id=${orderId}&command=${encodeURIComponent(command)}`);
+    // Backend returns OrderResponse directly (not wrapped in body)
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while updating order status';
+      throw new Error(errorMessage);
     }
+    throw new Error('An error occurred while updating order status');
+  }
 }
 
-export async function createOrder(orderData: CheckoutRequest) {
-    try {
-        console.log(orderData)
-        const response = await axiosIns.post('/order', orderData);
-        return response.data.body
-    } catch (error: any) {
-        if (error.response) {
-            throw error.response.data.message
-        }
+// Helper to convert CheckoutRequest to CreateOrderRequest
+export function convertCheckoutToCreateOrder(checkout: { customer_id: number; items: Array<{ id: number; quantity: number }> }): CreateOrderRequest {
+  return {
+    customer_id: checkout.customer_id,
+    items: checkout.items.map(item => ({
+      product_id: item.id,
+      quantity: item.quantity
+    }))
+  };
+}
+
+export async function createOrder(orderData: CreateOrderRequest | { customer_id: number; items: Array<{ id: number; quantity: number }> }): Promise<OrderResponse> {
+  try {
+    // Convert CheckoutRequest format if needed
+    let request: CreateOrderRequest;
+    
+    if ('items' in orderData && orderData.items.length > 0 && 'product_id' in orderData.items[0]) {
+      request = orderData as CreateOrderRequest;
+    } else {
+      request = convertCheckoutToCreateOrder(orderData as { customer_id: number; items: Array<{ id: number; quantity: number }> });
     }
+    
+    console.log('📤 Creating order:', request);
+    const response = await axiosIns.post('/order', request);
+    
+    // Handle both response formats: direct or wrapped in body
+    const orderResponse = response.data?.body || response.data;
+    
+    // Validate response has required fields
+    if (!orderResponse || !orderResponse.id) {
+      console.error('Invalid order response:', orderResponse);
+      throw new Error('Invalid response from server');
+    }
+    
+    return orderResponse;
+  } catch (error: any) {
+    console.error('Error creating order:', error);
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || error.response.data?.body?.message || 'An error occurred while creating order';
+      throw new Error(errorMessage);
+    }
+    if (error.message) {
+      throw error;
+    }
+    throw new Error('An error occurred while creating order');
+  }
 }

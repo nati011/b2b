@@ -1,37 +1,59 @@
 'use client'
-import { ShoppingBag, Menu, X, Search, LogIn, CircleUser, ShoppingBagIcon, LogOut, Settings } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ShoppingBag, Menu, X, Search, LogIn, CircleUser } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import useCartStore from "@/lib/store/useCartStore";
-import { signOut, useSession } from "next-auth/react";
+import useSearchStore from "@/lib/store/useSearchStore";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 export const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
-    const { data: session, status } = useSession();
-
-    const user = session?.user;
-    const user_initials = user?.name
-        ?.split(" ")
-        .map((n) => n[0])
-        .join("");
+    const [searchInput, setSearchInput] = useState('');
+    const { isAuthenticated, user } = useAuth();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
+    const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
+    const searchQuery = useSearchStore((state) => state.searchQuery);
 
     const toggleSearch = () => {
         setSearchOpen(!searchOpen);
+        if (!searchOpen) {
+            // When opening, populate with current search query
+            setSearchInput(searchQuery);
+        } else {
+            // When closing, only clear the input field, keep the query for filtering
+            setSearchInput('');
+        }
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedQuery = searchInput.trim();
+        setSearchQuery(trimmedQuery);
+        setSearchOpen(false);
+        // Navigate to products page if not already there
+        if (pathname !== '/product') {
+            router.push('/product');
+        }
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchInput(value);
+        // Update search query in real-time for immediate filtering
+        setSearchQuery(value.trim());
+        // Navigate to products page if not already there and user is typing
+        if (value.trim() && pathname !== '/product') {
+            router.push('/product');
+        }
     };
 
     // Only subscribe to totalItems to prevent unnecessary re-renders
@@ -39,23 +61,84 @@ export const Navbar = () => {
 
     const navLinks = [
         { name: "Home", href: "/" },
-        { name: "Shop", href: "/product" },
-        { name: "Partner Portal", href: "/signup/supplier" },
+        { name: "Products", href: "/product" },
+        { name: "Orders", href: "/orders" },
+        { name: "About Us", href: "/about" },
         { name: "Contact", href: "/contact" },
     ];
+
+    // Check if user is logged in based on user_email and saved_password in localStorage
+    const checkLoginStatus = () => {
+        if (typeof window !== 'undefined') {
+            const userEmail = localStorage.getItem('user_email');
+            const savedPassword = localStorage.getItem('saved_password');
+            const isLoggedInStatus = !!(userEmail && savedPassword);
+            setIsLoggedIn(isLoggedInStatus);
+            return isLoggedInStatus;
+        }
+        return false;
+    };
+
+    // Check login status on mount and when localStorage changes
+    useEffect(() => {
+        // Mark as mounted to prevent hydration mismatch
+        setIsMounted(true);
+        checkLoginStatus();
+
+        // Listen for storage changes (e.g., from other tabs or after login)
+        const handleStorageChange = () => {
+            checkLoginStatus();
+        };
+
+        // Listen for custom auth state change event
+        const handleAuthStateChange = () => {
+            checkLoginStatus();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('auth-state-changed', handleAuthStateChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('auth-state-changed', handleAuthStateChange);
+        };
+    }, []);
+
+    // Prefetch all navigation links on mount and hover
+    useEffect(() => {
+        navLinks.forEach((link) => {
+            router.prefetch(link.href);
+        });
+        // Prefetch common authenticated routes
+        if (isAuthenticated || isLoggedIn) {
+            router.prefetch("/profile");
+            router.prefetch("/orders");
+        }
+    }, [router, isAuthenticated, isLoggedIn]);
+
+    // Handle link hover for prefetching
+    const handleLinkHover = useCallback((href: string) => {
+        router.prefetch(href);
+    }, [router]);
 
     return (
         <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 print:hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center flex-shrink-0">
+                    <Link 
+                        href="/" 
+                        className="flex items-center flex-shrink-0"
+                        prefetch={true}
+                    >
                         <Image 
                             src='/logo.png' 
                             width={180} 
                             height={90} 
                             alt="Efoyeta Store Logo" 
                             className="h-16 md:h-20 w-auto"
+                            priority
+                            loading="eager"
                         />
                         <span className="sr-only">EFOYETA STORE</span>
                     </Link>
@@ -68,6 +151,7 @@ export const Navbar = () => {
                                     key={link.name}
                                     href={link.href}
                                     prefetch={true}
+                                    onMouseEnter={() => handleLinkHover(link.href)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 rounded-md hover:bg-gray-50"
                                 >
                                     {link.name}
@@ -82,20 +166,46 @@ export const Navbar = () => {
                         {searchOpen ? (
                             <div className="absolute inset-0 left-0 right-0 px-4 flex items-center justify-center bg-white z-50 border-b border-gray-200">
                                 <div className="w-full max-w-2xl">
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            placeholder="Search products..."
-                                            className="flex-grow"
-                                            autoFocus
-                                        />
+                                    <form onSubmit={handleSearch} className="flex items-center gap-2">
+                                        <div className="relative flex-grow">
+                                            <Input
+                                                placeholder="Search products..."
+                                                className="w-full pr-10"
+                                                autoFocus
+                                                value={searchInput}
+                                                onChange={handleSearchChange}
+                                            />
+                                            {searchInput && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 top-0 h-full px-2 hover:bg-transparent"
+                                                    onClick={() => {
+                                                        setSearchInput('');
+                                                        setSearchQuery('');
+                                                    }}
+                                                >
+                                                    <X className="h-4 w-4 text-gray-500" />
+                                                </Button>
+                                            )}
+                                        </div>
                                         <Button
+                                            type="submit"
+                                            variant="ghost"
+                                            size="icon"
+                                        >
+                                            <Search className="h-5 w-5" />
+                                        </Button>
+                                        <Button
+                                            type="button"
                                             variant="ghost"
                                             size="icon"
                                             onClick={toggleSearch}
                                         >
                                             <X className="h-5 w-5" />
                                         </Button>
-                                    </div>
+                                    </form>
                                 </div>
                             </div>
                         ) : (
@@ -110,7 +220,12 @@ export const Navbar = () => {
                                 </Button>
 
                                 {/* Cart */}
-                                <Link href="/cart" className="relative" prefetch={false}>
+                                <Link 
+                                    href="/cart" 
+                                    className="relative" 
+                                    prefetch={true}
+                                    onMouseEnter={() => handleLinkHover("/cart")}
+                                >
                                     <Button 
                                         variant="ghost" 
                                         size="icon" 
@@ -126,55 +241,23 @@ export const Navbar = () => {
                                 </Link>
 
                                 {/* User Menu */}
-                                {user ? (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon"
-                                                className="text-gray-600 hover:text-gray-900"
-                                            >
-                                                <CircleUser className="h-5 w-5" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-56">
-                                            <DropdownMenuLabel className="flex gap-3 items-center">
-                                                <Avatar>
-                                                    <AvatarFallback>
-                                                        {user_initials}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium">{user?.name}</span>
-                                                </div>
-                                            </DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuGroup>
-                                                <Link href="/profile" prefetch={true}>
-                                                    <DropdownMenuItem className="gap-2 cursor-pointer">
-                                                        <Settings className="h-4 w-4" />
-                                                        <span>Profile</span>
-                                                    </DropdownMenuItem>
-                                                </Link>
-                                                <Link href="/orders" prefetch={true}>
-                                                    <DropdownMenuItem className="gap-2 cursor-pointer">
-                                                        <ShoppingBagIcon className="h-4 w-4" />
-                                                        <span>Orders</span>
-                                                    </DropdownMenuItem>
-                                                </Link>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem 
-                                                    onClick={() => signOut()}
-                                                    className="gap-2 cursor-pointer text-red-600 focus:text-red-600"
-                                                >
-                                                    <LogOut className="h-4 w-4" />
-                                                    <span>Logout</span>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuGroup>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                {/* Only check auth state after mount to prevent hydration mismatch */}
+                                {isMounted && (isAuthenticated || isLoggedIn) ? (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon"
+                                        className="text-gray-600 hover:text-gray-900"
+                                        title="Profile"
+                                        onClick={() => router.push("/profile")}
+                                    >
+                                        <CircleUser className="h-5 w-5" />
+                                    </Button>
                                 ) : (
-                                    <Link href="/login">
+                                    <Link 
+                                        href="/login"
+                                        prefetch={true}
+                                        onMouseEnter={() => handleLinkHover("/login")}
+                                    >
                                         <Button 
                                             variant="ghost" 
                                             size="sm"
@@ -211,14 +294,20 @@ export const Navbar = () => {
                                                 key={link.name}
                                                 href={link.href}
                                                 prefetch={true}
+                                                onMouseEnter={() => handleLinkHover(link.href)}
                                                 className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2"
                                                 onClick={() => setMobileMenuOpen(false)}
                                             >
                                                 {link.name}
                                             </Link>
                                         ))}
-                                        {!user && (
-                                            <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                        {isMounted && !(isAuthenticated || isLoggedIn) && (
+                                            <Link 
+                                                href="/login" 
+                                                prefetch={true}
+                                                onMouseEnter={() => handleLinkHover("/login")}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
                                                 <Button className="w-full justify-start" variant="outline">
                                                     Sign In
                                                 </Button>

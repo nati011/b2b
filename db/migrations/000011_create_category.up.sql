@@ -7,3 +7,6 @@ CREATE TABLE IF NOT EXISTS public.category (
 );
 
 COMMENT ON TABLE public.category IS 'category tags for products';
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_category_name ON public.category(name) WHERE is_deleted = FALSE;

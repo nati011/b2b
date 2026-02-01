@@ -33,12 +33,18 @@ const (
 	ActionDeactivate = "deactivate"
 )
 
+// HTTP route paths
+const (
+	RouteAuthLogin = "/api/v1/auth/login"
+)
+
 // publicRoutesProvider implements middleware.PublicRoutesProvider
 type publicRoutesProvider struct{}
 
 func (p *publicRoutesProvider) PublicRoutes() []string {
 	return []string{
 		"POST " + RouteAuthBasicCreds, // Allow users to create their own login credentials
+		"POST " + RouteAuthLogin,      // Allow users to login
 	}
 }
 
@@ -50,6 +56,16 @@ func init() {
 // @resource code=auth_credentials service=authentication desc="Basic authentication credentials"
 // RegisterHTTPRoutes wires all basic auth credential HTTP routes into the provided mux.
 func RegisterHTTPRoutes(mux *http.ServeMux, handler *Handler) {
+	// @action name=login desc="Login with email and password"
+	// POST /api/v1/auth/login - Login
+	mux.HandleFunc(RouteAuthLogin, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handler.Login(w, r)
+			return
+		}
+		httputil.MethodNotAllowed(w)
+	})
+
 	// @action name=create desc="Create basic authentication credentials"
 	// POST /auth/basic/credentials - Create credential
 	mux.HandleFunc(RouteAuthBasicCreds, func(w http.ResponseWriter, r *http.Request) {

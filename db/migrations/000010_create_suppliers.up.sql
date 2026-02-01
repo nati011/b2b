@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
 );
 
 COMMENT ON TABLE public.suppliers IS 'stores supplier specific information (not user)';
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_suppliers_status ON public.suppliers(status) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_suppliers_is_active ON public.suppliers(is_active) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_suppliers_support_email ON public.suppliers(support_email) WHERE is_deleted = FALSE AND support_email IS NOT NULL;

@@ -22,9 +22,6 @@ import (
 	producthttp "marketplace/internal/core/product/api/http"
 	productrepo "marketplace/internal/core/product/repository"
 	productservice "marketplace/internal/core/product/service"
-	referralhttp "marketplace/internal/core/referral/api/http"
-	referralrepo "marketplace/internal/core/referral/repository"
-	referralservice "marketplace/internal/core/referral/service"
 	authDomain "marketplace/internal/infra/auth"
 	basicauth "marketplace/internal/infra/auth/basic"
 	basicauthhttp "marketplace/internal/infra/auth/basic/api/http"
@@ -82,9 +79,6 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 		provideOrderRepository,
 		provideOrderService,
 		provideOrderHandler,
-		provideReferralRepository,
-		provideReferralService,
-		provideReferralHandler,
 		provideBasicAuthRepository,
 		provideBasicAuthService,
 		provideBasicAuthAdapter,
@@ -157,8 +151,13 @@ func provideRegistrationTokenAdapter(service *userservice.RegistrationTokenServi
 }
 
 // provideUserService creates a user service.
-func provideUserService(repo *userrepository.Repository, roleRepo *rolerepo.RoleRepository, phoneValidation *userservice.PhoneValidationService, registrationTokenService *userservice.RegistrationTokenService) *userservice.Service {
-	return userservice.NewService(repo, roleRepo, phoneValidation, registrationTokenService)
+func provideUserService(cfg *config.Config, repo *userrepository.Repository, roleRepo *rolerepo.RoleRepository, phoneValidation *userservice.PhoneValidationService, registrationTokenService *userservice.RegistrationTokenService) *userservice.Service {
+	service := userservice.NewService(repo, roleRepo, phoneValidation, registrationTokenService)
+	// Configure role mapping from config
+	if cfg.Roles != nil && cfg.Roles.UserTypeRoleMapping != nil {
+		service.SetUserTypeRoleMapping(cfg.Roles.UserTypeRoleMapping)
+	}
+	return service
 }
 
 // provideUserHandler creates a user HTTP handler.
@@ -224,21 +223,6 @@ func provideOrderService(repo *orderrepo.Repository) *orderservice.Service {
 // provideOrderHandler creates an order HTTP handler.
 func provideOrderHandler(service *orderservice.Service) *orderhttp.OrderHandler {
 	return orderhttp.NewOrderHandler(service)
-}
-
-// provideReferralRepository creates a referral repository.
-func provideReferralRepository(dbConn *sql.DB) *referralrepo.ReferralRepository {
-	return referralrepo.NewReferralRepository(dbConn)
-}
-
-// provideReferralService creates a referral service.
-func provideReferralService(repo *referralrepo.ReferralRepository) *referralservice.ReferralService {
-	return referralservice.NewReferralService(repo)
-}
-
-// provideReferralHandler creates a referral HTTP handler.
-func provideReferralHandler(service *referralservice.ReferralService) *referralhttp.ReferralHandler {
-	return referralhttp.NewReferralHandler(service)
 }
 
 // provideRoleRepository creates a role repository.
@@ -312,8 +296,8 @@ func provideBasicAuthAdapter(service *basicauthservice.Service) *basicauth.Adapt
 }
 
 // provideBasicAuthHandler creates a basic auth credential handler.
-func provideBasicAuthHandler(service *basicauthservice.Service) *basicauthhttp.Handler {
-	return basicauthhttp.NewHandler(service)
+func provideBasicAuthHandler(service *basicauthservice.Service, userService *userservice.Service) *basicauthhttp.Handler {
+	return basicauthhttp.NewHandler(service, userService)
 }
 
 // provideRegistrationTokenMiddleware creates middleware for validating registration tokens.
@@ -372,7 +356,7 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 }
 
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, referralHandler *referralhttp.ReferralHandler, mw httpMiddleware) stdhttp.Handler {
+func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware) stdhttp.Handler {
 	mux := stdhttp.NewServeMux()
 	userhttp.RegisterHTTPRoutes(mux, userHandler)
 	rolehttp.RegisterHTTPRoutes(mux, roleHandler)
@@ -382,7 +366,6 @@ func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp
 	supplierhttp.RegisterHTTPRoutes(mux, supplierHandler)
 	producthttp.RegisterHTTPRoutes(mux, productHandler)
 	orderhttp.RegisterHTTPRoutes(mux, orderHandler)
-	referralhttp.RegisterHTTPRoutes(mux, referralHandler)
 
 	handler := mw.idempotencyMiddleware.Handle(mux)
 	handler = mw.authorizationMiddleware.Handle(handler)
@@ -404,7 +387,6 @@ type applicationServices struct {
 	supplierService  *supplierservice.SupplierService
 	productService   *productservice.Service
 	orderService     *orderservice.Service
-	referralService  *referralservice.ReferralService
 }
 
 type applicationHandlers struct {
@@ -415,7 +397,6 @@ type applicationHandlers struct {
 	supplierHandler *supplierhttp.SupplierHandler
 	productHandler  *producthttp.ProductHandler
 	orderHandler    *orderhttp.OrderHandler
-	referralHandler *referralhttp.ReferralHandler
 }
 
 type applicationInfrastructure struct {
@@ -432,7 +413,7 @@ func provideApplicationInfrastructure(cfg *config.Config, dbConn *sql.DB, server
 	}
 }
 
-func provideApplicationServices(userService *userservice.Service, roleService *roleservice.RoleService, permService *permissionservice.PermissionService, resourceService *resourceservice.Service, basicAuthService *basicauthservice.Service, customerService *customerservice.CustomerService, supplierService *supplierservice.SupplierService, productService *productservice.Service, orderService *orderservice.Service, referralService *referralservice.ReferralService) applicationServices {
+func provideApplicationServices(userService *userservice.Service, roleService *roleservice.RoleService, permService *permissionservice.PermissionService, resourceService *resourceservice.Service, basicAuthService *basicauthservice.Service, customerService *customerservice.CustomerService, supplierService *supplierservice.SupplierService, productService *productservice.Service, orderService *orderservice.Service) applicationServices {
 	return applicationServices{
 		userService:      userService,
 		roleService:      roleService,
@@ -443,11 +424,10 @@ func provideApplicationServices(userService *userservice.Service, roleService *r
 		supplierService:  supplierService,
 		productService:   productService,
 		orderService:     orderService,
-		referralService:  referralService,
 	}
 }
 
-func provideApplicationHandlers(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, referralHandler *referralhttp.ReferralHandler) applicationHandlers {
+func provideApplicationHandlers(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler) applicationHandlers {
 	return applicationHandlers{
 		userHandler:     userHandler,
 		roleHandler:     roleHandler,
@@ -456,7 +436,6 @@ func provideApplicationHandlers(userHandler *userhttp.UserHandler, roleHandler *
 		supplierHandler: supplierHandler,
 		productHandler:  productHandler,
 		orderHandler:    orderHandler,
-		referralHandler: referralHandler,
 	}
 }
 
@@ -481,7 +460,5 @@ func provideApplication(infra applicationInfrastructure, services applicationSer
 		ProductHandler:   handlers.productHandler,
 		OrderService:     services.orderService,
 		OrderHandler:     handlers.orderHandler,
-		ReferralService:  services.referralService,
-		ReferralHandler:  handlers.referralHandler,
 	}
 }

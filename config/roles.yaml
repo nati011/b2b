@@ -1,3 +1,116 @@
 # Default Roles Configuration
 # This file contains default roles with their permission patterns.
 # These roles are bootstrapped during application initialization.
+
+default_roles:
+  - id: superadmin
+    name: Super Administrator
+    description: Full system access with all permissions
+    permissions:
+      # Customer Management
+      - resource: customer
+        actions:
+          - view
+          - create
+          - update
+          - delete
+      
+      # Order Management
+      - resource: order
+        actions:
+          - view
+          - create
+          - update
+      
+      # Product Management
+      - resource: products
+        actions:
+          - view
+          - create
+          - update
+          - delete
+      
+      # Supplier Management
+      - resource: supplier
+        actions:
+          - view
+          - create
+          - update
+          - delete
+      
+      # Authentication
+      - resource: auth_credentials
+        actions:
+          - create
+          - update
+          - deactivate
+      
+      # Permission Management
+      - resource: permissions
+        actions:
+          - view
+          - manage
+          - delete
+      
+      # Role Management
+      - resource: roles
+        actions:
+          - view
+          - manage
+          - delete
+      
+      # User Management
+      - resource: users
+        actions:
+          - view
+          - create
+          - update
+          - delete
+          - assign_roles
+          - activate
+          - deactivate
+          - suspend
+
+  - id: customer
+    name: Customer
+    description: Customer role with permissions to browse products and manage orders
+    permissions:
+      # View products (catalogue)
+      - resource: products
+        actions:
+          - view
+      
+      # Order Management (view and create orders)
+      - resource: order
+        actions:
+          - view
+          - create
+      
+      # Customer Profile (view and update own profile)
+      - resource: customer
+        actions:
+          - view
+          - update
+
+  - id: supplier
+    name: Supplier
+    description: Supplier role with permissions to manage products and view orders
+    permissions:
+      # Product Management (full CRUD for own products)
+      - resource: products
+        actions:
+          - view
+          - create
+          - update
+          - delete
+      
+      # View orders (orders for their products)
+      - resource: order
+        actions:
+          - view
+      
+      # Supplier Profile (view and update own profile)
+      - resource: supplier
+        actions:
+          - view
+          - update

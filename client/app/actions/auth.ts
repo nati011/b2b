@@ -1,5 +1,20 @@
 import axiosIns from "@/lib/axios";
 import { SupplierRequest, RegisterRequest, User } from "@/lib/types";
+import { jwtDecode } from "jwt-decode";
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  refresh_token?: string;
+}
+
+export interface LoginResponseWrapper {
+  body: LoginResponse;
+}
 
 export const RegisterCustomer = async (profile: RegisterRequest) => {
   try {
@@ -103,5 +118,142 @@ export const UpdateProfile = async (data: Partial<User>) => {
   }
 };
 
+/**
+ * Login with email and password using basic auth
+ * Stores the access token in localStorage for use in axios interceptor
+ */
+export const Login = async (credentials: LoginRequest): Promise<LoginResponse> => {
+  try {
+    // Make request without auth header (login endpoint is public)
+    const response = await axiosIns.post<LoginResponseWrapper>(
+      "/api/v1/auth/login",
+      credentials
+    );
+
+    if (response.status !== 202) {
+      throw new Error(response.data?.body?.access_token ? "Login successful but unexpected status" : "Authentication failed");
+    }
+
+    const loginResponse = response.data.body;
+
+    if (!loginResponse.access_token) {
+      throw new Error("No access token received");
+    }
+
+    // Store tokens and user info in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', loginResponse.access_token);
+      if (loginResponse.refresh_token) {
+        localStorage.setItem('refresh_token', loginResponse.refresh_token);
+      }
+      // Store credentials for auto-fill on next login
+      localStorage.setItem('saved_email', credentials.email);
+      localStorage.setItem('saved_password', credentials.password);
+      
+      // Decode JWT token to extract user information
+      try {
+        const decoded = jwtDecode<{
+          sub: string;
+          name?: string;
+          email?: string;
+          preferred_username?: string;
+          realm_access?: { roles?: string[] };
+        }>(loginResponse.access_token);
+        
+        // Store user information for session use
+        if (decoded.name) {
+          localStorage.setItem('user_name', decoded.name);
+        }
+        if (decoded.email) {
+          localStorage.setItem('user_email', decoded.email);
+        }
+        if (decoded.sub) {
+          localStorage.setItem('user_id', decoded.sub);
+        }
+        if (decoded.preferred_username) {
+          localStorage.setItem('user_username', decoded.preferred_username);
+        }
+        if (decoded.realm_access?.roles) {
+          localStorage.setItem('user_roles', JSON.stringify(decoded.realm_access.roles));
+        }
+      } catch (error) {
+        console.error('Error decoding JWT token:', error);
+        // If decoding fails, still store basic info from credentials
+        localStorage.setItem('user_email', credentials.email);
+      }
+      
+      // Dispatch custom event to notify AuthContext of login
+      window.dispatchEvent(new Event('auth-state-changed'));
+    }
+
+    return loginResponse;
+  } catch (error: any) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || 
+                          error.response.data?.error || 
+                          "Invalid email or password";
+      throw new Error(errorMessage);
+    }
+    if (error.request) {
+      throw new Error("Network error: Unable to reach the server");
+    }
+    throw new Error(error.message || "An error occurred during login");
+  }
+};
+
+/**
+ * Logout - removes stored tokens and optionally credentials
+ */
+export const Logout = (clearCredentials: boolean = false) => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_username');
+    localStorage.removeItem('user_roles');
+    if (clearCredentials) {
+      localStorage.removeItem('saved_email');
+      localStorage.removeItem('saved_password');
+    }
+    // Dispatch custom event to notify AuthContext of logout
+    window.dispatchEvent(new Event('auth-state-changed'));
+  }
+};
+
+/**
+ * Get saved credentials from localStorage
+ */
+export const getSavedCredentials = (): { email: string; password: string } | null => {
+  if (typeof window !== 'undefined') {
+    const email = localStorage.getItem('saved_email');
+    const password = localStorage.getItem('saved_password');
+    if (email && password) {
+      return { email, password };
+    }
+  }
+  return null;
+};
+
+/**
+ * Clear saved credentials from localStorage
+ */
+export const clearSavedCredentials = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('saved_email');
+    localStorage.removeItem('saved_password');
+  }
+};
+
+/**
+ * Get stored access token
+ */
+export const getAccessToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('access_token');
+  }
+  return null;
+};
 
 // Subscription payment is no longer handled client-side.

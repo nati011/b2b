@@ -9,3 +9,6 @@ CREATE TABLE resources (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE UNIQUE INDEX resources_code_uidx ON resources (LOWER(code));
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_resources_service ON resources(service) WHERE deprecated_at IS NULL;

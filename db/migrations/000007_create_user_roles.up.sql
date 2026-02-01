@@ -8,3 +8,6 @@ CREATE TABLE IF NOT EXISTS user_roles (
         REFERENCES roles (id) ON DELETE CASCADE
 );
 
+-- Indexes for reverse lookups (role_id is already in PK but useful for queries filtering by role)
+CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles(role_id);
+

@@ -24,7 +24,6 @@ import (
 	branchhttp "marketplace/internal/core/organization/branch/api/http"
 	branchrepo "marketplace/internal/core/organization/branch/repository"
 	branchservice "marketplace/internal/core/organization/branch/service"
-	currencyhttp "marketplace/internal/core/organization/currency"
 	staffhttp "marketplace/internal/core/organization/staff/api/http"
 	staffrepo "marketplace/internal/core/organization/staff/repository"
 	staffservice "marketplace/internal/core/organization/staff/service"
@@ -187,8 +186,6 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 		provideProvisionRepository,
 		provideProvisionService,
 		provideProvisionHandler,
-		// Currency module providers
-		provideCurrencyHandler,
 		// Loan collateral module providers
 		provideCollateralRepository,
 		provideCodeValueRepository,
@@ -339,7 +336,6 @@ type httpHandlers struct {
 	shareAccountHandler         *shareaccounthttp.ShareAccountHandler
 	institutionalAccountHandler *institutionalaccounthttp.InstitutionalAccountHandler
 	branchHandler               *branchhttp.BranchHandler
-	currencyHandler             *currencyhttp.CurrencyHandler
 	// stuffHandler removed - functionality moved to asset module
 	staffHandler            *staffhttp.StaffHandler
 	collateralHandler       *collateralhttp.CollateralHandler
@@ -384,8 +380,7 @@ type accountHandlers struct {
 
 // organizationHandlers groups organization domain handlers
 type organizationHandlers struct {
-	branchHandler   *branchhttp.BranchHandler
-	currencyHandler *currencyhttp.CurrencyHandler
+	branchHandler *branchhttp.BranchHandler
 	// stuffHandler removed - functionality moved to asset module
 	staffHandler *staffhttp.StaffHandler
 }
@@ -409,7 +404,6 @@ type httpHandlerParams struct {
 	shareAccountHandler         *shareaccounthttp.ShareAccountHandler
 	institutionalAccountHandler *institutionalaccounthttp.InstitutionalAccountHandler
 	branchHandler               *branchhttp.BranchHandler
-	currencyHandler             *currencyhttp.CurrencyHandler
 	staffHandler                *staffhttp.StaffHandler
 	glAccountHandler            *ledgerhttp.GLAccountHandler
 	accountGLMappingHandler     *mappinghttp.AccountGLMappingHandler
@@ -467,13 +461,11 @@ func provideAccountHandlers(
 // provideOrganizationHandlers creates the organizationHandlers struct
 func provideOrganizationHandlers(
 	branchHandler *branchhttp.BranchHandler,
-	currencyHandler *currencyhttp.CurrencyHandler,
 	// stuffHandler removed - functionality moved to asset module
 	staffHandler *staffhttp.StaffHandler,
 ) organizationHandlers {
 	return organizationHandlers{
-		branchHandler:   branchHandler,
-		currencyHandler: currencyHandler,
+		branchHandler: branchHandler,
 		// stuffHandler removed
 		staffHandler: staffHandler,
 	}
@@ -511,7 +503,6 @@ func provideHTTPHandlerParams(
 		shareAccountHandler:         accounts.shareAccountHandler,
 		institutionalAccountHandler: accounts.institutionalAccountHandler,
 		branchHandler:               org.branchHandler,
-		currencyHandler:             org.currencyHandler,
 		// stuffHandler removed
 		staffHandler:            org.staffHandler,
 		glAccountHandler:        glAccountHandler,
@@ -541,7 +532,6 @@ func provideHTTPHandlers(params httpHandlerParams, collateralHandler *collateral
 		shareAccountHandler:         params.shareAccountHandler,
 		institutionalAccountHandler: params.institutionalAccountHandler,
 		branchHandler:               params.branchHandler,
-		currencyHandler:             params.currencyHandler,
 		// stuffHandler removed
 		staffHandler:            params.staffHandler,
 		collateralHandler:       collateralHandler,
@@ -583,7 +573,6 @@ func provideHTTPHandler(handlers httpHandlers, mw httpMiddleware) stdhttp.Handle
 	shareaccounthttp.RegisterHTTPRoutes(mux, handlers.shareAccountHandler)
 	institutionalaccounthttp.RegisterHTTPRoutes(mux, handlers.institutionalAccountHandler)
 	branchhttp.RegisterHTTPRoutes(mux, handlers.branchHandler)
-	currencyhttp.RegisterHTTPRoutes(mux, handlers.currencyHandler)
 	staffhttp.RegisterHTTPRoutes(mux, handlers.staffHandler)
 	ledgerhttp.RegisterHTTPRoutes(mux, handlers.glAccountHandler)
 	mappinghttp.RegisterHTTPRoutes(mux, handlers.accountGLMappingHandler)
@@ -746,8 +735,8 @@ func provideBasicAuthAdapter(service *basicauthservice.Service) *basicauth.Adapt
 }
 
 // provideBasicAuthHandler creates a basic auth credential handler
-func provideBasicAuthHandler(service *basicauthservice.Service) *basicauthhttp.Handler {
-	return basicauthhttp.NewHandler(service)
+func provideBasicAuthHandler(service *basicauthservice.Service, userService *userservice.Service) *basicauthhttp.Handler {
+	return basicauthhttp.NewHandler(service, userService)
 }
 
 // provideRegistrationTokenMiddleware creates middleware for validating registration tokens
@@ -1004,11 +993,6 @@ func provideStaffService(
 	txManager db.TxManager,
 ) *staffservice.Service {
 	return staffservice.NewService(repo, txManager)
-}
-
-// provideCurrencyHandler creates a currency HTTP handler
-func provideCurrencyHandler(db *sql.DB) *currencyhttp.CurrencyHandler {
-	return currencyhttp.NewCurrencyHandler(db)
 }
 
 // provideStaffHandler creates a staff HTTP handler

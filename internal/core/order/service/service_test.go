@@ -13,11 +13,11 @@ import (
 )
 
 type mockOrderRepository struct {
-	orders        map[int64]*domain.Order
-	nextID        int64
-	createFunc    func(context.Context, *domain.Order) error
-	updateFunc    func(context.Context, *domain.Order) error
-	findByIDFunc  func(context.Context, int64) (*domain.Order, error)
+	orders             map[int64]*domain.Order
+	nextID             int64
+	createFunc         func(context.Context, *domain.Order) error
+	updateFunc         func(context.Context, *domain.Order) error
+	findByIDFunc       func(context.Context, int64) (*domain.Order, error)
 	listByCustomerFunc func(context.Context, CustomerOrderQuery) ([]*domain.Order, int, error)
 }
 
@@ -95,22 +95,16 @@ func TestOrderServiceCreateSuccess(t *testing.T) {
 		"id":   1,
 		"name": "Test Customer",
 	})
-	shippingSnapshot, _ := json.Marshal(map[string]interface{}{
-		"address": "123 Main St",
-		"city":    "Addis Ababa",
-	})
 
 	total := 100.50
 	result, err := service.Create(context.Background(), OrderInput{
-		CustomerID:              1,
-		Status:                  "pending",
-		PaymentStatus:           "unpaid",
-		DeliveryStatus:          "pending",
-		ConfirmationStatus:      "pending",
-		Total:                   &total,
-		Currency:                "ETB",
-		CustomerSnapshot:        customerSnapshot,
-		ShippingAddressSnapshot: shippingSnapshot,
+		CustomerID:         1,
+		Status:             "pending",
+		PaymentStatus:      "unpaid",
+		DeliveryStatus:     "pending",
+		ConfirmationStatus: "pending",
+		Total:              &total,
+		CustomerSnapshot:   customerSnapshot,
 		Items: []OrderItemInput{
 			{ProductID: 1, Quantity: 2, Price: &total},
 		},
@@ -263,4 +257,3 @@ func TestOrderServiceListByCustomerWithStatusFilter(t *testing.T) {
 	require.Len(t, orders, 1)
 	require.Equal(t, domain.OrderStatusPending, orders[0].Status)
 }
-

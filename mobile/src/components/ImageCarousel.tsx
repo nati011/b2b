@@ -11,6 +11,10 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt }) => 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
+  // Handle empty images array
+  const safeImages = images && images.length > 0 ? images : ['/placeholder.png'];
+  const currentImage = safeImages[currentIndex] || '/placeholder.png';
+
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? '100%' : '-100%',
@@ -30,8 +34,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt }) => 
     setDirection(newDirection);
     setCurrentIndex((prev) => {
       let next = prev + newDirection;
-      if (next < 0) next = images.length - 1;
-      if (next >= images.length) next = 0;
+      if (next < 0) next = safeImages.length - 1;
+      if (next >= safeImages.length) next = 0;
       return next;
     });
   };
@@ -52,7 +56,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt }) => 
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.img
           key={currentIndex}
-          src={images[currentIndex]}
+          src={currentImage}
           alt={`${alt} - Image ${currentIndex + 1}`}
           custom={direction}
           variants={slideVariants}
@@ -65,11 +69,15 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt }) => 
           dragElastic={0.2}
           onDragEnd={handleDragEnd}
           className="absolute inset-0 w-full h-full object-cover cursor-grab active:cursor-grabbing"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            e.currentTarget.src = '/placeholder.png';
+          }}
         />
       </AnimatePresence>
 
       {/* Navigation buttons */}
-      {images.length > 1 && (
+      {safeImages.length > 1 && (
         <>
           <button
             onClick={() => navigate(-1)}
@@ -87,9 +95,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt }) => 
       )}
 
       {/* Dots */}
-      {images.length > 1 && (
+      {safeImages.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-          {images.map((_, index) => (
+          {safeImages.map((_, index) => (
             <button
               key={index}
               onClick={() => {

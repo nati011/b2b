@@ -97,24 +97,45 @@ export const HeroSection = ({ onCategoryChange, onSearchChange }: HeroSectionPro
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<number | null>(null);
-  const [isScrolledPastProducts, setIsScrolledPastProducts] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const suppliersScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [supplierList, categoryList] = await Promise.all([
-          GetAllSuppliers().catch(() => []),
+        const [supplierResponse, categoryList] = await Promise.all([
+          GetAllSuppliers({ limit: 100, page: 1 }).catch((error) => {
+            console.error('❌ Failed to fetch suppliers in HeroSection:', error);
+            return { items: [], total: 0, page: 1, limit: 100, total_pages: 0, has_next: false, has_prev: false };
+          }),
           GetAllCategories().catch(() => [])
         ]);
-        // Only show active suppliers, limit to 6 for display
-        const activeSuppliers = supplierList.filter(s => s.is_active).slice(0, 6);
-        setSuppliers(activeSuppliers.length > 0 ? activeSuppliers : mockSuppliers);
+        
+        // Convert SupplierResponse[] to Supplier[] format for compatibility
+        const supplierItems = supplierResponse.items || [];
+        const activeSuppliers: Supplier[] = supplierItems
+          .filter((s: any) => s.is_active)
+          .slice(0, 6)
+          .map((s: any) => ({
+            id: s.id,
+            name: s.business_name,
+            tin: '',
+            latitude: '',
+            longitude: '',
+            general_zone: '',
+            region: '',
+            woreda: '',
+            user: [],
+            is_active: s.is_active
+          }));
+        
+        // Only use API data, fallback to empty array if no suppliers
+        setSuppliers(activeSuppliers.length > 0 ? activeSuppliers : []);
         setCategories(categoryList);
       } catch (error) {
         console.error('Failed to load data:', error);
-        setSuppliers(mockSuppliers);
+        setSuppliers([]);
       } finally {
         setLoading(false);
       }
@@ -169,15 +190,12 @@ export const HeroSection = ({ onCategoryChange, onSearchChange }: HeroSectionPro
 
   useEffect(() => {
     const handleScroll = () => {
-      const productsSection = document.querySelector('[data-section="products"]');
-      if (productsSection) {
-        const rect = productsSection.getBoundingClientRect();
-        const isPastProducts = rect.top < 0;
-        setIsScrolledPastProducts(isPastProducts);
-      }
+      // Change to brand color when scrolled down more than 50px
+      const scrollY = window.scrollY || window.pageYOffset;
+      setIsScrolled(scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Check initial state
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -186,7 +204,7 @@ export const HeroSection = ({ onCategoryChange, onSearchChange }: HeroSectionPro
     <section className="relative w-full">
       {/* Fixed Search Bar */}
       <div className={`fixed top-0 left-0 right-0 z-40 backdrop-blur-md shadow-sm transition-colors duration-300 ${
-        isScrolledPastProducts ? 'bg-primary/95' : 'bg-background/95'
+        isScrolled ? 'bg-primary/95' : 'bg-background/95'
       }`}>
         <div className="px-4 sm:px-6 py-3">
           <form onSubmit={handleSearch} className="max-w-xl mx-auto">
@@ -249,7 +267,7 @@ export const HeroSection = ({ onCategoryChange, onSearchChange }: HeroSectionPro
       {/* Fixed Category Filters */}
       {categories.length > 0 && (
         <div className={`fixed top-[60px] left-0 right-0 z-40 backdrop-blur-md shadow-sm transition-colors duration-300 ${
-          isScrolledPastProducts ? 'bg-primary/95' : 'bg-background/95'
+          isScrolled ? 'bg-primary/95' : 'bg-background/95'
         }`}>
           <div className="px-4 py-2.5">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4">

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { CartItem, Product } from '@/types/product';
+import { CartItem, Product } from '@/lib/types';
 
 interface CartContextType {
   items: CartItem[];
@@ -7,8 +7,8 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   addItem: (product: Product, size: string, color: string) => void;
-  removeItem: (productId: string, size: string, color: string) => void;
-  updateQuantity: (productId: string, size: string, color: string, quantity: number) => void;
+  removeItem: (productId: number | string, size: string, color: string) => void;
+  updateQuantity: (productId: number | string, size: string, color: string, quantity: number) => void;
   clearCart: () => void;
   itemCount: number;
   subtotal: number;
@@ -40,20 +40,22 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsOpen(true);
   }, []);
 
-  const removeItem = useCallback((productId: string, size: string, color: string) => {
+  const removeItem = useCallback((productId: number | string, size: string, color: string) => {
+    const id = typeof productId === 'string' ? parseInt(productId, 10) : productId;
     setItems(prev => prev.filter(
-      item => !(item.product.id === productId && item.size === size && item.color === color)
+      item => !(item.product.id === id && item.size === size && item.color === color)
     ));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, size: string, color: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: number | string, size: string, color: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId, size, color);
       return;
     }
 
+    const id = typeof productId === 'string' ? parseInt(productId, 10) : productId;
     setItems(prev => prev.map(item => {
-      if (item.product.id === productId && item.size === size && item.color === color) {
+      if (item.product.id === id && item.size === size && item.color === color) {
         return { ...item, quantity };
       }
       return item;
@@ -63,7 +65,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clearCart = useCallback(() => setItems([]), []);
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.product.price || 0) * item.quantity, 0);
 
   return (
     <CartContext.Provider value={{

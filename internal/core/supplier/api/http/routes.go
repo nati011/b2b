@@ -26,7 +26,9 @@ type publicRoutesProvider struct{}
 
 func (p *publicRoutesProvider) PublicRoutes() []string {
 	return []string{
-		"POST " + RouteSuppliers,
+		"POST " + RouteSuppliers,        // Register new supplier
+		"GET " + RouteSuppliers,         // List suppliers (public browsing)
+		"GET " + RouteSuppliers + "/",   // View supplier details (public)
 	}
 }
 

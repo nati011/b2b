@@ -43,16 +43,18 @@ const Cart = () => {
                 >
                   <div className="w-24 h-32 img-soft rounded-sm overflow-hidden flex-shrink-0">
                     <img
-                      src={item.product.images[0]}
+                      src={item.product.attributes?.images?.[0] || '/placeholder.png'}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                        {item.product.brand}
-                      </p>
+                      {item.product.attributes?.brand && (
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                          {item.product.attributes.brand}
+                        </p>
+                      )}
                       <p className="text-sm font-medium leading-snug">
                         {item.product.name}
                       </p>

@@ -1,11 +1,22 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const CartDrawer = () => {
   const { items, isOpen, closeCart, updateQuantity, removeItem, subtotal } = useCart();
+  const navigate = useNavigate();
+  
+  const handlePurchase = () => {
+    closeCart();
+    navigate('/checkout');
+  };
+  
+  const handleCheckout = () => {
+    closeCart();
+    navigate('/checkout');
+  };
 
   return (
     <AnimatePresence>
@@ -62,16 +73,18 @@ export const CartDrawer = () => {
                     >
                       <div className="w-24 h-32 img-soft rounded-sm overflow-hidden flex-shrink-0">
                         <img
-                          src={item.product.images[0]}
+                          src={item.product.attributes?.images?.[0] || '/placeholder.png'}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div className="flex-1 flex flex-col justify-between py-1">
                         <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                            {item.product.brand}
-                          </p>
+                          {item.product.attributes?.brand && (
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                              {item.product.attributes.brand}
+                            </p>
+                          )}
                           <p className="text-sm font-medium leading-snug">
                             {item.product.name}
                           </p>
@@ -112,13 +125,25 @@ export const CartDrawer = () => {
                       </div>
                     </motion.div>
                   ))}
+                  
+                  {/* Checkout Button in Items Section */}
+                  <div className="pt-4 pb-2">
+                    <Button 
+                      onClick={handleCheckout}
+                      className="w-full h-12 text-sm font-semibold tracking-wide btn-press rounded-sm"
+                      size="lg"
+                    >
+                      <ArrowRight className="w-4 h-4 mr-2" />
+                      Proceed to Checkout
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="p-4 border-t border-border space-y-4 safe-bottom">
+              <div className="p-4 border-t border-border space-y-4 safe-bottom bg-background">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Subtotal</span>
                   <span className="text-lg font-medium">{subtotal.toLocaleString()} ETB</span>
@@ -126,11 +151,24 @@ export const CartDrawer = () => {
                 <p className="text-xs text-muted-foreground">
                   Shipping and taxes calculated at checkout
                 </p>
-                <Link to="/checkout" onClick={closeCart}>
-                  <Button className="w-full h-12 text-sm tracking-wide btn-press rounded-sm">
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleCheckout}
+                    variant="outline"
+                    className="flex-1 h-12 text-sm font-medium tracking-wide btn-press rounded-sm"
+                  >
                     Checkout
                   </Button>
-                </Link>
+                  <Button 
+                    onClick={handlePurchase}
+                    className="flex-1 h-12 text-base font-semibold tracking-wide btn-press rounded-sm shadow-lg"
+                    size="lg"
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Purchase
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
               </div>
             )}
           </motion.div>

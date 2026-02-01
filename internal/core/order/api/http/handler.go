@@ -29,10 +29,7 @@ type CreateOrderRequest struct {
 	DeliveryStatus          string             `json:"delivery_status,omitempty"`
 	ConfirmationStatus      string             `json:"confirmation_status,omitempty"`
 	Total                   *float64           `json:"total,omitempty"`
-	Currency                string             `json:"currency,omitempty"`
 	CustomerSnapshot        json.RawMessage    `json:"customer_snapshot,omitempty"`
-	ShippingAddressSnapshot json.RawMessage    `json:"shipping_address_snapshot,omitempty"`
-	BillingAddressSnapshot  json.RawMessage    `json:"billing_address_snapshot,omitempty"`
 	Items                   []OrderItemRequest `json:"items"`
 }
 
@@ -52,10 +49,8 @@ type OrderResponse struct {
 	DeliveryStatus          string              `json:"delivery_status,omitempty"`
 	ConfirmationStatus      string              `json:"confirmation_status,omitempty"`
 	Total                   *float64            `json:"total,omitempty"`
-	Currency                string              `json:"currency,omitempty"`
 	CustomerSnapshot        json.RawMessage     `json:"customer_snapshot,omitempty"`
-	ShippingAddressSnapshot json.RawMessage     `json:"shipping_address_snapshot,omitempty"`
-	BillingAddressSnapshot  json.RawMessage     `json:"billing_address_snapshot,omitempty"`
+	CartSnapshot            json.RawMessage     `json:"cart_snapshot"`
 	Items                   []OrderItemResponse `json:"items,omitempty"`
 	CreatedAt               time.Time           `json:"created_at"`
 	UpdatedAt               time.Time           `json:"updated_at"`
@@ -90,11 +85,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currency := req.Currency
-	if currency == "" {
-		currency = "ETB"
-	}
-	items, err := toOrderItemInputs(req.Items, currency)
+	items, err := toOrderItemInputs(req.Items)
 	if err != nil {
 		httputil.Error(w, http.StatusBadRequest, err)
 		return
@@ -107,10 +98,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		DeliveryStatus:          req.DeliveryStatus,
 		ConfirmationStatus:      req.ConfirmationStatus,
 		Total:                   req.Total,
-		Currency:                req.Currency,
 		CustomerSnapshot:        req.CustomerSnapshot,
-		ShippingAddressSnapshot: req.ShippingAddressSnapshot,
-		BillingAddressSnapshot:  req.BillingAddressSnapshot,
 		Items:                   items,
 	}
 
@@ -198,7 +186,7 @@ func (h *OrderHandler) ListCustomerOrders(w http.ResponseWriter, r *http.Request
 
 	items := make([]OrderResponse, len(orders))
 	for i, order := range orders {
-		items[i] = ToOrderResponse(order, false)
+		items[i] = ToOrderResponse(order, true)
 	}
 
 	httputil.JSON(w, http.StatusOK, OrderListResponse{
@@ -211,12 +199,11 @@ func (h *OrderHandler) ListCustomerOrders(w http.ResponseWriter, r *http.Request
 
 // ToOrderResponse converts a domain order into a DTO.
 func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
-	var total *float64
-	var currency string
-	if order.Total != nil {
-		amount := order.Total.Amount()
-		total = &amount
-		currency = order.Total.Currency()
+	// Ensure cart_snapshot is always included, even if empty
+	cartSnapshot := order.CartSnapshot
+	if len(cartSnapshot) == 0 {
+		// Set to empty JSON array if cart_snapshot is empty
+		cartSnapshot = []byte("[]")
 	}
 
 	resp := OrderResponse{
@@ -226,11 +213,9 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 		PaymentStatus:           order.PaymentStatus,
 		DeliveryStatus:          order.DeliveryStatus,
 		ConfirmationStatus:      order.ConfirmationStatus,
-		Total:                   total,
-		Currency:                currency,
+		Total:                   order.Total,
 		CustomerSnapshot:        order.CustomerSnapshot,
-		ShippingAddressSnapshot: order.ShippingAddressSnapshot,
-		BillingAddressSnapshot:  order.BillingAddressSnapshot,
+		CartSnapshot:            cartSnapshot,
 		CreatedAt:               order.CreatedAt,
 		UpdatedAt:               order.UpdatedAt,
 	}
@@ -238,15 +223,10 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 	if includeItems && len(order.Items) > 0 {
 		resp.Items = make([]OrderItemResponse, len(order.Items))
 		for i, item := range order.Items {
-			var price *float64
-			if item.Price != nil {
-				amount := item.Price.Amount()
-				price = &amount
-			}
 			resp.Items[i] = OrderItemResponse{
 				ProductID: item.ProductID,
 				Quantity:  item.Quantity,
-				Price:     price,
+				Price:     item.Price,
 			}
 		}
 	}
@@ -263,7 +243,7 @@ func (h *OrderHandler) writeError(w http.ResponseWriter, err error) {
 	}
 }
 
-func toOrderItemInputs(items []OrderItemRequest, currency string) ([]orderservice.OrderItemInput, error) {
+func toOrderItemInputs(items []OrderItemRequest) ([]orderservice.OrderItemInput, error) {
 	result := make([]orderservice.OrderItemInput, len(items))
 	for i, item := range items {
 		productID := item.ProductID
@@ -277,7 +257,6 @@ func toOrderItemInputs(items []OrderItemRequest, currency string) ([]orderservic
 			ProductID: productID,
 			Quantity:  item.Quantity,
 			Price:     item.Price,
-			Currency:  currency,
 		}
 	}
 	return result, nil

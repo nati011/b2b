@@ -29,7 +29,7 @@ export default function WhyChooseUs() {
     },
     {
       id: "4",
-      title: "Support via WhatsApp & Email",
+      title: "Support via WhatsApp and Telegram",
       description: "Get quick help and updates from our friendly support team.",
       icon: <BookOpen className="h-8 w-8 text-primary" />,
     },

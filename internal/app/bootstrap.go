@@ -55,7 +55,15 @@ func Bootstrap(
 			if err != nil {
 				return err
 			}
-			if _, err := roleService.Create(ctx, role.ID, role.Name, role.Description, permissionIDs); err != nil {
+			// Generate deterministic UUID if role.ID is not a valid UUID
+			roleID := role.ID
+			if _, err := uuid.Parse(roleID); err != nil {
+				// Generate a deterministic UUID from the role name using SHA1
+				// This ensures the same role name always gets the same UUID
+				namespace := uuid.NameSpaceDNS
+				roleID = uuid.NewSHA1(namespace, []byte(role.Name)).String()
+			}
+			if _, err := roleService.Create(ctx, roleID, role.Name, role.Description, permissionIDs); err != nil {
 				if errors.Is(err, roleservice.ErrRoleAlreadyExists) || errors.Is(err, roleservice.ErrRoleNameConflict) {
 					continue
 				}

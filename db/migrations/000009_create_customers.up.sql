@@ -14,3 +14,9 @@ CREATE TABLE IF NOT EXISTS public.customers (
 );
 
 COMMENT ON TABLE public.customers IS 'stores customer specific information (not user)';
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_customers_email ON public.customers(email) WHERE is_deleted = FALSE AND email IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_customers_phone_number ON public.customers(phone_number) WHERE is_deleted = FALSE AND phone_number IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_customers_status ON public.customers(status) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_customers_is_active ON public.customers(is_active) WHERE is_deleted = FALSE;

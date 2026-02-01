@@ -5,8 +5,6 @@ import (
 	"errors"
 	"marketplace/internal/core/product/domain"
 	"marketplace/pkg/logger"
-
-	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 var (
@@ -24,7 +22,6 @@ type ProductInput struct {
 	Unit             string
 	IsActive         bool
 	Price            *float64
-	Currency         string
 	TotalQuantity    int
 	ReservedQuantity int
 	CategoryIDs      []int64
@@ -59,28 +56,13 @@ func NewService(repository Repository) *Service {
 
 // Create registers a new product.
 func (s *Service) Create(ctx context.Context, input ProductInput) (*domain.Product, error) {
-	// Default currency to ETB if not provided
-	currency := input.Currency
-	if currency == "" {
-		currency = "ETB"
-	}
-
-	var price *goodmoney.Money
-	if input.Price != nil {
-		m, err := goodmoney.New(*input.Price, currency)
-		if err != nil {
-			return nil, err
-		}
-		price = m
-	}
-
 	metadata := domain.ProductMetadata{
 		Description:      input.Description,
 		ExternalID:       input.ExternalID,
 		Attributes:       input.Attributes,
 		Unit:             input.Unit,
 		IsActive:         input.IsActive,
-		Price:            price,
+		Price:            input.Price,
 		TotalQuantity:    input.TotalQuantity,
 		ReservedQuantity: input.ReservedQuantity,
 		CategoryIDs:      input.CategoryIDs,
@@ -109,31 +91,13 @@ func (s *Service) Update(ctx context.Context, id int64, input ProductInput) (*do
 		return nil, err
 	}
 
-	// Use existing product's currency if available, otherwise default to ETB
-	currency := input.Currency
-	if currency == "" && product.Price != nil {
-		currency = product.Price.Currency()
-	}
-	if currency == "" {
-		currency = "ETB"
-	}
-
-	var price *goodmoney.Money
-	if input.Price != nil {
-		m, err := goodmoney.New(*input.Price, currency)
-		if err != nil {
-			return nil, err
-		}
-		price = m
-	}
-
 	metadata := domain.ProductMetadata{
 		Description:      input.Description,
 		ExternalID:       input.ExternalID,
 		Attributes:       input.Attributes,
 		Unit:             input.Unit,
 		IsActive:         input.IsActive,
-		Price:            price,
+		Price:            input.Price,
 		TotalQuantity:    input.TotalQuantity,
 		ReservedQuantity: input.ReservedQuantity,
 		CategoryIDs:      input.CategoryIDs,

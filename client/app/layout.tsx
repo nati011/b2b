@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import SessionProvider from "@/app/SessionProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import TawkChat from "@/components/TawkChat";
 
 const overpass = Overpass({
@@ -35,11 +36,13 @@ export default function RootLayout({
         className={`${overpass.variable} font-sans antialiased min-h-screen`}
       >
         <SessionProvider>
-          <Navbar />
-          {children}
-          <Footer />
-          <Toaster richColors />
-          <TawkChat />
+          <AuthProvider>
+            <Navbar />
+            {children}
+            <Footer />
+            <Toaster richColors />
+            <TawkChat />
+          </AuthProvider>
         </SessionProvider>
       </body>
     </html>

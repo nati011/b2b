@@ -3,15 +3,13 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"marketplace/internal/core/order/domain"
 	orderservice "marketplace/internal/core/order/service"
-
-	goodmoney "github.com/the-nucleus-project/good_money"
 )
 
 var (
@@ -40,13 +38,10 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 		}
 	}()
 
-	var totalValue interface{}
-	if order.Total != nil {
-		var valErr error
-		totalValue, valErr = order.Total.Value()
-		if valErr != nil {
-			return valErr
-		}
+	// Serialize items to JSON for cart_snapshot
+	cartSnapshot, err := json.Marshal(order.Items)
+	if err != nil {
+		return fmt.Errorf("failed to serialize cart items: %w", err)
 	}
 
 	query := `
@@ -58,13 +53,12 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 			confirmation_status,
 			total,
 			customer_snapshot,
-			shipping_address_snapshot,
-			billing_address_snapshot,
+			cart_snapshot,
 			created_date,
 			last_modified,
 			is_deleted
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, FALSE)
 		RETURNING id
 	`
 
@@ -76,54 +70,13 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 		nullableString(order.PaymentStatus),
 		nullableString(order.DeliveryStatus),
 		nullableString(order.ConfirmationStatus),
-		totalValue,
+		order.Total,
 		order.CustomerSnapshot,
-		order.ShippingAddressSnapshot,
-		order.BillingAddressSnapshot,
+		cartSnapshot,
 		order.CreatedAt,
 		order.UpdatedAt,
 	).Scan(&order.ID); err != nil {
 		return err
-	}
-
-	itemQuery := `
-		INSERT INTO o_items (
-			order_id,
-			product_id,
-			quantity,
-			price,
-			created_date,
-			last_modified,
-			is_deleted
-		)
-		VALUES ($1, $2, $3, $4, $5, $6, FALSE)
-	`
-
-	for i := range order.Items {
-		item := &order.Items[i]
-		item.OrderID = order.ID
-		item.CreatedAt = time.Now()
-		item.UpdatedAt = item.CreatedAt
-		var priceValue interface{}
-		if item.Price != nil {
-			var valErr error
-			priceValue, valErr = item.Price.Value()
-			if valErr != nil {
-				return valErr
-			}
-		}
-		if _, err = tx.ExecContext(
-			ctx,
-			itemQuery,
-			order.ID,
-			item.ProductID,
-			item.Quantity,
-			priceValue,
-			item.CreatedAt,
-			item.UpdatedAt,
-		); err != nil {
-			return err
-		}
 	}
 
 	return tx.Commit()
@@ -131,13 +84,10 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 
 // Update modifies an existing order record.
 func (r *Repository) Update(ctx context.Context, order *domain.Order) error {
-	var totalValue interface{}
-	if order.Total != nil {
-		var valErr error
-		totalValue, valErr = order.Total.Value()
-		if valErr != nil {
-			return valErr
-		}
+	// Serialize items to JSON for cart_snapshot
+	cartSnapshot, err := json.Marshal(order.Items)
+	if err != nil {
+		return fmt.Errorf("failed to serialize cart items: %w", err)
 	}
 
 	query := `
@@ -148,9 +98,8 @@ func (r *Repository) Update(ctx context.Context, order *domain.Order) error {
 		    confirmation_status = $5,
 		    total = $6,
 		    customer_snapshot = $7,
-		    shipping_address_snapshot = $8,
-		    billing_address_snapshot = $9,
-		    last_modified = $10
+		    cart_snapshot = $8,
+		    last_modified = $9
 		WHERE id = $1 AND is_deleted = FALSE
 	`
 
@@ -162,10 +111,9 @@ func (r *Repository) Update(ctx context.Context, order *domain.Order) error {
 		nullableString(order.PaymentStatus),
 		nullableString(order.DeliveryStatus),
 		nullableString(order.ConfirmationStatus),
-		totalValue,
+		order.Total,
 		order.CustomerSnapshot,
-		order.ShippingAddressSnapshot,
-		order.BillingAddressSnapshot,
+		cartSnapshot,
 		order.UpdatedAt,
 	)
 	if err != nil {
@@ -209,7 +157,7 @@ func (r *Repository) UpdateStatus(ctx context.Context, orderID int64, status dom
 func (r *Repository) FindByID(ctx context.Context, id int64) (*domain.Order, error) {
 	query := `
 		SELECT id, customer_id, status, payment_status, delivery_status, confirmation_status,
-		       total, customer_snapshot, shipping_address_snapshot, billing_address_snapshot,
+		       total, customer_snapshot, cart_snapshot,
 		       created_date, last_modified
 		FROM orders
 		WHERE id = $1 AND is_deleted = FALSE
@@ -223,11 +171,6 @@ func (r *Repository) FindByID(ctx context.Context, id int64) (*domain.Order, err
 		return nil, err
 	}
 
-	items, err := r.findItems(ctx, order.ID)
-	if err != nil {
-		return nil, err
-	}
-	order.Items = items
 	return order, nil
 }
 
@@ -267,7 +210,7 @@ func (r *Repository) ListByCustomer(ctx context.Context, query orderservice.Cust
 	args = append(args, limit, offset)
 	listQuery := fmt.Sprintf(`
 		SELECT id, customer_id, status, payment_status, delivery_status, confirmation_status,
-		       total, customer_snapshot, shipping_address_snapshot, billing_address_snapshot,
+		       total, customer_snapshot, cart_snapshot,
 		       created_date, last_modified
 		FROM orders
 		%s
@@ -296,44 +239,6 @@ func (r *Repository) ListByCustomer(ctx context.Context, query orderservice.Cust
 	return orders, total, nil
 }
 
-func (r *Repository) findItems(ctx context.Context, orderID int64) ([]domain.OrderItem, error) {
-	query := `
-		SELECT order_id, product_id, quantity, price, created_date, last_modified
-		FROM o_items
-		WHERE order_id = $1 AND is_deleted = FALSE
-		ORDER BY created_date ASC
-	`
-
-	rows, err := r.db.QueryContext(ctx, query, orderID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var items []domain.OrderItem
-	for rows.Next() {
-		var item domain.OrderItem
-		var price goodmoney.Money
-		if err := rows.Scan(
-			&item.OrderID,
-			&item.ProductID,
-			&item.Quantity,
-			&price,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		if price.Currency() != "" {
-			item.Price = &price
-		}
-		items = append(items, item)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
 
 type orderScanner interface {
 	Scan(dest ...interface{}) error
@@ -345,10 +250,9 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 	var paymentStatus sql.NullString
 	var deliveryStatus sql.NullString
 	var confirmationStatus sql.NullString
-	var total goodmoney.Money
+	var total sql.NullFloat64
 	var customerSnapshot []byte
-	var shippingSnapshot []byte
-	var billingSnapshot []byte
+	var cartSnapshot []byte
 
 	if err := scanner.Scan(
 		&order.ID,
@@ -359,8 +263,7 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 		&confirmationStatus,
 		&total,
 		&customerSnapshot,
-		&shippingSnapshot,
-		&billingSnapshot,
+		&cartSnapshot,
 		&order.CreatedAt,
 		&order.UpdatedAt,
 	); err != nil {
@@ -381,17 +284,22 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 	if confirmationStatus.Valid {
 		order.ConfirmationStatus = confirmationStatus.String
 	}
-	if total.Currency() != "" {
-		order.Total = &total
+	if total.Valid {
+		order.Total = &total.Float64
 	}
 	if len(customerSnapshot) > 0 {
 		order.CustomerSnapshot = customerSnapshot
 	}
-	if len(shippingSnapshot) > 0 {
-		order.ShippingAddressSnapshot = shippingSnapshot
-	}
-	if len(billingSnapshot) > 0 {
-		order.BillingAddressSnapshot = billingSnapshot
+	if len(cartSnapshot) > 0 {
+		order.CartSnapshot = cartSnapshot
+		// Deserialize cart_snapshot to Items
+		var items []domain.OrderItem
+		if err := json.Unmarshal(cartSnapshot, &items); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal cart snapshot: %w", err)
+		}
+		order.Items = items
+	} else {
+		order.Items = []domain.OrderItem{}
 	}
 
 	return &order, nil

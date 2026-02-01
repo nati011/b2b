@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Minus, ShoppingCart, Check, Star, Truck, Shield, RotateCcw } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Check, Truck, Shield, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 // import { useCart } from "@/contexts/CartContext";
@@ -14,7 +14,7 @@ const ProductDetail = () => {
   const { catalogue } = useCatalogueStore();
   const [quantity, setQuantity] = useState(1);
   const [currentPrice, setCurrentPrice] = useState(
-    catalogue?.configurables?.[0]?.price || 0
+    catalogue?.configurables?.[0]?.price || catalogue?.price || 0
   );
   const [selectedImage, setSelectedImage] = useState(catalogue?.images?.[0]);
 
@@ -39,8 +39,19 @@ const ProductDetail = () => {
     );
   }
 
+  // Filter out category_ids, quantity fields, and other non-attribute fields from configurable_attributes
   const attributeTypes = catalogue.configurable_attributes
-    ? Object.keys(catalogue.configurable_attributes)
+    ? Object.keys(catalogue.configurable_attributes).filter(
+        (key) => 
+          key !== 'category_ids' && 
+          key !== 'images' &&
+          key !== 'total_quantity' &&
+          key !== 'TOTAL_QUANTITY' &&
+          key !== 'reserved_quantity' &&
+          key !== 'RESERVED_QUANTITY' &&
+          key !== 'available_quantity' &&
+          key !== 'AVAILABLE_QUANTITY'
+      )
     : [];
 
   const [selectedAttributes, setSelectedAttributes] = useState<
@@ -53,44 +64,127 @@ const ProductDetail = () => {
       [attributeName]: value,
     }));
   };
+
+  // Auto-select first available option for each attribute
+  useEffect(() => {
+    if (!catalogue || attributeTypes.length === 0) return;
+
+    // Check if we already have all attributes selected
+    const allSelected = attributeTypes.every(
+      (attr) => selectedAttributes[attr]
+    );
+    if (allSelected) return;
+
+    // Build selections progressively, considering previously selected attributes
+    const newSelections: Record<string, string> = {};
+    let currentSelections = { ...selectedAttributes };
+
+    attributeTypes.forEach((attributeName) => {
+      // Skip if already selected
+      if (currentSelections[attributeName]) return;
+
+      // Get all options for this attribute
+      const options = getAllOptions(attributeName);
+      
+      // Find the first selectable option based on current selections
+      for (const option of options) {
+        // Check if this option is selectable given current selections
+        let isSelectable = false;
+        
+        if (!catalogue.configurables || catalogue.configurables.length === 0) {
+          isSelectable = catalogue.is_active;
+        } else {
+          const filteredConfigs = catalogue.configurables.filter((configurable) => {
+            return Object.entries(currentSelections).every(
+              ([key, selectedValue]) =>
+                key === attributeName ||
+                configurable.attributes?.[key] === selectedValue
+            );
+          });
+
+          isSelectable = filteredConfigs.some(
+            (configurable) =>
+              configurable.attributes?.[attributeName] === option &&
+              configurable.stock > 0
+          );
+        }
+
+        if (isSelectable) {
+          newSelections[attributeName] = option;
+          currentSelections[attributeName] = option; // Update for next iteration
+          break;
+        }
+      }
+    });
+
+    // Only update if we found new selections
+    if (Object.keys(newSelections).length > 0) {
+      setSelectedAttributes((prev) => ({
+        ...prev,
+        ...newSelections,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalogue, attributeTypes.join(',')]);
+  
   const isAllOutOfStock = () => {
+    // If no configurables, check if product is active and has stock
+    if (!catalogue.configurables || catalogue.configurables.length === 0) {
+      return !catalogue.is_active;
+    }
     return catalogue.configurables.every(
       (configurable) => configurable.stock === 0
     );
   };
 
   const getAllOptions = (attributeName: string) => {
+    // If no configurables, get options from configurable_attributes
+    if (!catalogue.configurables || catalogue.configurables.length === 0) {
+      const attrValue = catalogue.configurable_attributes?.[attributeName];
+      if (!attrValue) return [];
+      return Array.isArray(attrValue) ? attrValue : [attrValue];
+    }
+    
     return Array.from(
       new Set(
-        catalogue.configurables.map(
-          (configurable) => configurable.attributes[attributeName]
-        )
+        catalogue.configurables
+          .map((configurable) => configurable.attributes?.[attributeName])
+          .filter((val) => val !== undefined && val !== null)
       )
     );
   };
 
   const isOptionSelectable = (attributeName: string, value: string) => {
+    // If no configurables, all options are selectable if product is active
+    if (!catalogue.configurables || catalogue.configurables.length === 0) {
+      return catalogue.is_active;
+    }
+    
     const filteredConfigs = catalogue.configurables.filter((configurable) => {
       return Object.entries(selectedAttributes).every(
         ([key, selectedValue]) =>
           key === attributeName ||
-          configurable.attributes[key] === selectedValue
+          configurable.attributes?.[key] === selectedValue
       );
     });
 
     return filteredConfigs.some(
       (configurable) =>
-        configurable.attributes[attributeName] === value &&
+        configurable.attributes?.[attributeName] === value &&
         configurable.stock > 0
     );
   };
 
   useEffect(() => {
-    if (!catalogue?.configurables?.length) return;
+    // If no configurables, use base product price
+    if (!catalogue?.configurables || catalogue.configurables.length === 0) {
+      setCurrentPrice(catalogue?.price || 0);
+      return;
+    }
 
     const selectedProduct = catalogue.configurables.find((configurable) => {
       return attributeTypes.every(
-        (attr) => configurable.attributes[attr] === selectedAttributes[attr]
+        (attr) => configurable.attributes?.[attr] === selectedAttributes[attr]
       );
     });
 
@@ -102,11 +196,51 @@ const ProductDetail = () => {
   }, [selectedAttributes, catalogue, attributeTypes]);
 
   const getSelectedProduct = () => {
+    // If no configurables, return a product from the base catalogue
+    if (!catalogue.configurables || catalogue.configurables.length === 0) {
+      // Get available quantity from configurable_attributes if stored there
+      const availableQuantity = catalogue.configurable_attributes?.available_quantity;
+      // Use actual available_quantity if available, otherwise check is_active
+      const stock = availableQuantity !== undefined && availableQuantity !== null
+        ? availableQuantity 
+        : (catalogue.is_active ? 999 : 0);
+      
+      return {
+        id: catalogue.id,
+        name: catalogue.name,
+        price: catalogue.price || 0,
+        stock: stock,
+        images: catalogue.images || [],
+        attributes: catalogue.configurable_attributes || {}
+      };
+    }
+    
     return catalogue.configurables.find((configurable) => {
       return attributeTypes.every(
-        (attr) => configurable.attributes[attr] === selectedAttributes[attr]
+        (attr) => configurable.attributes?.[attr] === selectedAttributes[attr]
       );
-    });
+    }) || catalogue.configurables[0]; // Fallback to first configurable if none matches
+  };
+  
+  // Get stock information for display
+  const getStockInfo = () => {
+    const product = getSelectedProduct();
+    if (!product) {
+      return {
+        stock: 0,
+        isAvailable: false,
+        message: "Product not available"
+      };
+    }
+    
+    const stock = product.stock || 0;
+    return {
+      stock: stock,
+      isAvailable: stock > 0 && catalogue.is_active,
+      message: stock > 0 
+        ? `${stock} ${stock === 1 ? 'unit' : 'units'} available`
+        : "Currently out of stock"
+    };
   };
 
   const getStockStatus = () => {
@@ -137,12 +271,19 @@ const ProductDetail = () => {
       return;
     }
 
+    // Ensure we have a valid id
+    const productId = selectedProduct.id ?? catalogue?.id;
+    if (typeof productId !== 'number') {
+      toast.error("Product ID is missing. Please try again.");
+      return;
+    }
+
     addCartItems(
       {
-        id: selectedProduct.id,
+        id: productId,
         name: selectedProduct.name,
         price: selectedProduct.price,
-        image: selectedProduct.images[0].ImageUrl,
+        image: selectedProduct.images?.[0]?.ImageUrl || catalogue.images?.[0]?.ImageUrl || '',
       },
       quantity
     );
@@ -215,14 +356,20 @@ const ProductDetail = () => {
           <div className="space-y-4">
             {/* Main Image */}
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-lg group">
-              <Image
-                width={800}
-                height={800}
-                loading="lazy"
-                src={selectedImage?.ImageUrl || catalogue?.images[0]?.ImageUrl || ""}
-                alt={catalogue?.name || "Product"}
-                className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
-              />
+              {catalogue?.images && catalogue.images.length > 0 ? (
+                <Image
+                  width={800}
+                  height={800}
+                  loading="lazy"
+                  src={selectedImage?.ImageUrl || catalogue?.images[0]?.ImageUrl || ""}
+                  alt={catalogue?.name || "Product"}
+                  className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                  No Image Available
+                </div>
+              )}
             </div>
 
             {/* Thumbnail Gallery */}
@@ -261,34 +408,20 @@ const ProductDetail = () => {
           <div className="flex flex-col space-y-6">
             {/* Product Title & Price */}
             <div className="space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-                  {catalogue.name}
-                </h1>
-                {stockStatus && (
-                  <Badge variant={stockStatus.variant} className="shrink-0">
-                    {stockStatus.text}
-                  </Badge>
-                )}
-              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+                {catalogue.name}
+              </h1>
               
-              <div className="flex items-baseline gap-3">
+              <div className="flex items-baseline gap-3 flex-wrap">
                 <span className="text-4xl md:text-5xl font-bold text-primary">
                   {currentPrice.toLocaleString()}
                 </span>
                 <span className="text-xl text-gray-500">ETB</span>
-              </div>
-
-              {/* Rating & Reviews Placeholder */}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <span>(4.5)</span>
-                <span className="text-gray-400">•</span>
-                <span>24 reviews</span>
+                {stockStatus && (
+                  <Badge variant={stockStatus.variant} className="shrink-0 self-center">
+                    {stockStatus.text}
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -368,16 +501,41 @@ const ProductDetail = () => {
             })}
 
             {/* Stock Info */}
-            {selectedProduct && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-900">
-                  <span className="font-semibold">Availability:</span>{" "}
-                  {selectedProduct.stock > 0
-                    ? `${selectedProduct.stock} units available`
-                    : "Currently out of stock"}
-                </p>
-              </div>
-            )}
+            {(() => {
+              const stockInfo = getStockInfo();
+              return (
+                <div className={`p-4 rounded-lg border ${
+                  stockInfo.isAvailable 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Check className={`w-5 h-5 ${
+                        stockInfo.isAvailable ? 'text-green-600' : 'text-red-600'
+                      }`} />
+                      <div>
+                        <p className={`text-sm font-semibold ${
+                          stockInfo.isAvailable ? 'text-green-900' : 'text-red-900'
+                        }`}>
+                          Stock Availability
+                        </p>
+                        <p className={`text-sm ${
+                          stockInfo.isAvailable ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          {stockInfo.message}
+                        </p>
+                      </div>
+                    </div>
+                    {stockInfo.isAvailable && stockInfo.stock < 10 && (
+                      <Badge variant="outline" className="bg-yellow-50 border-yellow-300 text-yellow-800">
+                        Low Stock
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Quantity Selector */}
             <div className="space-y-3">
@@ -432,22 +590,6 @@ const ProductDetail = () => {
                 ? "Out of Stock"
                 : "Add to Cart"}
             </Button>
-
-            {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-              <div className="flex flex-col items-center text-center">
-                <Truck className="w-6 h-6 text-primary mb-2" />
-                <span className="text-xs font-medium text-gray-700">Free Shipping</span>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <RotateCcw className="w-6 h-6 text-primary mb-2" />
-                <span className="text-xs font-medium text-gray-700">Easy Returns</span>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <Shield className="w-6 h-6 text-primary mb-2" />
-                <span className="text-xs font-medium text-gray-700">Secure Ordering</span>
-              </div>
-            </div>
           </div>
         </div>
       </main>

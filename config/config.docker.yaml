@@ -2,13 +2,13 @@
 # All fields are required unless marked as optional
 
 app:
-  name: "nucleus"
+  name: "marketplace"
   version: "0.5.0-Snapshot"
   env: "development"  # Options: development, staging, production
 
 server:
   host: "0.0.0.0"  # Listen on all interfaces in Docker
-  port: 8080
+  port: 8090
   read_timeout: 30s
   write_timeout: 30s
   idle_timeout: 60s
@@ -29,11 +29,11 @@ logging:
 
 db:
   driver: postgres  # Options: postgres, mysql, sqlite
-  host: postgres  # Use Docker service name
+  host: localhost  # Connect to PostgreSQL on host machine
   port: 5432
   user: postgres
   password: postgres
-  database: core
+  database: b2b
   # Optional: postgres-specific SSL mode (e.g., disable, require, verify-full)
   sslmode: disable
 
@@ -41,7 +41,7 @@ auth:
   # Options: basic, oauth2
   mode: basic
   basic:
-    realm: "Nucleus Admin"
+    realm: "B2B"
     # Default values for superadmin user creation
     email_domain: "@admin.local"
     user_prefix: "admin-"

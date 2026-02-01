@@ -30,7 +30,9 @@ type publicRoutesProvider struct{}
 
 func (p *publicRoutesProvider) PublicRoutes() []string {
 	return []string{
-		"GET " + RouteCatalogue,
+		"GET " + RouteCatalogue,  // Browse catalogue
+		"GET " + RouteProducts,   // List products
+		"GET " + RouteProduct,    // View product details
 	}
 }
 

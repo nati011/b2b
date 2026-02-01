@@ -16,3 +16,6 @@ ALTER TABLE resource_actions
 
 CREATE INDEX resource_actions_resource_id_idx ON resource_actions (resource_id);
 
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_resource_actions_action ON resource_actions(action) WHERE deprecated_at IS NULL;
+

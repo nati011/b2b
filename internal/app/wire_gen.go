@@ -12,18 +12,21 @@ import (
 	http2 "marketplace/internal/core/customer/api/http"
 	"marketplace/internal/core/customer/repository"
 	customer2 "marketplace/internal/core/customer/service"
-	http4 "marketplace/internal/core/order/api/http"
+	http5 "marketplace/internal/core/order/api/http"
 	repository3 "marketplace/internal/core/order/repository"
 	"marketplace/internal/core/order/service"
-	http3 "marketplace/internal/core/product/api/http"
+	http4 "marketplace/internal/core/product/api/http"
 	repository2 "marketplace/internal/core/product/repository"
 	service2 "marketplace/internal/core/product/service"
+	http3 "marketplace/internal/core/supplier/api/http"
+	"marketplace/internal/core/supplier/repository"
+	supplier2 "marketplace/internal/core/supplier/service"
 	"marketplace/internal/infra/auth"
 	"marketplace/internal/infra/auth/basic"
-	http6 "marketplace/internal/infra/auth/basic/api/http"
+	http7 "marketplace/internal/infra/auth/basic/api/http"
 	repository4 "marketplace/internal/infra/auth/basic/repository"
 	service3 "marketplace/internal/infra/auth/basic/service"
-	http5 "marketplace/internal/infra/authz/permission/api/http"
+	http6 "marketplace/internal/infra/authz/permission/api/http"
 	"marketplace/internal/infra/authz/permission/repository"
 	permission2 "marketplace/internal/infra/authz/permission/service"
 	resource2 "marketplace/internal/infra/authz/resource/repository"
@@ -68,10 +71,13 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 	permissionHandler := providePermissionHandler(permissionService)
 	credentialRepository := provideBasicAuthRepository(db)
 	serviceService := provideBasicAuthService(credentialRepository, service, userPermissionChecker)
-	handler := provideBasicAuthHandler(serviceService)
+	handler := provideBasicAuthHandler(serviceService, service)
 	customerRepository := provideCustomerRepository(db)
 	customerService := provideCustomerService(customerRepository)
 	customerHandler := provideCustomerHandler(customerService)
+	supplierRepository := provideSupplierRepository(db)
+	supplierService := provideSupplierService(supplierRepository)
+	supplierHandler := provideSupplierHandler(supplierService)
 	repositoryRepository := provideProductRepository(db)
 	service2 := provideProductService(repositoryRepository)
 	productHandler := provideProductHandler(service2)
@@ -86,11 +92,11 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 	registrationTokenAdapter := provideRegistrationTokenAdapter(registrationTokenService)
 	registrationTokenMiddleware := provideRegistrationTokenMiddleware(registrationTokenAdapter)
 	appHttpMiddleware := provideHTTPMiddleware(idempotencyMiddleware, authMiddleware, authorizationMiddleware, registrationTokenMiddleware)
-	httpHandler := provideHTTPHandler(userHandler, roleHandler, permissionHandler, handler, customerHandler, productHandler, orderHandler, appHttpMiddleware)
+	httpHandler := provideHTTPHandler(userHandler, roleHandler, permissionHandler, handler, customerHandler, supplierHandler, productHandler, orderHandler, appHttpMiddleware)
 	server := provideHTTPServer(cfg, httpHandler)
 	appApplicationInfrastructure := provideApplicationInfrastructure(cfg, db, server)
-	appApplicationServices := provideApplicationServices(service, roleService, permissionService, resourceService, serviceService, customerService, service2, orderService)
-	appApplicationHandlers := provideApplicationHandlers(userHandler, roleHandler, permissionHandler, customerHandler, productHandler, orderHandler)
+	appApplicationServices := provideApplicationServices(service, roleService, permissionService, resourceService, serviceService, customerService, supplierService, service2, orderService)
+	appApplicationHandlers := provideApplicationHandlers(userHandler, roleHandler, permissionHandler, customerHandler, supplierHandler, productHandler, orderHandler)
 	application := provideApplication(appApplicationInfrastructure, appApplicationServices, appApplicationHandlers)
 	return application, nil
 }
@@ -174,6 +180,21 @@ func provideCustomerHandler(service2 *customer2.CustomerService) *http2.Customer
 	return http2.NewCustomerHandler(service2)
 }
 
+// provideSupplierRepository creates a supplier repository.
+func provideSupplierRepository(dbConn *sql.DB) *supplier.SupplierRepository {
+	return supplier.NewSupplierRepository(dbConn)
+}
+
+// provideSupplierService creates a supplier service.
+func provideSupplierService(repo *supplier.SupplierRepository) *supplier2.SupplierService {
+	return supplier2.NewSupplierService(repo)
+}
+
+// provideSupplierHandler creates a supplier HTTP handler.
+func provideSupplierHandler(service2 *supplier2.SupplierService) *http3.SupplierHandler {
+	return http3.NewSupplierHandler(service2)
+}
+
 // provideProductRepository creates a product repository.
 func provideProductRepository(dbConn *sql.DB) *repository2.Repository {
 	return repository2.NewRepository(dbConn)
@@ -185,8 +206,8 @@ func provideProductService(repo *repository2.Repository) *service2.Service {
 }
 
 // provideProductHandler creates a product HTTP handler.
-func provideProductHandler(service3 *service2.Service) *http3.ProductHandler {
-	return http3.NewProductHandler(service3)
+func provideProductHandler(service3 *service2.Service) *http4.ProductHandler {
+	return http4.NewProductHandler(service3)
 }
 
 // provideOrderRepository creates an order repository.
@@ -200,8 +221,8 @@ func provideOrderService(repo *repository3.Repository) *order.Service {
 }
 
 // provideOrderHandler creates an order HTTP handler.
-func provideOrderHandler(service3 *order.Service) *http4.OrderHandler {
-	return http4.NewOrderHandler(service3)
+func provideOrderHandler(service3 *order.Service) *http5.OrderHandler {
+	return http5.NewOrderHandler(service3)
 }
 
 // provideRoleRepository creates a role repository.
@@ -230,8 +251,8 @@ func providePermissionService(repo *permission.PermissionRepository, resourceSer
 }
 
 // providePermissionHandler creates a permission HTTP handler.
-func providePermissionHandler(service3 *permission2.PermissionService) *http5.PermissionHandler {
-	return http5.NewPermissionHandler(service3)
+func providePermissionHandler(service3 *permission2.PermissionService) *http6.PermissionHandler {
+	return http6.NewPermissionHandler(service3)
 }
 
 // provideResourceRepository creates a resource repository.
@@ -275,8 +296,8 @@ func provideBasicAuthAdapter(service4 *service3.Service) *basic.Adapter {
 }
 
 // provideBasicAuthHandler creates a basic auth credential handler.
-func provideBasicAuthHandler(service4 *service3.Service) *http6.Handler {
-	return http6.NewHandler(service4)
+func provideBasicAuthHandler(service4 *service3.Service, userService *service.Service) *http7.Handler {
+	return http7.NewHandler(service4, userService)
 }
 
 // provideRegistrationTokenMiddleware creates middleware for validating registration tokens.
@@ -335,15 +356,16 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 }
 
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http5.PermissionHandler, basicAuthHandler *http6.Handler, customerHandler *http2.CustomerHandler, productHandler *http3.ProductHandler, orderHandler *http4.OrderHandler, mw httpMiddleware) http.Handler {
+func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http6.PermissionHandler, basicAuthHandler *http7.Handler, customerHandler *http2.CustomerHandler, supplierHandler *http3.SupplierHandler, productHandler *http4.ProductHandler, orderHandler *http5.OrderHandler, mw httpMiddleware) http.Handler {
 	mux := http.NewServeMux()
 	user.RegisterHTTPRoutes(mux, userHandler)
 	role3.RegisterHTTPRoutes(mux, roleHandler)
-	http5.RegisterHTTPRoutes(mux, permHandler)
-	http6.RegisterHTTPRoutes(mux, basicAuthHandler)
+	http6.RegisterHTTPRoutes(mux, permHandler)
+	http7.RegisterHTTPRoutes(mux, basicAuthHandler)
 	http2.RegisterHTTPRoutes(mux, customerHandler)
-	http3.RegisterHTTPRoutes(mux, productHandler)
-	http4.RegisterHTTPRoutes(mux, orderHandler)
+	http3.RegisterHTTPRoutes(mux, supplierHandler)
+	http4.RegisterHTTPRoutes(mux, productHandler)
+	http5.RegisterHTTPRoutes(mux, orderHandler)
 
 	handler := mw.idempotencyMiddleware.Handle(mux)
 	handler = mw.authorizationMiddleware.Handle(handler)
@@ -362,6 +384,7 @@ type applicationServices struct {
 	resourceService  *resource.Service
 	basicAuthService *service3.Service
 	customerService  *customer2.CustomerService
+	supplierService  *supplier2.SupplierService
 	productService   *service2.Service
 	orderService     *order.Service
 }
@@ -369,10 +392,11 @@ type applicationServices struct {
 type applicationHandlers struct {
 	userHandler     *user.UserHandler
 	roleHandler     *role3.RoleHandler
-	permHandler     *http5.PermissionHandler
+	permHandler     *http6.PermissionHandler
 	customerHandler *http2.CustomerHandler
-	productHandler  *http3.ProductHandler
-	orderHandler    *http4.OrderHandler
+	supplierHandler *http3.SupplierHandler
+	productHandler  *http4.ProductHandler
+	orderHandler    *http5.OrderHandler
 }
 
 type applicationInfrastructure struct {
@@ -389,7 +413,7 @@ func provideApplicationInfrastructure(cfg *config.Config, dbConn *sql.DB, server
 	}
 }
 
-func provideApplicationServices(userService *service.Service, roleService *role2.RoleService, permService *permission2.PermissionService, resourceService *resource.Service, basicAuthService *service3.Service, customerService *customer2.CustomerService, productService *service2.Service, orderService *order.Service) applicationServices {
+func provideApplicationServices(userService *service.Service, roleService *role2.RoleService, permService *permission2.PermissionService, resourceService *resource.Service, basicAuthService *service3.Service, customerService *customer2.CustomerService, supplierService *supplier2.SupplierService, productService *service2.Service, orderService *order.Service) applicationServices {
 	return applicationServices{
 		userService:      userService,
 		roleService:      roleService,
@@ -397,17 +421,19 @@ func provideApplicationServices(userService *service.Service, roleService *role2
 		resourceService:  resourceService,
 		basicAuthService: basicAuthService,
 		customerService:  customerService,
+		supplierService:  supplierService,
 		productService:   productService,
 		orderService:     orderService,
 	}
 }
 
-func provideApplicationHandlers(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http5.PermissionHandler, customerHandler *http2.CustomerHandler, productHandler *http3.ProductHandler, orderHandler *http4.OrderHandler) applicationHandlers {
+func provideApplicationHandlers(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http6.PermissionHandler, customerHandler *http2.CustomerHandler, supplierHandler *http3.SupplierHandler, productHandler *http4.ProductHandler, orderHandler *http5.OrderHandler) applicationHandlers {
 	return applicationHandlers{
 		userHandler:     userHandler,
 		roleHandler:     roleHandler,
 		permHandler:     permHandler,
 		customerHandler: customerHandler,
+		supplierHandler: supplierHandler,
 		productHandler:  productHandler,
 		orderHandler:    orderHandler,
 	}
@@ -428,6 +454,8 @@ func provideApplication(infra applicationInfrastructure, services applicationSer
 		BasicAuthService: services.basicAuthService,
 		CustomerService:  services.customerService,
 		CustomerHandler:  handlers.customerHandler,
+		SupplierService:  services.supplierService,
+		SupplierHandler:  handlers.supplierHandler,
 		ProductService:   services.productService,
 		ProductHandler:   handlers.productHandler,
 		OrderService:     services.orderService,

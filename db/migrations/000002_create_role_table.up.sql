@@ -14,3 +14,7 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     CONSTRAINT fk_role_permissions_roles FOREIGN KEY (role_id)
         REFERENCES roles (id) ON DELETE CASCADE
 );
+
+-- Indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_roles_name ON "roles"("name");
+CREATE INDEX IF NOT EXISTS idx_role_permissions_resource_action ON role_permissions("resource", "action");

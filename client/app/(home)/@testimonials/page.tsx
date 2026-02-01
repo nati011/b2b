@@ -1,29 +1,35 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
-import usePlanstore from "@/lib/store/usePricingPlan";
 import Link from "next/link";
 
-export default function PricingSection(){
-  const { plans, loading, error, fetchPricingPlan } = usePlanstore();
-  const [mounted, setMounted] = useState(false);
+interface PricingPlan {
+  id: string;
+  name: string;
+  price: number;
+  period: string;
+  isRecommended: boolean;
+}
 
-  // Ensure this only runs on client-side
-  useEffect(() => {
-    setMounted(true);
-    console.log('PricingSection mounted on client, fetching plans...');
-    void fetchPricingPlan();
-  }, []); // Empty dependency array - only run on mount
+export default function PricingSection(){
+  // Hardcoded pricing plans
+  const plans: PricingPlan[] = [
+    {
+      id: "monthly",
+      name: "Monthly",
+      price: 500,
+      period: "per month",
+      isRecommended: false,
+    },
+    {
+      id: "yearly",
+      name: "Year",
+      price: 4500,
+      period: "per year",
+      isRecommended: true,
+    },
+  ];
 
   const formatPrice = (price: number) => `${price.toLocaleString()} ETB`;
-  const termToPeriod = (termInMonth: number) => {
-    if (termInMonth === 1) return "per month";
-    if (termInMonth === 12) return "per year";
-    return `for ${termInMonth} months`;
-  };
-
-  const isRecommended = (name: string) => /year|annual|annunal/i.test(name) && !/two/i.test(name);
 
   return (
     <section id="pricing" className="py-20 bg-white scroll-mt-20">
@@ -41,56 +47,17 @@ export default function PricingSection(){
           </p>
         </div>
 
-        {error && (
-          <div className="text-center mb-8">
-            <div className="text-destructive mb-4">{error}</div>
-            <Button 
-              onClick={() => void fetchPricingPlan()} 
-              variant="outline"
-              className="mt-2"
-            >
-              Retry
-            </Button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {loading && plans.length === 0 && (
-            Array.from({ length: 3 }).map((_, idx) => (
-              <div key={idx} className="relative bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-                <div className="text-center mb-6">
-                  <Skeleton className="h-6 w-32 mx-auto mb-2" />
-                  <Skeleton className="h-8 w-24 mx-auto mb-1" />
-                  <Skeleton className="h-4 w-28 mx-auto" />
-                  <div className="mt-4 space-y-2">
-                    <Skeleton className="h-3 w-56 mx-auto" />
-                    <Skeleton className="h-3 w-44 mx-auto" />
-                  </div>
-                </div>
-                <div className="space-y-3 mb-8">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-                <Skeleton className="h-9 w-full" />
-              </div>
-            ))
-          )}
-
-          {!loading && plans.length === 0 && !error && (
-            <div className="md:col-span-3 text-center text-muted-foreground">No pricing plans available.</div>
-          )}
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {plans.map(plan => (
             <div 
               key={plan.id}
               className={`relative bg-white p-8 rounded-2xl border transition-all duration-300 hover:shadow-xl ${
-                isRecommended(plan.name) 
+                plan.isRecommended
                   ? "border-primary shadow-lg scale-105 ring-2 ring-primary/20" 
                   : "border-gray-200 shadow-sm hover:border-primary/50"
               }`}
             >
-              {isRecommended(plan.name) && (
+              {plan.isRecommended && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
                   Recommended
                 </div>
@@ -98,15 +65,14 @@ export default function PricingSection(){
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{plan.name}</h3>
                 <div className="text-4xl font-bold text-primary mb-2">{formatPrice(plan.price)}</div>
-                <div className="text-sm text-gray-600 mb-4">{termToPeriod(plan.term_in_month)}</div>
-                <p className="text-sm text-gray-600 mt-4">{plan.desc || ""}</p>
+                <div className="text-sm text-gray-600 mb-4">{plan.period}</div>
               </div>
 
-              <Link href={`/signup/supplier/?plan_id=${plan.id}`}>
+              <Link href="/contact">
                 <Button 
-                  variant={isRecommended(plan.name) ? "default" : "outline"}
+                  variant={plan.isRecommended ? "default" : "outline"}
                   className={`w-full py-6 text-lg font-semibold ${
-                    isRecommended(plan.name)
+                    plan.isRecommended
                       ? "bg-primary hover:bg-primary/90 text-white shadow-lg"
                       : "border-2 hover:bg-primary hover:text-white hover:border-primary"
                   }`}

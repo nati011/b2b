@@ -41,4 +41,15 @@ module.exports = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  
+  // Performance optimizations for faster navigation
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
+  
+  // Enable static page generation optimizations
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
+  },
 };

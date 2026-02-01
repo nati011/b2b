@@ -117,7 +117,8 @@ type ResourcesConfig struct {
 
 // RolesConfig contains role definitions configuration
 type RolesConfig struct {
-	Path string `yaml:"path"` // Path to roles.yaml file
+	Path              string            `yaml:"path"`                        // Path to roles.yaml file
+	UserTypeRoleMapping map[string]string `yaml:"user_type_role_mapping,omitempty"` // Maps user_type to role name
 }
 
 // RoleDefinition defines a role with its permission patterns

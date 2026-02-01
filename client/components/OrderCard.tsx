@@ -78,12 +78,12 @@ export const OrderCard: React.FC<Props> = ({
                             <div className="flex-1">
                                 <h4 className="font-medium text-primary">{orderItem.ProductName}</h4>
                                 <p className="text-sm text-gray-600">
-                                    ${orderItem.ProductPrice.toFixed(2)} × {orderItem.Quantity}
+                                    {orderItem.ProductPrice.toFixed(2)} ETB × {orderItem.Quantity}
                                 </p>
                             </div>
                             <div className="text-right">
                                 <p className="font-medium text-gray-900">
-                                    ${(orderItem.ProductPrice * orderItem.Quantity).toFixed(2)}
+                                    {(orderItem.ProductPrice * orderItem.Quantity).toFixed(2)} ETB
                                 </p>
                             </div>
                         </div>
@@ -104,7 +104,7 @@ export const OrderCard: React.FC<Props> = ({
                     <div className="text-right">
                         <p className="text-sm text-gray-600">Total</p>
                         <p className="font-bold text-lg text-primary">
-                            ${order.Total.toFixed(2)}
+                            {order.Total.toFixed(2)} ETB
                         </p>
                     </div>
                 </div>

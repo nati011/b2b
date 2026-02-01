@@ -4,10 +4,17 @@ import { Instagram } from "lucide-react";
 import { PiTelegramLogo } from "react-icons/pi";
 import { IoLogoTiktok } from "react-icons/io5";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from 'next/image'
 
 export const Footer = () => {
     const currentYear = new Date().getFullYear();
+    const router = useRouter();
+
+    // Prefetch footer links on hover
+    const handleLinkHover = (href: string) => {
+        router.prefetch(href);
+    };
 
     return (
         <footer className="bg-gray-900 text-gray-300 border-t border-gray-800">
@@ -15,13 +22,19 @@ export const Footer = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
                     {/* Left: Logo and Tagline */}
                     <div className="flex flex-col items-center sm:items-start space-y-3 sm:space-y-4">
-                        <Link href="/" className="inline-block">
+                        <Link 
+                            href="/" 
+                            className="inline-block"
+                            prefetch={true}
+                            onMouseEnter={() => handleLinkHover("/")}
+                        >
                             <Image 
                                 src='/logo.png' 
                                 width={100} 
                                 height={50} 
                                 alt="Efoyeta Store Logo" 
-                                className="brightness-0 invert w-20 sm:w-24 lg:w-28"
+                                className="brightness-0 invert w-20 sm:w-24 lg:w-28 h-12 sm:h-14 lg:h-16 object-contain"
+                                loading="lazy"
                             />
                         </Link>
                         <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left max-w-xs leading-relaxed">
@@ -35,16 +48,36 @@ export const Footer = () => {
                             Quick Links
                         </h3>
                         <nav className="flex flex-row flex-wrap items-center justify-center sm:flex-col sm:items-start gap-2 sm:gap-3 w-full">
-                            <Link href="/" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap">
+                            <Link 
+                                href="/" 
+                                prefetch={true}
+                                onMouseEnter={() => handleLinkHover("/")}
+                                className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
+                            >
                                 Home
                             </Link>
-                            <Link href="/product" prefetch={true} className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap">
+                            <Link 
+                                href="/product" 
+                                prefetch={true}
+                                onMouseEnter={() => handleLinkHover("/product")}
+                                className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
+                            >
                                 Shop
                             </Link>
-                            <Link href="/signup/supplier" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap">
+                            <Link 
+                                href="/signup/supplier" 
+                                prefetch={true}
+                                onMouseEnter={() => handleLinkHover("/signup/supplier")}
+                                className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
+                            >
                                 Partner Portal
                             </Link>
-                            <Link href="/contact" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap">
+                            <Link 
+                                href="/contact" 
+                                prefetch={true}
+                                onMouseEnter={() => handleLinkHover("/contact")}
+                                className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
+                            >
                                 Contact
                             </Link>
                         </nav>
@@ -62,12 +95,12 @@ export const Footer = () => {
                                     Download our mobile app
                                 </p>
                             </div>
-                            <div className="flex flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                            <div className="flex flex-col gap-2 sm:gap-3 w-full sm:w-auto">
                                 {/* Google Play - Coming Soon */}
                                 <a 
                                     href="#" 
                                     onClick={(e) => e.preventDefault()}
-                                    className="inline-flex items-center justify-center px-2 sm:px-4 py-2 sm:py-2.5 sm:py-3 bg-gray-800 text-white rounded-lg opacity-60 cursor-not-allowed transition-all duration-300 relative flex-1 sm:flex-none sm:w-auto"
+                                    className="inline-flex items-center justify-center px-2 sm:px-4 py-2 sm:py-2.5 sm:py-3 bg-gray-800 text-white rounded-lg opacity-60 cursor-not-allowed transition-all duration-300 relative w-full sm:w-auto"
                                     title="Coming Soon"
                                 >
                                     <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 mr-1 sm:mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -83,7 +116,7 @@ export const Footer = () => {
                                 <a 
                                     href="#" 
                                     onClick={(e) => e.preventDefault()}
-                                    className="inline-flex items-center justify-center px-2 sm:px-4 py-2 sm:py-2.5 sm:py-3 bg-gray-800 text-white rounded-lg opacity-60 cursor-not-allowed transition-all duration-300 relative flex-1 sm:flex-none sm:w-auto"
+                                    className="inline-flex items-center justify-center px-2 sm:px-4 py-2 sm:py-2.5 sm:py-3 bg-gray-800 text-white rounded-lg opacity-60 cursor-not-allowed transition-all duration-300 relative w-full sm:w-auto"
                                     title="Coming Soon"
                                 >
                                     <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 mr-1 sm:mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">

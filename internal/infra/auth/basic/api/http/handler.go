@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"marketplace/internal/infra/auth/basic/domain"
 	basicauthservice "marketplace/internal/infra/auth/basic/service"
+	userDomain "marketplace/internal/infra/user/domain"
 	httputil "marketplace/pkg/http"
 )
 
@@ -52,15 +54,38 @@ func ToCredentialResponse(cred *domain.Credential) CredentialResponse {
 	}
 }
 
+// LoginRequest represents the request to login
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// LoginResponse represents the response from login
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+}
+
+// LoginResponseWrapper wraps the login response
+type LoginResponseWrapper struct {
+	Body LoginResponse `json:"body"`
+}
+
 // Handler handles HTTP requests for basic auth credential management
 type Handler struct {
-	service *basicauthservice.Service
+	service    *basicauthservice.Service
+	userLoader basicauthservice.UserLoader
+	jwtSecret  []byte
 }
 
 // NewHandler creates a new basic auth credential handler
-func NewHandler(service *basicauthservice.Service) *Handler {
+func NewHandler(service *basicauthservice.Service, userLoader basicauthservice.UserLoader) *Handler {
+	// Use a default secret - in production this should come from config
+	secret := []byte("change-me-in-production-secret-key-min-32-chars")
 	return &Handler{
-		service: service,
+		service:    service,
+		userLoader: userLoader,
+		jwtSecret:  secret,
 	}
 }
 
@@ -154,6 +179,110 @@ func (h *Handler) DeactivateCredential(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Login handles POST /api/v1/auth/login
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	if !httputil.RequireMethod(w, r, http.MethodPost) {
+		return
+	}
+
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputil.Error(w, http.StatusBadRequest, errors.New("invalid request body"))
+		return
+	}
+
+	if req.Email == "" {
+		httputil.Error(w, http.StatusBadRequest, errors.New("email is required"))
+		return
+	}
+
+	if req.Password == "" {
+		httputil.Error(w, http.StatusBadRequest, errors.New("password is required"))
+		return
+	}
+
+	ctx := r.Context()
+
+	// Validate credentials
+	cred, err := h.service.ValidateCredentials(ctx, req.Email, req.Password)
+	if err != nil {
+		httputil.Error(w, http.StatusUnauthorized, errors.New("invalid credentials"))
+		return
+	}
+
+	// Load user
+	user, err := h.userLoader.Get(ctx, cred.UserID)
+	if err != nil {
+		httputil.Error(w, http.StatusUnauthorized, errors.New("user not found"))
+		return
+	}
+
+	if !user.CanLogin() {
+		httputil.Error(w, http.StatusUnauthorized, errors.New("user account is not active"))
+		return
+	}
+
+	// Generate JWT token
+	accessToken, err := h.generateAccessToken(user)
+	if err != nil {
+		httputil.Error(w, http.StatusInternalServerError, errors.New("failed to generate token"))
+		return
+	}
+
+	// Generate refresh token (simple UUID for now)
+	refreshToken := h.generateRefreshToken()
+
+	response := LoginResponseWrapper{
+		Body: LoginResponse{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		},
+	}
+
+	httputil.JSON(w, http.StatusAccepted, response)
+}
+
+// generateAccessToken creates a JWT token for the user
+func (h *Handler) generateAccessToken(user *userDomain.User) (string, error) {
+	now := time.Now()
+	expiresAt := now.Add(24 * time.Hour) // Token expires in 24 hours
+
+	// Get user roles (simplified - you may want to load actual role names)
+	roles := []string{}
+	if len(user.RoleIDs) > 0 {
+		// For now, use a default role based on user type
+		if user.UserType == userDomain.UserTypeOfficer {
+			roles = append(roles, "officer")
+		} else {
+			roles = append(roles, "customer")
+		}
+	}
+
+	claims := jwt.MapClaims{
+		"sub":                user.ID,
+		"name":               user.Name,
+		"email":              user.Email.String(),
+		"preferred_username": user.Email.String(),
+		"realm_access": map[string]interface{}{
+			"roles": roles,
+		},
+		"iat": now.Unix(),
+		"exp": expiresAt.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(h.jwtSecret)
+}
+
+// generateRefreshToken generates a simple refresh token (UUID-based)
+func (h *Handler) generateRefreshToken() string {
+	token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"type": "refresh",
+		"exp":  time.Now().Add(7 * 24 * time.Hour).Unix(), // 7 days
+	}).SignedString(h.jwtSecret)
+	return token
 }
 
 func (h *Handler) writeError(w http.ResponseWriter, err error) {
