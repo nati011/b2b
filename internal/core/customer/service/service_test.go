@@ -11,6 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testEmailDup     = "dup@example.com"
+	testEmailPrimary = "primary@example.com"
+	testEmailOther   = "other@example.com"
+)
+
 type mockCustomerRepository struct {
 	customers    map[int64]*domain.Customer
 	byEmail      map[string]int64
@@ -102,7 +108,7 @@ func (m *mockCustomerRepository) FindAll(ctx context.Context, pageReq pagination
 	return pagination.NewPageResult([]*domain.Customer{}, 0, pageReq), nil
 }
 
-func (m *mockCustomerRepository) FindAllWithSupplierFilter(ctx context.Context, pageReq pagination.PageRequest, supplierID int64) (pagination.PageResult[*domain.Customer], error) {
+func (m *mockCustomerRepository) FindAllWithSupplierFilter(ctx context.Context, pageReq pagination.PageRequest, supplierID int64, search string) (pagination.PageResult[*domain.Customer], error) {
 	// Mock implementation - return empty list for now
 	return pagination.NewPageResult([]*domain.Customer{}, 0, pageReq), nil
 }
@@ -132,15 +138,15 @@ func TestCustomerServiceCreateEmailConflict(t *testing.T) {
 	repo.Create(context.Background(), &domain.Customer{
 		ID:       10,
 		FullName: "Existing",
-		Email:    "dup@example.com",
+		Email:    testEmailDup,
 	})
-	repo.byEmail["dup@example.com"] = 10
+	repo.byEmail[testEmailDup] = 10
 
 	service := NewCustomerService(repo)
 	_, err := service.Create(context.Background(), CustomerInput{
 		FullName: "New Person",
 		Status:   "active",
-		Email:    "dup@example.com",
+		Email:    testEmailDup,
 	})
 	require.Error(t, err)
 	require.True(t, errors.Is(err, ErrCustomerEmailExists))
@@ -153,17 +159,17 @@ func TestCustomerServiceUpdatePhoneConflict(t *testing.T) {
 		FullName:    "Primary",
 		Status:      domain.CustomerStatusActive,
 		PhoneNumber: "0911000000",
-		Email:       "primary@example.com",
+		Email:       testEmailPrimary,
 	}
 	repo.customers[2] = &domain.Customer{
 		ID:          2,
 		FullName:    "Other",
 		Status:      domain.CustomerStatusActive,
 		PhoneNumber: "0911222333",
-		Email:       "other@example.com",
+		Email:       testEmailOther,
 	}
-	repo.byEmail["primary@example.com"] = 1
-	repo.byEmail["other@example.com"] = 2
+	repo.byEmail[testEmailPrimary] = 1
+	repo.byEmail[testEmailOther] = 2
 	repo.byPhone["0911000000"] = 1
 	repo.byPhone["0911222333"] = 2
 
@@ -172,7 +178,7 @@ func TestCustomerServiceUpdatePhoneConflict(t *testing.T) {
 		FullName:    "Primary",
 		Status:      "active",
 		PhoneNumber: "0911222333",
-		Email:       "primary@example.com",
+		Email:       testEmailPrimary,
 	})
 	require.Error(t, err)
 	require.True(t, errors.Is(err, ErrCustomerPhoneExists))
