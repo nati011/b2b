@@ -1,5 +1,5 @@
 'use client'
-import { ShoppingBag, Menu, X, Search, LogIn, CircleUser } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, LogIn, CircleUser, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
@@ -121,6 +121,16 @@ export const Navbar = () => {
         router.prefetch(href);
     }, [router]);
 
+    // Check if user is admin
+    const isAdmin = useCallback(() => {
+        return user?.roles && (user.roles.includes("admin") || user.roles.includes("superadmin"));
+    }, [user]);
+
+    // Check if user is supplier
+    const isSupplier = useCallback(() => {
+        return user?.roles && user.roles.includes("supplier");
+    }, [user]);
+
     return (
         <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 print:hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -240,6 +250,43 @@ export const Navbar = () => {
                                     </Button>
                                 </Link>
 
+                                {/* Admin Panel Link */}
+                                {isMounted && (isAuthenticated || isLoggedIn) && isAdmin() && (
+                                    <Link 
+                                        href="/admin" 
+                                        className="relative" 
+                                        prefetch={true}
+                                        onMouseEnter={() => handleLinkHover("/admin")}
+                                    >
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon"
+                                            className="text-gray-600 hover:text-gray-900"
+                                            title="Admin Panel"
+                                        >
+                                            <Shield className="h-5 w-5" />
+                                        </Button>
+                                    </Link>
+                                )}
+                                {/* Supplier Portal Link */}
+                                {isMounted && (isAuthenticated || isLoggedIn) && isSupplier() && (
+                                    <Link 
+                                        href="/supplier" 
+                                        className="relative" 
+                                        prefetch={true}
+                                        onMouseEnter={() => handleLinkHover("/supplier")}
+                                    >
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon"
+                                            className="text-gray-600 hover:text-gray-900"
+                                            title="Supplier Portal"
+                                        >
+                                            <Shield className="h-5 w-5" />
+                                        </Button>
+                                    </Link>
+                                )}
+
                                 {/* User Menu */}
                                 {/* Only check auth state after mount to prevent hydration mismatch */}
                                 {isMounted && (isAuthenticated || isLoggedIn) ? (
@@ -301,6 +348,30 @@ export const Navbar = () => {
                                                 {link.name}
                                             </Link>
                                         ))}
+                                        {isMounted && (isAuthenticated || isLoggedIn) && isAdmin() && (
+                                            <Link 
+                                                href="/admin" 
+                                                prefetch={true}
+                                                onMouseEnter={() => handleLinkHover("/admin")}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
+                                            >
+                                                <Shield className="h-5 w-5" />
+                                                Admin Panel
+                                            </Link>
+                                        )}
+                                        {isMounted && (isAuthenticated || isLoggedIn) && isSupplier() && (
+                                            <Link 
+                                                href="/supplier" 
+                                                prefetch={true}
+                                                onMouseEnter={() => handleLinkHover("/supplier")}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
+                                            >
+                                                <Shield className="h-5 w-5" />
+                                                Supplier Portal
+                                            </Link>
+                                        )}
                                         {isMounted && !(isAuthenticated || isLoggedIn) && (
                                             <Link 
                                                 href="/login" 

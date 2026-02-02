@@ -19,8 +19,8 @@ import (
 	repository2 "marketplace/internal/core/product/repository"
 	service2 "marketplace/internal/core/product/service"
 	http3 "marketplace/internal/core/supplier/api/http"
-	"marketplace/internal/core/supplier/repository"
-	supplier2 "marketplace/internal/core/supplier/service"
+	supplier2 "marketplace/internal/core/supplier/repository"
+	"marketplace/internal/core/supplier/service"
 	"marketplace/internal/infra/auth"
 	"marketplace/internal/infra/auth/basic"
 	http7 "marketplace/internal/infra/auth/basic/api/http"
@@ -59,11 +59,14 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 	phoneValidationService := providePhoneValidationService(phoneValidationRepository)
 	registrationTokenRepository := provideRegistrationTokenRepository(db)
 	registrationTokenService := provideRegistrationTokenService(registrationTokenRepository)
-	service := provideUserService(repository, roleRepository, phoneValidationService, registrationTokenService)
+	service := provideUserService(cfg, repository, roleRepository, phoneValidationService, registrationTokenService)
 	permissionRepository := providePermissionRepository(db)
 	roleService := provideRoleService(roleRepository, permissionRepository)
 	userPermissionChecker := provideUserPermissionChecker(repository, roleService)
-	userHandler := provideUserHandler(service, userPermissionChecker)
+	supplierRepository := provideSupplierRepository(db)
+	bankAccountRepository := provideBankAccountRepository(db)
+	supplierService := provideSupplierService(supplierRepository, bankAccountRepository)
+	userHandler := provideUserHandler(service, userPermissionChecker, supplierService)
 	roleHandler := provideRoleHandler(roleService)
 	resourceRepository := provideResourceRepository(db, txManager)
 	resourceService := provideResourceService(resourceRepository)
@@ -74,16 +77,14 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 	handler := provideBasicAuthHandler(serviceService, service)
 	customerRepository := provideCustomerRepository(db)
 	customerService := provideCustomerService(customerRepository)
-	customerHandler := provideCustomerHandler(customerService)
-	supplierRepository := provideSupplierRepository(db)
-	supplierService := provideSupplierService(supplierRepository)
+	customerHandler := provideCustomerHandler(customerService, supplierService)
 	supplierHandler := provideSupplierHandler(supplierService)
 	repositoryRepository := provideProductRepository(db)
 	service2 := provideProductService(repositoryRepository)
-	productHandler := provideProductHandler(service2)
+	productHandler := provideProductHandler(service2, supplierService)
 	repository2 := provideOrderRepository(db)
-	orderService := provideOrderService(repository2)
-	orderHandler := provideOrderHandler(orderService)
+	orderService := provideOrderService(repository2, service2)
+	orderHandler := provideOrderHandler(orderService, supplierService)
 	store := provideIdempotencyStore(db)
 	idempotencyMiddleware := provideIdempotencyMiddleware(store)
 	adapter := provideBasicAuthAdapter(serviceService)
@@ -156,13 +157,19 @@ func provideRegistrationTokenAdapter(service2 *service.RegistrationTokenService)
 }
 
 // provideUserService creates a user service.
-func provideUserService(repo *repository.Repository, roleRepo *role.RoleRepository, phoneValidation *service.PhoneValidationService, registrationTokenService *service.RegistrationTokenService) *service.Service {
-	return service.NewService(repo, roleRepo, phoneValidation, registrationTokenService)
+func provideUserService(cfg *config.Config, repo *repository.Repository, roleRepo *role.RoleRepository, phoneValidation *service.PhoneValidationService, registrationTokenService *service.RegistrationTokenService) *service.Service {
+	service2 := service.NewService(repo, roleRepo, phoneValidation, registrationTokenService)
+
+	if cfg.Roles != nil && cfg.Roles.UserTypeRoleMapping != nil {
+		service2.
+			SetUserTypeRoleMapping(cfg.Roles.UserTypeRoleMapping)
+	}
+	return service2
 }
 
 // provideUserHandler creates a user HTTP handler.
-func provideUserHandler(userService *service.Service, permissionChecker *service.UserPermissionChecker) *user.UserHandler {
-	return user.NewUserHandler(userService, permissionChecker)
+func provideUserHandler(userService *service.Service, permissionChecker *service.UserPermissionChecker, supplierService *supplier.SupplierService) *user.UserHandler {
+	return user.NewUserHandler(userService, permissionChecker, supplierService)
 }
 
 // provideCustomerRepository creates a customer repository.
@@ -176,22 +183,27 @@ func provideCustomerService(repo *customer.CustomerRepository) *customer2.Custom
 }
 
 // provideCustomerHandler creates a customer HTTP handler.
-func provideCustomerHandler(service2 *customer2.CustomerService) *http2.CustomerHandler {
-	return http2.NewCustomerHandler(service2)
+func provideCustomerHandler(service2 *customer2.CustomerService, supplierService *supplier.SupplierService) *http2.CustomerHandler {
+	return http2.NewCustomerHandler(service2, supplierService)
 }
 
 // provideSupplierRepository creates a supplier repository.
-func provideSupplierRepository(dbConn *sql.DB) *supplier.SupplierRepository {
-	return supplier.NewSupplierRepository(dbConn)
+func provideSupplierRepository(dbConn *sql.DB) *supplier2.SupplierRepository {
+	return supplier2.NewSupplierRepository(dbConn)
+}
+
+// provideBankAccountRepository creates a bank account repository.
+func provideBankAccountRepository(dbConn *sql.DB) *supplier2.BankAccountRepository {
+	return supplier2.NewBankAccountRepository(dbConn)
 }
 
 // provideSupplierService creates a supplier service.
-func provideSupplierService(repo *supplier.SupplierRepository) *supplier2.SupplierService {
-	return supplier2.NewSupplierService(repo)
+func provideSupplierService(repo *supplier2.SupplierRepository, bankAccountRepo *supplier2.BankAccountRepository) *supplier.SupplierService {
+	return supplier.NewSupplierService(repo, bankAccountRepo)
 }
 
 // provideSupplierHandler creates a supplier HTTP handler.
-func provideSupplierHandler(service2 *supplier2.SupplierService) *http3.SupplierHandler {
+func provideSupplierHandler(service2 *supplier.SupplierService) *http3.SupplierHandler {
 	return http3.NewSupplierHandler(service2)
 }
 
@@ -206,8 +218,8 @@ func provideProductService(repo *repository2.Repository) *service2.Service {
 }
 
 // provideProductHandler creates a product HTTP handler.
-func provideProductHandler(service3 *service2.Service) *http4.ProductHandler {
-	return http4.NewProductHandler(service3)
+func provideProductHandler(service3 *service2.Service, supplierService *supplier.SupplierService) *http4.ProductHandler {
+	return http4.NewProductHandler(service3, supplierService)
 }
 
 // provideOrderRepository creates an order repository.
@@ -216,13 +228,14 @@ func provideOrderRepository(dbConn *sql.DB) *repository3.Repository {
 }
 
 // provideOrderService creates an order service.
-func provideOrderService(repo *repository3.Repository) *order.Service {
-	return order.NewService(repo)
+func provideOrderService(repo *repository3.Repository, productService *service2.Service) *order.Service {
+	productAdapter := order.NewProductServiceAdapter(productService)
+	return order.NewService(repo, productAdapter)
 }
 
 // provideOrderHandler creates an order HTTP handler.
-func provideOrderHandler(service3 *order.Service) *http5.OrderHandler {
-	return http5.NewOrderHandler(service3)
+func provideOrderHandler(service3 *order.Service, supplierService *supplier.SupplierService) *http5.OrderHandler {
+	return http5.NewOrderHandler(service3, supplierService)
 }
 
 // provideRoleRepository creates a role repository.
@@ -297,7 +310,7 @@ func provideBasicAuthAdapter(service4 *service3.Service) *basic.Adapter {
 
 // provideBasicAuthHandler creates a basic auth credential handler.
 func provideBasicAuthHandler(service4 *service3.Service, userService *service.Service) *http7.Handler {
-	return http7.NewHandler(service4, userService)
+	return http7.NewHandler(service4, userService, userService)
 }
 
 // provideRegistrationTokenMiddleware creates middleware for validating registration tokens.
@@ -384,7 +397,7 @@ type applicationServices struct {
 	resourceService  *resource.Service
 	basicAuthService *service3.Service
 	customerService  *customer2.CustomerService
-	supplierService  *supplier2.SupplierService
+	supplierService  *supplier.SupplierService
 	productService   *service2.Service
 	orderService     *order.Service
 }
@@ -413,7 +426,7 @@ func provideApplicationInfrastructure(cfg *config.Config, dbConn *sql.DB, server
 	}
 }
 
-func provideApplicationServices(userService *service.Service, roleService *role2.RoleService, permService *permission2.PermissionService, resourceService *resource.Service, basicAuthService *service3.Service, customerService *customer2.CustomerService, supplierService *supplier2.SupplierService, productService *service2.Service, orderService *order.Service) applicationServices {
+func provideApplicationServices(userService *service.Service, roleService *role2.RoleService, permService *permission2.PermissionService, resourceService *resource.Service, basicAuthService *service3.Service, customerService *customer2.CustomerService, supplierService *supplier.SupplierService, productService *service2.Service, orderService *order.Service) applicationServices {
 	return applicationServices{
 		userService:      userService,
 		roleService:      roleService,

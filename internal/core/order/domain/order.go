@@ -18,18 +18,19 @@ const (
 
 // OrderItem represents an item within an order snapshot.
 type OrderItem struct {
-	OrderID   int64
-	ProductID int64
-	Quantity  int
-	Price     *float64
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	OrderID   int64     `json:"order_id,omitempty"`
+	ProductID int64     `json:"product_id"`
+	Quantity  int       `json:"quantity"`
+	Price     *float64  `json:"price,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 // Order represents an order snapshot for checkout and fulfillment.
 type Order struct {
 	ID                      int64
 	CustomerID              int64
+	SupplierID              int64
 	Status                  OrderStatus
 	PaymentStatus           string
 	DeliveryStatus          string
@@ -65,6 +66,7 @@ func NewOrder(customerID int64, status string, metadata OrderMetadata, items []O
 	now := time.Now()
 	return &Order{
 		CustomerID:              customerID,
+		SupplierID:              0, // Will be set by service layer
 		Status:                  parsedStatus,
 		PaymentStatus:           metadata.PaymentStatus,
 		DeliveryStatus:          metadata.DeliveryStatus,

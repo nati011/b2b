@@ -27,6 +27,7 @@ type Repository interface {
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*domain.Customer, error)
 	Delete(ctx context.Context, id int64) error
 	FindAll(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Customer], error)
+	FindAllWithSupplierFilter(ctx context.Context, pageReq pagination.PageRequest, supplierID int64, search string) (pagination.PageResult[*domain.Customer], error)
 }
 
 // CustomerInput captures incoming customer profile fields.
@@ -168,13 +169,18 @@ func (s *CustomerService) Delete(ctx context.Context, id int64) error {
 }
 
 // List retrieves a paginated list of customers.
-func (s *CustomerService) List(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Customer], error) {
-	result, err := s.repository.FindAll(ctx, pageReq)
+func (s *CustomerService) List(ctx context.Context, pageReq pagination.PageRequest, search string) (pagination.PageResult[*domain.Customer], error) {
+	return s.ListWithSupplierFilter(ctx, pageReq, 0, search)
+}
+
+// ListWithSupplierFilter retrieves a paginated list of customers, optionally filtered by supplier.
+func (s *CustomerService) ListWithSupplierFilter(ctx context.Context, pageReq pagination.PageRequest, supplierID int64, search string) (pagination.PageResult[*domain.Customer], error) {
+	result, err := s.repository.FindAllWithSupplierFilter(ctx, pageReq, supplierID, search)
 	if err != nil {
-		logger.Error("Customer pagination failed: repository error", "page", pageReq.Page, "limit", pageReq.Limit, "error", err)
+		logger.Error("Customer pagination failed: repository error", "page", pageReq.Page, "limit", pageReq.Limit, "supplier_id", supplierID, "search", search, "error", err)
 		return pagination.PageResult[*domain.Customer]{}, err
 	}
-	logger.Debug("Customer pagination completed", "page", result.Page, "total", result.Total, "items", len(result.Items))
+	logger.Debug("Customer pagination completed", "page", result.Page, "total", result.Total, "items", len(result.Items), "supplier_id", supplierID, "search", search)
 	return result, nil
 }
 

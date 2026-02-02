@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	resourceDomain "marketplace/internal/infra/authz/resource/domain"
@@ -69,7 +70,7 @@ func scanManifestFromRoutes() ([]resourceDomain.ManifestResource, error) {
 			return nil, fmt.Errorf("parse %s: %w", path, err)
 		}
 
-		fileResources, err := resourcesFromFile(file)
+		fileResources, err := resourcesFromFile(fset, file)
 		if err != nil {
 			return nil, fmt.Errorf("extract resources from %s: %w", path, err)
 		}
@@ -141,12 +142,20 @@ func fileContainsResourceAnnotation(filePath string) (bool, error) {
 	return false, nil
 }
 
-// resourcesFromFile reads @resource and @action annotations from the comment
-// groups in the given file. Each file is expected to describe at most one
-// resource.
-func resourcesFromFile(f *ast.File) ([]resourceDomain.ManifestResource, error) {
-	var current *resourceDomain.ManifestResource
+// annotation represents a parsed @resource or @action annotation with its position.
+type annotation struct {
+	pos        token.Pos
+	text       string
+	isResource bool
+}
 
+// resourcesFromFile reads @resource and @action annotations from the comment
+// groups in the given file. A file can contain multiple resources.
+// Comments are processed in file order using position information.
+func resourcesFromFile(fset *token.FileSet, f *ast.File) ([]resourceDomain.ManifestResource, error) {
+	var annotations []annotation
+
+	// Collect all annotations with their positions
 	for _, cg := range f.Comments {
 		for _, c := range cg.List {
 			text := strings.TrimSpace(strings.TrimPrefix(c.Text, "//"))
@@ -154,36 +163,72 @@ func resourcesFromFile(f *ast.File) ([]resourceDomain.ManifestResource, error) {
 				continue
 			}
 
-			switch {
-			case strings.HasPrefix(text, resourceAnnotationPrefix):
-				args := strings.TrimSpace(strings.TrimPrefix(text, resourceAnnotationPrefix))
-				kv := parseAnnotationArgs(args)
-				res := resourceDomain.ManifestResource{
-					Code:        kv["code"],
-					Service:     kv["service"],
-					Description: kv["desc"],
-				}
-				current = &res
-
-			case strings.HasPrefix(text, actionAnnotationPrefix):
-				if current == nil {
-					return nil, fmt.Errorf("@action annotation without @resource")
-				}
-				args := strings.TrimSpace(strings.TrimPrefix(text, actionAnnotationPrefix))
-				kv := parseAnnotationArgs(args)
-				act := resourceDomain.ManifestAction{
-					Name:        kv["name"],
-					Description: kv["desc"],
-				}
-				current.Actions = append(current.Actions, act)
+			isResource := strings.HasPrefix(text, resourceAnnotationPrefix)
+			isAction := strings.HasPrefix(text, actionAnnotationPrefix)
+			if isResource || isAction {
+				annotations = append(annotations, annotation{
+					pos:        c.Pos(),
+					text:       text,
+					isResource: isResource,
+				})
 			}
 		}
 	}
 
-	if current == nil {
-		return nil, nil
+	// Sort annotations by position in file
+	sort.Slice(annotations, func(i, j int) bool {
+		return fset.Position(annotations[i].pos).Offset < fset.Position(annotations[j].pos).Offset
+	})
+
+	// Process annotations in file order
+	resourceMap := make(map[string]*resourceDomain.ManifestResource)
+	var currentCode string
+
+	for _, ann := range annotations {
+		text := ann.text
+
+		switch {
+		case ann.isResource:
+			args := strings.TrimSpace(strings.TrimPrefix(text, resourceAnnotationPrefix))
+			kv := parseAnnotationArgs(args)
+			code := kv["code"]
+			currentCode = code
+			
+			// Check if resource with this code already exists
+			if _, exists := resourceMap[code]; !exists {
+				res := resourceDomain.ManifestResource{
+					Code:        code,
+					Service:     kv["service"],
+					Description: kv["desc"],
+				}
+				resourceMap[code] = &res
+			}
+
+		case strings.HasPrefix(text, actionAnnotationPrefix):
+			if currentCode == "" {
+				return nil, fmt.Errorf("@action annotation without @resource")
+			}
+			current, exists := resourceMap[currentCode]
+			if !exists {
+				return nil, fmt.Errorf("@action annotation for unknown resource: %s", currentCode)
+			}
+			args := strings.TrimSpace(strings.TrimPrefix(text, actionAnnotationPrefix))
+			kv := parseAnnotationArgs(args)
+			act := resourceDomain.ManifestAction{
+				Name:        kv["name"],
+				Description: kv["desc"],
+			}
+			current.Actions = append(current.Actions, act)
+		}
 	}
-	return []resourceDomain.ManifestResource{*current}, nil
+
+	// Convert map to slice
+	var resources []resourceDomain.ManifestResource
+	for _, res := range resourceMap {
+		resources = append(resources, *res)
+	}
+
+	return resources, nil
 }
 
 // parseAnnotationArgs parses a string of the form `key=value key2="value 2"`

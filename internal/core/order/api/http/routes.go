@@ -11,6 +11,7 @@ import (
 const (
 	RouteOrder          = "/order"
 	RouteOrdersCustomer = "/orders/customer"
+	RouteOrdersSupplier = "/order/supplier"
 )
 
 // Resource code.
@@ -32,6 +33,7 @@ func (p *authenticatedRoutesProvider) AuthenticatedRoutes() []string {
 		"POST " + RouteOrder,
 		"PATCH " + RouteOrder,
 		"GET " + RouteOrdersCustomer,
+		"GET " + RouteOrdersSupplier,
 	}
 }
 
@@ -52,17 +54,32 @@ func RegisterHTTPRoutes(mux *http.ServeMux, handler *OrderHandler) {
 		case http.MethodPost:
 			handler.CreateOrder(w, r)
 		case http.MethodPatch:
-			handler.UpdateOrderStatus(w, r)
+			// Check if this is a payment status update
+			if r.URL.Query().Get("payment_status") != "" {
+				handler.UpdatePaymentStatus(w, r)
+			} else {
+				handler.UpdateOrderStatus(w, r)
+			}
 		default:
 			httputil.MethodNotAllowed(w)
 		}
 	})
 
-	// @action name=view desc="List orders for a customer"
+	// @action name=view desc="List customer orders (requires customer_id, optional status filter)"
 	mux.HandleFunc(RouteOrdersCustomer, func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handler.ListCustomerOrders(w, r)
+		default:
+			httputil.MethodNotAllowed(w)
+		}
+	})
+
+	// @action name=view desc="List orders for supplier (automatically filtered by authenticated supplier)"
+	mux.HandleFunc(RouteOrdersSupplier, func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handler.ListSupplierOrders(w, r)
 		default:
 			httputil.MethodNotAllowed(w)
 		}

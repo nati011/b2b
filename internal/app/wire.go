@@ -32,6 +32,8 @@ import (
 	customerhttp "marketplace/internal/core/customer/api/http"
 	customerrepo "marketplace/internal/core/customer/repository"
 	customerservice "marketplace/internal/core/customer/service"
+	supplierrepo "marketplace/internal/core/supplier/repository"
+	supplierservice "marketplace/internal/core/supplier/service"
 	chargehttp "marketplace/internal/core/portfolio/charge/api/http"
 	chargerepo "marketplace/internal/core/portfolio/charge/repository"
 	chargeservice "marketplace/internal/core/portfolio/charge/service"
@@ -298,8 +300,8 @@ func provideRegistrationTokenAdapter(service *userservice.RegistrationTokenServi
 }
 
 // provideUserHandler creates a user HTTP handler
-func provideUserHandler(userService *userservice.Service, permissionChecker *userservice.UserPermissionChecker) *userhttp.UserHandler {
-	return userhttp.NewUserHandler(userService, permissionChecker)
+func provideUserHandler(userService *userservice.Service, permissionChecker *userservice.UserPermissionChecker, supplierService *supplierservice.SupplierService) *userhttp.UserHandler {
+	return userhttp.NewUserHandler(userService, permissionChecker, supplierService)
 }
 
 // provideCustomerRepository creates a customer repository
@@ -736,7 +738,7 @@ func provideBasicAuthAdapter(service *basicauthservice.Service) *basicauth.Adapt
 
 // provideBasicAuthHandler creates a basic auth credential handler
 func provideBasicAuthHandler(service *basicauthservice.Service, userService *userservice.Service) *basicauthhttp.Handler {
-	return basicauthhttp.NewHandler(service, userService)
+	return basicauthhttp.NewHandler(service, userService, userService)
 }
 
 // provideRegistrationTokenMiddleware creates middleware for validating registration tokens

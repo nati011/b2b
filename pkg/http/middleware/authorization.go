@@ -450,6 +450,9 @@ func extractActionFromSegments(method string, remainingSegments []string) string
 func handleSingleSegmentResource(method string, segments []string) (resource, action string, err error) {
 	resource = segments[0]
 
+	// Map singular resource names to their plural forms (e.g., product -> products)
+	resource = mapResourceToPlural(resource)
+
 	// Handle special cases first
 	if len(segments) >= 2 {
 		if action := handleSpecialCases(method, segments); action != "" {
@@ -502,6 +505,22 @@ func handleUserRolesAction(method string) string {
 	default:
 		return ""
 	}
+}
+
+// mapResourceToPlural maps singular resource names to their plural forms.
+// This handles cases where routes use singular forms (e.g., /product) but
+// resource codes use plural forms (e.g., products).
+func mapResourceToPlural(resource string) string {
+	singularToPlural := map[string]string{
+		"product":  "products",
+		"customer": "customers", // In case it's used
+		"supplier": "suppliers", // In case it's used
+		"order":    "orders",    // In case it's used
+	}
+	if plural, ok := singularToPlural[resource]; ok {
+		return plural
+	}
+	return resource
 }
 
 // mapHTTPMethodToAction maps standard HTTP methods to actions.

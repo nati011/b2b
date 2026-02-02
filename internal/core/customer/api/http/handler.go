@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,7 +11,9 @@ import (
 
 	"marketplace/internal/core/customer/domain"
 	customerservice "marketplace/internal/core/customer/service"
+	supplierservice "marketplace/internal/core/supplier/service"
 	httputil "marketplace/pkg/http"
+	"marketplace/pkg/logger"
 	"marketplace/pkg/pagination"
 )
 
@@ -71,11 +74,15 @@ type CreateCustomerResponse struct {
 
 // CustomerHandler exposes HTTP endpoints for managing customers.
 type CustomerHandler struct {
-	service *customerservice.CustomerService
+	service         *customerservice.CustomerService
+	supplierService *supplierservice.SupplierService
 }
 
-func NewCustomerHandler(service *customerservice.CustomerService) *CustomerHandler {
-	return &CustomerHandler{service: service}
+func NewCustomerHandler(service *customerservice.CustomerService, supplierService *supplierservice.SupplierService) *CustomerHandler {
+	return &CustomerHandler{
+		service:         service,
+		supplierService: supplierService,
+	}
 }
 
 // CreateCustomer handles POST /customer requests.
@@ -226,11 +233,12 @@ func (h *CustomerHandler) ListCustomers(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	ctx := r.Context()
+
 	// Check if email query parameter is provided
 	email := strings.TrimSpace(r.URL.Query().Get("email"))
 	if email != "" {
 		// If email is provided, return customer by email
-		ctx := r.Context()
 		customer, err := h.service.GetByEmail(ctx, email)
 		if err != nil {
 			h.writeError(w, err)
@@ -241,8 +249,23 @@ func (h *CustomerHandler) ListCustomers(w http.ResponseWriter, r *http.Request) 
 	}
 
 	pageReq := pagination.FromRequest(r)
-	ctx := r.Context()
-	result, err := h.service.List(ctx, pageReq)
+	search := strings.TrimSpace(r.URL.Query().Get("search"))
+	
+	// If user is a supplier, filter customers by supplier
+	supplierID := h.getSupplierIDFromUser(ctx)
+	if supplierID > 0 {
+		logger.DebugContext(ctx, "Auto-filtering customers by supplier", "supplier_id", supplierID, "search", search)
+		result, err := h.service.ListWithSupplierFilter(ctx, pageReq, supplierID, search)
+		if err != nil {
+			h.writeError(w, err)
+			return
+		}
+		httputil.JSON(w, http.StatusOK, ToCustomerListResponse(result))
+		return
+	}
+
+	// Otherwise, list all customers
+	result, err := h.service.List(ctx, pageReq, search)
 	if err != nil {
 		h.writeError(w, err)
 		return
@@ -335,4 +358,27 @@ func resolveStatus(status string, isActive *bool, defaultStatus string) string {
 		return string(domain.CustomerStatusInactive)
 	}
 	return defaultStatus
+}
+
+// getSupplierIDFromUser attempts to get supplier_id from the authenticated user's email.
+// Returns 0 if user is not found, not authenticated, or is not linked to a supplier.
+func (h *CustomerHandler) getSupplierIDFromUser(ctx context.Context) int64 {
+	user := httputil.UserFromContext(ctx)
+	if user == nil {
+		return 0
+	}
+
+	// Get user email
+	email := user.Email.String()
+	if email == "" {
+		return 0
+	}
+
+	// Look up supplier by email
+	supplier, err := h.supplierService.GetByEmail(ctx, email)
+	if err != nil {
+		return 0
+	}
+
+	return supplier.ID
 }

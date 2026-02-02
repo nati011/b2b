@@ -66,6 +66,26 @@ export default function LoginPage() {
           localStorage.setItem('user_email', email);
           // Update login status
           setIsLoggedIn(true);
+          
+          // Check user roles and redirect based on role
+          const userRolesStr = localStorage.getItem('user_roles');
+          if (userRolesStr) {
+            try {
+              const userRoles: string[] = JSON.parse(userRolesStr);
+              
+              if (userRoles.includes('admin') || userRoles.includes('superadmin')) {
+                toast.success("Login successful!");
+                router.push('/admin');
+                return;
+              } else if (userRoles.includes('supplier')) {
+                toast.success("Login successful!");
+                router.push('/supplier');
+                return;
+              }
+            } catch (e) {
+              console.error('Error parsing user roles:', e);
+            }
+          }
         }
         toast.success("Login successful!");
         router.push(callbackUrl);
@@ -94,8 +114,51 @@ export default function LoginPage() {
             setIsLoggedIn(true);
             // Dispatch custom event to notify AuthContext of login
             window.dispatchEvent(new Event('auth-state-changed'));
+            
+            // For NextAuth, decode the token from the response to get roles
+            // The token should be in the session, but we can also check localStorage
+            // Wait a moment for the session to be established, then check roles
+            setTimeout(async () => {
+              // Try to get roles from localStorage first (if Login function stored them)
+              let userRoles: string[] = [];
+              const userRolesStr = localStorage.getItem('user_roles');
+              if (userRolesStr) {
+                try {
+                  userRoles = JSON.parse(userRolesStr);
+                } catch (e) {
+                  console.error('Error parsing user roles from localStorage:', e);
+                }
+              }
+              
+              // If no roles in localStorage, try to get from session
+              if (userRoles.length === 0) {
+                try {
+                  const { getSession } = await import('next-auth/react');
+                  const session = await getSession();
+                  if (session?.user && (session.user as any).roles) {
+                    userRoles = (session.user as any).roles;
+                    // Store in localStorage for consistency
+                    localStorage.setItem('user_roles', JSON.stringify(userRoles));
+                  }
+                } catch (e) {
+                  console.error('Error getting session:', e);
+                }
+              }
+              
+              // Redirect based on role
+              if (userRoles.includes('admin') || userRoles.includes('superadmin')) {
+                router.push('/admin');
+                return;
+              } else if (userRoles.includes('supplier')) {
+                router.push('/supplier');
+                return;
+              }
+              
+              router.push(callbackUrl);
+            }, 200);
+          } else {
+            router.push(callbackUrl);
           }
-          router.push(callbackUrl);
         }
       }
     } catch (error: any) {

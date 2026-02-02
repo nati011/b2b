@@ -72,6 +72,7 @@ echo ""
 SEED_FILES=(
   "001_seed_users.sql"
   "008_seed_credentials.sql"  # Credentials must be seeded after users
+  "009_seed_user_roles.sql"   # User roles must be seeded after users and roles are bootstrapped
   "002_seed_suppliers.sql"
   "003_seed_customers.sql"
   "004_seed_categories.sql"

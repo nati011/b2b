@@ -9,9 +9,10 @@ import (
 
 // HTTP route paths.
 const (
-	RouteProduct   = "/product"
-	RouteProducts  = "/products"
-	RouteCatalogue = "/catalogue"
+	RouteProduct        = "/product"
+	RouteProducts       = "/products"
+	RouteCatalogue      = "/catalogue"
+	RouteSupplierProducts = "/products/supplier"
 )
 
 // Resource code.
@@ -36,8 +37,18 @@ func (p *publicRoutesProvider) PublicRoutes() []string {
 	}
 }
 
+// authenticatedRoutesProvider registers authenticated product routes.
+type authenticatedRoutesProvider struct{}
+
+func (p *authenticatedRoutesProvider) AuthenticatedRoutes() []string {
+	return []string{
+		"GET " + RouteSupplierProducts, // Supplier products endpoint requires authentication
+	}
+}
+
 func init() {
 	middleware.RegisterPublicRoutesProvider(&publicRoutesProvider{})
+	middleware.RegisterAuthenticatedRoutesProvider(&authenticatedRoutesProvider{})
 }
 
 // @resource code=products service=product-management desc="Product catalog records"
@@ -77,6 +88,36 @@ func RegisterHTTPRoutes(mux *http.ServeMux, handler *ProductHandler) {
 		switch r.Method {
 		case http.MethodGet:
 			handler.ListCatalogue(w, r)
+		default:
+			httputil.MethodNotAllowed(w)
+		}
+	})
+
+	// @action name=view desc="List supplier products (authenticated supplier-only endpoint)"
+	mux.HandleFunc(RouteSupplierProducts, func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handler.ListSupplierProducts(w, r)
+		default:
+			httputil.MethodNotAllowed(w)
+		}
+	})
+
+	// @action name=update desc="Create goods receiving note (GRN)"
+	mux.HandleFunc(RouteProduct+"/grn", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handler.CreateGRN(w, r)
+		default:
+			httputil.MethodNotAllowed(w)
+		}
+	})
+
+	// @action name=update desc="Update product price"
+	mux.HandleFunc(RouteProduct+"/price", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPatch:
+			handler.UpdatePrice(w, r)
 		default:
 			httputil.MethodNotAllowed(w)
 		}

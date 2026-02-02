@@ -30,8 +30,19 @@ func (p *publicRoutesProvider) PublicRoutes() []string {
 	}
 }
 
+// authenticatedRoutesProvider registers authenticated customer routes.
+type authenticatedRoutesProvider struct{}
+
+func (p *authenticatedRoutesProvider) AuthenticatedRoutes() []string {
+	return []string{
+		"GET " + RouteCustomers,
+		"GET " + RouteCustomers + "/",
+	}
+}
+
 func init() {
 	middleware.RegisterPublicRoutesProvider(&publicRoutesProvider{})
+	middleware.RegisterAuthenticatedRoutesProvider(&authenticatedRoutesProvider{})
 }
 
 // @resource code=customer service=customer-management desc="Customer profile records"

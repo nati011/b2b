@@ -498,3 +498,57 @@ func collectProducts(rows *sql.Rows) ([]*domain.Product, error) {
 
 	return products, nil
 }
+
+// RecordPriceChange records a price change in the price_history table.
+func (r *Repository) RecordPriceChange(ctx context.Context, productID int64, oldPrice, newPrice *float64, userID *int64, userEmail, reason string) error {
+	query := `
+		INSERT INTO price_history (
+			product_id,
+			old_price,
+			new_price,
+			changed_by_user_id,
+			changed_by_user_email,
+			reason,
+			created_date
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW())
+	`
+
+	var oldPriceVal interface{}
+	if oldPrice != nil {
+		oldPriceVal = *oldPrice
+	}
+
+	var newPriceVal interface{}
+	if newPrice != nil {
+		newPriceVal = *newPrice
+	}
+
+	var userIDVal interface{}
+	if userID != nil {
+		userIDVal = *userID
+	}
+
+	var userEmailVal interface{}
+	if userEmail != "" {
+		userEmailVal = userEmail
+	}
+
+	var reasonVal interface{}
+	if reason != "" {
+		reasonVal = reason
+	}
+
+	_, err := r.db.ExecContext(
+		ctx,
+		query,
+		productID,
+		oldPriceVal,
+		newPriceVal,
+		userIDVal,
+		userEmailVal,
+		reasonVal,
+	)
+
+	return err
+}

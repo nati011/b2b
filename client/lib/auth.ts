@@ -216,6 +216,9 @@ export const authOptions: AuthOptions = {
       return true;
     },
     async redirect({ url, baseUrl }) {
+      // For role-based redirects, we handle it in the login page component
+      // after the session is established, as the redirect callback doesn't have
+      // direct access to the token in the same way
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;

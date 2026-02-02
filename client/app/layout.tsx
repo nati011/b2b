@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Overpass } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import SessionProvider from "@/app/SessionProvider";
 import { AuthProvider } from "@/context/AuthContext";
 import TawkChat from "@/components/TawkChat";
+import { ConditionalLayout } from "@/components/ConditionalLayout";
+import { ThemeWrapper } from "@/components/ThemeWrapper";
 
 const overpass = Overpass({
   subsets: ["latin"],
@@ -35,15 +35,17 @@ export default function RootLayout({
       <body
         className={`${overpass.variable} font-sans antialiased min-h-screen`}
       >
-        <SessionProvider>
-          <AuthProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <Toaster richColors />
-            <TawkChat />
-          </AuthProvider>
-        </SessionProvider>
+        <ThemeWrapper>
+          <SessionProvider>
+            <AuthProvider>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+              <Toaster richColors />
+              <TawkChat />
+            </AuthProvider>
+          </SessionProvider>
+        </ThemeWrapper>
       </body>
     </html>
   );

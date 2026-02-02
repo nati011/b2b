@@ -26,7 +26,16 @@ type Repository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.Supplier, error)
 	FindByPhone(ctx context.Context, phone string) (*domain.Supplier, error)
 	Delete(ctx context.Context, id int64) error
-	FindAll(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Supplier], error)
+	FindAll(ctx context.Context, pageReq pagination.PageRequest, search string) (pagination.PageResult[*domain.Supplier], error)
+}
+
+// BankAccountRepository defines the bank account persistence contract.
+type BankAccountRepository interface {
+	Create(ctx context.Context, account *domain.BankAccount) error
+	Update(ctx context.Context, account *domain.BankAccount) error
+	FindByID(ctx context.Context, id int64) (*domain.BankAccount, error)
+	FindBySupplierID(ctx context.Context, supplierID int64) ([]*domain.BankAccount, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 // SupplierInput captures incoming supplier profile fields.
@@ -39,11 +48,15 @@ type SupplierInput struct {
 
 // SupplierService coordinates supplier business logic.
 type SupplierService struct {
-	repository Repository
+	repository         Repository
+	bankAccountRepo    BankAccountRepository
 }
 
-func NewSupplierService(repository Repository) *SupplierService {
-	return &SupplierService{repository: repository}
+func NewSupplierService(repository Repository, bankAccountRepo BankAccountRepository) *SupplierService {
+	return &SupplierService{
+		repository:      repository,
+		bankAccountRepo: bankAccountRepo,
+	}
 }
 
 // Create registers a new supplier.
@@ -87,6 +100,21 @@ func (s *SupplierService) Get(ctx context.Context, id int64) (*domain.Supplier, 
 		return nil, err
 	}
 	logger.Debug("Supplier retrieved successfully", "supplier_id", id)
+	return supplier, nil
+}
+
+// GetByEmail fetches a supplier by email address.
+func (s *SupplierService) GetByEmail(ctx context.Context, email string) (*domain.Supplier, error) {
+	supplier, err := s.repository.FindByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, ErrSupplierNotFound) {
+			logger.Debug("Supplier retrieval failed: supplier not found", "email", email)
+		} else {
+			logger.Error("Supplier retrieval failed: repository error", "email", email, "error", err)
+		}
+		return nil, err
+	}
+	logger.Debug("Supplier retrieved successfully", "email", email, "supplier_id", supplier.ID)
 	return supplier, nil
 }
 
@@ -144,15 +172,131 @@ func (s *SupplierService) Delete(ctx context.Context, id int64) error {
 }
 
 // List retrieves a paginated list of suppliers.
-func (s *SupplierService) List(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Supplier], error) {
-	result, err := s.repository.FindAll(ctx, pageReq)
+func (s *SupplierService) List(ctx context.Context, pageReq pagination.PageRequest, search string) (pagination.PageResult[*domain.Supplier], error) {
+	result, err := s.repository.FindAll(ctx, pageReq, search)
 	if err != nil {
-		logger.Error("Supplier pagination failed: repository error", "page", pageReq.Page, "limit", pageReq.Limit, "error", err)
+		logger.Error("Supplier pagination failed: repository error", "page", pageReq.Page, "limit", pageReq.Limit, "search", search, "error", err)
 		return pagination.PageResult[*domain.Supplier]{}, err
 	}
-	logger.Debug("Supplier pagination completed", "page", result.Page, "total", result.Total, "items", len(result.Items))
+	logger.Debug("Supplier pagination completed", "page", result.Page, "total", result.Total, "items", len(result.Items), "search", search)
 	return result, nil
 }
+
+// BankAccountInput captures incoming bank account fields.
+type BankAccountInput struct {
+	SupplierID        int64
+	BankName          string
+	AccountNumber     string
+	AccountHolderName string
+	BranchName        string
+	AccountType       string
+	IsPrimary         bool
+}
+
+// CreateBankAccount creates a new bank account for a supplier.
+func (s *SupplierService) CreateBankAccount(ctx context.Context, input BankAccountInput) (*domain.BankAccount, error) {
+	// Verify supplier exists
+	_, err := s.repository.FindByID(ctx, input.SupplierID)
+	if err != nil {
+		logger.Debug("Bank account creation failed: supplier not found", "supplier_id", input.SupplierID)
+		return nil, err
+	}
+
+	account, err := domain.NewBankAccount(
+		input.SupplierID,
+		input.BankName,
+		input.AccountNumber,
+		input.AccountHolderName,
+		input.BranchName,
+		input.AccountType,
+		input.IsPrimary,
+	)
+	if err != nil {
+		logger.Warn("Bank account creation failed: validation error", "supplier_id", input.SupplierID, "error", err)
+		return nil, err
+	}
+
+	if err := s.bankAccountRepo.Create(ctx, account); err != nil {
+		logger.Error("Bank account creation failed: repository error", "supplier_id", input.SupplierID, "error", err)
+		return nil, err
+	}
+
+	logger.Info("Bank account created successfully", "account_id", account.ID, "supplier_id", input.SupplierID)
+	return account, nil
+}
+
+// GetBankAccount retrieves a bank account by ID.
+func (s *SupplierService) GetBankAccount(ctx context.Context, id int64) (*domain.BankAccount, error) {
+	account, err := s.bankAccountRepo.FindByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, ErrBankAccountNotFound) {
+			logger.Debug("Bank account retrieval failed: not found", "account_id", id)
+		} else {
+			logger.Error("Bank account retrieval failed: repository error", "account_id", id, "error", err)
+		}
+		return nil, err
+	}
+	logger.Debug("Bank account retrieved successfully", "account_id", id)
+	return account, nil
+}
+
+// ListBankAccounts retrieves all bank accounts for a supplier.
+func (s *SupplierService) ListBankAccounts(ctx context.Context, supplierID int64) ([]*domain.BankAccount, error) {
+	accounts, err := s.bankAccountRepo.FindBySupplierID(ctx, supplierID)
+	if err != nil {
+		logger.Error("Bank account list failed: repository error", "supplier_id", supplierID, "error", err)
+		return nil, err
+	}
+	logger.Debug("Bank account list completed", "supplier_id", supplierID, "count", len(accounts))
+	return accounts, nil
+}
+
+// UpdateBankAccount updates an existing bank account.
+func (s *SupplierService) UpdateBankAccount(ctx context.Context, id int64, input BankAccountInput) (*domain.BankAccount, error) {
+	account, err := s.bankAccountRepo.FindByID(ctx, id)
+	if err != nil {
+		logger.Debug("Bank account update failed: not found", "account_id", id)
+		return nil, err
+	}
+
+	if err := account.Update(
+		input.BankName,
+		input.AccountNumber,
+		input.AccountHolderName,
+		input.BranchName,
+		input.AccountType,
+		input.IsPrimary,
+		account.IsActive,
+	); err != nil {
+		logger.Warn("Bank account update failed: validation error", "account_id", id, "error", err)
+		return nil, err
+	}
+
+	if err := s.bankAccountRepo.Update(ctx, account); err != nil {
+		logger.Error("Bank account update failed: repository error", "account_id", id, "error", err)
+		return nil, err
+	}
+
+	logger.Info("Bank account updated successfully", "account_id", id)
+	return account, nil
+}
+
+// DeleteBankAccount removes a bank account (soft delete).
+func (s *SupplierService) DeleteBankAccount(ctx context.Context, id int64) error {
+	if err := s.bankAccountRepo.Delete(ctx, id); err != nil {
+		if errors.Is(err, ErrBankAccountNotFound) {
+			logger.Debug("Bank account deletion failed: not found", "account_id", id)
+		} else {
+			logger.Error("Bank account deletion failed: repository error", "account_id", id, "error", err)
+		}
+		return err
+	}
+
+	logger.Info("Bank account deleted successfully", "account_id", id)
+	return nil
+}
+
+var ErrBankAccountNotFound = errors.New("bank account not found")
 
 func (s *SupplierService) ensureEmailAvailable(ctx context.Context, email string, excludeID *int64) error {
 	if email == "" {

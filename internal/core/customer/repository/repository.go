@@ -183,20 +183,132 @@ func (r *CustomerRepository) Delete(ctx context.Context, id int64) error {
 
 // FindAll returns a paginated list of customers.
 func (r *CustomerRepository) FindAll(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Customer], error) {
+	return r.FindAllWithSupplierFilter(ctx, pageReq, 0, "")
+}
+
+// FindAllWithSupplierFilter returns a paginated list of customers, optionally filtered by supplier.
+// If supplierID > 0, only returns customers who have placed orders containing products from that supplier.
+// If search is provided, filters customers by name, email, or phone number.
+func (r *CustomerRepository) FindAllWithSupplierFilter(ctx context.Context, pageReq pagination.PageRequest, supplierID int64, search string) (pagination.PageResult[*domain.Customer], error) {
+	var countQuery string
+	var query string
+	var countArgs []interface{}
+	var queryArgs []interface{}
+
+	// Build search pattern if search is provided
+	searchPattern := ""
+	if strings.TrimSpace(search) != "" {
+		searchPattern = "%" + strings.ToLower(strings.TrimSpace(search)) + "%"
+	}
+
+	if supplierID > 0 {
+		// Filter customers who have orders with products from this supplier
+		if searchPattern != "" {
+			// With search: supplier is $1, search is $2, limit is $3, offset is $4
+			countQuery = `
+				SELECT COUNT(DISTINCT c.id)
+				FROM customers c
+				INNER JOIN orders o ON o.customer_id = c.id AND o.is_deleted = FALSE
+				WHERE c.is_deleted = FALSE
+				  AND EXISTS (
+					SELECT 1 
+					FROM jsonb_array_elements(o.cart_snapshot) AS item
+					JOIN products p ON (item->>'product_id')::int = p.id
+					WHERE p.supplier_id = $1 AND p.is_deleted = FALSE
+				  ) AND (
+					LOWER(c.full_name) LIKE $2 OR
+					LOWER(c.email) LIKE $2 OR
+					LOWER(c.phone_number) LIKE $2
+				  )`
+			query = `
+				SELECT DISTINCT c.id, c.full_name, c.status, c.city, c.region, c.woreda, c.phone_number, c.email, c.is_active, c.created_date, c.last_modified
+				FROM customers c
+				INNER JOIN orders o ON o.customer_id = c.id AND o.is_deleted = FALSE
+				WHERE c.is_deleted = FALSE
+				  AND EXISTS (
+					SELECT 1 
+					FROM jsonb_array_elements(o.cart_snapshot) AS item
+					JOIN products p ON (item->>'product_id')::int = p.id
+					WHERE p.supplier_id = $1 AND p.is_deleted = FALSE
+				  ) AND (
+					LOWER(c.full_name) LIKE $2 OR
+					LOWER(c.email) LIKE $2 OR
+					LOWER(c.phone_number) LIKE $2
+				  )
+				ORDER BY c.created_date DESC
+				LIMIT $3 OFFSET $4`
+			countArgs = []interface{}{supplierID, searchPattern}
+			queryArgs = []interface{}{supplierID, searchPattern, pageReq.Limit, pageReq.Offset}
+		} else {
+			// Without search: supplier is $1, limit is $2, offset is $3
+			countQuery = `
+				SELECT COUNT(DISTINCT c.id)
+				FROM customers c
+				INNER JOIN orders o ON o.customer_id = c.id AND o.is_deleted = FALSE
+				WHERE c.is_deleted = FALSE
+				  AND EXISTS (
+					SELECT 1 
+					FROM jsonb_array_elements(o.cart_snapshot) AS item
+					JOIN products p ON (item->>'product_id')::int = p.id
+					WHERE p.supplier_id = $1 AND p.is_deleted = FALSE
+				  )`
+			query = `
+				SELECT DISTINCT c.id, c.full_name, c.status, c.city, c.region, c.woreda, c.phone_number, c.email, c.is_active, c.created_date, c.last_modified
+				FROM customers c
+				INNER JOIN orders o ON o.customer_id = c.id AND o.is_deleted = FALSE
+				WHERE c.is_deleted = FALSE
+				  AND EXISTS (
+					SELECT 1 
+					FROM jsonb_array_elements(o.cart_snapshot) AS item
+					JOIN products p ON (item->>'product_id')::int = p.id
+					WHERE p.supplier_id = $1 AND p.is_deleted = FALSE
+				  )
+				ORDER BY c.created_date DESC
+				LIMIT $2 OFFSET $3`
+			countArgs = []interface{}{supplierID}
+			queryArgs = []interface{}{supplierID, pageReq.Limit, pageReq.Offset}
+		}
+	} else {
+		// No supplier filter - return all customers
+		if searchPattern != "" {
+			// With search: search is $1, limit is $2, offset is $3
+			countQuery = `SELECT COUNT(*) FROM customers WHERE is_deleted = FALSE AND (
+				LOWER(full_name) LIKE $1 OR
+				LOWER(email) LIKE $1 OR
+				LOWER(phone_number) LIKE $1
+			)`
+			query = `
+				SELECT id, full_name, status, city, region, woreda, phone_number, email, is_active, created_date, last_modified
+				FROM customers
+				WHERE is_deleted = FALSE AND (
+					LOWER(full_name) LIKE $1 OR
+					LOWER(email) LIKE $1 OR
+					LOWER(phone_number) LIKE $1
+				)
+				ORDER BY created_date DESC
+				LIMIT $2 OFFSET $3`
+			countArgs = []interface{}{searchPattern}
+			queryArgs = []interface{}{searchPattern, pageReq.Limit, pageReq.Offset}
+		} else {
+			// Without search: limit is $1, offset is $2
+			countQuery = `SELECT COUNT(*) FROM customers WHERE is_deleted = FALSE`
+			query = `
+				SELECT id, full_name, status, city, region, woreda, phone_number, email, is_active, created_date, last_modified
+				FROM customers
+				WHERE is_deleted = FALSE
+				ORDER BY created_date DESC
+				LIMIT $1 OFFSET $2`
+			countArgs = []interface{}{}
+			queryArgs = []interface{}{pageReq.Limit, pageReq.Offset}
+		}
+	}
+
 	var total int
-	if err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM customers WHERE is_deleted = FALSE`).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total); err != nil {
 		return pagination.PageResult[*domain.Customer]{}, err
 	}
 
-	query := `
-		SELECT id, full_name, status, city, region, woreda, phone_number, email, is_active, created_date, last_modified
-		FROM customers
-		WHERE is_deleted = FALSE
-		ORDER BY created_date DESC
-		LIMIT $1 OFFSET $2
-	`
-
-	rows, err := r.db.QueryContext(ctx, query, pageReq.Limit, pageReq.Offset)
+	rows, err := r.db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return pagination.PageResult[*domain.Customer]{}, err
 	}

@@ -10,8 +10,20 @@
 
 -- Password hash for "password123" (bcrypt)
 -- This hash was generated with: bcrypt.hashpw(b'password123', bcrypt.gensalt())
+-- Password hash for "changeme" (bcrypt)
+-- This hash was generated with: bcrypt.GenerateFromPassword([]byte("changeme"), bcrypt.DefaultCost)
 INSERT INTO basic_auth_credentials (id, username, password, user_id, active, created_at, updated_at)
 VALUES
+  -- Credentials for admin-admin@admin.local (User ID: 550e8400-e29b-41d4-a716-446655440001)
+  (
+    gen_random_uuid(),
+    'admin-admin@admin.local',
+    '$2a$10$1OcPvbmRKzgnIwwWAuMq3.MSj5H.5MA9DYt8/QaqzdY2kQkOBeolS', -- changeme
+    '550e8400-e29b-41d4-a716-446655440001',
+    true,
+    NOW(),
+    NOW()
+  ),
   -- Credentials for customer1@b2b.local (User ID: 550e8400-e29b-41d4-a716-446655440004)
   (
     gen_random_uuid(),

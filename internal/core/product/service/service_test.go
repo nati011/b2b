@@ -74,6 +74,11 @@ func (m *mockProductRepository) FindByID(ctx context.Context, id int64) (*domain
 	return product, nil
 }
 
+func (m *mockProductRepository) RecordPriceChange(ctx context.Context, productID int64, oldPrice, newPrice *float64, userID *int64, userEmail, reason string) error {
+	// Mock implementation - just return nil
+	return nil
+}
+
 func (m *mockProductRepository) List(ctx context.Context, query ListQuery) ([]*domain.Product, int, error) {
 	if m.listFunc != nil {
 		return m.listFunc(ctx, query)

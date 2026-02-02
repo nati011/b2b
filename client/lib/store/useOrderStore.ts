@@ -112,7 +112,21 @@ const useOrdersStore = create<OrdersStore>((set) => ({
     fetchOrders: async (page: number, status: string, customerId?: number) => {
         set({ loading: true, error: null });
         try {
-            const response = await fetchOrders(10, page, status, customerId);
+            // Check if user is a supplier from localStorage
+            let isSupplier = false;
+            if (typeof window !== 'undefined') {
+                const userRolesStr = localStorage.getItem('user_roles');
+                if (userRolesStr) {
+                    try {
+                        const userRoles: string[] = JSON.parse(userRolesStr);
+                        isSupplier = userRoles.includes('supplier');
+                    } catch (e) {
+                        // Ignore parse errors
+                    }
+                }
+            }
+            
+            const response = await fetchOrders(10, page, status, customerId, isSupplier);
             set({
                 orders: response.List,
                 totalOrder: response.TotalCount,
@@ -167,7 +181,20 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         try {
             await updateOrderStatus(order_id.toString(), "CANCELLED");
             set({ loading: false });
-            await fetchOrders(10, 0, "PENDING", undefined)
+            // Check if user is a supplier from localStorage
+            let isSupplier = false;
+            if (typeof window !== 'undefined') {
+                const userRolesStr = localStorage.getItem('user_roles');
+                if (userRolesStr) {
+                    try {
+                        const userRoles: string[] = JSON.parse(userRolesStr);
+                        isSupplier = userRoles.includes('supplier');
+                    } catch (e) {
+                        // Ignore parse errors
+                    }
+                }
+            }
+            await fetchOrders(10, 0, "PENDING", undefined, isSupplier)
         } catch (error: any) {
             toast.error(error.message)  
             set({ loading: false });

@@ -30,6 +30,7 @@ type Repository interface {
 	Update(ctx context.Context, user *domain.User) error
 	Delete(ctx context.Context, id string) error
 	FindPage(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.User], error)
+	FindPageWithSupplierEmail(ctx context.Context, pageReq pagination.PageRequest, supplierEmail string) (pagination.PageResult[*domain.User], error)
 	Exists(ctx context.Context, id string) (bool, error)
 	AssignRole(ctx context.Context, userID, roleID string) error
 	RevokeRole(ctx context.Context, userID, roleID string) error
@@ -324,12 +325,18 @@ func (s *Service) Suspend(ctx context.Context, id string) (*domain.User, error) 
 
 // FindPage retrieves a paginated list of users
 func (s *Service) FindPage(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.User], error) {
-	result, err := s.repository.FindPage(ctx, pageReq)
+	return s.FindPageWithSupplierEmail(ctx, pageReq, "")
+}
+
+// FindPageWithSupplierEmail retrieves a paginated list of users, optionally filtered by supplier email.
+// If supplierEmail is empty, returns all users. Otherwise, filters users whose email matches the supplier's support_email.
+func (s *Service) FindPageWithSupplierEmail(ctx context.Context, pageReq pagination.PageRequest, supplierEmail string) (pagination.PageResult[*domain.User], error) {
+	result, err := s.repository.FindPageWithSupplierEmail(ctx, pageReq, supplierEmail)
 	if err != nil {
-		logger.Error("User pagination failed: repository error", "page", pageReq.Page, "limit", pageReq.Limit, "error", err)
+		logger.Error("User pagination failed: repository error", "page", pageReq.Page, "limit", pageReq.Limit, "supplier_email", supplierEmail, "error", err)
 		return pagination.PageResult[*domain.User]{}, err
 	}
-	logger.Debug("User pagination completed", "page", result.Page, "total", result.Total, "items", len(result.Items))
+	logger.Debug("User pagination completed", "page", result.Page, "total", result.Total, "items", len(result.Items), "supplier_email", supplierEmail)
 	return result, nil
 }
 

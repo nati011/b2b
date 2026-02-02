@@ -14,3 +14,8 @@ const useSearchStore = create<SearchStore>((set) => ({
 
 export default useSearchStore;
 
+
+
+
+
+

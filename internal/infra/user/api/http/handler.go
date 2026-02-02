@@ -1,10 +1,13 @@
 package user
 
 import (
+	"context"
 	roleDomain "marketplace/internal/infra/authz/role/domain"
 	"marketplace/internal/infra/user/domain"
 	userservice "marketplace/internal/infra/user/service"
+	supplierservice "marketplace/internal/core/supplier/service"
 	httputil "marketplace/pkg/http"
+	"marketplace/pkg/logger"
 	"marketplace/pkg/pagination"
 	"encoding/json"
 	"errors"
@@ -115,12 +118,14 @@ func ToUserRoleResponses(roles []roleDomain.Role) []UserRoleResponse {
 type UserHandler struct {
 	userService       *userservice.Service
 	permissionChecker userservice.PermissionChecker
+	supplierService   *supplierservice.SupplierService
 }
 
-func NewUserHandler(userService *userservice.Service, permissionChecker userservice.PermissionChecker) *UserHandler {
+func NewUserHandler(userService *userservice.Service, permissionChecker userservice.PermissionChecker, supplierService *supplierservice.SupplierService) *UserHandler {
 	return &UserHandler{
 		userService:       userService,
 		permissionChecker: permissionChecker,
+		supplierService:   supplierService,
 	}
 }
 
@@ -320,7 +325,25 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	pageReq := pagination.FromRequest(r)
 
 	ctx := r.Context()
-	pageResult, err := h.userService.FindPage(ctx, pageReq)
+	
+	// If user is a supplier, filter users by supplier email
+	supplierEmail := ""
+	if supplierID := h.getSupplierIDFromUser(ctx); supplierID > 0 {
+		supplier, err := h.supplierService.Get(ctx, supplierID)
+		if err == nil && supplier.SupportEmail != "" {
+			supplierEmail = supplier.SupportEmail
+			logger.DebugContext(ctx, "Auto-filtering users by supplier", "supplier_id", supplierID, "supplier_email", supplierEmail)
+		}
+	}
+	
+	var pageResult pagination.PageResult[*domain.User]
+	var err error
+	if supplierEmail != "" {
+		pageResult, err = h.userService.FindPageWithSupplierEmail(ctx, pageReq, supplierEmail)
+	} else {
+		pageResult, err = h.userService.FindPage(ctx, pageReq)
+	}
+	
 	if err != nil {
 		h.writeError(w, err)
 		return
@@ -512,4 +535,27 @@ func (h *UserHandler) extractRoleID(path string) string {
 		return ""
 	}
 	return httputil.ExtractPathSegment(path, 3)
+}
+
+// getSupplierIDFromUser attempts to get supplier_id from the authenticated user's email.
+// Returns 0 if user is not found, not authenticated, or is not linked to a supplier.
+func (h *UserHandler) getSupplierIDFromUser(ctx context.Context) int64 {
+	user := httputil.UserFromContext(ctx)
+	if user == nil {
+		return 0
+	}
+
+	// Get user email
+	email := user.Email.String()
+	if email == "" {
+		return 0
+	}
+
+	// Look up supplier by email
+	supplier, err := h.supplierService.GetByEmail(ctx, email)
+	if err != nil {
+		return 0
+	}
+
+	return supplier.ID
 }

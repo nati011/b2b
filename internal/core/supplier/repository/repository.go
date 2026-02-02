@@ -170,21 +170,60 @@ func (r *SupplierRepository) Delete(ctx context.Context, id int64) error {
 }
 
 // FindAll returns a paginated list of suppliers.
-func (r *SupplierRepository) FindAll(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Supplier], error) {
+// If search is provided, filters suppliers by business_name, support_email, or support_phone.
+func (r *SupplierRepository) FindAll(ctx context.Context, pageReq pagination.PageRequest, search string) (pagination.PageResult[*domain.Supplier], error) {
+	// Build search condition and arguments
+	searchPattern := ""
+	var countArgs []interface{}
+	var queryArgs []interface{}
+	
+	if strings.TrimSpace(search) != "" {
+		searchPattern = "%" + strings.ToLower(strings.TrimSpace(search)) + "%"
+	}
+
+	var countQuery string
+	var query string
+
+	if searchPattern != "" {
+		// With search: search is $1, limit is $2, offset is $3
+		countQuery = `SELECT COUNT(*) FROM suppliers WHERE is_deleted = FALSE AND (
+			LOWER(business_name) LIKE $1 OR
+			LOWER(support_email) LIKE $1 OR
+			LOWER(support_phone) LIKE $1
+		)`
+		query = `
+			SELECT id, business_name, status, support_email, support_phone, is_active, created_date, last_modified
+			FROM suppliers
+			WHERE is_deleted = FALSE AND (
+				LOWER(business_name) LIKE $1 OR
+				LOWER(support_email) LIKE $1 OR
+				LOWER(support_phone) LIKE $1
+			)
+			ORDER BY created_date DESC
+			LIMIT $2 OFFSET $3
+		`
+		countArgs = []interface{}{searchPattern}
+		queryArgs = []interface{}{searchPattern, pageReq.Limit, pageReq.Offset}
+	} else {
+		// Without search: limit is $1, offset is $2
+		countQuery = `SELECT COUNT(*) FROM suppliers WHERE is_deleted = FALSE`
+		query = `
+			SELECT id, business_name, status, support_email, support_phone, is_active, created_date, last_modified
+			FROM suppliers
+			WHERE is_deleted = FALSE
+			ORDER BY created_date DESC
+			LIMIT $1 OFFSET $2
+		`
+		countArgs = []interface{}{}
+		queryArgs = []interface{}{pageReq.Limit, pageReq.Offset}
+	}
+
 	var total int
-	if err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM suppliers WHERE is_deleted = FALSE`).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total); err != nil {
 		return pagination.PageResult[*domain.Supplier]{}, err
 	}
 
-	query := `
-		SELECT id, business_name, status, support_email, support_phone, is_active, created_date, last_modified
-		FROM suppliers
-		WHERE is_deleted = FALSE
-		ORDER BY created_date DESC
-		LIMIT $1 OFFSET $2
-	`
-
-	rows, err := r.db.QueryContext(ctx, query, pageReq.Limit, pageReq.Offset)
+	rows, err := r.db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return pagination.PageResult[*domain.Supplier]{}, err
 	}

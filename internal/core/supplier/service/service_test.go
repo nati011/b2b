@@ -3,6 +3,7 @@ package supplier
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"marketplace/internal/core/supplier/domain"
@@ -19,6 +20,28 @@ type mockSupplierRepository struct {
 	createFunc   func(context.Context, *domain.Supplier) error
 	updateFunc   func(context.Context, *domain.Supplier) error
 	findByIDFunc func(context.Context, int64) (*domain.Supplier, error)
+}
+
+type mockBankAccountRepository struct{}
+
+func (m *mockBankAccountRepository) Create(ctx context.Context, account *domain.BankAccount) error {
+	return nil
+}
+
+func (m *mockBankAccountRepository) Update(ctx context.Context, account *domain.BankAccount) error {
+	return nil
+}
+
+func (m *mockBankAccountRepository) FindByID(ctx context.Context, id int64) (*domain.BankAccount, error) {
+	return nil, ErrBankAccountNotFound
+}
+
+func (m *mockBankAccountRepository) FindBySupplierID(ctx context.Context, supplierID int64) ([]*domain.BankAccount, error) {
+	return []*domain.BankAccount{}, nil
+}
+
+func (m *mockBankAccountRepository) Delete(ctx context.Context, id int64) error {
+	return nil
 }
 
 func newMockSupplierRepository() *mockSupplierRepository {
@@ -98,9 +121,19 @@ func (m *mockSupplierRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (m *mockSupplierRepository) FindAll(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.Supplier], error) {
+func (m *mockSupplierRepository) FindAll(ctx context.Context, pageReq pagination.PageRequest, search string) (pagination.PageResult[*domain.Supplier], error) {
 	items := make([]*domain.Supplier, 0, len(m.suppliers))
 	for _, supplier := range m.suppliers {
+		// Apply search filter if provided
+		if search != "" {
+			searchLower := strings.ToLower(search)
+			matches := strings.Contains(strings.ToLower(supplier.BusinessName), searchLower) ||
+				strings.Contains(strings.ToLower(supplier.SupportEmail), searchLower) ||
+				strings.Contains(strings.ToLower(supplier.SupportPhone), searchLower)
+			if !matches {
+				continue
+			}
+		}
 		items = append(items, supplier)
 	}
 	return pagination.NewPageResult(items, len(items), pageReq), nil
@@ -108,7 +141,8 @@ func (m *mockSupplierRepository) FindAll(ctx context.Context, pageReq pagination
 
 func TestSupplierServiceCreateSuccess(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	result, err := service.Create(context.Background(), SupplierInput{
 		BusinessName: "Acme Corporation",
@@ -128,7 +162,8 @@ func TestSupplierServiceCreateSuccess(t *testing.T) {
 
 func TestSupplierServiceCreateWithEmailOnly(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	result, err := service.Create(context.Background(), SupplierInput{
 		BusinessName: "Tech Solutions Inc",
@@ -144,7 +179,8 @@ func TestSupplierServiceCreateWithEmailOnly(t *testing.T) {
 
 func TestSupplierServiceCreateWithPhoneOnly(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	result, err := service.Create(context.Background(), SupplierInput{
 		BusinessName: "Phone Only Corp",
@@ -167,7 +203,8 @@ func TestSupplierServiceCreateEmailConflict(t *testing.T) {
 	repo.Create(context.Background(), existingSupplier)
 	repo.byEmail["dup@example.com"] = 10
 
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 	_, err := service.Create(context.Background(), SupplierInput{
 		BusinessName: "New Corporation",
 		Status:       "active",
@@ -185,7 +222,8 @@ func TestSupplierServiceCreatePhoneConflict(t *testing.T) {
 	repo.Create(context.Background(), existingSupplier)
 	repo.byPhone["0911111111"] = 10
 
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 	_, err := service.Create(context.Background(), SupplierInput{
 		BusinessName: "New Corporation",
 		Status:       "active",
@@ -198,7 +236,8 @@ func TestSupplierServiceCreatePhoneConflict(t *testing.T) {
 
 func TestSupplierServiceGetSuccess(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	supplier, _ := domain.NewSupplier("Test Corp", "active", "test@example.com", "0912345678")
 	supplier.ID = 1
@@ -214,7 +253,8 @@ func TestSupplierServiceGetSuccess(t *testing.T) {
 
 func TestSupplierServiceGetNotFound(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	_, err := service.Get(context.Background(), 999)
 	require.Error(t, err)
@@ -223,7 +263,8 @@ func TestSupplierServiceGetNotFound(t *testing.T) {
 
 func TestSupplierServiceUpdateSuccess(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	existingSupplier, _ := domain.NewSupplier("Old Corp", "active", "old@example.com", "0910000000")
 	existingSupplier.ID = 1
@@ -246,7 +287,8 @@ func TestSupplierServiceUpdateSuccess(t *testing.T) {
 
 func TestSupplierServiceUpdateNotFound(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	_, err := service.Update(context.Background(), 999, SupplierInput{
 		BusinessName: "New Corp",
@@ -279,7 +321,8 @@ func TestSupplierServiceUpdateEmailConflict(t *testing.T) {
 	repo.byPhone["0911000000"] = 1
 	repo.byPhone["0911222333"] = 2
 
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 	_, err := service.Update(context.Background(), 1, SupplierInput{
 		BusinessName: "Primary",
 		Status:       "active",
@@ -311,7 +354,8 @@ func TestSupplierServiceUpdatePhoneConflict(t *testing.T) {
 	repo.byPhone["0911000000"] = 1
 	repo.byPhone["0911222333"] = 2
 
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 	_, err := service.Update(context.Background(), 1, SupplierInput{
 		BusinessName: "Primary",
 		Status:       "active",
@@ -330,7 +374,8 @@ func TestSupplierServiceUpdateSameEmailAndPhone(t *testing.T) {
 	repo.byEmail["test@example.com"] = 1
 	repo.byPhone["0912345678"] = 1
 
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 	result, err := service.Update(context.Background(), 1, SupplierInput{
 		BusinessName: "Updated Corp",
 		Status:       "active",
@@ -346,7 +391,8 @@ func TestSupplierServiceUpdateSameEmailAndPhone(t *testing.T) {
 
 func TestSupplierServiceDeleteSuccess(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	supplier, _ := domain.NewSupplier("To Delete", "active", "delete@example.com", "0912345678")
 	supplier.ID = 1
@@ -360,7 +406,8 @@ func TestSupplierServiceDeleteSuccess(t *testing.T) {
 
 func TestSupplierServiceDeleteNotFound(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	err := service.Delete(context.Background(), 999)
 	require.Error(t, err)
@@ -369,7 +416,8 @@ func TestSupplierServiceDeleteNotFound(t *testing.T) {
 
 func TestSupplierServiceListSuccess(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	supplier1, _ := domain.NewSupplier("Corp 1", "active", "corp1@example.com", "0911111111")
 	supplier1.ID = 1
@@ -379,7 +427,7 @@ func TestSupplierServiceListSuccess(t *testing.T) {
 	supplier2.ID = 2
 	repo.suppliers[2] = supplier2
 
-	result, err := service.List(context.Background(), pagination.PageRequest{Page: 1, Limit: 10})
+	result, err := service.List(context.Background(), pagination.PageRequest{Page: 1, Limit: 10}, "")
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.Equal(t, 2, result.Total)
@@ -388,7 +436,8 @@ func TestSupplierServiceListSuccess(t *testing.T) {
 
 func TestSupplierServiceCreateInvalidInput(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	// Missing business name
 	_, err := service.Create(context.Background(), SupplierInput{
@@ -420,7 +469,8 @@ func TestSupplierServiceCreateInvalidInput(t *testing.T) {
 
 func TestSupplierServiceUpdateStatusChange(t *testing.T) {
 	repo := newMockSupplierRepository()
-	service := NewSupplierService(repo)
+	bankAccountRepo := &mockBankAccountRepository{}
+	service := NewSupplierService(repo, bankAccountRepo)
 
 	existingSupplier, _ := domain.NewSupplier("Test Corp", "inactive", "test@example.com", "0912345678")
 	existingSupplier.ID = 1

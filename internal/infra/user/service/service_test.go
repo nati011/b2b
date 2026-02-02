@@ -134,12 +134,19 @@ func (m *mockUserRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (m *mockUserRepository) FindPage(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.User], error) {
+	return m.FindPageWithSupplierEmail(ctx, pageReq, "")
+}
+
+func (m *mockUserRepository) FindPageWithSupplierEmail(ctx context.Context, pageReq pagination.PageRequest, supplierEmail string) (pagination.PageResult[*domain.User], error) {
 	if m.findPageFunc != nil {
 		return m.findPageFunc(ctx, pageReq)
 	}
 	users := make([]*domain.User, 0, len(m.users))
 	for _, user := range m.users {
-		users = append(users, user)
+		// If supplierEmail is provided, filter users whose email matches
+		if supplierEmail == "" || (!user.Email.IsEmpty() && user.Email.String() == supplierEmail) {
+			users = append(users, user)
+		}
 	}
 	total := len(users)
 

@@ -80,11 +80,45 @@ func (m *AuthMiddleware) handleBasic(next http.Handler) http.Handler {
 		}
 
 		// Check if route is public (no authentication required)
-		if m.isPublicRoute(r.Method, r.URL.Path) {
+		isPublic := m.isPublicRoute(r.Method, r.URL.Path)
+		hasAuth := r.Header.Get("Authorization") != ""
+		
+		// If route is public and no credentials provided, allow without authentication
+		if isPublic && !hasAuth {
 			next.ServeHTTP(w, r)
 			return
 		}
+		
+		// If route is public but credentials are provided, authenticate anyway
+		// This enables features like supplier filtering for authenticated users
+		// If authentication fails, we still allow the request (public route behavior)
+		if isPublic && hasAuth {
+			if m.basicAuthService == nil {
+				// No auth service configured - allow as public
+				next.ServeHTTP(w, r)
+				return
+			}
+			
+			cred, ok := m.validateBasicCredentials(r, w)
+			if !ok {
+				// Auth failed but route is public - allow without auth
+				next.ServeHTTP(w, r)
+				return
+			}
+			
+			ctx := m.authenticateUser(r.Context(), cred, w)
+			if ctx == nil {
+				// Auth failed but route is public - allow without auth
+				next.ServeHTTP(w, r)
+				return
+			}
+			
+			// Authentication successful - continue with authenticated context
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
 
+		// Non-public route - authentication required
 		if m.basicAuthService == nil {
 			m.writeBasicUnauthorized(w, "basic auth is not configured")
 			return

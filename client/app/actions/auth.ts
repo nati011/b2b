@@ -174,7 +174,10 @@ export const Login = async (credentials: LoginRequest): Promise<LoginResponse> =
           localStorage.setItem('user_username', decoded.preferred_username);
         }
         if (decoded.realm_access?.roles) {
+          console.log('User roles from JWT:', decoded.realm_access.roles);
           localStorage.setItem('user_roles', JSON.stringify(decoded.realm_access.roles));
+        } else {
+          console.warn('No roles found in JWT token');
         }
       } catch (error) {
         console.error('Error decoding JWT token:', error);

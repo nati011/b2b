@@ -102,6 +102,11 @@ func (m *mockCustomerRepository) FindAll(ctx context.Context, pageReq pagination
 	return pagination.NewPageResult([]*domain.Customer{}, 0, pageReq), nil
 }
 
+func (m *mockCustomerRepository) FindAllWithSupplierFilter(ctx context.Context, pageReq pagination.PageRequest, supplierID int64) (pagination.PageResult[*domain.Customer], error) {
+	// Mock implementation - return empty list for now
+	return pagination.NewPageResult([]*domain.Customer{}, 0, pageReq), nil
+}
+
 func TestCustomerServiceCreateSuccess(t *testing.T) {
 	repo := newMockCustomerRepository()
 	service := NewCustomerService(repo)

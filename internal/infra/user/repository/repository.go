@@ -300,20 +300,58 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 
 // FindPage retrieves a paginated list of users
 func (r *Repository) FindPage(ctx context.Context, pageReq pagination.PageRequest) (pagination.PageResult[*domain.User], error) {
+	return r.FindPageWithSupplierEmail(ctx, pageReq, "")
+}
+
+// FindPageWithSupplierEmail retrieves a paginated list of users, optionally filtered by supplier email.
+// If supplierEmail is empty, returns all users. Otherwise, filters users whose email matches the supplier's support_email.
+func (r *Repository) FindPageWithSupplierEmail(ctx context.Context, pageReq pagination.PageRequest, supplierEmail string) (pagination.PageResult[*domain.User], error) {
 	var total int
-	countQuery := `SELECT COUNT(*) FROM users`
-	if err := r.db.QueryRowContext(ctx, countQuery).Scan(&total); err != nil {
+	var countQuery string
+	var countArgs []interface{}
+	
+	if supplierEmail != "" {
+		// Filter users whose email matches a supplier's support_email
+		countQuery = `
+			SELECT COUNT(*) 
+			FROM users u
+			INNER JOIN suppliers s ON u.email = s.support_email
+			WHERE s.support_email = $1 AND s.is_deleted = FALSE
+		`
+		countArgs = []interface{}{supplierEmail}
+	} else {
+		countQuery = `SELECT COUNT(*) FROM users`
+		countArgs = []interface{}{}
+	}
+	
+	if err := r.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total); err != nil {
 		return pagination.PageResult[*domain.User]{}, err
 	}
 
-	query := `
-		SELECT id, external_id, email, phone_number, name, user_type, status, created_at, updated_at
-		FROM users
-		ORDER BY created_at DESC
-		LIMIT $1 OFFSET $2
-	`
+	var query string
+	var queryArgs []interface{}
+	
+	if supplierEmail != "" {
+		query = `
+			SELECT u.id, u.external_id, u.email, u.phone_number, u.name, u.user_type, u.status, u.created_at, u.updated_at
+			FROM users u
+			INNER JOIN suppliers s ON u.email = s.support_email
+			WHERE s.support_email = $1 AND s.is_deleted = FALSE
+			ORDER BY u.created_at DESC
+			LIMIT $2 OFFSET $3
+		`
+		queryArgs = []interface{}{supplierEmail, pageReq.Limit, pageReq.Offset}
+	} else {
+		query = `
+			SELECT id, external_id, email, phone_number, name, user_type, status, created_at, updated_at
+			FROM users
+			ORDER BY created_at DESC
+			LIMIT $1 OFFSET $2
+		`
+		queryArgs = []interface{}{pageReq.Limit, pageReq.Offset}
+	}
 
-	rows, err := r.db.QueryContext(ctx, query, pageReq.Limit, pageReq.Offset)
+	rows, err := r.db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return pagination.PageResult[*domain.User]{}, err
 	}

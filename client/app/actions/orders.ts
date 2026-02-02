@@ -156,9 +156,90 @@ export async function ListCustomerOrders(params: {
   }
 }
 
-export async function fetchOrders(limit: number, offset: number, status: string, customerId?: number) {
+// ListSupplierOrders fetches orders for a supplier
+// Uses the dedicated /order/supplier endpoint (server automatically filters by authenticated supplier)
+export async function ListSupplierOrders(params?: {
+  supplier_id?: number; // Not needed - server gets it from authenticated user
+  status?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<OrderListResponse> {
   try {
     const queryParams = new URLSearchParams();
+    // supplier_id is not needed - server automatically gets it from authenticated user
+    if (params?.status && params.status !== 'ALL') {
+      queryParams.append('status', params.status);
+    }
+    if (params?.limit) {
+      queryParams.append('limit', params.limit.toString());
+    }
+    if (params?.offset !== undefined) {
+      queryParams.append('offset', params.offset.toString());
+    }
+
+    const url = `/order/supplier?${queryParams.toString()}`;
+    console.log('📡 Fetching supplier orders from:', url);
+    
+    const response = await axiosIns.get(url);
+    console.log('✅ Supplier orders response received:', {
+      status: response.status,
+      dataKeys: Object.keys(response.data || {}),
+      ordersCount: response.data?.orders?.length || 0,
+    });
+    
+    // Backend returns: { orders: [], total: 0, limit: 10, offset: 0 } directly
+    const orderData: OrderListResponse = response.data;
+    
+    return orderData;
+  } catch (error: any) {
+    console.error('❌ Supplier orders fetch error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while fetching supplier orders';
+      throw new Error(errorMessage);
+    }
+    throw new Error(error.message || 'An error occurred while fetching supplier orders');
+  }
+}
+
+export async function fetchOrders(limit: number, offset: number, status: string, customerId?: number, isSupplier?: boolean, supplierId?: number) {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    // Use dedicated supplier endpoint if user is a supplier
+    if (isSupplier) {
+      // Use /order/supplier endpoint - server automatically filters by authenticated supplier
+      if (status && status !== 'ALL') queryParams.append('status', status);
+      queryParams.append('limit', limit.toString());
+      queryParams.append('offset', (limit * offset).toString());
+      
+      const url = `/order/supplier?${queryParams.toString()}`;
+      console.log('📡 Fetching supplier orders from:', url);
+      
+      const response = await axiosIns.get(url);
+      console.log('✅ Supplier orders response received:', {
+        status: response.status,
+        dataKeys: Object.keys(response.data || {}),
+        ordersCount: response.data?.orders?.length || 0,
+      });
+      
+      const orderData: OrderListResponse = response.data;
+      const mappedOrders = (orderData.orders || []).map((order: OrderResponse) => 
+        mapOrderToFrontendFormat(order)
+      );
+      
+      return {
+        List: mappedOrders,
+        TotalCount: orderData.total || 0,
+        Limit: orderData.limit || limit,
+        Offset: orderData.offset || offset
+      };
+    }
+    
+    // For non-suppliers, use customer endpoint
     if (customerId) queryParams.append('customer_id', customerId.toString());
     if (status && status !== 'ALL') queryParams.append('status', status);
     queryParams.append('limit', limit.toString());
@@ -238,6 +319,20 @@ export async function updateOrderStatus(orderId: string, command: string): Promi
       throw new Error(errorMessage);
     }
     throw new Error('An error occurred while updating order status');
+  }
+}
+
+export async function updateOrderPaymentStatus(orderId: string, paymentStatus: string): Promise<OrderResponse> {
+  try {
+    const response = await axiosIns.patch(`/order?id=${orderId}&payment_status=${encodeURIComponent(paymentStatus)}`);
+    // Backend returns OrderResponse directly (not wrapped in body)
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.response.data?.error || 'An error occurred while updating payment status';
+      throw new Error(errorMessage);
+    }
+    throw new Error('An error occurred while updating payment status');
   }
 }
 

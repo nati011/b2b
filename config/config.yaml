@@ -41,14 +41,24 @@ auth:
   # Options: basic, oauth2
   mode: basic
   basic:
-    realm: "Nucleus Admin"
+    realm: "b2b Admin"
     # Default values for superadmin user creation
+    # Email is constructed as: user_prefix + username + email_domain
+    # Example: "admin-" + "admin" + "@admin.local" = "admin-admin@admin.local"
     email_domain: "@admin.local"
     user_prefix: "admin-"
-    user_name: "Super Administrator"
+    user_name: "Admin"
+    # Admin users are automatically created during application bootstrap
+    # Users defined here will be automatically assigned the "Admin" role
+    # Role name: "Admin" (from config/roles.yaml)
     users:
-      - username: "superadmin"
+      - username: "admin"
         password: "changeme"
+        # This user will be created with:
+        # - Email: admin-admin@admin.local
+        # - Role: Admin (automatically assigned)
+        # - User Type: officer
+        # - Status: active
   
   # Optional: OAuth2 configuration (only required when mode: oauth2)
   # oauth2:

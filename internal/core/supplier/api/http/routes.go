@@ -67,5 +67,33 @@ func RegisterHTTPRoutes(mux *http.ServeMux, handler *SupplierHandler) {
 			httputil.MethodNotAllowed(w)
 		}
 	})
+
+	// Bank account routes
+	// @resource code=bank-account service=supplier-management desc="Supplier bank account records for payment processing"
+	mux.HandleFunc(RouteSuppliers+"/bank-account", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			// @action name=create desc="Create a bank account for a supplier"
+			handler.CreateBankAccount(w, r)
+		case http.MethodGet:
+			// @action name=view desc="List bank accounts for a supplier"
+			handler.ListBankAccounts(w, r)
+		default:
+			httputil.MethodNotAllowed(w)
+		}
+	})
+
+	mux.HandleFunc(RouteSuppliers+"/bank-account/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			// @action name=update desc="Update a bank account"
+			handler.UpdateBankAccount(w, r)
+		case http.MethodDelete:
+			// @action name=delete desc="Delete a bank account"
+			handler.DeleteBankAccount(w, r)
+		default:
+			httputil.MethodNotAllowed(w)
+		}
+	})
 }
 

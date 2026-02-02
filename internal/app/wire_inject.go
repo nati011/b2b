@@ -71,6 +71,7 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 		provideCustomerService,
 		provideCustomerHandler,
 		provideSupplierRepository,
+		provideBankAccountRepository,
 		provideSupplierService,
 		provideSupplierHandler,
 		provideProductRepository,
@@ -161,8 +162,8 @@ func provideUserService(cfg *config.Config, repo *userrepository.Repository, rol
 }
 
 // provideUserHandler creates a user HTTP handler.
-func provideUserHandler(userService *userservice.Service, permissionChecker *userservice.UserPermissionChecker) *userhttp.UserHandler {
-	return userhttp.NewUserHandler(userService, permissionChecker)
+func provideUserHandler(userService *userservice.Service, permissionChecker *userservice.UserPermissionChecker, supplierService *supplierservice.SupplierService) *userhttp.UserHandler {
+	return userhttp.NewUserHandler(userService, permissionChecker, supplierService)
 }
 
 // provideCustomerRepository creates a customer repository.
@@ -176,8 +177,8 @@ func provideCustomerService(repo *customerrepo.CustomerRepository) *customerserv
 }
 
 // provideCustomerHandler creates a customer HTTP handler.
-func provideCustomerHandler(service *customerservice.CustomerService) *customerhttp.CustomerHandler {
-	return customerhttp.NewCustomerHandler(service)
+func provideCustomerHandler(service *customerservice.CustomerService, supplierService *supplierservice.SupplierService) *customerhttp.CustomerHandler {
+	return customerhttp.NewCustomerHandler(service, supplierService)
 }
 
 // provideSupplierRepository creates a supplier repository.
@@ -185,9 +186,14 @@ func provideSupplierRepository(dbConn *sql.DB) *supplierrepo.SupplierRepository 
 	return supplierrepo.NewSupplierRepository(dbConn)
 }
 
+// provideBankAccountRepository creates a bank account repository.
+func provideBankAccountRepository(dbConn *sql.DB) *supplierrepo.BankAccountRepository {
+	return supplierrepo.NewBankAccountRepository(dbConn)
+}
+
 // provideSupplierService creates a supplier service.
-func provideSupplierService(repo *supplierrepo.SupplierRepository) *supplierservice.SupplierService {
-	return supplierservice.NewSupplierService(repo)
+func provideSupplierService(repo *supplierrepo.SupplierRepository, bankAccountRepo *supplierrepo.BankAccountRepository) *supplierservice.SupplierService {
+	return supplierservice.NewSupplierService(repo, bankAccountRepo)
 }
 
 // provideSupplierHandler creates a supplier HTTP handler.
@@ -206,8 +212,8 @@ func provideProductService(repo *productrepo.Repository) *productservice.Service
 }
 
 // provideProductHandler creates a product HTTP handler.
-func provideProductHandler(service *productservice.Service) *producthttp.ProductHandler {
-	return producthttp.NewProductHandler(service)
+func provideProductHandler(service *productservice.Service, supplierService *supplierservice.SupplierService) *producthttp.ProductHandler {
+	return producthttp.NewProductHandler(service, supplierService)
 }
 
 // provideOrderRepository creates an order repository.
@@ -216,13 +222,14 @@ func provideOrderRepository(dbConn *sql.DB) *orderrepo.Repository {
 }
 
 // provideOrderService creates an order service.
-func provideOrderService(repo *orderrepo.Repository) *orderservice.Service {
-	return orderservice.NewService(repo)
+func provideOrderService(repo *orderrepo.Repository, productService *productservice.Service) *orderservice.Service {
+	productAdapter := orderservice.NewProductServiceAdapter(productService)
+	return orderservice.NewService(repo, productAdapter)
 }
 
 // provideOrderHandler creates an order HTTP handler.
-func provideOrderHandler(service *orderservice.Service) *orderhttp.OrderHandler {
-	return orderhttp.NewOrderHandler(service)
+func provideOrderHandler(service *orderservice.Service, supplierService *supplierservice.SupplierService) *orderhttp.OrderHandler {
+	return orderhttp.NewOrderHandler(service, supplierService)
 }
 
 // provideRoleRepository creates a role repository.
@@ -297,7 +304,7 @@ func provideBasicAuthAdapter(service *basicauthservice.Service) *basicauth.Adapt
 
 // provideBasicAuthHandler creates a basic auth credential handler.
 func provideBasicAuthHandler(service *basicauthservice.Service, userService *userservice.Service) *basicauthhttp.Handler {
-	return basicauthhttp.NewHandler(service, userService)
+	return basicauthhttp.NewHandler(service, userService, userService)
 }
 
 // provideRegistrationTokenMiddleware creates middleware for validating registration tokens.

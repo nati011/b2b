@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
+
 	"marketplace/internal/core/product/domain"
 	"marketplace/pkg/logger"
 )
@@ -43,6 +45,7 @@ type Repository interface {
 	Delete(ctx context.Context, id int64) error
 	FindByID(ctx context.Context, id int64) (*domain.Product, error)
 	List(ctx context.Context, query ListQuery) ([]*domain.Product, int, error)
+	RecordPriceChange(ctx context.Context, productID int64, oldPrice, newPrice *float64, userID *int64, userEmail, reason string) error
 }
 
 // Service coordinates product business logic.
@@ -157,4 +160,80 @@ func (s *Service) List(ctx context.Context, query ListQuery) ([]*domain.Product,
 	}
 	logger.Debug("Product list completed", "count", len(products), "total", total)
 	return products, total, nil
+}
+
+// CreateGRN creates a goods receiving note and increases product quantity.
+func (s *Service) CreateGRN(ctx context.Context, productID int64, quantity int, notes string) (*domain.Product, error) {
+	if quantity <= 0 {
+		return nil, errors.New("quantity must be greater than 0")
+	}
+
+	product, err := s.repository.FindByID(ctx, productID)
+	if err != nil {
+		if errors.Is(err, ErrProductNotFound) {
+			logger.Debug("GRN creation failed: product not found", "product_id", productID)
+		} else {
+			logger.Error("GRN creation failed: repository error", "product_id", productID, "error", err)
+		}
+		return nil, err
+	}
+
+	// Increase total quantity
+	product.TotalQuantity += quantity
+	product.UpdatedAt = time.Now()
+
+	if err := s.repository.Update(ctx, product); err != nil {
+		logger.Error("GRN creation failed: failed to update product", "product_id", productID, "error", err)
+		return nil, err
+	}
+
+	logger.Info("GRN created successfully", "product_id", productID, "quantity", quantity, "notes", notes)
+	return product, nil
+}
+
+// PriceUpdateInput captures price update payload data.
+type PriceUpdateInput struct {
+	ProductID int64
+	NewPrice  float64
+	Reason    string
+	UserID    *int64
+	UserEmail string
+}
+
+// UpdatePrice updates product price and records the change in price history.
+func (s *Service) UpdatePrice(ctx context.Context, input PriceUpdateInput) (*domain.Product, error) {
+	if input.NewPrice < 0 {
+		return nil, errors.New("price must be non-negative")
+	}
+
+	product, err := s.repository.FindByID(ctx, input.ProductID)
+	if err != nil {
+		if errors.Is(err, ErrProductNotFound) {
+			logger.Debug("Price update failed: product not found", "product_id", input.ProductID)
+		} else {
+			logger.Error("Price update failed: repository error", "product_id", input.ProductID, "error", err)
+		}
+		return nil, err
+	}
+
+	oldPrice := product.Price
+	newPrice := &input.NewPrice
+
+	// Update product price
+	product.Price = newPrice
+	product.UpdatedAt = time.Now()
+
+	if err := s.repository.Update(ctx, product); err != nil {
+		logger.Error("Price update failed: failed to update product", "product_id", input.ProductID, "error", err)
+		return nil, err
+	}
+
+	// Record price change in history
+	if err := s.repository.RecordPriceChange(ctx, input.ProductID, oldPrice, newPrice, input.UserID, input.UserEmail, input.Reason); err != nil {
+		logger.Warn("Price update succeeded but history recording failed", "product_id", input.ProductID, "error", err)
+		// Don't fail the update if history recording fails, but log it
+	}
+
+	logger.Info("Price updated successfully", "product_id", input.ProductID, "old_price", oldPrice, "new_price", newPrice, "reason", input.Reason)
+	return product, nil
 }

@@ -28,7 +28,9 @@ resources:
         - name: update
           description: Update order status
         - name: view
-          description: List orders for a customer
+          description: List customer orders (requires customer_id, optional status filter)
+        - name: view
+          description: List orders for supplier (automatically filtered by authenticated supplier)
     - code: products
       service: product-management
       description: Product catalog records
@@ -45,6 +47,12 @@ resources:
           description: List products
         - name: view
           description: List catalogue products
+        - name: view
+          description: List supplier products (authenticated supplier-only endpoint)
+        - name: update
+          description: Create goods receiving note (GRN)
+        - name: update
+          description: Update product price
     - code: supplier
       service: supplier-management
       description: Supplier profile records
@@ -59,10 +67,24 @@ resources:
           description: Update a supplier record
         - name: delete
           description: Delete a supplier record
+    - code: bank-account
+      service: supplier-management
+      description: Supplier bank account records for payment processing
+      actions:
+        - name: create
+          description: Create a bank account for a supplier
+        - name: view
+          description: List bank accounts for a supplier
+        - name: update
+          description: Update a bank account
+        - name: delete
+          description: Delete a bank account
     - code: auth_credentials
       service: authentication
       description: Basic authentication credentials
       actions:
+        - name: login
+          description: Login with email and password
         - name: create
           description: Create basic authentication credentials
         - name: update

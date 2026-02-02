@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"marketplace/internal/infra/auth/basic/domain"
 	basicauthservice "marketplace/internal/infra/auth/basic/service"
+	roleDomain "marketplace/internal/infra/authz/role/domain"
 	userDomain "marketplace/internal/infra/user/domain"
 	httputil "marketplace/pkg/http"
 )
@@ -71,21 +73,28 @@ type LoginResponseWrapper struct {
 	Body LoginResponse `json:"body"`
 }
 
+// UserRoleService defines the interface for loading user roles
+type UserRoleService interface {
+	ListRolesForUser(ctx context.Context, userID string) ([]roleDomain.Role, error)
+}
+
 // Handler handles HTTP requests for basic auth credential management
 type Handler struct {
-	service    *basicauthservice.Service
-	userLoader basicauthservice.UserLoader
-	jwtSecret  []byte
+	service        *basicauthservice.Service
+	userLoader     basicauthservice.UserLoader
+	userRoleService UserRoleService
+	jwtSecret      []byte
 }
 
 // NewHandler creates a new basic auth credential handler
-func NewHandler(service *basicauthservice.Service, userLoader basicauthservice.UserLoader) *Handler {
+func NewHandler(service *basicauthservice.Service, userLoader basicauthservice.UserLoader, userRoleService UserRoleService) *Handler {
 	// Use a default secret - in production this should come from config
 	secret := []byte("change-me-in-production-secret-key-min-32-chars")
 	return &Handler{
-		service:    service,
-		userLoader: userLoader,
-		jwtSecret:  secret,
+		service:        service,
+		userLoader:     userLoader,
+		userRoleService: userRoleService,
+		jwtSecret:      secret,
 	}
 }
 
@@ -249,11 +258,25 @@ func (h *Handler) generateAccessToken(user *userDomain.User) (string, error) {
 	now := time.Now()
 	expiresAt := now.Add(24 * time.Hour) // Token expires in 24 hours
 
-	// Get user roles (simplified - you may want to load actual role names)
+	// Get user roles - load actual role names from the database
 	roles := []string{}
-	if len(user.RoleIDs) > 0 {
-		// For now, use a default role based on user type
-		if user.UserType == userDomain.UserTypeOfficer {
+	if h.userRoleService != nil {
+		ctx := context.Background()
+		userRoles, err := h.userRoleService.ListRolesForUser(ctx, user.ID)
+		if err == nil && len(userRoles) > 0 {
+			// Extract role names (lowercase for consistency with frontend expectations)
+			// Frontend checks for role names like 'admin', 'supplier', 'customer', etc.
+			for _, role := range userRoles {
+				roleName := strings.ToLower(role.Name)
+				roles = append(roles, roleName)
+			}
+		}
+	}
+	
+	// Fallback: if no roles found via service, use simple mapping
+	if len(roles) == 0 {
+		userTypeStr := strings.ToLower(string(user.UserType))
+		if userTypeStr == "officer" {
 			roles = append(roles, "officer")
 		} else {
 			roles = append(roles, "customer")

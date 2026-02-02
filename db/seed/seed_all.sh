@@ -18,6 +18,8 @@ SEED_DIR="$(dirname "$0")"
 # Array of seed files in order
 # Note: Roles are configured via config/roles.yaml and bootstrapped by the application
 # Note: 009_seed_user_roles.sql must be run after the application has bootstrapped roles
+# Note: 010_seed_supplier_users_roles.sql is an alternative comprehensive file for supplier users only
+#       (includes users, credentials, and roles in one file)
 SEED_FILES=(
   "001_seed_users.sql"
   "008_seed_credentials.sql"  # Credentials must be seeded after users
