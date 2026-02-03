@@ -235,7 +235,7 @@ func (r *CustomerRepository) FindAllWithSupplierFilter(ctx context.Context, page
 					LOWER(c.email) LIKE $2 OR
 					LOWER(c.phone_number) LIKE $2
 				  )
-				ORDER BY c.created_date DESC
+				ORDER BY c.id ASC
 				LIMIT $3 OFFSET $4`
 			countArgs = []interface{}{supplierID, searchPattern}
 			queryArgs = []interface{}{supplierID, searchPattern, pageReq.Limit, pageReq.Offset}
@@ -263,7 +263,7 @@ func (r *CustomerRepository) FindAllWithSupplierFilter(ctx context.Context, page
 					JOIN products p ON (item->>'product_id')::int = p.id
 					WHERE p.supplier_id = $1 AND p.is_deleted = FALSE
 				  )
-				ORDER BY c.created_date DESC
+				ORDER BY c.id ASC
 				LIMIT $2 OFFSET $3`
 			countArgs = []interface{}{supplierID}
 			queryArgs = []interface{}{supplierID, pageReq.Limit, pageReq.Offset}
@@ -285,7 +285,7 @@ func (r *CustomerRepository) FindAllWithSupplierFilter(ctx context.Context, page
 					LOWER(email) LIKE $1 OR
 					LOWER(phone_number) LIKE $1
 				)
-				ORDER BY created_date DESC
+				ORDER BY id ASC
 				LIMIT $2 OFFSET $3`
 			countArgs = []interface{}{searchPattern}
 			queryArgs = []interface{}{searchPattern, pageReq.Limit, pageReq.Offset}
@@ -296,7 +296,7 @@ func (r *CustomerRepository) FindAllWithSupplierFilter(ctx context.Context, page
 				SELECT id, full_name, status, city, region, woreda, phone_number, email, is_active, created_date, last_modified
 				FROM customers
 				WHERE is_deleted = FALSE
-				ORDER BY created_date DESC
+				ORDER BY id ASC
 				LIMIT $1 OFFSET $2`
 			countArgs = []interface{}{}
 			queryArgs = []interface{}{pageReq.Limit, pageReq.Offset}

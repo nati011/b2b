@@ -42,7 +42,9 @@ type authenticatedRoutesProvider struct{}
 
 func (p *authenticatedRoutesProvider) AuthenticatedRoutes() []string {
 	return []string{
-		"GET " + RouteSupplierProducts, // Supplier products endpoint requires authentication
+		"GET " + RouteSupplierProducts,        // Supplier products endpoint requires authentication
+		"POST " + RouteProduct + "/grn",        // Create GRN requires authentication
+		"PATCH " + RouteProduct + "/price",     // Update price requires authentication
 	}
 }
 

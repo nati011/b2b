@@ -12,3 +12,4 @@ CREATE INDEX IF NOT EXISTS idx_orders_supplier_id ON public.orders(supplier_id) 
 
 COMMENT ON COLUMN public.orders.supplier_id IS 'supplier_id of the first product in the order';
 
+

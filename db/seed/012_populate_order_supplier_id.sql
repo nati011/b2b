@@ -45,3 +45,4 @@ BEGIN
     RAISE NOTICE 'Orders with NULL supplier_id: %', null_count;
 END $$;
 
+

@@ -263,7 +263,7 @@ export default function AdminOrdersPage() {
                       className="w-full"
                       asChild
                     >
-                      <Link href={`/admin/orders/${order.id}`}>
+                      <Link href={`/supplier/orders/${order.id}`}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </Link>

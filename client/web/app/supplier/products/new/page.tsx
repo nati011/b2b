@@ -47,14 +47,12 @@ export default function NewProductPage() {
   };
 
   const buildAttributesObject = () => {
-    // Filter out empty attributes and build JSON object
     const attrsObj: Record<string, string> = {};
     attributes.forEach((attr) => {
       if (attr.key.trim() && attr.value.trim()) {
         attrsObj[attr.key.trim()] = attr.value.trim();
       }
     });
-    // Return object if there are any attributes, otherwise undefined
     return Object.keys(attrsObj).length > 0 ? attrsObj : undefined;
   };
 
@@ -64,9 +62,8 @@ export default function NewProductPage() {
     try {
       setSaving(true);
       
-      // Build attributes object
       const attributesObj = buildAttributesObject();
-      
+
       const createData: any = {
         name: formData.name,
         description: formData.description || undefined,
@@ -75,17 +72,15 @@ export default function NewProductPage() {
         is_active: formData.is_active,
         unit: formData.unit || undefined,
         external_id: formData.external_id || undefined,
-        supplier_id: 0, // Backend will auto-set for supplier users, but field is required in request
       };
 
-      // Add attributes if they exist
       if (attributesObj) {
         createData.attributes = attributesObj;
       }
 
       await CreateProduct(createData);
       toast.success("Product created successfully");
-      router.push("/admin/products");
+      router.push("/supplier/products");
     } catch (err: any) {
       console.error("Error creating product:", err);
       toast.error(err.message || "Failed to create product");
@@ -96,14 +91,13 @@ export default function NewProductPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="mb-8">
         <Button
           variant="ghost"
           asChild
           className="mb-4"
         >
-          <Link href="/admin/products">
+          <Link href="/supplier/products">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Products
           </Link>
@@ -212,7 +206,6 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            {/* Attributes Section */}
             <div className="space-y-4 pt-4 border-t">
               <div className="flex items-center justify-between">
                 <div>
@@ -286,7 +279,7 @@ export default function NewProductPage() {
                 variant="outline"
                 asChild
               >
-                <Link href="/admin/products">Cancel</Link>
+                <Link href="/supplier/products">Cancel</Link>
               </Button>
               <Button type="submit" disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
