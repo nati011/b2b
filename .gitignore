@@ -10,6 +10,8 @@ node_modules/
 **/node_modules/
 web/*/node_modules/*
 mobile/**/node_modules/
+client/web/node_modules/
+client/mobile/node_modules/
 
 # Build outputs
 .next/
@@ -29,6 +31,9 @@ build/
 
 # Next.js
 .next/
+**/.next/
+client/web/.next/
+client/.next/
 out/
 .vercel
 
@@ -72,6 +77,8 @@ marketplace
 distributor
 resourcegen
 verify-*
+cmd/__debug_bin*
+__debug_bin*
 
 # OS
 .DS_Store
