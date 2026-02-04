@@ -12,6 +12,7 @@ web/*/node_modules/*
 mobile/**/node_modules/
 client/web/node_modules/
 client/mobile/node_modules/
+client/node_modules/
 
 # Build outputs
 .next/
@@ -20,6 +21,7 @@ dist/
 **/dist/
 build/
 **/build/
+.build/
 *.o
 *.a
 *.so
