@@ -17,3 +17,4 @@ WHERE business_name = 'Global Equipment Inc';
 
 
 
+

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Print displays the ASCII art banner for NUCLEUS with version and environment info
+// Print displays the ASCII art banner with version and environment info
 func Print(version, env string) {
 	banner := "       __                 _        \n" +
 		"      / _|               | |       \n" +

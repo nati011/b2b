@@ -26,3 +26,4 @@ CREATE INDEX IF NOT EXISTS idx_basic_auth_credentials_user_id ON basic_auth_cred
 
 
 
+
