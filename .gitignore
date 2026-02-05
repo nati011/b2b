@@ -13,6 +13,8 @@ mobile/**/node_modules/
 client/web/node_modules/
 client/mobile/node_modules/
 client/node_modules/
+**/node_modules/@next/swc-*/
+**/node_modules/@swc/core-*/
 
 # Build outputs
 .next/
@@ -106,3 +108,24 @@ lerna-debug.log*
 *.bak
 *.swp
 *.swo
+
+# Large binary files
+*.node
+*.so
+*.dylib
+*.dll
+*.exe
+*.bin
+*.wasm
+
+# Large files over 50MB
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Next.js SWC binaries (large)
+**/node_modules/@next/swc-*/
+**/.next/cache/**
