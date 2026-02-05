@@ -30,7 +30,7 @@ export const OrderCard: React.FC<Props> = ({
     return (
         <Card
             key={order.Id}
-            className="rounded-sm shadow-none hover:shadow-md transition-shadow duration-200 border-accent border-2"
+            className="rounded-sm transition-shadow duration-200 border-accent border-2"
         >
             <CardHeader className="border-b px-6 border-red-100">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">

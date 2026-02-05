@@ -71,7 +71,7 @@ export const ProductCard: React.FC<Props> = React.memo(({ product }) => {
       prefetch={true}
       onClick={() => setProduct(product)}
     >
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+      <div className="bg-white rounded-sm overflow-hidden transition-all duration-300 border border-gray-100">
         <div className="aspect-square overflow-hidden bg-gray-50 relative">
           {imageUrl ? (
             <Image
@@ -106,7 +106,7 @@ export const ProductCard: React.FC<Props> = React.memo(({ product }) => {
           <div className="flex items-center gap-2">
             {stockInfo.isAvailable ? (
               <>
-                <Check className="w-4 h-4 text-green-600" />
+                <Check className="w-4 h-4 text-emerald-600" />
                 <span className="text-sm text-gray-600">
                   {stockInfo.stock > 0 
                     ? `${stockInfo.stock} ${stockInfo.stock === 1 ? 'unit' : 'units'} available`

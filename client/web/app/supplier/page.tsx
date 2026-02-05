@@ -153,8 +153,8 @@ export default function SupplierDashboard() {
       pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
       cancelled: "bg-red-500/10 text-red-600 border-red-500/20",
       canceled: "bg-red-500/10 text-red-600 border-red-500/20",
-      delivered: "bg-green-500/10 text-green-600 border-green-500/20",
-      completed: "bg-green-500/10 text-green-600 border-green-500/20",
+      delivered: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+      completed: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
       processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
     };
     
@@ -249,7 +249,7 @@ export default function SupplierDashboard() {
         <Card className="border-primary/20 hover:border-primary/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
+            <ArrowUpRight className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.completedOrders}</div>

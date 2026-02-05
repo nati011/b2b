@@ -79,6 +79,8 @@
   --marketplace-accent-bg: #64C5BB;
   --marketplace-accent-border: #64C5BB;
   --marketplace-accent-text: #000000;
+  --success: 0.6 0.15 160;
+  --success-foreground: 1 0 0;
 }
 
 .dark {
@@ -116,6 +118,8 @@
   --marketplace-accent-bg: #64C5BB;
   --marketplace-accent-border: #64C5BB;
   --marketplace-accent-text: #000000;
+  --success: 0.6 0.15 160;
+  --success-foreground: 1 0 0;
 }
 
 @layer base {

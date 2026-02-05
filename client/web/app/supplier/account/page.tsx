@@ -392,7 +392,7 @@ export default function AccountManagementPage() {
                           </Badge>
                         )}
                         {account.is_active ? (
-                          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
                             Active
                           </Badge>
                         ) : (

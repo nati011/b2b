@@ -246,7 +246,7 @@ export default function AdminDashboard() {
         <Card className="border-primary/20 hover:border-primary/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
+            <ArrowUpRight className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{stats.completedOrders}</div>

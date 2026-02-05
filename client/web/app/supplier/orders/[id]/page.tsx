@@ -129,8 +129,8 @@ export default function OrderDetailPage() {
       pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
       cancelled: "bg-red-500/10 text-red-600 border-red-500/20",
       canceled: "bg-red-500/10 text-red-600 border-red-500/20",
-      delivered: "bg-green-500/10 text-green-600 border-green-500/20",
-      completed: "bg-green-500/10 text-green-600 border-green-500/20",
+      delivered: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+      completed: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
       processing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
     };
     
@@ -227,7 +227,7 @@ export default function OrderDetailPage() {
     const statusLower = status?.toLowerCase() || '';
     
     const statusColors: Record<string, string> = {
-      paid: "bg-green-500/10 text-green-600 border-green-500/20",
+      paid: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
       unpaid: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
       pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
       failed: "bg-red-500/10 text-red-600 border-red-500/20",
@@ -458,7 +458,7 @@ export default function OrderDetailPage() {
                       {customerInfo.status && (
                         <Badge variant="outline" className={
                           customerInfo.status?.toLowerCase() === 'active' 
-                            ? "bg-green-500/10 text-green-600 border-green-500/20"
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                             : customerInfo.status?.toLowerCase() === 'inactive'
                             ? "bg-gray-500/10 text-gray-600 border-gray-500/20"
                             : "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
@@ -469,7 +469,7 @@ export default function OrderDetailPage() {
                       {customerInfo.is_active !== undefined && (
                         <Badge variant="outline" className={
                           customerInfo.is_active
-                            ? "bg-green-500/10 text-green-600 border-green-500/20"
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                             : "bg-gray-500/10 text-gray-600 border-gray-500/20"
                         }>
                           {customerInfo.is_active ? 'Active' : 'Inactive'}
@@ -655,5 +655,6 @@ export default function OrderDetailPage() {
     </div>
   );
 }
+
 
 

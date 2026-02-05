@@ -162,7 +162,14 @@ export default function ProductDetailPage() {
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</span>
               </div>
               <div className="mt-1">
-                <Badge variant={product.is_active ? "default" : "secondary"} className="text-sm">
+                <Badge 
+                  variant="outline" 
+                  className={`text-sm ${
+                    product.is_active 
+                      ? "bg-primary/10 text-primary-700 border-primary-700" 
+                      : "bg-gray-500/10 text-gray-700 border-gray-700"
+                  }`}
+                >
                   {product.is_active ? "Active" : "Inactive"}
                 </Badge>
               </div>
@@ -375,5 +382,6 @@ export default function ProductDetailPage() {
     </div>
   );
 }
+
 
 

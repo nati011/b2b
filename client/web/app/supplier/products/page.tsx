@@ -190,7 +190,11 @@ export default function AdminProductsPage() {
                       <TableCell>{product.available_quantity || product.total_quantity || 0}</TableCell>
                       <TableCell>
                         <Badge
-                          variant={product.is_active ? "default" : "secondary"}
+                          variant="outline"
+                          className={product.is_active 
+                            ? "bg-primary/10 text-primary-700 border-primary-700" 
+                            : "bg-gray-500/10 text-gray-700 border-gray-700"
+                          }
                         >
                           {product.is_active ? "Active" : "Inactive"}
                         </Badge>
@@ -274,8 +278,12 @@ export default function AdminProductsPage() {
                         </p>
                       </div>
                       <Badge
-                        variant={product.is_active ? "default" : "secondary"}
-                        className="ml-2 shrink-0"
+                        variant="outline"
+                        className={`ml-2 shrink-0 ${
+                          product.is_active 
+                            ? "bg-primary/10 text-primary-700 border-primary-700" 
+                            : "bg-gray-500/10 text-gray-700 border-gray-700"
+                        }`}
                       >
                         {product.is_active ? "Active" : "Inactive"}
                       </Badge>

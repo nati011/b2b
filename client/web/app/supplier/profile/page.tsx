@@ -50,7 +50,7 @@ export default function AdminProfile() {
       </div>
 
       {/* Profile Header Card */}
-      <div className="bg-card border border-border rounded-lg shadow-sm mb-6">
+      <div className="bg-card border border-border rounded-sm mb-6">
         <div className="p-6">
           <div className="flex items-center gap-4">
             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -82,7 +82,7 @@ export default function AdminProfile() {
       </div>
 
       {/* Personal Information */}
-      <div className="bg-card border border-border rounded-lg shadow-sm">
+      <div className="bg-card border border-border rounded-sm">
         <div className="p-6">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
             Personal Information

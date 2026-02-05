@@ -506,22 +506,22 @@ const ProductDetail = () => {
               return (
                 <div className={`p-4 rounded-lg border ${
                   stockInfo.isAvailable 
-                    ? 'bg-green-50 border-green-200' 
+                    ? 'bg-emerald-50 border-emerald-200' 
                     : 'bg-red-50 border-red-200'
                 }`}>
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Check className={`w-5 h-5 ${
-                        stockInfo.isAvailable ? 'text-green-600' : 'text-red-600'
+                        stockInfo.isAvailable ? 'text-emerald-600' : 'text-red-600'
                       }`} />
                       <div>
                         <p className={`text-sm font-semibold ${
-                          stockInfo.isAvailable ? 'text-green-900' : 'text-red-900'
+                          stockInfo.isAvailable ? 'text-emerald-900' : 'text-red-900'
                         }`}>
                           Stock Availability
                         </p>
                         <p className={`text-sm ${
-                          stockInfo.isAvailable ? 'text-green-700' : 'text-red-700'
+                          stockInfo.isAvailable ? 'text-emerald-700' : 'text-red-700'
                         }`}>
                           {stockInfo.message}
                         </p>

@@ -18,7 +18,7 @@ const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         success:
-          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",
+          "border-transparent bg-emerald-500 text-white [a&]:hover:bg-emerald-600",
       },
     },
     defaultVariants: {

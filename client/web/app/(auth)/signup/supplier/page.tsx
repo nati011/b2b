@@ -879,7 +879,7 @@ export default function SuppliersForm() {
                     </div>
                   )}
                   {formData.latitude && formData.longitude && !errors.latitude && !errors.longitude && (
-                    <div className="text-sm text-green-600">
+                    <div className="text-sm text-emerald-600">
                       Location selected: {parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}
                     </div>
                   )}
@@ -957,7 +957,7 @@ export default function SuppliersForm() {
                       <p className="text-sm text-red-500">{errors.password}</p>
                     )}
                     {formData.password && !errors.password && formData.password.length >= 6 && (
-                      <p className="text-sm text-green-600">Password is valid</p>
+                      <p className="text-sm text-emerald-600">Password is valid</p>
                     )}
                   </div>
 
@@ -1004,7 +1004,7 @@ export default function SuppliersForm() {
                       <p className="text-sm text-red-500">{errors.confirm_password}</p>
                     )}
                     {formData.confirm_password && !errors.confirm_password && formData.password === formData.confirm_password && (
-                      <p className="text-sm text-green-600">Passwords match</p>
+                      <p className="text-sm text-emerald-600">Passwords match</p>
                     )}
                   </div>
 
@@ -1062,8 +1062,8 @@ export default function SuppliersForm() {
 
       {showSuccess && (
       <ClientOnlyDialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <h1 className="text-3xl font-bold text-green-800 mb-2">
+        <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
+        <h1 className="text-3xl font-bold text-emerald-800 mb-2">
           Thank You for Registering!
         </h1>
         <p className="text-green-700 mb-4">

@@ -96,7 +96,7 @@ export default function AdminSupplierPage() {
   const getStatusBadge = (status: string) => {
     const statusLower = status?.toLowerCase() || '';
     const statusColors: Record<string, string> = {
-      active: "bg-green-500/10 text-green-600 border-green-500/20",
+      active: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
       inactive: "bg-gray-500/10 text-gray-600 border-gray-500/20",
       suspended: "bg-red-500/10 text-red-600 border-red-500/20",
       pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
@@ -165,6 +165,7 @@ export default function AdminSupplierPage() {
                     <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -181,6 +182,17 @@ export default function AdminSupplierPage() {
                           month: 'short',
                           day: 'numeric',
                         })}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                        >
+                          <Link href={`/admin/supplier/${supplier.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

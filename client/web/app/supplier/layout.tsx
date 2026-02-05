@@ -222,7 +222,7 @@ export default function SupplierLayout({
       <div className="flex relative">
         {/* Desktop Sidebar */}
         <aside className={cn(
-          "bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-[calc(100vh-4rem)] shadow-sm transition-all duration-300 relative hidden lg:block fixed left-0 top-16 bottom-0 overflow-y-auto",
+          "bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-[calc(100vh-4rem)] shadow-sm transition-all duration-300 relative hidden lg:block fixed left-0 top-16 bottom-0 overflow-y-auto overflow-x-visible",
           isCollapsed ? "w-16" : "w-64"
         )}>
           {/* Desktop Toggle Button */}
@@ -231,9 +231,10 @@ export default function SupplierLayout({
             size="icon"
             onClick={toggleSidebar}
             className={cn(
-              "absolute -right-3 top-4 z-10 h-6 w-6 rounded-full border border-gray-200 dark:border-gray-700 dark:border-white/20 bg-white dark:bg-white dark:text-gray-900 shadow-sm hover:bg-primary/10 dark:hover:bg-white/90 hover:border-primary hover:text-primary dark:hover:text-gray-900 transition-all",
+              "absolute -right-3 top-4 z-[100] h-7 w-7 rounded-full border border-gray-200 dark:border-gray-700 dark:border-white/20 bg-white dark:bg-white dark:text-gray-900 shadow-sm hover:bg-primary/10 dark:hover:bg-white/90 hover:border-primary hover:text-primary dark:hover:text-gray-900 transition-all",
               isCollapsed && "rotate-180"
             )}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
