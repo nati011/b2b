@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
   reactStrictMode: true,
+  
   // Performance optimizations
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   
@@ -39,7 +39,7 @@ module.exports = {
   },
   
   // Optimize bundle
-  webpack: (config, { isServer }) => {
+  webpack: (config: { optimization: any; }, { isServer }: any) => {
     if (!isServer) {
       config.optimization = {
         ...config.optimization,
@@ -49,3 +49,5 @@ module.exports = {
     return config;
   },
 };
+
+module.exports = nextConfig;
