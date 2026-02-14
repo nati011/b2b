@@ -75,8 +75,8 @@ services:
     command: ["./marketplace", "-config", "config/config.docker.compose.yaml"]
     volumes:
       - ./config/config.docker.compose.yaml:/root/config/config.docker.compose.yaml:ro
-    expose:
-      - "8090"
+    ports:
+      - "8090:8090"
     depends_on:
       seed:
         condition: service_completed_successfully
@@ -97,8 +97,8 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@local.local
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
-    expose:
-      - "80"
+    ports:
+      - "5051:80"
     depends_on:
       db:
         condition: service_healthy
