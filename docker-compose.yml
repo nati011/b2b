@@ -1,0 +1,109 @@
+services:
+  # PostgreSQL Database
+
+  # Database Migrations
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    container_name: b2b-migrations
+    network_mode: host
+    entrypoint: []
+    environment:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: b2b
+      DB_SSLMODE: disable
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        counter=0 &&
+        while [ $$counter -lt 60 ]; do
+          counter=$$((counter + 1)) &&
+          if nc -z localhost 5432 2>/dev/null; then
+            echo 'Database port is open, testing connection...' &&
+            if PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
+              echo 'Database is ready!'
+              break
+            fi
+          fi &&
+          if [ $$counter -eq 60 ]; then
+            echo 'Database connection timeout after 60 attempts'
+            exit 1
+          fi &&
+          echo \"Database is unavailable - sleeping (attempt $$counter/60)\" &&
+          sleep 1
+        done &&
+        migrate -path /root/db/migrations -database postgres://postgres:postgres@localhost:5432/b2b?sslmode=disable up &&
+        echo 'Migrations completed successfully!'
+      "
+    volumes:
+      - ./db/migrations:/root/db/migrations:ro
+    restart: "no"
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    container_name: b2b-backend
+    network_mode: host
+    entrypoint: []
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: b2b
+      DB_SSLMODE: disable
+    volumes:
+      - ./config:/root/config:ro
+    command: ["./marketplace", "-config", "config/config.docker.yaml"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8090 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        # Backend API URL (accessible from browser via host)
+        VITE_API_BASE_URL: http://localhost:8080
+        VITE_API_TIMEOUT: "30000"
+        VITE_API_RETRY_ATTEMPTS: "3"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    container_name: b2b-client
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - b2b-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  b2b-network:
+    driver: bridge

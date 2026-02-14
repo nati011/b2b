@@ -1,36 +1,52 @@
-FROM golang:1.23-alpine
+# Build stage
+FROM golang:1.23.4-alpine AS builder
 
-RUN apk add --no-cache wget netcat-openbsd
+# Install build dependencies
+RUN apk add --no-cache git make
 
+# Set working directory
 WORKDIR /app
 
+# Copy go mod files
 COPY go.mod go.sum ./
-
 RUN go mod download
 
+# Copy source code
 COPY . .
 
-RUN go build -o main ./cmd/
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o marketplace ./cmd/marketplace
 
+# Final stage
+FROM alpine:latest
 
-CMD env && ./main \
-    --port $PORT \
-    --keycloak_base_url $KEYCLOAK_BASE_URL \
-    --keycloak_user_name $KEYCLOAK_USER_NAME \
-    --keycloak_password $KEYCLOAK_PASSWORD \
-    --keycloak_realm $KEYCLOAK_REALM \
-    --keycloak_client_id $KEYCLOAK_CLIENT_ID \
-    --keycloak_application_realm $KEYCLOAK_APPLICATION_REALM \
-    --db $DB_URL \
-    --migration_file_dir /app/migration \
-    --smtp $SMTP \
-    --email $EMAIL \
-    --default_superadmin_email $DEFAULT_SUPERADMIN_EMAIL \
-    --keycloak_client_secret $KEYCLOAK_CLIENT_SECRET \
-    --env $ENV \
-    --base_url $BASE_URL \
-    --frontend_base_url $FRONTEND_URL \
-    --min_compatible_client_version $CLIENT_VERSION \
-    --jwt_secret $JWT_SECRET \
-    --email_password $EMAIL_PASSWORD 
+# Install ca-certificates for HTTPS, netcat for healthchecks, postgresql-client for migrations/seeds, and curl for migrate tool
+RUN apk --no-cache add ca-certificates tzdata netcat-openbsd postgresql-client curl
+
+# Install golang-migrate
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
+    mv migrate /usr/local/bin/migrate && \
+    chmod +x /usr/local/bin/migrate && \
+    migrate -version
+
+WORKDIR /root/
+
+# Copy the binary from builder
+COPY --from=builder /app/marketplace .
+
+# Copy config files
+COPY --from=builder /app/config ./config
+
+# Copy database migrations and seeds
+COPY --from=builder /app/db ./db
+
+# Copy and set up entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose port
 EXPOSE 8080
+
+# Use entrypoint script
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["./marketplace", "-config", "config/config.docker.yaml"]
