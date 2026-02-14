@@ -1,0 +1,44 @@
+/** @type {import('next').NextConfig} */
+module.exports = {
+  reactStrictMode: true,
+  // Performance optimizations
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
+  
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: "https",
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: "https",
+        hostname: 'unsplash.com',
+      },
+    ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+  },
+  
+  // Optimize package imports
+  experimental: {
+    optimizePackageImports: [
+      'next/font',
+      'lucide-react',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-dialog',
+    ],
+  },
+  
+  // Compiler optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+};

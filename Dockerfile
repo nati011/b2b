@@ -50,4 +50,3 @@ EXPOSE 8080
 # Use entrypoint script
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["./marketplace", "-config", "config/config.docker.yaml"]
-

@@ -1,0 +1,613 @@
+package db
+
+import (
+	"context"
+	"database/sql"
+	"os"
+	"testing"
+
+	"b2b.nati011.github.com/internal/core/domain/configurable_product"
+	test_container "b2b.nati011.github.com/internal/core/domain/configurable_product/test/integration"
+	"b2b.nati011.github.com/internal/core/domain/distributor"
+	"b2b.nati011.github.com/internal/core/domain/product"
+	db_test_container "b2b.nati011.github.com/internal/core/util/test_container/db"
+	_ "github.com/jackc/pgx/v4/stdlib"
+)
+
+var container test_container.TestContainer
+var distributorId int
+var db *sql.DB
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	db = db_test_container.Setup()
+	container = test_container.NewDBIntegrationTestContainer(db)
+	ctx := context.Background()
+	var err error
+	distributorId, err = container.DistributorService.Create(ctx, &distributor.CreateRequest{
+		Tin:         "1111111111",
+		Latitude:    "9.0192° N",
+		Longitude:   "38.7525° E",
+		GeneralZone: "test",
+		Region:      "test",
+		Woreda:      "test",
+		Username:    "username",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@gmail.com",
+	})
+	if err != nil {
+		panic("failed to create distributor err: ")
+	}
+}
+
+func teardown() {
+	db_test_container.Teardown(db)
+	setup()
+}
+
+func Test_Timeout(t *testing.T) {
+}
+
+func Test_read(t *testing.T) {
+	t.Run("GetByName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//get
+		got, err := container.ConfigurableProductService.GetByParam(ctx, &configurable_product.GetByParamRequest{
+			Name: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if got.List[0].Id != id {
+			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+	})
+
+	t.Run("GetByExternalId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		//setup
+		ctx := context.Background()
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		// get
+		got, err := container.ConfigurableProductService.GetByParam(ctx, &configurable_product.GetByParamRequest{
+			ExternalId: "test",
+		})
+		if err != nil {
+			t.Fatalf("Failed to get by param err: %v", err)
+		}
+		if got.List[0].Id != id {
+			t.Errorf("Expected Id: %v, Got Id: %v", id, got.List[0].Id)
+		}
+	})
+
+	t.Run("GetById", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		// Get
+		got, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to Get err: %v", err)
+		}
+
+		if got.Id != id {
+			t.Errorf("Expected resp Id: %v Got: %v", id, got.Id)
+		}
+	})
+
+	t.Run("GetAll", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		_, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		// get
+		got, err := container.ConfigurableProductService.GetAll(ctx)
+		if err != nil {
+			t.Fatalf("Failed to get all err: %v", err)
+		}
+		wantLen := 1
+		if len(got.List) != wantLen {
+			t.Errorf("Expected len: %v Got len: %v", wantLen, len(got.List))
+		}
+	})
+}
+
+func Test_write(t *testing.T) {
+
+	t.Run("Create", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		got, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		if got.Id != id {
+			t.Errorf("Expected id: %v Got id: %v", id, got.Id)
+		}
+	})
+
+	t.Run("updateName", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		product_id, err := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		if err != nil {
+			t.Fatalf("Failed to update name %v", err)
+		}
+		//setup
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//updateName
+		err = container.ConfigurableProductService.Update(ctx, &configurable_product.UpdateRequest{
+			Id:   id,
+			Name: "updated",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		resp, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantName := "updated"
+		if resp.Name != wantName {
+			t.Errorf("Expected name: %v Got: %v", wantName, resp.Name)
+		}
+	})
+
+	t.Run("updateDesc", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//updateDesc
+		err = container.ConfigurableProductService.Update(ctx, &configurable_product.UpdateRequest{
+			Id:   id,
+			Desc: "updated",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		resp, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantName := "updated"
+		if resp.Desc != wantName {
+			t.Errorf("Expected name: %v Got: %v", wantName, resp.Name)
+		}
+	})
+
+	t.Run("updateExternalId", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//updateExtId
+		err = container.ConfigurableProductService.Update(ctx, &configurable_product.UpdateRequest{
+			Id:         id,
+			ExternalId: "updated",
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		resp, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantName := "updated"
+		if resp.ExternalId != wantName {
+			t.Errorf("Expected extId: %v Got: %v", "updated", resp.Name)
+		}
+	})
+
+	t.Run("updateProducts", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//wantProduct
+		err = container.ConfigurableProductService.Update(ctx, &configurable_product.UpdateRequest{
+			Id: id,
+			Product: []int{
+				product_id,
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		resp, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantProduct := product_id
+		if resp.Products[0] != wantProduct {
+			t.Errorf("Expected product: %v Got: %v", wantProduct, resp.Products[0])
+		}
+	})
+
+	t.Run("updateImages", func(t *testing.T) {
+		t.Cleanup(teardown)
+		ctx := context.Background()
+		//setup
+		product_id, _ := container.ProductService.Create(ctx, &product.CreateRequest{
+			Name:       "testProduct",
+			Desc:       "test",
+			ExternalID: "123",
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+			Price: 100.00,
+			Attributes: map[string]string{
+				"test": "test",
+			},
+			DistributorId: distributorId,
+		})
+		in := &configurable_product.CreateRequest{
+			Name:       "test",
+			Desc:       "test",
+			ExternalId: "test",
+			AttributeKeys: []string{
+				"test",
+				"test",
+			},
+			Products: []int{
+				product_id,
+			},
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		}
+		id, err := container.ConfigurableProductService.Create(ctx, in)
+		if err != nil {
+			t.Fatalf("Failed to create err: %v", err)
+		}
+
+		//images
+		err = container.ConfigurableProductService.Update(ctx, &configurable_product.UpdateRequest{
+			Id: id,
+			Images: []string{
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+				"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80",
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to update err: %v", err)
+		}
+
+		resp, err := container.ConfigurableProductService.Get(ctx, id)
+		if err != nil {
+			t.Fatalf("Failed to get err: %v", err)
+		}
+		wantImages := "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w500&q80"
+		if resp.Images[0].ImageUrl != wantImages && resp.Images[1].ImageUrl != wantImages {
+			t.Errorf("Expected image: %v Got: %v", wantImages, resp.Images[0])
+		}
+	})
+}

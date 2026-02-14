@@ -1,0 +1,158 @@
+<html> 
+    <div class="invoice-card">     
+        <div class="header">         
+            <div class="logo-container">             
+                <img src="https://res.cloudinary.com/ddbdbuuqw/image/upload/v1750073317/logo_lygnpt.png" alt="logo" class="logo">             
+                <div class="store-info">                 
+                    <p class="store-name">Efoyeta Store</p>                 
+                    <p class="contact">+2519234567132</p>                
+                    <p class="location">Addis Ababa, Ethiopia</p>             
+                </div>         
+            </div>         
+            <div class="invoice-details">             
+                <div class="detail">                 
+                    <span class="label">Invoice:</span>                 
+                    <span class="value">#{{ .Id }}</span>             
+                </div>             
+            <div class="detail">                 
+                <span class="label">Date Issued:</span>                 
+                <span class="value">{{ .Created_Date.Format "2006-01-02" }}</span>             
+            </div>         
+        </div>     
+    </div>     
+    <div class="table-container">         
+        <table class="data-table">             
+            <thead>                 
+                <tr>                     
+                    <th>Id</th>                     
+                    <th>Name</th>                     
+                    <th>Quantity</th>                     
+                    <th>Price</th>                 
+                </tr>             
+                </thead>             
+                <tbody>                 
+                    {{ range .LineItems }}                 
+                    <tr>                     
+                        <td>{{ .ProductId }}</td>                     
+                        <td>{{ .ProductName }}</td>                     
+                        <td>{{ .ProductQuantity }}</td>                     
+                        <td>{{ .ProductPrice }}</td>                 
+                    </tr>                 
+                    {{ end }}             
+                </tbody>         
+            </table>     
+            </div>     
+            <div class="totals">         
+                <p><strong>Subtotal:</strong> {{ .SubTotal }}</p>         
+                <p><strong>Tax Amount:</strong> {{ .TaxAmount }}</p>         
+                <p><strong>Total:</strong> {{ .Total }}</p>     
+            </div> 
+        </div> 
+        <style>     
+            .invoice-card {         
+                max-width: 800px;         
+                margin: auto;         
+                padding: 16px;         
+                border: 1px solid #e5e7eb;         
+                border-radius: 8px;         
+                background-color: #f9fafb;         
+                box-sizing: border-box;     
+            }          
+            .header {         
+                display: flex;              
+                padding: 16px;         
+                border-bottom: 1px solid #e5e7eb;         
+                background-color: rgba(229, 231, 235, 0.5);     
+                flex-direction: row;             
+                        justify-content: space-between;             
+                        align-items: end;      
+            }          
+            .logo-container {         
+                display: flex;
+                align-items: center;       
+            }          
+            .logo {         
+                width: 100px;         
+                height: auto;         
+                margin-right: 4px;    
+            }          
+            .store-info {         
+                display: flex;         
+                flex-direction: column;     
+            }          
+            .store-name {         
+                font-weight: bold;         
+                font-size: 1.25rem;         
+                color: #1e3a8a;         
+                margin-bottom: 4px;     
+            }          
+            .contact,     .location {         
+                color: #4b5563;         
+                font-size: 0.875rem;         
+                margin: 2px 0;     
+            }          
+            .invoice-details {         
+                display: flex;         
+                flex-direction: column;         
+                align-items: flex-start; 
+                margin-bottom:4px    
+            }          
+            .detail {         
+                margin-bottom: 4px;     
+            }          
+            .label {
+                font-size:0.8rem;
+                font-weight: bold;         
+                color: #374151;     
+            }          
+            .value {      
+                font-size:0.8rem;  
+                margin-left: 8px;         
+                color: #374151;     
+            }          
+            .table-container {         
+                width: 100%;         
+                overflow-x: auto;         
+                margin: 16px 0;     
+            }          
+            .data-table {         
+                width: 100%;         
+                border-collapse: collapse;     
+            }          
+            .data-table th,     .data-table td {         
+                font-size: 0.8rem;         
+                padding: 12px;         
+                border: 1px solid #e5e7eb;         
+                text-align: left;     
+            }          
+            .data-table th {        
+                 background-color: #f3f4f6;         
+                 font-weight: bold;         
+                 text-transform: uppercase;     
+                }          
+                .totals {         
+                    display: flex;         
+                    flex-direction: column;         
+                    align-items: flex-end;         
+                    margin-top: 16px;         
+                    color: #4b5563;     
+                }          
+                /* Mobile responsive styles */     
+                @media (min-width: 600px) {       
+                    .logo-container {             
+                        margin-bottom: 0;         
+                    }                  
+                    .invoice-details {             
+                        align-items: flex-end;         
+                    }                  
+                    .logo {             
+                        width: 150px;         
+                    }     
+                }          
+                @media (max-width: 480px) {                           
+                    .data-table td:last-child {             
+                        border-bottom: 0;         
+                    }
+            } 
+        </style> 
+    </html>
