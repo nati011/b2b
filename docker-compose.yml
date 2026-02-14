@@ -97,6 +97,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@local.local
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
+      SCRIPT_NAME: /pgadmin
     ports:
       - "0.0.0.0:5051:80"
     depends_on:
