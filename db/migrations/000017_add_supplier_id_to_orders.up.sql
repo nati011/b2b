@@ -16,3 +16,4 @@ COMMENT ON COLUMN public.orders.supplier_id IS 'supplier_id of the first product
 
 
 
+
