@@ -10,16 +10,8 @@ module.exports = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: "https",
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: "https",
-        hostname: 'unsplash.com',
-      },
+        hostname: '*',
+      }
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -34,11 +26,26 @@ module.exports = {
       'lucide-react',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-dialog',
+      '@radix-ui/react-select',
+      '@radix-ui/react-popover',
     ],
+    // Enable partial prerendering for faster navigation
+    ppr: false, // Can enable when stable
   },
   
   // Compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
+  // Optimize bundle
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+      };
+    }
+    return config;
   },
 };
