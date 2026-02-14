@@ -1,2 +1,2 @@
 ## Efoyeta Store
-A complete Merketplace solution
+A complete Merketplace solution for Ethiopia
