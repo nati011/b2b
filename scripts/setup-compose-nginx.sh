@@ -33,9 +33,11 @@ case "${1:-up}" in
     echo "Starting stack (db -> migrations -> seed -> backend -> nginx, pgadmin)..."
     docker compose -f "$COMPOSE_FILE" up -d
     echo ""
-    echo "Stack is up. All traffic goes through Nginx on port 8080:"
-    echo "  Backend API:  http://localhost:8080/"
-    echo "  pgAdmin:      http://localhost:8080/pgadmin/"
+    echo "Stack is up. Ports bound to 0.0.0.0 (use host IP or localhost):"
+    echo "  Nginx:        http://<host-ip>:8080/  (API + pgadmin at /pgadmin/)"
+    echo "  Backend:      http://<host-ip>:8090/"
+    echo "  pgAdmin:      http://<host-ip>:5051/"
+    echo "  PostgreSQL:   <host-ip>:5432"
     echo ""
     echo "pgAdmin login: admin@local.local / admin"
     ;;
