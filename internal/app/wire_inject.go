@@ -10,7 +10,7 @@ import (
 	"github.com/google/wire"
 
 	"marketplace/internal/config"
-	corsmiddleware "marketplace/internal/core/application/middleware"
+	"marketplace/internal/core/application/cors"
 	customerhttp "marketplace/internal/core/customer/api/http"
 	customerrepo "marketplace/internal/core/customer/repository"
 	customerservice "marketplace/internal/core/customer/service"
@@ -365,16 +365,16 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 }
 
 // provideCorsMiddleware creates CORS middleware from config. When cors.allowed_origins is set (e.g. ["*"] in compose), uses it; otherwise allows all.
-func provideCorsMiddleware(cfg *config.Config) *corsmiddleware.CorsMiddleware {
+func provideCorsMiddleware(cfg *config.Config) *cors.Middleware {
 	origins := []string{"*"}
 	if cfg.CORS != nil && len(cfg.CORS.AllowedOrigins) > 0 {
 		origins = cfg.CORS.AllowedOrigins
 	}
-	return corsmiddleware.NewCorsMiddleware(origins)
+	return cors.NewMiddleware(origins)
 }
 
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware, corsMw *corsmiddleware.CorsMiddleware) stdhttp.Handler {
+func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware, corsMw *cors.Middleware) stdhttp.Handler {
 	mux := stdhttp.NewServeMux()
 	userhttp.RegisterHTTPRoutes(mux, userHandler)
 	rolehttp.RegisterHTTPRoutes(mux, roleHandler)

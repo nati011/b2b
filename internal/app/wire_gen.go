@@ -9,7 +9,7 @@ package app
 import (
 	"database/sql"
 	"marketplace/internal/config"
-	middleware2 "marketplace/internal/core/application/middleware"
+	"marketplace/internal/core/application/cors"
 	http2 "marketplace/internal/core/customer/api/http"
 	"marketplace/internal/core/customer/repository"
 	customer2 "marketplace/internal/core/customer/service"
@@ -371,16 +371,16 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 }
 
 // provideCorsMiddleware creates CORS middleware from config. When cors.allowed_origins is set (e.g. ["*"] in compose), uses it; otherwise allows all.
-func provideCorsMiddleware(cfg *config.Config) *middleware2.CorsMiddleware {
+func provideCorsMiddleware(cfg *config.Config) *cors.Middleware {
 	origins := []string{"*"}
 	if cfg.CORS != nil && len(cfg.CORS.AllowedOrigins) > 0 {
 		origins = cfg.CORS.AllowedOrigins
 	}
-	return middleware2.NewCorsMiddleware(origins)
+	return cors.NewMiddleware(origins)
 }
 
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http6.PermissionHandler, basicAuthHandler *http7.Handler, customerHandler *http2.CustomerHandler, supplierHandler *http3.SupplierHandler, productHandler *http4.ProductHandler, orderHandler *http5.OrderHandler, mw httpMiddleware, corsMw *middleware2.CorsMiddleware) http.Handler {
+func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http6.PermissionHandler, basicAuthHandler *http7.Handler, customerHandler *http2.CustomerHandler, supplierHandler *http3.SupplierHandler, productHandler *http4.ProductHandler, orderHandler *http5.OrderHandler, mw httpMiddleware, corsMw *cors.Middleware) http.Handler {
 	mux := http.NewServeMux()
 	user.RegisterHTTPRoutes(mux, userHandler)
 	role3.RegisterHTTPRoutes(mux, roleHandler)

@@ -2,12 +2,15 @@ module marketplace
 
 go 1.23.4
 
+replace b2b.nati011.github.com => .
+
 require (
 	github.com/google/wire v0.7.0
 	github.com/jackc/pgx/v4 v4.18.3
 )
 
 require (
+	b2b.nati011.github.com v0.0.0-00010101000000-000000000000 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
