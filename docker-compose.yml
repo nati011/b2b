@@ -124,29 +124,9 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
-  nginx:
-    image: nginx:alpine
-    container_name: b2b-nginx
-    ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
-      - nginx_certs:/etc/nginx/certs
-      - ./certbot-webroot:/var/www/certbot:ro
-    command: ["/bin/sh", "/entrypoint.sh"]
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - b2b-net
-    restart: unless-stopped
-
 volumes:
   postgres_data:
   pgadmin_data:
-  nginx_certs:
 
 networks:
   b2b-net:
