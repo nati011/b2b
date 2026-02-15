@@ -4,11 +4,13 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
-// For server-side requests, use internal Docker network URL
-// For client-side requests, use external URL
+// For server-side requests: Vercel/production uses external API; Docker dev uses internal backend
+// For client-side requests: production uses external API; dev uses localhost
+const defaultServerUrl = process.env.NODE_ENV === 'production' ? 'http://185.222.240.66' : 'http://backend:8080';
+const defaultClientUrl = process.env.NODE_ENV === 'production' ? 'http://185.222.240.66' : 'http://localhost:8090';
 const baseURL = typeof window === 'undefined'
-  ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080')
-  : 'http://localhost:8090';
+  ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.API_BASE_URL || defaultServerUrl)
+  : (process.env.NEXT_PUBLIC_BASE_URL || defaultClientUrl);
 
 interface KeycloakJWT {
   exp: number;
@@ -43,7 +45,7 @@ interface AppToken extends TokenSet {
 async function refreshAccessToken(token: AppToken): Promise<AppToken> {
   try {
     // Use internal Docker network URL for server-side requests
-    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://backend:8080';
+    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || defaultServerUrl;
     
     const response = await axios.post(`${apiBaseURL}/api/v1/auth/refresh`, {
       refresh_token: token.refreshToken,
@@ -97,7 +99,7 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
 async function handleGoogleSSO(profile: any, account: any) {
   try {
     // Use internal Docker network URL for server-side requests
-    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || defaultServerUrl;
     
     const response = await axios.post(`${apiBaseURL}/api/v1/auth/sso`, {
       token: account.access_token,
@@ -155,7 +157,7 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         try {
           // Use internal Docker network URL for server-side requests (this is always server-side)
-          const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+          const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || defaultServerUrl;
           
           const response = await axios.post(
             `${apiBaseURL}/api/v1/auth/login`,

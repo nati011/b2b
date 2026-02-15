@@ -7,7 +7,8 @@ import { getSession } from "next-auth/react";
 // Docker service names (like 'backend:8080') don't work in browser
 // Check if we're in browser and if URL contains Docker service name, use localhost instead
 const getApiUrl = () => {
-  const envUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8090';
+  const defaultUrl = process.env.NODE_ENV === 'production' ? 'http://185.222.240.66' : 'http://localhost:8090';
+  const envUrl = process.env.NEXT_PUBLIC_BASE_URL || defaultUrl;
   
   // If running in browser and URL contains Docker service name, use localhost
   if (typeof window !== 'undefined') {
