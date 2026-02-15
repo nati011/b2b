@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const BACKEND_BASE = process.env.BACKEND_API_URL || "http://185.222.240.66";
+const BACKEND_BASE = process.env.BACKEND_API_URL || "https://api.efoyetastore.com";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   return proxy(request, await params);

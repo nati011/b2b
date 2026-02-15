@@ -20,7 +20,7 @@ const getApiUrl = () => {
     return '/api/backend';
   }
 
-  return process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api` : 'http://185.222.240.66/api';
+  return process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api` : 'https://api.efoyetastore.com/api';
 };
 
 const apiUrl = getApiUrl();

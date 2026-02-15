@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
-const defaultApiUrl = 'https://185.222.240.66/api';
+const defaultApiUrl = 'https://api.efoyetastore.com/api';
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
   if (typeof window !== 'undefined') return '/api/backend';
