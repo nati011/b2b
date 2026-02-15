@@ -10,6 +10,7 @@ import (
 	"github.com/google/wire"
 
 	"marketplace/internal/config"
+	corsmiddleware "marketplace/internal/core/application/middleware"
 	customerhttp "marketplace/internal/core/customer/api/http"
 	customerrepo "marketplace/internal/core/customer/repository"
 	customerservice "marketplace/internal/core/customer/service"
@@ -90,6 +91,7 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 		provideAuthorizationMiddleware,
 		provideRegistrationTokenMiddleware,
 		provideHTTPMiddleware,
+		provideCorsMiddleware,
 		provideHTTPHandler,
 		provideApplicationInfrastructure,
 		provideApplicationServices,
@@ -362,8 +364,17 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 	}
 }
 
+// provideCorsMiddleware creates CORS middleware from config. When cors.allowed_origins is set (e.g. ["*"] in compose), uses it; otherwise allows all.
+func provideCorsMiddleware(cfg *config.Config) *corsmiddleware.CorsMiddleware {
+	origins := []string{"*"}
+	if cfg.CORS != nil && len(cfg.CORS.AllowedOrigins) > 0 {
+		origins = cfg.CORS.AllowedOrigins
+	}
+	return corsmiddleware.NewCorsMiddleware(origins)
+}
+
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware) stdhttp.Handler {
+func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp.RoleHandler, permHandler *permissionhttp.PermissionHandler, basicAuthHandler *basicauthhttp.Handler, customerHandler *customerhttp.CustomerHandler, supplierHandler *supplierhttp.SupplierHandler, productHandler *producthttp.ProductHandler, orderHandler *orderhttp.OrderHandler, mw httpMiddleware, corsMw *corsmiddleware.CorsMiddleware) stdhttp.Handler {
 	mux := stdhttp.NewServeMux()
 	userhttp.RegisterHTTPRoutes(mux, userHandler)
 	rolehttp.RegisterHTTPRoutes(mux, roleHandler)
@@ -381,6 +392,7 @@ func provideHTTPHandler(userHandler *userhttp.UserHandler, roleHandler *rolehttp
 	loggingMiddleware := middleware.NewLoggingMiddleware()
 	handler = loggingMiddleware.Log(handler)
 	handler = middleware.RequestIDMiddleware(handler)
+	handler = corsMw.CORS(handler)
 	return handler
 }
 

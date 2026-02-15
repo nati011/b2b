@@ -9,6 +9,7 @@ package app
 import (
 	"database/sql"
 	"marketplace/internal/config"
+	middleware2 "marketplace/internal/core/application/middleware"
 	http2 "marketplace/internal/core/customer/api/http"
 	"marketplace/internal/core/customer/repository"
 	customer2 "marketplace/internal/core/customer/service"
@@ -93,7 +94,8 @@ func InitializeApp(cfg *config.Config) (*Application, error) {
 	registrationTokenAdapter := provideRegistrationTokenAdapter(registrationTokenService)
 	registrationTokenMiddleware := provideRegistrationTokenMiddleware(registrationTokenAdapter)
 	appHttpMiddleware := provideHTTPMiddleware(idempotencyMiddleware, authMiddleware, authorizationMiddleware, registrationTokenMiddleware)
-	httpHandler := provideHTTPHandler(userHandler, roleHandler, permissionHandler, handler, customerHandler, supplierHandler, productHandler, orderHandler, appHttpMiddleware)
+	corsMiddleware := provideCorsMiddleware(cfg)
+	httpHandler := provideHTTPHandler(userHandler, roleHandler, permissionHandler, handler, customerHandler, supplierHandler, productHandler, orderHandler, appHttpMiddleware, corsMiddleware)
 	server := provideHTTPServer(cfg, httpHandler)
 	appApplicationInfrastructure := provideApplicationInfrastructure(cfg, db, server)
 	appApplicationServices := provideApplicationServices(service, roleService, permissionService, resourceService, serviceService, customerService, supplierService, service2, orderService)
@@ -368,8 +370,17 @@ func provideHTTPMiddleware(idempotencyMiddleware *middleware.IdempotencyMiddlewa
 	}
 }
 
+// provideCorsMiddleware creates CORS middleware from config. When cors.allowed_origins is set (e.g. ["*"] in compose), uses it; otherwise allows all.
+func provideCorsMiddleware(cfg *config.Config) *middleware2.CorsMiddleware {
+	origins := []string{"*"}
+	if cfg.CORS != nil && len(cfg.CORS.AllowedOrigins) > 0 {
+		origins = cfg.CORS.AllowedOrigins
+	}
+	return middleware2.NewCorsMiddleware(origins)
+}
+
 // provideHTTPHandler registers HTTP routes and returns a handler.
-func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http6.PermissionHandler, basicAuthHandler *http7.Handler, customerHandler *http2.CustomerHandler, supplierHandler *http3.SupplierHandler, productHandler *http4.ProductHandler, orderHandler *http5.OrderHandler, mw httpMiddleware) http.Handler {
+func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHandler, permHandler *http6.PermissionHandler, basicAuthHandler *http7.Handler, customerHandler *http2.CustomerHandler, supplierHandler *http3.SupplierHandler, productHandler *http4.ProductHandler, orderHandler *http5.OrderHandler, mw httpMiddleware, corsMw *middleware2.CorsMiddleware) http.Handler {
 	mux := http.NewServeMux()
 	user.RegisterHTTPRoutes(mux, userHandler)
 	role3.RegisterHTTPRoutes(mux, roleHandler)
@@ -387,6 +398,7 @@ func provideHTTPHandler(userHandler *user.UserHandler, roleHandler *role3.RoleHa
 	loggingMiddleware := middleware.NewLoggingMiddleware()
 	handler = loggingMiddleware.Log(handler)
 	handler = middleware.RequestIDMiddleware(handler)
+	handler = corsMw.CORS(handler)
 	return handler
 }
 

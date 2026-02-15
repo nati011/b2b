@@ -29,6 +29,9 @@ db:
   database: ${POSTGRES_DB}
   sslmode: disable
 
+cors:
+  allowed_origins: ["*"]
+
 auth:
   mode: basic
   basic:

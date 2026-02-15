@@ -15,8 +15,14 @@ type Config struct {
 	DB         DBConfig        `yaml:"db"`
 	Logging    LoggingConfig   `yaml:"logging"`
 	Auth       AuthConfig      `yaml:"auth"`
+	CORS       *CorsConfig     `yaml:"cors,omitempty"`
 	Resources  ResourcesConfig `yaml:"resources"`
 	Roles      *RolesConfig    `yaml:"roles,omitempty"` // Optional: path to roles.yaml file
+}
+
+// CorsConfig holds CORS allowed origins. Use ["*"] to allow all.
+type CorsConfig struct {
+	AllowedOrigins []string `yaml:"allowed_origins"`
 }
 
 type AppConfig struct {
