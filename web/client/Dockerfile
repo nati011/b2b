@@ -13,6 +13,10 @@ RUN for i in 1 2 3; do npm ci --legacy-peer-deps && break || (npm install --lega
 # Copy the rest of the application
 COPY . .
 
+# Build args for Next.js public env (inlined at build time)
+ARG NEXT_PUBLIC_BASE_URL=/api
+ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
+
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build

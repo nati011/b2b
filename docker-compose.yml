@@ -1,109 +1,152 @@
 services:
-  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: b2b-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: b2b
+    ports:
+      - "0.0.0.0:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - b2b-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d b2b"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
-  # Database Migrations
   migrations:
     build:
       context: .
       dockerfile: Dockerfile
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     container_name: b2b-migrations
-    network_mode: host
     entrypoint: []
-    environment:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: b2b
-      DB_SSLMODE: disable
-    command: >
-      sh -c "
-        echo 'Waiting for database to be ready...' &&
-        counter=0 &&
-        while [ $$counter -lt 60 ]; do
-          counter=$$((counter + 1)) &&
-          if nc -z localhost 5432 2>/dev/null; then
-            echo 'Database port is open, testing connection...' &&
-            if PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
-              echo 'Database is ready!'
-              break
-            fi
-          fi &&
-          if [ $$counter -eq 60 ]; then
-            echo 'Database connection timeout after 60 attempts'
-            exit 1
-          fi &&
-          echo \"Database is unavailable - sleeping (attempt $$counter/60)\" &&
-          sleep 1
-        done &&
-        migrate -path /root/db/migrations -database postgres://postgres:postgres@localhost:5432/b2b?sslmode=disable up &&
-        echo 'Migrations completed successfully!'
-      "
-    volumes:
-      - ./db/migrations:/root/db/migrations:ro
+    command:
+      - sh
+      - -c
+      - |
+        echo "Waiting for database..."
+        until PGPASSWORD=postgres psql -h db -p 5432 -U postgres -d postgres -c '\q' 2>/dev/null; do
+          echo "Database unavailable - sleeping"
+          sleep 2
+        done
+        echo "Creating database if not exists..."
+        PGPASSWORD=postgres psql -h db -p 5432 -U postgres -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'b2b'" | grep -q 1 || \
+          PGPASSWORD=postgres psql -h db -p 5432 -U postgres -d postgres -c "CREATE DATABASE b2b;"
+        echo "Running migrations..."
+        migrate -path /root/db/migrations -database "postgres://postgres:postgres@db:5432/b2b?sslmode=disable" up
+        echo "Migrations done."
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - b2b-net
     restart: "no"
 
-  # Backend API
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: b2b-seed
+    entrypoint: []
+    command:
+      - sh
+      - -c
+      - |
+        export DB_HOST=db DB_PORT=5432 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=b2b
+        bash /root/db/seed/seed_all.sh
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - b2b-net
+    restart: "no"
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     container_name: b2b-backend
-    network_mode: host
     entrypoint: []
-    depends_on:
-      migrations:
-        condition: service_completed_successfully
-    environment:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: b2b
-      DB_SSLMODE: disable
+    command: ["./marketplace", "-config", "config/config.docker.compose.yaml"]
     volumes:
-      - ./config:/root/config:ro
-    command: ["./marketplace", "-config", "config/config.docker.yaml"]
+      - ./config/config.docker.compose.yaml:/root/config/config.docker.compose.yaml:ro
+    ports:
+      - "0.0.0.0:8090:8090"
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    networks:
+      - b2b-net
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 8090 || exit 1"]
-      interval: 30s
-      timeout: 10s
+      interval: 15s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 10s
 
-  # Frontend Client
-  client:
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: b2b-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      SCRIPT_NAME: /pgadmin
+    ports:
+      - "0.0.0.0:5051:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - b2b-net
+    restart: unless-stopped
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  frontend:
     build:
-      context: ./client
+      context: ./web/client
       dockerfile: Dockerfile
       args:
-        # Backend API URL (accessible from browser via host)
-        VITE_API_BASE_URL: http://localhost:8080
-        VITE_API_TIMEOUT: "30000"
-        VITE_API_RETRY_ATTEMPTS: "3"
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    container_name: b2b-client
+        NEXT_PUBLIC_BASE_URL: /api
+    container_name: b2b-frontend
+    environment:
+      NODE_ENV: production
+    expose:
+      - "3000"
     depends_on:
-      - backend
-    ports:
-      - "3000:80"
+      backend:
+        condition: service_healthy
     networks:
-      - b2b-network
+      - b2b-net
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: b2b-nginx
+    ports:
+      - "0.0.0.0:80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    networks:
+      - b2b-net
     restart: unless-stopped
 
 volumes:
   postgres_data:
-    driver: local
+  pgadmin_data:
 
 networks:
-  b2b-network:
+  b2b-net:
     driver: bridge
