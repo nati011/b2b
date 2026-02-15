@@ -126,7 +126,7 @@ services:
 
   frontend:
     build:
-      context: ./web/client
+      context: ./client/web
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_BASE_URL: /api
