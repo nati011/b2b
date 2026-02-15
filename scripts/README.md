@@ -25,60 +25,40 @@ Bash script that seeds the database with dummy data (without clearing first).
 
 ## Automatic Database Initialization
 
-The `docker-compose.yaml` includes a `db-init` service that automatically clears and seeds the database when you start the containers.
+The `docker-compose.yml` stack runs **migrations** then **seed** after the database is healthy. So on `docker compose up -d`, the DB is migrated and seeded automatically.
 
-### Enable/Disable Auto-Seeding
+### Manual clear and seed (scripts SQL)
 
-To control automatic seeding, set the `AUTO_SEED` environment variable:
+To clear and reseed using the legacy SQL files in `scripts/` (e.g. `clear_database.sql`, `seed_dummy_data.sql`):
 
-**Enable auto-seeding (default):**
 ```bash
-docker-compose up
-# or explicitly:
-AUTO_SEED=true docker-compose up
-```
-
-**Disable auto-seeding:**
-```bash
-AUTO_SEED=false docker-compose up
-```
-
-### Manual Database Management
-
-If you want to manage the database manually without the auto-init service:
-
-1. **Remove the db-init service** from `docker-compose.yaml`, or
-2. **Set AUTO_SEED=false** when starting containers
-
-Then use the scripts manually:
-```bash
-# Clear and seed
 ./scripts/clear_and_seed.sh
-
-# Or just seed (without clearing)
+# or seed only (no clear):
 ./scripts/seed_database.sh
 ```
 
+These require the **db** service to be running and use `docker-compose.yml` (or `docker compose`).
+
 ## Usage Examples
 
-### Start containers with auto-seeding (default)
+### Start the full stack
 ```bash
-docker-compose up -d
+docker compose up -d
+# or
+docker compose -f docker-compose.yml up -d
 ```
 
-### Start containers without auto-seeding
-```bash
-AUTO_SEED=false docker-compose up -d
-```
-
-### Manually clear and seed after containers are running
+### Manually clear and seed (scripts)
 ```bash
 ./scripts/clear_and_seed.sh
 ```
 
-### Stop containers
+### Stop app (keep db and pgadmin running)
 ```bash
 ./scripts/stop_containers.sh
-# or
-docker-compose stop client admin
+```
+
+### Stop everything
+```bash
+docker compose down
 ```

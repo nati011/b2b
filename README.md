@@ -39,7 +39,7 @@ docker compose ps -a
 |----------|-------------------------|
 | App      | http://localhost/       |
 | Backend  | http://localhost:8090/  |
-| PgAdmin  | http://localhost:5051/  (admin@local.local / admin) |
+| PgAdmin  | http://localhost:5051/  (admin@example.com / admin) |
 
 ### 5. Useful commands
 ```bash
@@ -66,3 +66,8 @@ docker compose up -d --build
    ```
 4. Ensure firewall allows ports 80 (nginx), and optionally 8090, 5432, 5051 if you need direct access.
 5. For production, put nginx or a reverse proxy in front and use TLS; the app is served on port 80 by the compose nginx service.
+
+### 7. Can't access the frontend?
+- **Use HTTP:** The app is served on port 80 only. Use `http://your-server/` (not `https://`) unless you have set up SSL (e.g. `scripts/setup-nginx-ubuntu.sh --ssl your-domain`).
+- **Check containers:** `docker compose ps -a` — backend and frontend must be "Up". If not, run `docker compose up -d --build` and check `docker compose logs frontend` and `docker compose logs backend`.
+- **Firewall:** Allow port 80: `sudo ufw allow 80 && sudo ufw reload`.

@@ -40,7 +40,7 @@ case "${1:-up}" in
     echo "  Backend:     http://<host-ip>:8090/  (direct)"
     echo "  PostgreSQL:  <host-ip>:5432"
     echo ""
-    echo "pgAdmin login: admin@local.local / admin"
+    echo "pgAdmin login: admin@example.com / admin"
     ;;
   down)
     echo "Stopping stack..."

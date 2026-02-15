@@ -19,6 +19,16 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 
+# Load .env for DB credentials if present
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    set -a
+    source "$PROJECT_ROOT/.env"
+    set +a
+fi
+DB_USER="${POSTGRES_USER:-postgres}"
+DB_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
+DB_NAME="${POSTGRES_DB:-b2b}"
+
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Database Seeding Script${NC}"
 echo -e "${GREEN}========================================${NC}"
@@ -30,16 +40,22 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Check if docker-compose is available
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}Error: docker-compose is not installed.${NC}"
-    exit 1
+# Prefer docker compose (v2) then docker-compose (v1)
+COMPOSE_CMD="docker compose"
+COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
+if ! docker compose version &> /dev/null; then
+    if command -v docker-compose &> /dev/null; then
+        COMPOSE_CMD="docker-compose"
+    else
+        echo -e "${RED}Error: docker compose or docker-compose is not installed.${NC}"
+        exit 1
+    fi
 fi
 
 # Check if the database container is running
-if ! docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" ps db | grep -q "Up"; then
+if ! $COMPOSE_CMD -f "$COMPOSE_FILE" ps db | grep -q "Up"; then
     echo -e "${YELLOW}Warning: Database container is not running. Starting it...${NC}"
-    docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" up -d db
+    $COMPOSE_CMD -f "$COMPOSE_FILE" up -d db
     echo "Waiting for database to be ready..."
     sleep 5
 fi
@@ -57,14 +73,14 @@ echo -e "${YELLOW}Seeding database with dummy data...${NC}"
 echo ""
 
 # Run the SQL file
-if docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" exec -T db psql -U postgres -d b2b < "$SQL_FILE"; then
+if $COMPOSE_CMD -f "$COMPOSE_FILE" exec -T -e PGPASSWORD="$DB_PASSWORD" db psql -U "$DB_USER" -d "$DB_NAME" < "$SQL_FILE"; then
     echo ""
     echo -e "${GREEN}✓ Database seeded successfully!${NC}"
     echo ""
     echo -e "${GREEN}Verification:${NC}"
     
     # Run verification queries
-    docker-compose -f "$PROJECT_ROOT/docker-compose.yaml" exec -T db psql -U postgres -d b2b -c "
+    $COMPOSE_CMD -f "$COMPOSE_FILE" exec -T -e PGPASSWORD="$DB_PASSWORD" db psql -U "$DB_USER" -d "$DB_NAME" -c "
         SELECT 
             (SELECT COUNT(*) FROM public.category WHERE is_deleted = false) as categories,
             (SELECT COUNT(*) FROM public.products WHERE is_deleted = false AND is_active = true) as products,
