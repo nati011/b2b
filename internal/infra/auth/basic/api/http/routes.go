@@ -45,6 +45,8 @@ func (p *publicRoutesProvider) PublicRoutes() []string {
 	return []string{
 		"POST " + RouteAuthBasicCreds, // Allow users to create their own login credentials
 		"POST " + RouteAuthLogin,      // Allow users to login
+		"/auth/error",                 // Auth error page (e.g. after failed login redirect), no auth required
+		"/auth/callback",              // OAuth callback, no auth required
 	}
 }
 
