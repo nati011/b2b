@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: b2b-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: b2b
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-b2b}
     ports:
       - "0.0.0.0:5432:5432"
     volumes:
@@ -13,7 +13,7 @@ services:
     networks:
       - b2b-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d b2b"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 3s
       timeout: 5s
       retries: 5
@@ -24,21 +24,27 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: b2b-migrations
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: ${POSTGRES_DB:-b2b}
     entrypoint: []
     command:
       - sh
       - -c
       - |
         echo "Waiting for database..."
-        until PGPASSWORD=postgres psql -h db -p 5432 -U postgres -d postgres -c '\q' 2>/dev/null; do
+        until PGPASSWORD=$$DB_PASSWORD psql -h $$DB_HOST -p $$DB_PORT -U $$DB_USER -d postgres -c '\q' 2>/dev/null; do
           echo "Database unavailable - sleeping"
           sleep 2
         done
         echo "Creating database if not exists..."
-        PGPASSWORD=postgres psql -h db -p 5432 -U postgres -d postgres -c "SELECT 1 FROM pg_database WHERE datname = 'b2b'" | grep -q 1 || \
-          PGPASSWORD=postgres psql -h db -p 5432 -U postgres -d postgres -c "CREATE DATABASE b2b;"
+        PGPASSWORD=$$DB_PASSWORD psql -h $$DB_HOST -p $$DB_PORT -U $$DB_USER -d postgres -c "SELECT 1 FROM pg_database WHERE datname = '$$DB_NAME'" | grep -q 1 || \
+          PGPASSWORD=$$DB_PASSWORD psql -h $$DB_HOST -p $$DB_PORT -U $$DB_USER -d postgres -c "CREATE DATABASE $$DB_NAME;"
         echo "Running migrations..."
-        migrate -path /root/db/migrations -database "postgres://postgres:postgres@db:5432/b2b?sslmode=disable" up
+        migrate -path /root/db/migrations -database "postgres://$$DB_USER:$$DB_PASSWORD@$$DB_HOST:$$DB_PORT/$$DB_NAME?sslmode=disable" up
         echo "Migrations done."
     depends_on:
       db:
@@ -52,12 +58,18 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: b2b-seed
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: ${POSTGRES_DB:-b2b}
     entrypoint: []
     command:
       - sh
       - -c
       - |
-        export DB_HOST=db DB_PORT=5432 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=b2b
+        export DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME
         bash /root/db/seed/seed_all.sh
     depends_on:
       migrations:
@@ -71,10 +83,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: b2b-backend
-    entrypoint: []
-    command: ["./marketplace", "-config", "config/config.docker.compose.yaml"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-b2b}
+    entrypoint: ["/bin/sh", "-c", "envsubst < /root/config/config.docker.compose.yaml.tpl > /tmp/config.yaml && exec ./marketplace -config /tmp/config.yaml"]
     volumes:
-      - ./config/config.docker.compose.yaml:/root/config/config.docker.compose.yaml:ro
+      - ./config/config.docker.compose.yaml.tpl:/root/config/config.docker.compose.yaml.tpl:ro
     ports:
       - "0.0.0.0:8090:8090"
     depends_on:
