@@ -5,9 +5,12 @@ import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
 const defaultApiUrl = 'http://185.222.240.66/api';
-const baseURL = typeof window === 'undefined'
-  ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.API_BASE_URL || defaultApiUrl)
-  : (process.env.NEXT_PUBLIC_BASE_URL || defaultApiUrl);
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
+  if (typeof window !== 'undefined') return '/api-backend';
+  return process.env.API_BASE_URL || process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api` : defaultApiUrl;
+};
+const baseURL = getBaseUrl();
 
 interface KeycloakJWT {
   exp: number;
@@ -42,8 +45,7 @@ interface AppToken extends TokenSet {
 async function refreshAccessToken(token: AppToken): Promise<AppToken> {
   try {
     // Use internal Docker network URL for server-side requests
-    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || defaultApiUrl;
-    
+    const apiBaseURL = baseURL;
     const response = await axios.post(`${apiBaseURL}/api/v1/auth/refresh`, {
       refresh_token: token.refreshToken,
     });
@@ -96,8 +98,7 @@ async function refreshAccessToken(token: AppToken): Promise<AppToken> {
 async function handleGoogleSSO(profile: any, account: any) {
   try {
     // Use internal Docker network URL for server-side requests
-    const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || defaultApiUrl;
-    
+    const apiBaseURL = baseURL;
     const response = await axios.post(`${apiBaseURL}/api/v1/auth/sso`, {
       token: account.access_token,
       first_name: profile.given_name || profile.name?.split(' ')[0] || '',
@@ -153,9 +154,7 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          // Use internal Docker network URL for server-side requests (this is always server-side)
-          const apiBaseURL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || defaultApiUrl;
-          
+          const apiBaseURL = baseURL;
           const response = await axios.post(
             `${apiBaseURL}/api/v1/auth/login`,
             credentials

@@ -3,23 +3,24 @@ import axios from "axios";
 import { getSession } from "next-auth/react";
 
 // Client-side API URL
-// When running in browser, we need to use localhost with external port
-// Docker service names (like 'backend:8080') don't work in browser
-// Check if we're in browser and if URL contains Docker service name, use localhost instead
+// In browser on HTTPS (e.g. Vercel), we must not call HTTP APIs (mixed content blocked).
+// Use same-origin proxy /api-backend when no HTTPS base URL is set.
 const getApiUrl = () => {
-  const envUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://185.222.240.66/api';
-  
-  // If running in browser and URL contains Docker service name, use localhost
-  if (typeof window !== 'undefined') {
-    // Browser environment - can't use Docker service names
-    if (envUrl.includes('backend:') || envUrl.includes('backend/')) {
-      // Extract port from env URL or use default 8090
+  const envUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+  if (envUrl) {
+    if (typeof window !== 'undefined' && (envUrl.includes('backend:') || envUrl.includes('backend/'))) {
       const port = envUrl.includes(':8080') ? '8090' : '8090';
       return `http://localhost:${port}`;
     }
+    return envUrl;
   }
-  
-  return envUrl;
+
+  if (typeof window !== 'undefined') {
+    return '/api-backend';
+  }
+
+  return process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api` : 'http://185.222.240.66/api';
 };
 
 const apiUrl = getApiUrl();
