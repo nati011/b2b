@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
-const defaultApiUrl = 'http://185.222.240.66';
+const defaultApiUrl = 'http://185.222.240.66/api';
 const baseURL = typeof window === 'undefined'
   ? (process.env.NEXT_PUBLIC_BASE_URL || process.env.API_BASE_URL || defaultApiUrl)
   : (process.env.NEXT_PUBLIC_BASE_URL || defaultApiUrl);
