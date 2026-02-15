@@ -34,10 +34,11 @@ case "${1:-up}" in
     docker compose -f "$COMPOSE_FILE" up -d
     echo ""
     echo "Stack is up. Nginx on port 80 (default HTTP):"
-    echo "  API:          http://<host-ip>/"
-    echo "  pgAdmin:      http://<host-ip>/pgadmin"
-    echo "  Backend:      http://<host-ip>:8090/  (direct)"
-    echo "  PostgreSQL:   <host-ip>:5432"
+    echo "  Frontend:     http://<host-ip>/"
+    echo "  API:         http://<host-ip>/api/"
+    echo "  pgAdmin:     http://<host-ip>/pgadmin"
+    echo "  Backend:     http://<host-ip>:8090/  (direct)"
+    echo "  PostgreSQL:  <host-ip>:5432"
     echo ""
     echo "pgAdmin login: admin@local.local / admin"
     ;;
