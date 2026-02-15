@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o marketplace ./cmd
 FROM alpine:latest
 
 # Install ca-certificates for HTTPS, netcat for healthchecks, postgresql-client for migrations/seeds, and curl for migrate tool
-RUN apk --no-cache add bash ca-certificates tzdata netcat-openbsd postgresql-client curl
+RUN apk --no-cache add bash ca-certificates tzdata netcat-openbsd postgresql-client curl gettext
 
 # Install golang-migrate
 RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz && \
