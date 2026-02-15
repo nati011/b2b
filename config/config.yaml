@@ -37,6 +37,9 @@ db:
   # Optional: postgres-specific SSL mode (e.g., disable, require, verify-full)
   sslmode: disable
 
+cors:
+  allowed_origins: ["*", "https://www.efoyetastore.com", "https://efoyetastore.com"]
+
 auth:
   # Options: basic, oauth2
   mode: basic

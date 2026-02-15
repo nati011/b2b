@@ -30,7 +30,7 @@ db:
   sslmode: disable
 
 cors:
-  allowed_origins: ["*"]
+  allowed_origins: ["*", "https://www.efoyetastore.com", "https://efoyetastore.com"]
 
 auth:
   mode: basic

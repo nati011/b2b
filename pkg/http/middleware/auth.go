@@ -243,19 +243,18 @@ func (m *AuthMiddleware) writeBasicUnauthorized(w http.ResponseWriter, message s
 	})
 }
 
-// setCORSHeaders sets CORS headers to allow cross-origin requests from the frontend
+// setCORSHeaders sets CORS headers to allow cross-origin requests from the frontend.
+// Only sets Allow-Origin when request has Origin (with credentials, * is not allowed).
 func (m *AuthMiddleware) setCORSHeaders(w http.ResponseWriter, r *http.Request) {
-	origin := "*"
 	if r != nil {
-		if reqOrigin := r.Header.Get("Origin"); reqOrigin != "" {
-			origin = reqOrigin
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
 		}
 	}
-	w.Header().Set("Access-Control-Allow-Origin", origin)
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-User-ID")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Max-Age", "3600")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-User-ID, Accept, Accept-Language, Origin, Cache-Control, Pragma")
+	w.Header().Set("Access-Control-Max-Age", "86400")
 }
 
 // extractUserID extracts the user ID from headers for non-basic modes.
