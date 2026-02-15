@@ -124,24 +124,6 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
-  frontend:
-    build:
-      context: ./client/web
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_BASE_URL: /api
-    container_name: b2b-frontend
-    environment:
-      NODE_ENV: production
-    expose:
-      - "3000"
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - b2b-net
-    restart: unless-stopped
-
   nginx:
     image: nginx:alpine
     container_name: b2b-nginx
@@ -152,8 +134,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      frontend:
-        condition: service_started
     networks:
       - b2b-net
     restart: unless-stopped
