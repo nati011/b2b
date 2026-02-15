@@ -1,19 +1,10 @@
 /** @type {import('next').NextConfig} */
-const backendApiUrl = process.env.BACKEND_API_URL || 'http://185.222.240.66';
-
 module.exports = {
   reactStrictMode: true,
   // Performance optimizations
   swcMinify: true,
   compress: true,
   poweredByHeader: false,
-
-  // Proxy to backend so browser never calls HTTP (avoids mixed content when site is HTTPS on Vercel)
-  async rewrites() {
-    return [
-      { source: '/api-backend/:path*', destination: `${backendApiUrl}/api/:path*` },
-    ];
-  },
 
   images: {
     remotePatterns: [

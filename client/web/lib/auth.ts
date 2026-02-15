@@ -4,10 +4,10 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AuthOptions, TokenSet } from "next-auth";
 
-const defaultApiUrl = 'http://185.222.240.66/api';
+const defaultApiUrl = 'https://185.222.240.66/api';
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
-  if (typeof window !== 'undefined') return '/api-backend';
+  if (typeof window !== 'undefined') return '/api/backend';
   return process.env.API_BASE_URL || process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api` : defaultApiUrl;
 };
 const baseURL = getBaseUrl();

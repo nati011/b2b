@@ -17,7 +17,7 @@ const getApiUrl = () => {
   }
 
   if (typeof window !== 'undefined') {
-    return '/api-backend';
+    return '/api/backend';
   }
 
   return process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api` : 'http://185.222.240.66/api';
