@@ -109,7 +109,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: b2b-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local.local
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
       SCRIPT_NAME: /pgadmin

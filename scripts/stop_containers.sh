@@ -1,19 +1,24 @@
 #!/bin/bash
 
-# Script to properly stop client and admin containers
-# This script uses docker-compose stop which respects restart policies
+# Stop backend, frontend, and nginx (keeps db and pgadmin running).
+# Use "docker compose down" to stop everything.
 
 set -e
 
-echo "Stopping client and admin containers..."
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
 
-# Stop containers gracefully using docker-compose
-docker-compose stop client admin
+if docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+else
+    COMPOSE_CMD="docker-compose"
+fi
 
-echo "✅ Containers stopped successfully"
+echo "Stopping backend, frontend, and nginx..."
 
-# Optional: Show container status
-echo ""
-echo "Container status:"
-docker-compose ps client admin
+$COMPOSE_CMD -f "$COMPOSE_FILE" stop backend frontend nginx
+
+echo "Containers stopped. DB and pgadmin still running."
+$COMPOSE_CMD -f "$COMPOSE_FILE" ps -a
 
