@@ -268,6 +268,7 @@ const Orders = () => {
                               product_id: item.product_id || item.productId || item.ProductID || 0,
                               quantity: item.quantity || item.Quantity || 0,
                               price: item.price || item.Price || undefined,
+                              selected_attributes: item.selected_attributes || item.SelectedAttributes,
                             }))
                             .filter((item: OrderItemResponse) => item.product_id > 0 && item.quantity > 0);
                         } else if (cartSnapshot && typeof cartSnapshot === 'object' && !Array.isArray(cartSnapshot)) {
@@ -275,6 +276,7 @@ const Orders = () => {
                             product_id: cartSnapshot.product_id || cartSnapshot.productId || cartSnapshot.ProductID || 0,
                             quantity: cartSnapshot.quantity || cartSnapshot.Quantity || 0,
                             price: cartSnapshot.price || cartSnapshot.Price || undefined,
+                            selected_attributes: cartSnapshot.selected_attributes || cartSnapshot.SelectedAttributes,
                           };
                           if (singleItem.product_id > 0 && singleItem.quantity > 0) {
                             displayItems = [singleItem];
@@ -295,6 +297,11 @@ const Orders = () => {
                             <div key={itemIndex} className="flex items-start justify-between gap-3 p-2 bg-muted/30 rounded-md">
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm">Product #{item.product_id}</p>
+                                {item.selected_attributes && Object.keys(item.selected_attributes).length > 0 && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    {Object.entries(item.selected_attributes).map(([k, v]) => `${k}: ${v}`).join(", ")}
+                                  </p>
+                                )}
                                 <p className="text-xs text-muted-foreground mt-0.5">
                                   Quantity: {item.quantity}
                                 </p>

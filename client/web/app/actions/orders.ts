@@ -6,12 +6,14 @@ export interface OrderItemRequest {
   product_id?: number;
   quantity: number;
   price?: number;
+  selected_attributes?: Record<string, string>;
 }
 
 export interface OrderItemResponse {
   product_id: number;
   quantity: number;
   price?: number;
+  selected_attributes?: Record<string, string>;
 }
 
 export interface CreateOrderRequest {
@@ -68,7 +70,8 @@ function mapOrderToFrontendFormat(order: OrderResponse): any {
           ProductId: item.product_id || item.ProductId || 0,
           ProductName: item.product_name || item.ProductName || '',
           ProductPrice: item.price || item.ProductPrice || 0,
-          Quantity: item.quantity || item.Quantity || 0
+          Quantity: item.quantity || item.Quantity || 0,
+          SelectedAttributes: item.selected_attributes || item.SelectedAttributes
         }));
       }
     } catch (e) {

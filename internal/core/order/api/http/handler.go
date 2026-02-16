@@ -18,10 +18,11 @@ import (
 
 // OrderItemRequest represents an order item payload.
 type OrderItemRequest struct {
-	ID        int64    `json:"id,omitempty"`
-	ProductID int64    `json:"product_id,omitempty"`
-	Quantity  int      `json:"quantity"`
-	Price     *float64 `json:"price,omitempty"`
+	ID                 int64             `json:"id,omitempty"`
+	ProductID          int64             `json:"product_id,omitempty"`
+	Quantity           int               `json:"quantity"`
+	Price              *float64          `json:"price,omitempty"`
+	SelectedAttributes map[string]string `json:"selected_attributes,omitempty"`
 }
 
 // CreateOrderRequest represents the payload to create an order.
@@ -40,9 +41,10 @@ type CreateOrderRequest struct {
 
 // OrderItemResponse represents an order item returned to clients.
 type OrderItemResponse struct {
-	ProductID int64    `json:"product_id"`
-	Quantity  int      `json:"quantity"`
-	Price     *float64 `json:"price,omitempty"`
+	ProductID          int64             `json:"product_id"`
+	Quantity           int               `json:"quantity"`
+	Price              *float64          `json:"price,omitempty"`
+	SelectedAttributes map[string]string `json:"selected_attributes,omitempty"`
 }
 
 // OrderResponse represents an order returned to clients.
@@ -378,9 +380,10 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 		resp.Items = make([]OrderItemResponse, len(order.Items))
 		for i, item := range order.Items {
 			resp.Items[i] = OrderItemResponse{
-				ProductID: item.ProductID,
-				Quantity:  item.Quantity,
-				Price:     item.Price,
+				ProductID:          item.ProductID,
+				Quantity:           item.Quantity,
+				Price:              item.Price,
+				SelectedAttributes: item.SelectedAttributes,
 			}
 		}
 	}
@@ -408,9 +411,10 @@ func toOrderItemInputs(items []OrderItemRequest) ([]orderservice.OrderItemInput,
 			return nil, errors.New("order item product_id is required")
 		}
 		result[i] = orderservice.OrderItemInput{
-			ProductID: productID,
-			Quantity:  item.Quantity,
-			Price:     item.Price,
+			ProductID:          productID,
+			Quantity:           item.Quantity,
+			Price:              item.Price,
+			SelectedAttributes: item.SelectedAttributes,
 		}
 	}
 	return result, nil

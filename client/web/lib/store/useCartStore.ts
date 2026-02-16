@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CartItem } from '@/lib/types';
+import { CartItem, cartItemKey } from '@/lib/types';
 
 // Helper function to calculate totals efficiently
 const calculateTotals = (items: CartItem[]) => {
@@ -39,8 +39,10 @@ const useCartStore = create<CartStore>()(
                 });
             },
             addCartItems: (product, quantity = 1) => set((state) => {
+                const newItemForKey: CartItem = { ...product, quantity: 0 };
+                const key = cartItemKey(newItemForKey);
                 const existingItemIndex = state.cartItems.findIndex(
-                    (item) => item.id === product.id
+                    (item) => cartItemKey(item) === key
                 );
 
                 let updatedItems: CartItem[];
@@ -48,7 +50,6 @@ const useCartStore = create<CartStore>()(
                     updatedItems = [...state.cartItems];
                     const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
                     if (newQuantity <= 0) {
-                        // Remove item if quantity becomes 0 or negative
                         updatedItems = updatedItems.filter((_, idx) => idx !== existingItemIndex);
                     } else {
                         updatedItems[existingItemIndex] = {
@@ -58,13 +59,13 @@ const useCartStore = create<CartStore>()(
                     }
                 } else {
                     if (quantity > 0) {
-                        const newItem = { ...product, quantity };
+                        const newItem: CartItem = { ...product, quantity };
                         updatedItems = [...state.cartItems, newItem];
                     } else {
                         updatedItems = state.cartItems;
                     }
                 }
-                
+
                 const { totalItems, totalPrice } = calculateTotals(updatedItems);
                 return {
                     cartItems: updatedItems,
@@ -74,7 +75,8 @@ const useCartStore = create<CartStore>()(
                 };
             }),
             removeCartItems: (cartItem) => set((state) => {
-                const updatedCartItems = state.cartItems.filter((item) => item.id !== cartItem.id);
+                const key = cartItemKey(cartItem);
+                const updatedCartItems = state.cartItems.filter((item) => cartItemKey(item) !== key);
                 const { totalItems, totalPrice } = calculateTotals(updatedCartItems);
                 return {
                     cartItems: updatedCartItems,
