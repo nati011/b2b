@@ -18,12 +18,13 @@ const (
 
 // OrderItem represents an item within an order snapshot.
 type OrderItem struct {
-	OrderID   int64     `json:"order_id,omitempty"`
-	ProductID int64     `json:"product_id"`
-	Quantity  int       `json:"quantity"`
-	Price     *float64  `json:"price,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	OrderID            int64             `json:"order_id,omitempty"`
+	ProductID          int64             `json:"product_id"`
+	Quantity           int               `json:"quantity"`
+	Price              *float64          `json:"price,omitempty"`
+	SelectedAttributes map[string]string `json:"selected_attributes,omitempty"`
+	CreatedAt          time.Time         `json:"created_at,omitempty"`
+	UpdatedAt          time.Time         `json:"updated_at,omitempty"`
 }
 
 // Order represents an order snapshot for checkout and fulfillment.

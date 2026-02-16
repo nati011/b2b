@@ -188,6 +188,7 @@ export default function OrderDetailPage() {
       quantity: item.quantity || item.Quantity || 0,
       price: item.price || item.ProductPrice || 0,
       product_name: item.product_name || item.ProductName || 'Unknown Product',
+      selected_attributes: item.selected_attributes || item.SelectedAttributes,
     }));
   };
 
@@ -601,6 +602,11 @@ export default function OrderDetailPage() {
                             <div className="font-medium">
                               {products[productId]?.name || (item as any).product_name || 'Unknown Product'}
                             </div>
+                            {(item as any).selected_attributes && Object.keys((item as any).selected_attributes).length > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                {Object.entries((item as any).selected_attributes).map(([k, v]) => `${k}: ${v}`).join(", ")}
+                              </div>
+                            )}
                             {products[productId]?.description && (
                               <div className="text-sm text-muted-foreground line-clamp-2">
                                 {products[productId].description}

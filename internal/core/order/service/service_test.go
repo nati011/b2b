@@ -370,6 +370,92 @@ func TestOrderServiceListByCustomerSuccess(t *testing.T) {
 	require.Equal(t, "Addr 2", orders[1].DeliveryAddress)
 }
 
+func TestOrderServiceCreateWithSelectedAttributes(t *testing.T) {
+	repo := newMockOrderRepository()
+	productService := newMockProductService()
+	productService.setProduct(1, 10)
+	service := NewService(repo, productService)
+
+	customerSnapshot, _ := json.Marshal(map[string]interface{}{
+		"id":   1,
+		"name": "Test Customer",
+	})
+	total := 150.0
+	price1 := 100.0
+	price2 := 50.0
+
+	result, err := service.Create(context.Background(), OrderInput{
+		CustomerID:         1,
+		Status:             "pending",
+		PaymentStatus:     "unpaid",
+		DeliveryStatus:     "pending",
+		ConfirmationStatus: "pending",
+		Total:              &total,
+		ReferralCode:       "",
+		DeliveryAddress:    "123 Main St",
+		CustomerSnapshot:  customerSnapshot,
+		Items: []OrderItemInput{
+			{
+				ProductID:          1,
+				Quantity:           1,
+				Price:              &price1,
+				SelectedAttributes: map[string]string{"Swing": "250mm"},
+			},
+			{
+				ProductID:          1,
+				Quantity:           2,
+				Price:              &price2,
+				SelectedAttributes: map[string]string{"Swing": "300mm"},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Items, 2)
+
+	require.Equal(t, int64(1), result.Items[0].ProductID)
+	require.Equal(t, 1, result.Items[0].Quantity)
+	require.Equal(t, map[string]string{"Swing": "250mm"}, result.Items[0].SelectedAttributes)
+
+	require.Equal(t, int64(1), result.Items[1].ProductID)
+	require.Equal(t, 2, result.Items[1].Quantity)
+	require.Equal(t, map[string]string{"Swing": "300mm"}, result.Items[1].SelectedAttributes)
+
+	stored, ok := repo.orders[result.ID]
+	require.True(t, ok)
+	require.Len(t, stored.Items, 2)
+	require.Equal(t, map[string]string{"Swing": "250mm"}, stored.Items[0].SelectedAttributes)
+	require.Equal(t, map[string]string{"Swing": "300mm"}, stored.Items[1].SelectedAttributes)
+}
+
+func TestOrderServiceCreateWithoutSelectedAttributes(t *testing.T) {
+	repo := newMockOrderRepository()
+	productService := newMockProductService()
+	productService.setProduct(1, 10)
+	service := NewService(repo, productService)
+
+	customerSnapshot, _ := json.Marshal(map[string]interface{}{"id": 1, "name": "Test"})
+	total := 50.0
+
+	result, err := service.Create(context.Background(), OrderInput{
+		CustomerID:         1,
+		Status:             "pending",
+		PaymentStatus:     "unpaid",
+		DeliveryStatus:     "pending",
+		ConfirmationStatus: "pending",
+		Total:              &total,
+		DeliveryAddress:    "456 Oak St",
+		CustomerSnapshot:   customerSnapshot,
+		Items: []OrderItemInput{
+			{ProductID: 1, Quantity: 1, Price: &total},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Items, 1)
+	require.Nil(t, result.Items[0].SelectedAttributes)
+}
+
 func TestOrderServiceListByCustomerWithStatusFilter(t *testing.T) {
 	repo := newMockOrderRepository()
 	productService := newMockProductService()

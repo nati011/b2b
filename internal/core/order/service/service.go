@@ -28,9 +28,10 @@ var (
 
 // OrderItemInput captures line item inputs for order creation.
 type OrderItemInput struct {
-	ProductID int64
-	Quantity  int
-	Price     *float64
+	ProductID          int64
+	Quantity           int
+	Price              *float64
+	SelectedAttributes map[string]string
 }
 
 // OrderInput captures order fields for creation or updates.
@@ -103,9 +104,10 @@ func (s *Service) Create(ctx context.Context, input OrderInput) (*domain.Order, 
 	items := make([]domain.OrderItem, len(input.Items))
 	for i, item := range input.Items {
 		items[i] = domain.OrderItem{
-			ProductID: item.ProductID,
-			Quantity:  item.Quantity,
-			Price:     item.Price,
+			ProductID:          item.ProductID,
+			Quantity:           item.Quantity,
+			Price:              item.Price,
+			SelectedAttributes: item.SelectedAttributes,
 		}
 	}
 

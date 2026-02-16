@@ -18,7 +18,8 @@ function mapOrderResponseToOrder(orderResponse: OrderResponse): Order {
           ProductId: item.product_id || item.ProductId || 0,
           ProductName: item.product_name || item.ProductName || '',
           ProductPrice: item.price || item.ProductPrice || 0,
-          Quantity: item.quantity || item.Quantity || 0
+          Quantity: item.quantity || item.Quantity || 0,
+          SelectedAttributes: item.selected_attributes || item.SelectedAttributes
         }));
       }
     } catch (e) {

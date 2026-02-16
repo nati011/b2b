@@ -39,22 +39,34 @@ const ProductDetail = () => {
     );
   }
 
-  // Filter out category_ids, quantity fields, and other non-attribute fields from configurable_attributes
-  const attributeTypes = catalogue.configurable_attributes
-    ? Object.keys(catalogue.configurable_attributes).filter(
-        (key) =>
-          key !== 'category_ids' &&
-          key !== 'images' &&
-          key !== 'image_url' &&
-          key !== 'variants' &&
-          key !== 'total_quantity' &&
-          key !== 'TOTAL_QUANTITY' &&
-          key !== 'reserved_quantity' &&
-          key !== 'RESERVED_QUANTITY' &&
-          key !== 'available_quantity' &&
-          key !== 'AVAILABLE_QUANTITY'
-      )
-    : [];
+  // When we have configurables from variants, use option keys that have multiple values (real choices).
+  // Otherwise fall back to configurable_attributes keys (excluding metadata).
+  const EXCLUDED_ATTR_KEYS = [
+    "category_ids", "images", "image_url", "variants",
+    "total_quantity", "TOTAL_QUANTITY", "reserved_quantity", "RESERVED_QUANTITY",
+    "available_quantity", "AVAILABLE_QUANTITY",
+  ];
+  const attributeTypes = (() => {
+    const configs = catalogue.configurables;
+    if (configs && configs.length > 0) {
+      const allKeys = new Set<string>();
+      configs.forEach((c) => {
+        if (c.attributes && typeof c.attributes === "object") {
+          Object.keys(c.attributes).forEach((k) => allKeys.add(k));
+        }
+      });
+      const variantOptionKeys = Array.from(allKeys).filter((key) => {
+        if (EXCLUDED_ATTR_KEYS.includes(key)) return false;
+        const values = new Set(configs.map((c) => c.attributes?.[key]).filter((v) => v !== undefined && v !== null));
+        return values.size >= 1;
+      });
+      if (variantOptionKeys.length > 0) return variantOptionKeys;
+    }
+    if (!catalogue.configurable_attributes) return [];
+    return Object.keys(catalogue.configurable_attributes).filter(
+      (key) => !EXCLUDED_ATTR_KEYS.includes(key)
+    );
+  })();
 
   const [selectedAttributes, setSelectedAttributes] = useState<
     Record<string, string>
@@ -286,6 +298,7 @@ const ProductDetail = () => {
         name: selectedProduct.name,
         price: selectedProduct.price,
         image: selectedProduct.images?.[0]?.ImageUrl || catalogue.images?.[0]?.ImageUrl || '',
+        selected_attributes: Object.keys(selectedAttributes).length > 0 ? { ...selectedAttributes } : undefined,
       },
       quantity
     );

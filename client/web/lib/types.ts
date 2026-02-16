@@ -8,6 +8,7 @@ export type Item = {
     ProductName: string
     ProductPrice: GLfloat
     Quantity: number
+    SelectedAttributes?: Record<string, string>
 }
 
 export type Product = {
@@ -102,6 +103,7 @@ export type OrderItem = {
     product_id: number;
     quantity: number;
     price?: number;
+    selected_attributes?: Record<string, string>;
 }
 
 // Frontend Order (camelCase for component usage)
@@ -128,6 +130,14 @@ export interface CartItem {
     price: number;
     image: string;
     quantity: number;
+    selected_attributes?: Record<string, string>;
+}
+
+export function cartItemKey(item: CartItem): string {
+    const attrs = item.selected_attributes && Object.keys(item.selected_attributes).length > 0
+        ? JSON.stringify(Object.keys(item.selected_attributes).sort().map((k) => [k, item.selected_attributes![k]]))
+        : "";
+    return `${item.id}:${attrs}`;
 }
 
 

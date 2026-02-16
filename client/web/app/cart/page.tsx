@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/lib/store/useCartStore";
+import { cartItemKey, type CartItem } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { getCustomerByEmail } from "@/app/actions/customer";
 import { Login, getAccessToken } from "@/app/actions/auth";
@@ -267,11 +268,14 @@ const Cart = () => {
       ? localStorage.getItem('user_name')
       : null;
 
-    // Prepare order items (exactly matching mobile format)
+    // Prepare order items (include selected_attributes for configurable products)
     const orderItems = cartItems.map(item => ({
       product_id: item.id,
       quantity: item.quantity,
       price: item.price,
+      ...(item.selected_attributes && Object.keys(item.selected_attributes).length > 0
+        ? { selected_attributes: item.selected_attributes }
+        : {}),
     }));
 
     // Prepare customer snapshot (exactly matching mobile format)
@@ -382,11 +386,11 @@ const Cart = () => {
 
   // Show completion screen
 
-  const handleQuantityDecrease = useCallback((item: any) => {
+  const handleQuantityDecrease = useCallback((item: CartItem) => {
     addCartItems(item, -1);
   }, [addCartItems]);
 
-  const handleQuantityIncrease = useCallback((item: any) => {
+  const handleQuantityIncrease = useCallback((item: CartItem) => {
     addCartItems(item, 1);
   }, [addCartItems]);
 
@@ -617,7 +621,7 @@ const Cart = () => {
                         {cartItems.map((item) => {
                           const itemTotal = item.price * item.quantity;
                           return (
-                            <div key={item.id} className="flex gap-4">
+                            <div key={cartItemKey(item)} className="flex gap-4">
                               <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                 {item.image ? (
                                   <img
@@ -635,6 +639,11 @@ const Cart = () => {
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm font-medium">{item.name}</p>
+                                {item.selected_attributes && Object.keys(item.selected_attributes).length > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {Object.entries(item.selected_attributes).map(([k, v]) => `${k}: ${v}`).join(", ")}
+                                  </p>
+                                )}
                                 <p className="text-xs text-muted-foreground">
                                   Quantity: {item.quantity}
                                 </p>
