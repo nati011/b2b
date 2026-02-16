@@ -42,9 +42,11 @@ const ProductDetail = () => {
   // Filter out category_ids, quantity fields, and other non-attribute fields from configurable_attributes
   const attributeTypes = catalogue.configurable_attributes
     ? Object.keys(catalogue.configurable_attributes).filter(
-        (key) => 
-          key !== 'category_ids' && 
+        (key) =>
+          key !== 'category_ids' &&
           key !== 'images' &&
+          key !== 'image_url' &&
+          key !== 'variants' &&
           key !== 'total_quantity' &&
           key !== 'TOTAL_QUANTITY' &&
           key !== 'reserved_quantity' &&

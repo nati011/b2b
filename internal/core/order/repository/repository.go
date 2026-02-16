@@ -54,13 +54,14 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 			confirmation_status,
 			total,
 			referral_code,
+			delivery_address,
 			customer_snapshot,
 			cart_snapshot,
 			created_date,
 			last_modified,
 			is_deleted
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, FALSE)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)
 		RETURNING id
 	`
 
@@ -85,6 +86,7 @@ func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 		nullableString(order.ConfirmationStatus),
 		order.Total,
 		nullableString(order.ReferralCode),
+		order.DeliveryAddress,
 		order.CustomerSnapshot,
 		cartSnapshot,
 		order.CreatedAt,
@@ -202,7 +204,7 @@ func (r *Repository) UpdatePaymentStatus(ctx context.Context, orderID int64, pay
 func (r *Repository) FindByID(ctx context.Context, id int64) (*domain.Order, error) {
 	query := `
 		SELECT id, customer_id, supplier_id, status, payment_status, delivery_status, confirmation_status,
-		       total, referral_code, customer_snapshot, cart_snapshot,
+		       total, referral_code, delivery_address, customer_snapshot, cart_snapshot,
 		       created_date, last_modified
 		FROM orders
 		WHERE id = $1 AND is_deleted = FALSE
@@ -258,7 +260,7 @@ func (r *Repository) ListByCustomer(ctx context.Context, query orderservice.Cust
 	args = append(args, limit, offset)
 	listQuery := fmt.Sprintf(`
 		SELECT o.id, o.customer_id, o.supplier_id, o.status, o.payment_status, o.delivery_status, o.confirmation_status,
-		       o.total, o.referral_code, o.customer_snapshot, o.cart_snapshot,
+		       o.total, o.referral_code, o.delivery_address, o.customer_snapshot, o.cart_snapshot,
 		       o.created_date, o.last_modified
 		FROM orders o
 		%s
@@ -326,7 +328,7 @@ func (r *Repository) ListBySupplier(ctx context.Context, query orderservice.Supp
 	args = append(args, limit, offset)
 	listQuery := fmt.Sprintf(`
 		SELECT DISTINCT o.id, o.customer_id, o.supplier_id, o.status, o.payment_status, o.delivery_status, o.confirmation_status,
-		       o.total, o.referral_code, o.customer_snapshot, o.cart_snapshot,
+		       o.total, o.referral_code, o.delivery_address, o.customer_snapshot, o.cart_snapshot,
 		       o.created_date, o.last_modified
 		FROM orders o
 		%s
@@ -388,6 +390,7 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 	var confirmationStatus sql.NullString
 	var total sql.NullFloat64
 	var referralCode sql.NullString
+	var deliveryAddress sql.NullString
 	var customerSnapshot []byte
 	var cartSnapshot []byte
 
@@ -401,6 +404,7 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 		&confirmationStatus,
 		&total,
 		&referralCode,
+		&deliveryAddress,
 		&customerSnapshot,
 		&cartSnapshot,
 		&order.CreatedAt,
@@ -414,6 +418,9 @@ func scanOrder(scanner orderScanner) (*domain.Order, error) {
 	}
 	if referralCode.Valid {
 		order.ReferralCode = referralCode.String
+	}
+	if deliveryAddress.Valid {
+		order.DeliveryAddress = deliveryAddress.String
 	}
 
 	if status.Valid {

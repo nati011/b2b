@@ -1,6 +1,6 @@
 "use client";
 
-import { Instagram } from "lucide-react";
+import { Instagram, Youtube } from "lucide-react";
 import { PiTelegramLogo } from "react-icons/pi";
 import { IoLogoTiktok } from "react-icons/io5";
 import Link from "next/link";
@@ -151,7 +151,7 @@ export const Footer = () => {
                                     <IoLogoTiktok className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </a>
                                 <a 
-                                    href="https://t.me/efoyetastore" 
+                                    href="https://t.me/efoyetastore1" 
                                     className="p-2 sm:p-2.5 lg:p-3 bg-gray-800 rounded-lg hover:bg-primary transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
                                     aria-label="Telegram"
                                     title="Telegram"
@@ -165,6 +165,14 @@ export const Footer = () => {
                                     title="Instagram"
                                 >
                                     <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </a>
+                                <a 
+                                    href="https://www.youtube.com/@efoyetastore" 
+                                    className="p-2 sm:p-2.5 lg:p-3 bg-gray-800 rounded-lg hover:bg-primary transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
+                                    aria-label="YouTube"
+                                    title="YouTube"
+                                >
+                                    <Youtube className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </a>
                             </div>
                         </div>

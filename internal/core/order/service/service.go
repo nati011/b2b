@@ -42,6 +42,7 @@ type OrderInput struct {
 	ConfirmationStatus      string
 	Total                   *float64
 	ReferralCode            string
+	DeliveryAddress         string
 	CustomerSnapshot        json.RawMessage
 	Items                   []OrderItemInput
 }
@@ -137,6 +138,7 @@ func (s *Service) Create(ctx context.Context, input OrderInput) (*domain.Order, 
 		metadata,
 		items,
 		input.ReferralCode,
+		input.DeliveryAddress,
 	)
 	if err != nil {
 		logger.Warn("Order creation failed: validation error", "customer_id", input.CustomerID, "error", err)

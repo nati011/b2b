@@ -156,6 +156,7 @@ func TestOrderServiceCreateSuccess(t *testing.T) {
 		ConfirmationStatus: "pending",
 		Total:              &total,
 		ReferralCode:       "",
+		DeliveryAddress:    "123 Main St",
 		CustomerSnapshot:   customerSnapshot,
 		Items: []OrderItemInput{
 			{ProductID: 1, Quantity: 2, Price: &total},
@@ -168,6 +169,7 @@ func TestOrderServiceCreateSuccess(t *testing.T) {
 	require.Equal(t, int64(1), result.CustomerID)
 	require.Equal(t, int64(10), result.SupplierID) // Should be set from product
 	require.Empty(t, result.ReferralCode)
+	require.Equal(t, "123 Main St", result.DeliveryAddress)
 	require.Len(t, result.Items, 1)
 }
 
@@ -191,6 +193,7 @@ func TestOrderServiceCreateWithReferralCode(t *testing.T) {
 		ConfirmationStatus: "pending",
 		Total:              &total,
 		ReferralCode:       "REF123",
+		DeliveryAddress:    "456 Oak Ave",
 		CustomerSnapshot:   customerSnapshot,
 		Items: []OrderItemInput{
 			{ProductID: 1, Quantity: 1, Price: &total},
@@ -199,9 +202,11 @@ func TestOrderServiceCreateWithReferralCode(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.Equal(t, "REF123", result.ReferralCode)
+	require.Equal(t, "456 Oak Ave", result.DeliveryAddress)
 	stored, ok := repo.orders[result.ID]
 	require.True(t, ok)
 	require.Equal(t, "REF123", stored.ReferralCode)
+	require.Equal(t, "456 Oak Ave", stored.DeliveryAddress)
 }
 
 func TestOrderServiceCreateValidationError(t *testing.T) {
@@ -210,9 +215,34 @@ func TestOrderServiceCreateValidationError(t *testing.T) {
 	service := NewService(repo, productService)
 
 	_, err := service.Create(context.Background(), OrderInput{
-		CustomerID:   0, // Invalid customer ID
-		Status:       "pending",
-		ReferralCode: "",
+		CustomerID:      0, // Invalid customer ID
+		Status:          "pending",
+		ReferralCode:    "",
+		DeliveryAddress: "123 Main St",
+	})
+	require.Error(t, err)
+}
+
+func TestOrderServiceCreateMissingDeliveryAddress(t *testing.T) {
+	repo := newMockOrderRepository()
+	productService := newMockProductService()
+	productService.setProduct(1, 10)
+	service := NewService(repo, productService)
+
+	customerSnapshot, _ := json.Marshal(map[string]interface{}{"id": 1, "name": "Test"})
+	total := 10.0
+
+	_, err := service.Create(context.Background(), OrderInput{
+		CustomerID:         1,
+		Status:             "pending",
+		PaymentStatus:      "unpaid",
+		DeliveryStatus:     "pending",
+		ConfirmationStatus: "pending",
+		Total:              &total,
+		ReferralCode:       "",
+		DeliveryAddress:    "",
+		CustomerSnapshot:   customerSnapshot,
+		Items:              []OrderItemInput{{ProductID: 1, Quantity: 1, Price: &total}},
 	})
 	require.Error(t, err)
 }
@@ -223,10 +253,11 @@ func TestOrderServiceGetSuccess(t *testing.T) {
 	service := NewService(repo, productService)
 
 	order := &domain.Order{
-		ID:           1,
-		CustomerID:   1,
-		Status:       domain.OrderStatusPending,
-		ReferralCode: "REF456",
+		ID:               1,
+		CustomerID:       1,
+		Status:           domain.OrderStatusPending,
+		ReferralCode:     "REF456",
+		DeliveryAddress:  "789 Elm St",
 	}
 	repo.orders[1] = order
 
@@ -236,6 +267,7 @@ func TestOrderServiceGetSuccess(t *testing.T) {
 	require.Equal(t, int64(1), result.ID)
 	require.Equal(t, int64(1), result.CustomerID)
 	require.Equal(t, "REF456", result.ReferralCode)
+	require.Equal(t, "789 Elm St", result.DeliveryAddress)
 }
 
 func TestOrderServiceGetNotFound(t *testing.T) {
@@ -254,9 +286,10 @@ func TestOrderServiceUpdateStatusSuccess(t *testing.T) {
 	service := NewService(repo, productService)
 
 	order := &domain.Order{
-		ID:         1,
-		CustomerID: 1,
-		Status:     domain.OrderStatusPending,
+		ID:               1,
+		CustomerID:       1,
+		Status:           domain.OrderStatusPending,
+		DeliveryAddress:  "123 Main St",
 	}
 	repo.orders[1] = order
 
@@ -282,9 +315,10 @@ func TestOrderServiceUpdateStatusInvalidStatus(t *testing.T) {
 	service := NewService(repo, productService)
 
 	order := &domain.Order{
-		ID:         1,
-		CustomerID: 1,
-		Status:     domain.OrderStatusPending,
+		ID:               1,
+		CustomerID:       1,
+		Status:           domain.OrderStatusPending,
+		DeliveryAddress:  "123 Main St",
 	}
 	repo.orders[1] = order
 
@@ -298,22 +332,25 @@ func TestOrderServiceListByCustomerSuccess(t *testing.T) {
 	service := NewService(repo, productService)
 
 	order1 := &domain.Order{
-		ID:           1,
-		CustomerID:   1,
-		Status:       domain.OrderStatusPending,
-		ReferralCode: "REF1",
+		ID:               1,
+		CustomerID:       1,
+		Status:           domain.OrderStatusPending,
+		ReferralCode:     "REF1",
+		DeliveryAddress:  "Addr 1",
 	}
 	order2 := &domain.Order{
-		ID:           2,
-		CustomerID:   1,
-		Status:       domain.OrderStatusConfirmed,
-		ReferralCode: "",
+		ID:               2,
+		CustomerID:       1,
+		Status:           domain.OrderStatusConfirmed,
+		ReferralCode:     "",
+		DeliveryAddress:  "Addr 2",
 	}
 	order3 := &domain.Order{
-		ID:           3,
-		CustomerID:   2,
-		Status:       domain.OrderStatusPending,
-		ReferralCode: "REF3",
+		ID:               3,
+		CustomerID:       2,
+		Status:           domain.OrderStatusPending,
+		ReferralCode:     "REF3",
+		DeliveryAddress:  "Addr 3",
 	}
 	repo.orders[1] = order1
 	repo.orders[2] = order2
@@ -328,7 +365,9 @@ func TestOrderServiceListByCustomerSuccess(t *testing.T) {
 	require.Equal(t, 2, total)
 	require.Len(t, orders, 2)
 	require.Equal(t, "REF1", orders[0].ReferralCode)
+	require.Equal(t, "Addr 1", orders[0].DeliveryAddress)
 	require.Equal(t, "", orders[1].ReferralCode)
+	require.Equal(t, "Addr 2", orders[1].DeliveryAddress)
 }
 
 func TestOrderServiceListByCustomerWithStatusFilter(t *testing.T) {
@@ -337,16 +376,18 @@ func TestOrderServiceListByCustomerWithStatusFilter(t *testing.T) {
 	service := NewService(repo, productService)
 
 	order1 := &domain.Order{
-		ID:           1,
-		CustomerID:   1,
-		Status:       domain.OrderStatusPending,
-		ReferralCode: "PENDING_REF",
+		ID:               1,
+		CustomerID:       1,
+		Status:           domain.OrderStatusPending,
+		ReferralCode:     "PENDING_REF",
+		DeliveryAddress:  "Pending Addr",
 	}
 	order2 := &domain.Order{
-		ID:           2,
-		CustomerID:   1,
-		Status:       domain.OrderStatusConfirmed,
-		ReferralCode: "CONFIRMED_REF",
+		ID:               2,
+		CustomerID:       1,
+		Status:           domain.OrderStatusConfirmed,
+		ReferralCode:     "CONFIRMED_REF",
+		DeliveryAddress:  "Confirmed Addr",
 	}
 	repo.orders[1] = order1
 	repo.orders[2] = order2
@@ -362,4 +403,5 @@ func TestOrderServiceListByCustomerWithStatusFilter(t *testing.T) {
 	require.Len(t, orders, 1)
 	require.Equal(t, domain.OrderStatusPending, orders[0].Status)
 	require.Equal(t, "PENDING_REF", orders[0].ReferralCode)
+	require.Equal(t, "Pending Addr", orders[0].DeliveryAddress)
 }

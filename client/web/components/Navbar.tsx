@@ -337,6 +337,16 @@ export const Navbar = () => {
                                     </SheetTrigger>
                                     <SheetContent side="right" className="w-80">
                                         <div className="flex flex-col space-y-4 mt-8">
+                                        <Link
+                                            href="/product"
+                                            prefetch={true}
+                                            onMouseEnter={() => handleLinkHover("/product")}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            <Button className="w-full font-medium" variant="default">
+                                                Shop Now
+                                            </Button>
+                                        </Link>
                                         {navLinks.map((link) => (
                                             <Link
                                                 key={link.name}

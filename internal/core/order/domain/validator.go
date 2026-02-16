@@ -30,15 +30,21 @@ func ParseOrderStatus(value string) (OrderStatus, error) {
 }
 
 // ValidateOrderInput validates order metadata and items.
-func ValidateOrderInput(customerID int64, paymentStatus, deliveryStatus, confirmationStatus string, items []OrderItem) error {
+func ValidateOrderInput(customerID int64, paymentStatus, deliveryStatus, confirmationStatus, deliveryAddress string, items []OrderItem) error {
 	if customerID <= 0 {
 		return validate.NewJSONError([]string{"customer_id must be provided"})
+	}
+	if strings.TrimSpace(deliveryAddress) == "" {
+		return validate.NewJSONError([]string{"delivery_address is required"})
 	}
 	if len(items) == 0 {
 		return validate.NewJSONError([]string{"at least one order item is required"})
 	}
 	if err := ValidateOrderMetadata(paymentStatus, deliveryStatus, confirmationStatus); err != nil {
 		return err
+	}
+	if res := validate.New().And(validate.MaxLen(deliveryAddress, 500)).Validate(); !res.IsValid {
+		return validate.NewJSONError(res.Message)
 	}
 	for _, item := range items {
 		if item.ProductID <= 0 {

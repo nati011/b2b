@@ -39,6 +39,7 @@ const Cart = () => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('review');
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
 
   const router = useRouter();
   
@@ -295,6 +296,14 @@ const Cart = () => {
       region: finalCustomerData.region || '',
     });
 
+    const deliveryAddressTrimmed = deliveryAddress.trim();
+    if (!deliveryAddressTrimmed) {
+      toast.error("Delivery address is required", {
+        description: "Please enter the address where you want your order delivered.",
+      });
+      return;
+    }
+
     // Create order request (exactly matching mobile format)
     const orderRequest: CreateOrderRequest = {
       customer_id: finalCustomerId,
@@ -304,6 +313,7 @@ const Cart = () => {
       confirmation_status: 'PENDING',
       total: totalPrice,
       referral_code: referralCode.trim() || undefined,
+      delivery_address: deliveryAddressTrimmed,
       customer_snapshot: customerSnapshot as any,
       shipping_address_snapshot: shippingAddressSnapshot as any,
       items: orderItems,
@@ -633,6 +643,21 @@ const Cart = () => {
                             </div>
                           );
                         })}
+                      </div>
+
+                      {/* Delivery address (required) */}
+                      <div className="border-t border-border pt-4">
+                        <label htmlFor="delivery-address" className="text-sm text-muted-foreground block mb-2">
+                          Delivery address <span className="text-destructive">*</span>
+                        </label>
+                        <textarea
+                          id="delivery-address"
+                          value={deliveryAddress}
+                          onChange={(e) => setDeliveryAddress(e.target.value)}
+                          placeholder="Street, city, region, woreda..."
+                          rows={3}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        />
                       </div>
 
                       {/* Referral code (optional) */}

@@ -68,7 +68,7 @@ export default function PricingSection(){
                 <div className="text-sm text-gray-600 mb-4">{plan.period}</div>
               </div>
 
-              <Link href="/contact/supplier">
+              <Link href={`/partner/get-started?plan=${plan.id}`}>
                 <Button 
                   variant={plan.isRecommended ? "default" : "outline"}
                   className={`w-full py-6 text-lg font-semibold ${
