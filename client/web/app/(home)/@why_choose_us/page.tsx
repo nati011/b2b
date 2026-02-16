@@ -43,7 +43,7 @@ export default function WhyChooseUs() {
             Why shop with us
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Why Shop With Efoyetastore
+            Why Shop With Efoyeta Store
           </h2>
           <div className="h-1 w-24 bg-primary mx-auto mb-6 rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">

@@ -39,7 +39,7 @@ export default function PricingSection(){
             Pricing Plans
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Supplier Pricing
+            Sell With Us
           </h2>
           <div className="h-1 w-24 bg-primary mx-auto mb-6 rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -68,7 +68,7 @@ export default function PricingSection(){
                 <div className="text-sm text-gray-600 mb-4">{plan.period}</div>
               </div>
 
-              <Link href="/contact">
+              <Link href="/contact/supplier">
                 <Button 
                   variant={plan.isRecommended ? "default" : "outline"}
                   className={`w-full py-6 text-lg font-semibold ${

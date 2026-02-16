@@ -65,6 +65,7 @@ export const Navbar = () => {
         { name: "Orders", href: "/orders" },
         { name: "About Us", href: "/about" },
         { name: "Contact", href: "/contact" },
+        { name: "Return & Refund", href: "/return-refund-policy" },
     ];
 
     // Check if user is logged in based on user_email and saved_password in localStorage

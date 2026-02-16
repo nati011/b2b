@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Minus, ShoppingCart, Check, Truck, Shield, RotateCcw } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Check, Truck, Shield, RotateCcw, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 // import { useCart } from "@/contexts/CartContext";
@@ -351,6 +351,13 @@ const ProductDetail = () => {
       </style>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        <Link
+          href="/product"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to products
+        </Link>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* Image Gallery Section */}
           <div className="space-y-4">
@@ -407,16 +414,16 @@ const ProductDetail = () => {
           {/* Product Info Section */}
           <div className="flex flex-col space-y-6">
             {/* Product Title & Price */}
-            <div className="space-y-3">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+            <div className="space-y-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
                 {catalogue.name}
               </h1>
               
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="text-4xl md:text-5xl font-bold text-primary">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-2xl md:text-3xl font-bold text-primary">
                   {currentPrice.toLocaleString()}
                 </span>
-                <span className="text-xl text-gray-500">ETB</span>
+                <span className="text-base text-gray-500">ETB</span>
                 {stockStatus && (
                   <Badge variant={stockStatus.variant} className="shrink-0 self-center">
                     {stockStatus.text}
@@ -432,73 +439,75 @@ const ProductDetail = () => {
               </p>
             </div>
 
-            {/* Product Attributes */}
-            {attributeTypes.map((attributeName) => {
-              const isColor = isColorAttribute(attributeName);
-              
-              return (
-                <div key={attributeName} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                      {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}
-                    </h3>
-                    {selectedAttributes[attributeName] && (
-                      <span className="text-xs text-gray-500">
-                        Selected: <span className="font-medium">{selectedAttributes[attributeName]}</span>
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className={`flex flex-wrap gap-3 ${isColor ? 'gap-2' : ''}`}>
-                    {getAllOptions(attributeName).map((value) => {
-                      const isOutOfStock = !isOptionSelectable(attributeName, value);
-                      const isSelected = selectedAttributes[attributeName] === value;
-                      const colorValue = isColor ? getColorValue(value) : null;
+            {/* Product Attributes - e-commerce style grid */}
+            <div className="grid gap-4">
+              {attributeTypes.map((attributeName) => {
+                const isColor = isColorAttribute(attributeName);
+                const options = getAllOptions(attributeName);
 
-                      if (isColor && colorValue) {
+                return (
+                  <div
+                    key={attributeName}
+                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,8rem)_1fr] gap-3 sm:gap-6 py-4 border-b border-gray-100 last:border-b-0"
+                  >
+                    <div className="flex items-center sm:pt-0.5">
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-2 sm:gap-2 min-w-0">
+                      {options.map((value) => {
+                        const isOutOfStock = !isOptionSelectable(attributeName, value);
+                        const isSelected = selectedAttributes[attributeName] === value;
+                        const colorValue = isColor ? getColorValue(value) : null;
+
+                        if (isColor && colorValue) {
+                          return (
+                            <button
+                              key={value}
+                              onClick={() => !isOutOfStock && handleAttributeSelect(attributeName, value)}
+                              disabled={isOutOfStock}
+                              className={`relative aspect-square max-w-[2.5rem] w-full rounded-full border-2 transition-all duration-200 ${
+                                isSelected
+                                  ? "ring-2 ring-primary ring-offset-1 border-primary"
+                                  : "border-gray-200 hover:border-gray-300"
+                              } ${isOutOfStock ? "opacity-40 cursor-not-allowed grayscale" : ""}`}
+                              style={{ backgroundColor: colorValue }}
+                              title={value}
+                              type="button"
+                            >
+                              {isSelected && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Check className="w-4 h-4 text-white drop-shadow-md" />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        }
+
                         return (
                           <button
                             key={value}
                             onClick={() => !isOutOfStock && handleAttributeSelect(attributeName, value)}
                             disabled={isOutOfStock}
-                            className={`relative w-12 h-12 rounded-full border-2 transition-all duration-200 ${
+                            type="button"
+                            className={`min-w-0 py-2 px-3 rounded-md text-xs font-medium transition-all duration-200 text-center truncate ${
                               isSelected
-                                ? "ring-2 ring-primary ring-offset-2 scale-110 border-primary"
-                                : "border-gray-300 hover:border-gray-400"
-                            } ${isOutOfStock ? "opacity-40 cursor-not-allowed grayscale" : "hover:scale-105"}`}
-                            style={{ backgroundColor: colorValue }}
-                            title={value}
+                                ? "bg-primary text-white border border-primary"
+                                : isOutOfStock
+                                ? "bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100"
+                                : "bg-white text-gray-700 border border-gray-200 hover:border-primary hover:text-primary"
+                            }`}
                           >
-                            {isSelected && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <Check className="w-5 h-5 text-white drop-shadow-md" />
-                              </div>
-                            )}
+                            {value}
                           </button>
                         );
-                      }
-
-                      return (
-                        <button
-                          key={value}
-                          onClick={() => !isOutOfStock && handleAttributeSelect(attributeName, value)}
-                          disabled={isOutOfStock}
-                          className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                            isSelected
-                              ? "bg-primary text-white shadow-md scale-105"
-                              : isOutOfStock
-                              ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                              : "bg-white text-gray-700 border-2 border-gray-300 hover:border-primary hover:text-primary hover:shadow-sm"
-                          }`}
-                        >
-                          {value}
-                        </button>
-                      );
-                    })}
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
 
             {/* Stock Info */}
             {(() => {
@@ -538,10 +547,10 @@ const ProductDetail = () => {
             })()}
 
             {/* Quantity Selector */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+            <div className="space-y-2">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Quantity
-              </h3>
+              </span>
               <div className="flex items-center gap-4">
                 <Button
                   variant="outline"

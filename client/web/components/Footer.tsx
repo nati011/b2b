@@ -62,15 +62,7 @@ export const Footer = () => {
                                 onMouseEnter={() => handleLinkHover("/product")}
                                 className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
                             >
-                                Shop
-                            </Link>
-                            <Link 
-                                href="/signup/supplier" 
-                                prefetch={true}
-                                onMouseEnter={() => handleLinkHover("/signup/supplier")}
-                                className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
-                            >
-                                Partner Portal
+                                Products
                             </Link>
                             <Link 
                                 href="/contact" 
@@ -79,6 +71,14 @@ export const Footer = () => {
                                 className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
                             >
                                 Contact
+                            </Link>
+                            <Link 
+                                href="/return-refund-policy" 
+                                prefetch={true}
+                                onMouseEnter={() => handleLinkHover("/return-refund-policy")}
+                                className="text-gray-400 hover:text-primary transition-colors text-sm font-medium text-center sm:text-left py-1 whitespace-nowrap"
+                            >
+                                Return & Refund Policy
                             </Link>
                         </nav>
                     </div>
@@ -151,7 +151,7 @@ export const Footer = () => {
                                     <IoLogoTiktok className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </a>
                                 <a 
-                                    href="https://t.me/efoyetastore1" 
+                                    href="https://t.me/efoyetastore" 
                                     className="p-2 sm:p-2.5 lg:p-3 bg-gray-800 rounded-lg hover:bg-primary transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary/20"
                                     aria-label="Telegram"
                                     title="Telegram"
@@ -179,7 +179,7 @@ export const Footer = () => {
                             href="https://www.efoyetastore.com/" 
                             className="hover:text-primary transition-colors"
                         >
-                            Efoyeta Store PLC.
+                            Efoyeta Store General Trading PLC
                         </a>{" "}
                         All rights reserved.
                     </div>

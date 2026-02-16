@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useCallback, useState } from "react";
-import { Minus, Plus, X, Trash2, Building2, CreditCard, Copy, CheckCircle2, ArrowLeft, Check } from "lucide-react";
+import { Minus, Plus, X, Trash2, Copy, CheckCircle2, ArrowLeft, Check } from "lucide-react";
+import { PiTelegramLogo } from "react-icons/pi";
+import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,8 +18,8 @@ import { cn } from "@/lib/utils";
 type CheckoutStep = 'payment' | 'review';
 
 const steps: { id: CheckoutStep; label: string }[] = [
-  { id: 'payment', label: 'Payment' },
   { id: 'review', label: 'Review' },
+  { id: 'payment', label: 'Payment' },
 ];
 
 const Cart = () => {
@@ -33,7 +36,7 @@ const Cart = () => {
   const [customerData, setCustomerData] = useState<any>(null);
   const [isLoadingCustomer, setIsLoadingCustomer] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [currentStep, setCurrentStep] = useState<CheckoutStep>('payment');
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>('review');
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const router = useRouter();
@@ -410,7 +413,7 @@ const Cart = () => {
             ) : (
               <div className="space-y-6">
                 {/* Header with Back Button */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 pt-2">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -480,83 +483,6 @@ const Cart = () => {
                   {currentStep === 'payment' && (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold mb-4">Payment Details</h2>
-                      
-                      {/* Payment Information Card */}
-                      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Building2 className="w-5 h-5 text-primary" />
-                          <h3 className="font-semibold text-base">Company Payment Information</h3>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          {/* Bank Name */}
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-2 block">Bank Name</label>
-                            <div className="flex items-center gap-2 p-3 bg-secondary rounded-md">
-                              <CreditCard className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Commercial Bank of Ethiopia</span>
-                            </div>
-                          </div>
-
-                          {/* Account Number */}
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-2 block">Account Number</label>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 flex items-center gap-2 p-3 bg-secondary rounded-md">
-                                <span className="text-sm font-mono font-medium">1000123456789</span>
-                              </div>
-                              <button
-                                onClick={() => copyToClipboard('1000123456789', 'account')}
-                                className="p-3 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
-                                aria-label="Copy account number"
-                              >
-                                {copiedField === 'account' ? (
-                                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                                ) : (
-                                  <Copy className="w-4 h-4 text-muted-foreground" />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Account Holder */}
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-2 block">Account Holder</label>
-                            <div className="p-3 bg-secondary rounded-md">
-                              <span className="text-sm font-medium">Efoyeta Store PLC</span>
-                            </div>
-                          </div>
-
-                          {/* SWIFT Code */}
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-2 block">SWIFT Code</label>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 flex items-center gap-2 p-3 bg-secondary rounded-md">
-                                <span className="text-sm font-mono font-medium">CBETETAA</span>
-                              </div>
-                              <button
-                                onClick={() => copyToClipboard('CBETETAA', 'swift')}
-                                className="p-3 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
-                                aria-label="Copy SWIFT code"
-                              >
-                                {copiedField === 'swift' ? (
-                                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                                ) : (
-                                  <Copy className="w-4 h-4 text-muted-foreground" />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Branch */}
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-2 block">Branch</label>
-                            <div className="p-3 bg-secondary rounded-md">
-                              <span className="text-sm">Addis Ababa Main Branch</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
 
                       {/* Payment Instructions */}
                       <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
@@ -565,7 +491,7 @@ const Cart = () => {
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-foreground">Payment Instructions</p>
                             <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                              <li>Please include your order reference number in the payment description</li>
+                              <li>Use either CBE or TELEBIRR to pay. Include your order reference in the payment description.</li>
                               <li>Payment should be made within 3 business days</li>
                               <li>Your order will be processed once payment is confirmed</li>
                             </ul>
@@ -573,11 +499,99 @@ const Cart = () => {
                         </div>
                       </div>
 
-                      {/* Alternative Payment Methods */}
-                      <div className="border-t border-border pt-4">
-                        <p className="text-xs text-muted-foreground text-center">
-                          For alternative payment methods, please contact our support team
-                        </p>
+                      {/* Option 1: CBE */}
+                      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Image src="/cbe-logo.png" alt="CBE" width={32} height={32} className="w-8 h-8" />
+                          <h3 className="font-semibold text-base">CBE</h3>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-2 block">Account Number</label>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 flex items-center gap-2 p-3 bg-secondary rounded-md">
+                                <span className="text-sm font-mono font-medium">1000024909364</span>
+                              </div>
+                              <button
+                                onClick={() => copyToClipboard('1000024909364', 'cbe-account')}
+                                className="p-3 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+                                aria-label="Copy CBE account number"
+                              >
+                                {copiedField === 'cbe-account' ? (
+                                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                                ) : (
+                                  <Copy className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-2 block">Name</label>
+                            <div className="p-3 bg-secondary rounded-md">
+                              <span className="text-sm font-medium">ARAGAW MELAK</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Option 2: TELEBIRR */}
+                      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="relative h-8 w-20 shrink-0">
+                            <Image src="/telebirr-logo.png" alt="Telebirr" fill className="object-contain object-left" sizes="80px" />
+                          </div>
+                          <h3 className="font-semibold text-base">TELEBIRR</h3>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-2 block">Phone Number</label>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 flex items-center gap-2 p-3 bg-secondary rounded-md">
+                                <span className="text-sm font-mono font-medium">+251 93 763 9608</span>
+                              </div>
+                              <button
+                                onClick={() => copyToClipboard('+251937639608', 'telebirr-phone')}
+                                className="p-3 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+                                aria-label="Copy TELEBIRR phone"
+                              >
+                                {copiedField === 'telebirr-phone' ? (
+                                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                                ) : (
+                                  <Copy className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-2 block">Name</label>
+                            <div className="p-3 bg-secondary rounded-md">
+                              <span className="text-sm font-medium">ARAGAW MELAK</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Share payment details on Telegram */}
+                      <div className="bg-gradient-to-br from-blue-50/50 to-cyan-50/30 border-2 border-blue-200/50 rounded-lg p-5 shadow-sm">
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className="mt-0.5">
+                            <PiTelegramLogo className="w-6 h-6 text-[#0088cc]" />
+                          </div>
+                          <p className="text-sm font-medium text-gray-700 leading-relaxed">
+                            After paying, share your payment details (e.g. transaction ID, amount, date) with us on Telegram so we can confirm and process your order.
+                          </p>
+                        </div>
+                        <div className="flex justify-end">
+                          <Link
+                            href="https://t.me/efoyetastore"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 rounded-md bg-[#0088cc] hover:bg-[#0077b5] text-white px-5 py-2.5 text-sm font-semibold transition-colors shadow-md hover:shadow-lg"
+                          >
+                            <PiTelegramLogo className="w-5 h-5" />
+                            Share payment details on Telegram
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -655,7 +669,7 @@ const Cart = () => {
                       ? "Loading customer info..." 
                       : isPlacingOrder 
                       ? "Placing Order..." 
-                      : currentStep === 'review' 
+                      : currentStep === 'payment' 
                       ? "Place Order" 
                       : "Continue"}
                   </Button>

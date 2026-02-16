@@ -237,7 +237,7 @@ export default function ProductGrid() {
         <Link href="/product" prefetch={true}>
           <Button 
             size="lg"
-            className="bg-primary text-white hover:bg-primary/90 border-2 border-primary transition-all duration-300 px-8 py-6 text-base font-semibold h-auto"
+            className="bg-primary text-white hover:bg-primary/90 border-2 border-primary transition-all duration-300 px-8 py-6 text-base font-semibold h-auto shadow-none"
           >
             View All Products
             <ArrowRight className="ml-2 h-5 w-5" />

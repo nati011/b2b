@@ -4,8 +4,9 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PiTelegramLogo } from "react-icons/pi";
 import { FaWhatsapp } from "react-icons/fa";
+import Link from "next/link";
 
-export default function Contact() {
+export default function ContactSupplier() {
   const telegramUrl = "https://t.me/efoyetastore";
   const whatsappUrl = "https://wa.me/251937639608";
 
@@ -15,15 +16,15 @@ export default function Contact() {
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-sm font-semibold text-primary mb-3 uppercase tracking-wide">
-            Let&apos;s start a conversation
+            Become a Supplier
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Get in touch with us
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed">
-            Have a project in mind or just want to learn more about how Efoyeta
-            Store can elevate your business? We&apos;re here to help. Reach out
-            to us on Telegram or WhatsApp, and let&apos;s start a conversation.
+            Interested in becoming an Efoyeta Store supplier? We&apos;re here
+            to help. Reach out on Telegram or WhatsApp and we&apos;ll get back
+            to you with next steps.
           </p>
         </div>
 
@@ -40,8 +41,8 @@ export default function Contact() {
                   Chat with us on Telegram
                 </h2>
                 <p className="text-gray-600 text-lg mb-8">
-                  Get instant responses and personalized support from our team.
-                  Click the button below to start a conversation with us on Telegram.
+                  Reach out on Telegram to discuss supplier opportunities.
+                  We&apos;ll respond with details and next steps.
                 </p>
               </div>
 
@@ -86,8 +87,8 @@ export default function Contact() {
                   Chat with us on WhatsApp
                 </h2>
                 <p className="text-gray-600 text-lg mb-8">
-                  Connect with us instantly on WhatsApp for quick support and inquiries.
-                  Click the button below to start a conversation with us.
+                  Connect with us on WhatsApp to inquire about becoming a
+                  supplier. We&apos;ll get back to you shortly.
                 </p>
               </div>
 
@@ -124,9 +125,14 @@ export default function Contact() {
           </div>
 
           {/* Additional Info */}
-          <div className="mt-12 text-center">
+          <div className="mt-12 text-center space-y-2">
             <p className="text-gray-600">
-              We typically respond within a few hours during business hours.
+              Supplier inquiries are typically answered within a few hours during business hours.
+            </p>
+            <p className="text-sm text-gray-500">
+              <Link href="/contact" className="text-primary hover:underline">
+                General contact
+              </Link>
             </p>
           </div>
         </div>

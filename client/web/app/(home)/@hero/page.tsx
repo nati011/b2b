@@ -35,7 +35,7 @@ export default function Hero() {
           {/* Main Heading */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-6 leading-tight">
             Welcome to{" "}
-            <span className="text-primary">Efoyetastore</span>
+            <span className="text-primary">Efoyeta Store</span>
           </h1>
 
           {/* Description */}

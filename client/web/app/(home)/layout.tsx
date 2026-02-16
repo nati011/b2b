@@ -49,7 +49,7 @@ export default function OverViewLayout({
                 className="bg-transparent border-2 border-white text-white hover:bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-6 text-lg font-semibold"
                 asChild
               >
-                <Link href="/signup/supplier" prefetch={true}>
+                <Link href="/#pricing" prefetch={true}>
                   Partner with Us <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>

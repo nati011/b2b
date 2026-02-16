@@ -11,16 +11,16 @@ export default function AboutPage() {
               About us
             </p>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              About Efoyetastore
+              About Efoyeta Store
             </h1>
             <p className="text-lg text-gray-600 leading-relaxed">
-              Efoyetastore is an innovative e-commerce platform that connects
+              Efoyeta Store is an innovative e-commerce platform that connects
               customers with high-quality products from trusted partner
               suppliers.
             </p>
           </header>
 
-          {/* About Efoyetastore Section */}
+          {/* About Efoyeta Store Section */}
           <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-4">
             <p className="text-gray-700 leading-relaxed">
               We carefully select each product and work closely with suppliers
@@ -37,7 +37,7 @@ export default function AboutPage() {
             </h2>
             <div className="space-y-4 text-gray-700 leading-relaxed">
               <p>
-                Efoyetastore General Trading PLC was founded by{" "}
+                Efoyeta Store General Trading PLC was founded by{" "}
                 <span className="font-semibold text-gray-900">Aragaw Melak</span>
                 , a dedicated entrepreneur with over 5 years of experience in
                 dropshipping and e-commerce. Born in a rural part of Ethiopia,
@@ -45,7 +45,7 @@ export default function AboutPage() {
                 determination, is now a self-made millionaire.
               </p>
               <p>
-                His mission with Efoyetastore is to bring high-quality products
+                His mission with Efoyeta Store is to bring high-quality products
                 to Ethiopia and eventually reach the international market.
                 Aragaw believes in trust, transparency, and customer
                 satisfaction, ensuring every shopping experience is safe, smooth,
