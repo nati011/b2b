@@ -1,31 +1,14 @@
 -- Seed data for category table
--- Development seed data
+-- Industrial and machinery focused
 
 INSERT INTO public.category (name, created_date, last_modified, is_deleted)
 VALUES
-  ('Electronics', NOW(), NOW(), FALSE),
-  ('Office Supplies', NOW(), NOW(), FALSE),
-  ('Tools & Equipment', NOW(), NOW(), FALSE),
-  ('Furniture', NOW(), NOW(), FALSE),
-  ('Safety & Security', NOW(), NOW(), FALSE),
-  ('Industrial', NOW(), NOW(), FALSE),
+  ('Industrial Equipment', NOW(), NOW(), FALSE),
+  ('Machinery', NOW(), NOW(), FALSE),
+  ('Safety Equipment', NOW(), NOW(), FALSE),
   ('Construction Materials', NOW(), NOW(), FALSE),
-  ('Cleaning Supplies', NOW(), NOW(), FALSE),
-  ('Packaging Materials', NOW(), NOW(), FALSE),
-  ('Food & Beverages', NOW(), NOW(), FALSE)
+  ('Metalworking', NOW(), NOW(), FALSE),
+  ('Electrical Equipment', NOW(), NOW(), FALSE),
+  ('Hydraulics & Pneumatics', NOW(), NOW(), FALSE),
+  ('Tools & Abrasives', NOW(), NOW(), FALSE)
 ON CONFLICT DO NOTHING;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

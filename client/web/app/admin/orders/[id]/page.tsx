@@ -421,6 +421,12 @@ export default function OrderDetailPage() {
                 <p className="font-semibold">{order.referral_code}</p>
               </div>
             )}
+            {order.delivery_address && (
+              <div>
+                <p className="text-sm text-muted-foreground">Delivery Address</p>
+                <p className="font-semibold whitespace-pre-wrap">{order.delivery_address}</p>
+              </div>
+            )}
             {customerInfo && (
               <>
                 {customerInfo.full_name && (

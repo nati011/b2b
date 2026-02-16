@@ -37,8 +37,11 @@ const extractImagesFromAttributes = (attributes: any): Image[] => {
     }
   }
   
+  if (attrs.image_url && typeof attrs.image_url === 'string') {
+    return [{ ImageUrl: attrs.image_url, BlurHash: '' }];
+  }
   if (!attrs.images) return [];
-  
+
   // Handle different image formats
   if (Array.isArray(attrs.images)) {
     return attrs.images
@@ -71,7 +74,49 @@ const extractImagesFromAttributes = (attributes: any): Image[] => {
   }
   
   return [];
-}; 
+};
+
+type VariantItem = { option: string; value: string; price_modifier?: number };
+
+function buildConfigurablesFromProduct(
+  p: ProductResponse,
+  parsedAttributes: Record<string, unknown>,
+  images: Image[]
+): { id: number; name: string; desc: string; price: number; stock: number; external_id: string; attributes: Record<string, string>; images: Image[]; supplier_id: number; categories: number[]; is_active: boolean }[] {
+  const basePrice = p.price ?? 0;
+  const totalQty = p.available_quantity ?? 0;
+  const variants = parsedAttributes?.variants as VariantItem[] | undefined;
+  if (Array.isArray(variants) && variants.length > 0 && totalQty > 0) {
+    const optionName = variants[0]?.option ?? 'Option';
+    const stockPerVariant = Math.max(0, Math.floor(totalQty / variants.length));
+    return variants.map((v, idx) => ({
+      id: p.id,
+      name: p.name,
+      desc: p.description || '',
+      price: basePrice + (v.price_modifier ?? 0),
+      stock: idx < variants.length - 1 ? stockPerVariant : Math.max(0, totalQty - stockPerVariant * (variants.length - 1)),
+      external_id: `${p.external_id || ''}-${v.value}`.replace(/\s+/g, '_'),
+      attributes: { ...(parsedAttributes as Record<string, string>), [optionName]: v.value },
+      images,
+      supplier_id: p.supplier_id,
+      categories: p.category_ids || [],
+      is_active: p.is_active
+    }));
+  }
+  return totalQty > 0 ? [{
+    id: p.id,
+    name: p.name,
+    desc: p.description || '',
+    price: basePrice,
+    stock: totalQty,
+    external_id: p.external_id || '',
+    attributes: parsedAttributes as Record<string, string> || {},
+    images,
+    supplier_id: p.supplier_id,
+    categories: p.category_ids || [],
+    is_active: p.is_active
+  }] : [];
+}
 
 const Product = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -147,25 +192,9 @@ const Product = () => {
           }
         }
         
-        // Extract images from attributes
         const images = extractImagesFromAttributes(parsedAttributes);
-        
-        // Create configurables from the product if it has attributes that could be configurable
-        // For now, create a single configurable from the product itself
-        const configurables = p.available_quantity > 0 ? [{
-          id: p.id,
-          name: p.name,
-          desc: p.description || '',
-          price: p.price || 0,
-          stock: p.available_quantity,
-          external_id: p.external_id || '',
-          attributes: parsedAttributes || {},
-          images: images,
-          supplier_id: p.supplier_id,
-          categories: p.category_ids || [],
-          is_active: p.is_active
-        }] : [];
-        
+        const configurables = buildConfigurablesFromProduct(p, parsedAttributes as Record<string, unknown>, images);
+
         return {
           id: p.id,
           name: p.name,

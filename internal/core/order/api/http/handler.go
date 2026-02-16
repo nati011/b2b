@@ -26,15 +26,16 @@ type OrderItemRequest struct {
 
 // CreateOrderRequest represents the payload to create an order.
 type CreateOrderRequest struct {
-	CustomerID         int64              `json:"customer_id"`
-	Status            string             `json:"status,omitempty"`
-	PaymentStatus     string             `json:"payment_status,omitempty"`
-	DeliveryStatus    string             `json:"delivery_status,omitempty"`
-	ConfirmationStatus string             `json:"confirmation_status,omitempty"`
-	Total             *float64           `json:"total,omitempty"`
-	ReferralCode      string             `json:"referral_code,omitempty"`
-	CustomerSnapshot  json.RawMessage    `json:"customer_snapshot,omitempty"`
-	Items             []OrderItemRequest `json:"items"`
+	CustomerID          int64              `json:"customer_id"`
+	Status              string             `json:"status,omitempty"`
+	PaymentStatus       string             `json:"payment_status,omitempty"`
+	DeliveryStatus      string             `json:"delivery_status,omitempty"`
+	ConfirmationStatus  string             `json:"confirmation_status,omitempty"`
+	Total               *float64           `json:"total,omitempty"`
+	ReferralCode        string             `json:"referral_code,omitempty"`
+	DeliveryAddress     string             `json:"delivery_address"`
+	CustomerSnapshot    json.RawMessage    `json:"customer_snapshot,omitempty"`
+	Items               []OrderItemRequest `json:"items"`
 }
 
 // OrderItemResponse represents an order item returned to clients.
@@ -55,6 +56,7 @@ type OrderResponse struct {
 	ConfirmationStatus string              `json:"confirmation_status,omitempty"`
 	Total              *float64            `json:"total,omitempty"`
 	ReferralCode       string              `json:"referral_code,omitempty"`
+	DeliveryAddress    string              `json:"delivery_address"`
 	CustomerSnapshot   json.RawMessage     `json:"customer_snapshot,omitempty"`
 	CartSnapshot       json.RawMessage     `json:"cart_snapshot"`
 	Items              []OrderItemResponse `json:"items,omitempty"`
@@ -101,6 +103,12 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	deliveryAddress := strings.TrimSpace(req.DeliveryAddress)
+	if deliveryAddress == "" {
+		httputil.Error(w, http.StatusBadRequest, errors.New("delivery_address is required"))
+		return
+	}
+
 	input := orderservice.OrderInput{
 		CustomerID:         req.CustomerID,
 		Status:             req.Status,
@@ -109,6 +117,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		ConfirmationStatus: req.ConfirmationStatus,
 		Total:              req.Total,
 		ReferralCode:       strings.TrimSpace(req.ReferralCode),
+		DeliveryAddress:    deliveryAddress,
 		CustomerSnapshot:   req.CustomerSnapshot,
 		Items:              items,
 	}
@@ -358,7 +367,8 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 		ConfirmationStatus: order.ConfirmationStatus,
 		Total:              order.Total,
 		ReferralCode:       order.ReferralCode,
-		CustomerSnapshot:   order.CustomerSnapshot,
+		DeliveryAddress:   order.DeliveryAddress,
+		CustomerSnapshot:  order.CustomerSnapshot,
 		CartSnapshot:       cartSnapshot,
 		CreatedAt:          order.CreatedAt,
 		UpdatedAt:          order.UpdatedAt,

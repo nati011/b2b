@@ -53,7 +53,7 @@ export default function Hero() {
               asChild
             >
               <Link href="/product" prefetch={true}>
-                Explore Products <ArrowRight className="ml-2 h-5 w-5" />
+                Shop Now <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button 
@@ -62,7 +62,7 @@ export default function Hero() {
               className="border-2 border-gray-300 hover:bg-gray-50 hover:border-primary transition-all duration-300 px-8 py-6 text-base font-semibold"
               asChild
             >
-              <Link href="#pricing">Become a Partner</Link>
+              <Link href="#pricing">Sell With Us</Link>
             </Button>
           </div>
 
