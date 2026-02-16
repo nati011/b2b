@@ -415,6 +415,12 @@ export default function OrderDetailPage() {
               <p className="text-sm text-muted-foreground">Customer ID</p>
               <p className="font-semibold">#{order.customer_id}</p>
             </div>
+            {order.referral_code && (
+              <div>
+                <p className="text-sm text-muted-foreground">Referral Code</p>
+                <p className="font-semibold">{order.referral_code}</p>
+              </div>
+            )}
             {customerInfo && (
               <>
                 {customerInfo.full_name && (

@@ -115,6 +115,7 @@ export type Order = {
     DeliveryStatus: string
     PaymentStatus: string
     ConfirmationStatus: string
+    ReferralCode?: string
     CreatedAt: string
     ExpiresAt: string
     CartSnapshot?: string | object; // New field from backend
