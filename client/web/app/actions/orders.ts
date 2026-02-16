@@ -21,6 +21,7 @@ export interface CreateOrderRequest {
   delivery_status?: string;
   confirmation_status?: string;
   total?: number;
+  referral_code?: string;
   customer_snapshot?: any;
   shipping_address_snapshot?: any;
   billing_address_snapshot?: any;
@@ -35,6 +36,7 @@ export interface OrderResponse {
   delivery_status?: string;
   confirmation_status?: string;
   total?: number;
+  referral_code?: string;
   customer_snapshot?: any;
   cart_snapshot?: any;
   items?: OrderItemResponse[];
@@ -95,6 +97,7 @@ function mapOrderToFrontendFormat(order: OrderResponse): any {
     DeliveryStatus: order.delivery_status || '',
     PaymentStatus: order.payment_status || '',
     ConfirmationStatus: order.confirmation_status || '',
+    ReferralCode: order.referral_code || '',
     CreatedAt: order.created_at,
     ExpiresAt: '',
     CartSnapshot: order.cart_snapshot,
@@ -337,9 +340,10 @@ export async function updateOrderPaymentStatus(orderId: string, paymentStatus: s
 }
 
 // Helper to convert CheckoutRequest to CreateOrderRequest
-export function convertCheckoutToCreateOrder(checkout: { customer_id: number; items: Array<{ id: number; quantity: number }> }): CreateOrderRequest {
+export function convertCheckoutToCreateOrder(checkout: { customer_id: number; referral_code?: string; items: Array<{ id: number; quantity: number }> }): CreateOrderRequest {
   return {
     customer_id: checkout.customer_id,
+    referral_code: checkout.referral_code,
     items: checkout.items.map(item => ({
       product_id: item.id,
       quantity: item.quantity

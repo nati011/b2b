@@ -47,6 +47,9 @@ export const OrderCard: React.FC<Props> = ({
                                 day: 'numeric'
                             })}</span>
                         </div>
+                        {order.ReferralCode && (
+                            <p className="text-xs text-muted-foreground">Referral: {order.ReferralCode}</p>
+                        )}
                     </div>
                     <div className="flex gap-4">
                         <InvoiceDetail id={order.Id} />

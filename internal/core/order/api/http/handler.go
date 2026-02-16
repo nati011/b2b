@@ -27,13 +27,14 @@ type OrderItemRequest struct {
 // CreateOrderRequest represents the payload to create an order.
 type CreateOrderRequest struct {
 	CustomerID         int64              `json:"customer_id"`
-	Status             string             `json:"status,omitempty"`
-	PaymentStatus      string             `json:"payment_status,omitempty"`
-	DeliveryStatus     string             `json:"delivery_status,omitempty"`
+	Status            string             `json:"status,omitempty"`
+	PaymentStatus     string             `json:"payment_status,omitempty"`
+	DeliveryStatus    string             `json:"delivery_status,omitempty"`
 	ConfirmationStatus string             `json:"confirmation_status,omitempty"`
-	Total              *float64           `json:"total,omitempty"`
-	CustomerSnapshot   json.RawMessage    `json:"customer_snapshot,omitempty"`
-	Items              []OrderItemRequest `json:"items"`
+	Total             *float64           `json:"total,omitempty"`
+	ReferralCode      string             `json:"referral_code,omitempty"`
+	CustomerSnapshot  json.RawMessage    `json:"customer_snapshot,omitempty"`
+	Items             []OrderItemRequest `json:"items"`
 }
 
 // OrderItemResponse represents an order item returned to clients.
@@ -53,6 +54,7 @@ type OrderResponse struct {
 	DeliveryStatus     string              `json:"delivery_status,omitempty"`
 	ConfirmationStatus string              `json:"confirmation_status,omitempty"`
 	Total              *float64            `json:"total,omitempty"`
+	ReferralCode       string              `json:"referral_code,omitempty"`
 	CustomerSnapshot   json.RawMessage     `json:"customer_snapshot,omitempty"`
 	CartSnapshot       json.RawMessage     `json:"cart_snapshot"`
 	Items              []OrderItemResponse `json:"items,omitempty"`
@@ -106,6 +108,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		DeliveryStatus:     req.DeliveryStatus,
 		ConfirmationStatus: req.ConfirmationStatus,
 		Total:              req.Total,
+		ReferralCode:       strings.TrimSpace(req.ReferralCode),
 		CustomerSnapshot:   req.CustomerSnapshot,
 		Items:              items,
 	}
@@ -354,6 +357,7 @@ func ToOrderResponse(order *domain.Order, includeItems bool) OrderResponse {
 		DeliveryStatus:     order.DeliveryStatus,
 		ConfirmationStatus: order.ConfirmationStatus,
 		Total:              order.Total,
+		ReferralCode:       order.ReferralCode,
 		CustomerSnapshot:   order.CustomerSnapshot,
 		CartSnapshot:       cartSnapshot,
 		CreatedAt:          order.CreatedAt,

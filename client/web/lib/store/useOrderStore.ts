@@ -49,6 +49,7 @@ function mapOrderResponseToOrder(orderResponse: OrderResponse): Order {
     DeliveryStatus: orderResponse.delivery_status || '',
     PaymentStatus: orderResponse.payment_status || '',
     ConfirmationStatus: orderResponse.confirmation_status || '',
+    ReferralCode: orderResponse.referral_code || '',
     CreatedAt: orderResponse.created_at,
     ExpiresAt: '',
     CartSnapshot: orderResponse.cart_snapshot,
@@ -89,6 +90,7 @@ const useOrdersStore = create<OrdersStore>((set) => ({
         PaymentStatus: '',
         CreatedAt: '',
         ConfirmationStatus: '',
+        ReferralCode: '',
         ExpiresAt: ''
     },
 

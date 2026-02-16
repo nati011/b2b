@@ -38,6 +38,7 @@ const Cart = () => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('review');
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState('');
 
   const router = useRouter();
   
@@ -302,6 +303,7 @@ const Cart = () => {
       delivery_status: 'PENDING',
       confirmation_status: 'PENDING',
       total: totalPrice,
+      referral_code: referralCode.trim() || undefined,
       customer_snapshot: customerSnapshot as any,
       shipping_address_snapshot: shippingAddressSnapshot as any,
       items: orderItems,
@@ -631,6 +633,21 @@ const Cart = () => {
                             </div>
                           );
                         })}
+                      </div>
+
+                      {/* Referral code (optional) */}
+                      <div className="border-t border-border pt-4">
+                        <label htmlFor="referral-code" className="text-sm text-muted-foreground block mb-2">
+                          Referral code (optional)
+                        </label>
+                        <input
+                          id="referral-code"
+                          type="text"
+                          value={referralCode}
+                          onChange={(e) => setReferralCode(e.target.value)}
+                          placeholder="Enter referral code"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        />
                       </div>
 
                       {/* Order Summary */}

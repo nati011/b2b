@@ -36,6 +36,7 @@ type Order struct {
 	DeliveryStatus          string
 	ConfirmationStatus      string
 	Total                   *float64
+	ReferralCode            string
 	CustomerSnapshot        json.RawMessage
 	CartSnapshot            json.RawMessage
 	CreatedAt               time.Time
@@ -54,7 +55,7 @@ type OrderMetadata struct {
 }
 
 // NewOrder creates a new order entity after validation.
-func NewOrder(customerID int64, status string, metadata OrderMetadata, items []OrderItem) (*Order, error) {
+func NewOrder(customerID int64, status string, metadata OrderMetadata, items []OrderItem, referralCode string) (*Order, error) {
 	parsedStatus, err := ParseOrderStatus(status)
 	if err != nil {
 		return nil, err
@@ -72,6 +73,7 @@ func NewOrder(customerID int64, status string, metadata OrderMetadata, items []O
 		DeliveryStatus:          metadata.DeliveryStatus,
 		ConfirmationStatus:      metadata.ConfirmationStatus,
 		Total:                   metadata.Total,
+		ReferralCode:            referralCode,
 		CustomerSnapshot:        metadata.CustomerSnapshot,
 		CreatedAt:               now,
 		UpdatedAt:               now,
