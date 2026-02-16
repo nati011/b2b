@@ -705,15 +705,20 @@ const Cart = () => {
                     className="flex-1"
                     size="lg"
                     onClick={handleNext}
-                    disabled={cartItems.length === 0 || isPlacingOrder || isLoadingCustomer}
+                    disabled={
+                      cartItems.length === 0 ||
+                      isPlacingOrder ||
+                      isLoadingCustomer ||
+                      (currentStep === "review" && !deliveryAddress.trim())
+                    }
                   >
-                    {isLoadingCustomer 
-                      ? "Loading customer info..." 
-                      : isPlacingOrder 
-                      ? "Placing Order..." 
-                      : currentStep === 'payment' 
-                      ? "Place Order" 
-                      : "Continue"}
+                    {isLoadingCustomer
+                      ? "Loading customer info..."
+                      : isPlacingOrder
+                        ? "Placing Order..."
+                        : currentStep === "payment"
+                          ? "Place Order"
+                          : "Continue"}
                   </Button>
                 </div>
               </div>
