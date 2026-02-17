@@ -621,7 +621,7 @@ const Cart = () => {
                         {cartItems.map((item) => {
                           const itemTotal = item.price * item.quantity;
                           return (
-                            <div key={cartItemKey(item)} className="flex gap-4">
+                            <div key={cartItemKey(item)} className="flex gap-4 items-start">
                               <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                 {item.image ? (
                                   <img
@@ -637,7 +637,7 @@ const Cart = () => {
                                   </div>
                                 )}
                               </div>
-                              <div className="flex-1">
+                              <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium">{item.name}</p>
                                 {item.selected_attributes && Object.keys(item.selected_attributes).length > 0 && (
                                   <p className="text-xs text-muted-foreground">
@@ -649,6 +649,17 @@ const Cart = () => {
                                 </p>
                                 <p className="text-sm mt-1 font-medium">{itemTotal.toLocaleString()} ETB</p>
                               </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  removeCartItems(item);
+                                  toast.success("Item removed from cart");
+                                }}
+                                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors shrink-0"
+                                aria-label="Remove item from cart"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
                             </div>
                           );
                         })}
