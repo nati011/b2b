@@ -1,11 +1,13 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Loader2, Calendar, DollarSign } from 'lucide-react';
+import { Package, Loader2, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { ListCustomerOrders, type OrderResponse, type OrderItemResponse } from '@/lib/api/order';
 import { GetCustomerByEmail } from '@/lib/api/customer';
+import { GetProduct } from '@/lib/api/product';
+import type { ProductResponse } from '@/lib/api/product';
 import { toast } from 'sonner';
 
 const statusColors: Record<string, string> = {
@@ -43,6 +45,9 @@ const Orders = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [customerFetchComplete, setCustomerFetchComplete] = useState(false);
+  const [expandedOrderItemKey, setExpandedOrderItemKey] = useState<string | null>(null);
+  const [expandedProduct, setExpandedProduct] = useState<ProductResponse | null>(null);
+  const [expandedProductLoading, setExpandedProductLoading] = useState(false);
 
   // Fetch customer ID from API using logged-in user's email
   useEffect(() => {
@@ -132,6 +137,55 @@ const Orders = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
+  // Fetch product details when an order item is expanded
+  useEffect(() => {
+    if (!expandedOrderItemKey) {
+      setExpandedProduct(null);
+      return;
+    }
+    const [orderIdStr, itemIndexStr] = expandedOrderItemKey.split('-');
+    const orderId = Number(orderIdStr);
+    const itemIndex = Number(itemIndexStr);
+    const order = orders.find((o) => o.id === orderId);
+    if (!order?.cart_snapshot) {
+      setExpandedProduct(null);
+      return;
+    }
+    let displayItems: OrderItemResponse[] = [];
+    try {
+      let cartSnapshot: any = order.cart_snapshot;
+      if (typeof cartSnapshot === 'string') {
+        const trimmed = cartSnapshot.trim();
+        if (trimmed && trimmed !== 'null' && trimmed !== '') cartSnapshot = JSON.parse(trimmed);
+        else cartSnapshot = null;
+      }
+      if (Array.isArray(cartSnapshot) && cartSnapshot.length > 0) {
+        displayItems = cartSnapshot
+          .filter((item: any) => item != null && item !== undefined)
+          .map((item: any) => ({
+            product_id: item.product_id || item.productId || item.ProductID || 0,
+            quantity: item.quantity || item.Quantity || 0,
+            price: item.price || item.Price ?? undefined,
+          }))
+          .filter((item: OrderItemResponse) => item.product_id > 0 && item.quantity > 0);
+      }
+    } catch {
+      setExpandedProduct(null);
+      return;
+    }
+    const item = displayItems[itemIndex];
+    if (!item?.product_id) {
+      setExpandedProduct(null);
+      return;
+    }
+    setExpandedProductLoading(true);
+    setExpandedProduct(null);
+    GetProduct(item.product_id)
+      .then(setExpandedProduct)
+      .catch(() => setExpandedProduct(null))
+      .finally(() => setExpandedProductLoading(false));
+  }, [expandedOrderItemKey, orders]);
+
   const statusFilters = [
     { value: 'ALL', label: 'All Orders' },
     { value: 'PENDING', label: 'Pending' },
@@ -165,26 +219,24 @@ const Orders = () => {
       animate={{ opacity: 1 }}
       className="page-transition pb-20"
     >
-      {/* Status Filters - Fixed Header */}
-      {orders.length > 0 && (
-        <div className="sticky top-0 z-10 bg-background px-4 py-4 border-b border-border overflow-x-auto">
-          <div className="flex gap-2 min-w-max justify-center">
-            {statusFilters.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setSelectedStatus(filter.value)}
-                className={`shrink-0 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                  selectedStatus === filter.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
+      {/* Status Filters - Fixed Header (always visible when not loading) */}
+      <div className="sticky top-0 z-10 bg-background px-4 py-4 border-b border-border overflow-x-auto">
+        <div className="flex gap-2 min-w-max justify-center">
+          {statusFilters.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setSelectedStatus(filter.value)}
+              className={`shrink-0 px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                selectedStatus === filter.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Orders List */}
       {filteredOrders.length === 0 ? (
@@ -294,24 +346,88 @@ const Orders = () => {
                         Order Items ({displayItems.length})
                       </p>
                       <div className="space-y-2">
-                        {displayItems.map((item, itemIndex) => (
-                          <div key={itemIndex} className="flex items-start justify-between gap-3 p-2 bg-muted/30 rounded-md">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm">Product #{item.product_id}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                Quantity: {item.quantity}
-                              </p>
+                        {displayItems.map((item, itemIndex) => {
+                          const itemKey = `${order.id}-${itemIndex}`;
+                          const isExpanded = expandedOrderItemKey === itemKey;
+                          return (
+                            <div
+                              key={itemIndex}
+                              className="rounded-md overflow-hidden border border-transparent bg-muted/30"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => setExpandedOrderItemKey((k) => (k === itemKey ? null : itemKey))}
+                                className="w-full flex items-start justify-between gap-3 p-2 hover:bg-muted/50 active:bg-muted/60 transition-colors text-left"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm">Product #{item.product_id}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    Quantity: {item.quantity}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {item.price && (
+                                    <div className="text-right">
+                                      <p className="font-semibold text-sm">{formatCurrency(item.price * item.quantity)}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {formatCurrency(item.price)} × {item.quantity}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {isExpanded ? (
+                                    <ChevronUp className="w-4 h-4 shrink-0 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground" />
+                                  )}
+                                </div>
+                              </button>
+                              <AnimatePresence>
+                                {isExpanded && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="border-t border-border bg-muted/20 overflow-hidden"
+                                  >
+                                    <div className="p-3 space-y-2">
+                                      {expandedProductLoading ? (
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                                          <span>Loading details...</span>
+                                        </div>
+                                      ) : expandedProduct ? (
+                                        <>
+                                          <p className="font-medium text-sm">{expandedProduct.name}</p>
+                                          {expandedProduct.description && (
+                                            <p className="text-xs text-muted-foreground line-clamp-2">
+                                              {expandedProduct.description}
+                                            </p>
+                                          )}
+                                          <Link
+                                            to={`/product/${item.product_id}`}
+                                            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                                          >
+                                            View full details
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                          </Link>
+                                        </>
+                                      ) : (
+                                        <Link
+                                          to={`/product/${item.product_id}`}
+                                          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                                        >
+                                          View product #{item.product_id}
+                                          <ExternalLink className="w-3.5 h-3.5" />
+                                        </Link>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </div>
-                            {item.price && (
-                              <div className="text-right">
-                                <p className="font-semibold text-sm">{formatCurrency(item.price * item.quantity)}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {formatCurrency(item.price)} × {item.quantity}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ) : (
