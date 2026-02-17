@@ -1,5 +1,5 @@
 'use client'
-import { ShoppingBag, Menu, X, Search, LogIn, CircleUser, Shield } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, LogIn, CircleUser, Shield, Home, Package, ClipboardList, Info, Mail, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
@@ -60,12 +60,12 @@ export const Navbar = () => {
     const totalItems = useCartStore((state) => state.totalItems)
 
     const navLinks = [
-        { name: "Home", href: "/" },
-        { name: "Products", href: "/product" },
-        { name: "Orders", href: "/orders" },
-        { name: "About Us", href: "/about" },
-        { name: "Contact", href: "/contact" },
-        { name: "Return & Refund", href: "/return-refund-policy" },
+        { name: "Home", href: "/", icon: Home },
+        { name: "Products", href: "/product", icon: Package },
+        { name: "Orders", href: "/orders", icon: ClipboardList },
+        { name: "About Us", href: "/about", icon: Info },
+        { name: "Contact", href: "/contact", icon: Mail },
+        { name: "Return & Refund", href: "/return-refund-policy", icon: FileText },
     ];
 
     // Check if user is logged in based on user_email and saved_password in localStorage
@@ -335,76 +335,104 @@ export const Navbar = () => {
                                             <span className="sr-only">Open menu</span>
                                         </Button>
                                     </SheetTrigger>
-                                    <SheetContent side="right" className="w-80">
-                                        <div className="flex flex-col space-y-4 mt-8">
-                                        <Link
-                                            href="/product"
-                                            prefetch={true}
-                                            onMouseEnter={() => handleLinkHover("/product")}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            <Button className="w-full font-medium" variant="default">
-                                                Shop Now
-                                            </Button>
-                                        </Link>
-                                        {navLinks.map((link) => (
-                                            <Link
-                                                key={link.name}
-                                                href={link.href}
-                                                prefetch={true}
-                                                onMouseEnter={() => handleLinkHover(link.href)}
-                                                className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2"
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                {link.name}
-                                            </Link>
-                                        ))}
-                                        {isMounted && (isAuthenticated || isLoggedIn) && isAdmin() && (
-                                            <Link 
-                                                href="/admin" 
-                                                prefetch={true}
-                                                onMouseEnter={() => handleLinkHover("/admin")}
-                                                onClick={() => setMobileMenuOpen(false)}
-                                                className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
-                                            >
-                                                <Shield className="h-5 w-5" />
-                                                Admin Panel
-                                            </Link>
-                                        )}
-                                        {isMounted && (isAuthenticated || isLoggedIn) && isSupplier() && (
-                                            <Link 
-                                                href="/supplier" 
-                                                prefetch={true}
-                                                onMouseEnter={() => handleLinkHover("/supplier")}
-                                                onClick={() => setMobileMenuOpen(false)}
-                                                className="text-lg font-medium text-gray-700 hover:text-primary transition-colors py-2 flex items-center gap-2"
-                                            >
-                                                <Shield className="h-5 w-5" />
-                                                Supplier Portal
-                                            </Link>
-                                        )}
-                                        {isMounted && !(isAuthenticated || isLoggedIn) && (
-                                            <Link 
-                                                href="/login" 
-                                                prefetch={true}
-                                                onMouseEnter={() => handleLinkHover("/login")}
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                <Button className="w-full justify-start" variant="outline">
-                                                    Sign In
-                                                </Button>
-                                            </Link>
-                                        )}
-                                            <div className="pt-4 border-t border-gray-200">
-                                                <Button
-                                                    onClick={toggleSearch}
-                                                    variant="outline"
-                                                    className="flex items-center justify-start w-full"
-                                                >
-                                                    <Search className="h-5 w-5 mr-2" />
-                                                    Search Products
-                                                </Button>
+                                    <SheetContent side="right" className="w-80 sm:w-96 flex flex-col p-0">
+                                        <div className="flex flex-col flex-1 overflow-y-auto">
+                                            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+                                                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Menu</p>
+                                                <h2 className="text-lg font-semibold text-gray-900 mt-1">Navigation</h2>
                                             </div>
+                                            <nav className="flex flex-col py-4">
+                                                {navLinks.map((link) => {
+                                                    const Icon = link.icon;
+                                                    const isActive = pathname === link.href;
+                                                    return (
+                                                        <Link
+                                                            key={link.name}
+                                                            href={link.href}
+                                                            prefetch={true}
+                                                            onMouseEnter={() => handleLinkHover(link.href)}
+                                                            onClick={() => setMobileMenuOpen(false)}
+                                                            className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
+                                                                isActive
+                                                                    ? "bg-primary/10 text-primary border-l-2 border-primary"
+                                                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-l-2 border-transparent"
+                                                            }`}
+                                                        >
+                                                            <Icon className="h-5 w-5 shrink-0 text-gray-500" />
+                                                            {link.name}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </nav>
+                                            {(isMounted && (isAuthenticated || isLoggedIn) && (isAdmin() || isSupplier())) && (
+                                                <>
+                                                    <div className="px-6 py-1">
+                                                        <div className="h-px bg-gray-100" />
+                                                    </div>
+                                                    <div className="py-2">
+                                                        {isAdmin() && (
+                                                            <Link
+                                                                href="/admin"
+                                                                prefetch={true}
+                                                                onMouseEnter={() => handleLinkHover("/admin")}
+                                                                onClick={() => setMobileMenuOpen(false)}
+                                                                className="flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                                                            >
+                                                                <Shield className="h-5 w-5 shrink-0 text-gray-500" />
+                                                                Admin Panel
+                                                            </Link>
+                                                        )}
+                                                        {isSupplier() && (
+                                                            <Link
+                                                                href="/supplier"
+                                                                prefetch={true}
+                                                                onMouseEnter={() => handleLinkHover("/supplier")}
+                                                                onClick={() => setMobileMenuOpen(false)}
+                                                                className="flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                                                            >
+                                                                <Shield className="h-5 w-5 shrink-0 text-gray-500" />
+                                                                Supplier Portal
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-gray-100 p-4 space-y-3 bg-gray-50/50">
+                                            <Link
+                                                href="/product"
+                                                prefetch={true}
+                                                onMouseEnter={() => handleLinkHover("/product")}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                <Button className="w-full font-medium" variant="default" size="lg">
+                                                    Shop Now
+                                                </Button>
+                                            </Link>
+                                            <Button
+                                                onClick={() => {
+                                                    setMobileMenuOpen(false);
+                                                    toggleSearch();
+                                                }}
+                                                variant="outline"
+                                                className="w-full justify-center gap-2"
+                                            >
+                                                <Search className="h-4 w-4" />
+                                                Search Products
+                                            </Button>
+                                            {isMounted && !(isAuthenticated || isLoggedIn) && (
+                                                <Link
+                                                    href="/login"
+                                                    prefetch={true}
+                                                    onMouseEnter={() => handleLinkHover("/login")}
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                    className="block"
+                                                >
+                                                    <Button className="w-full" variant="secondary" size="sm">
+                                                        Sign In
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </div>
                                     </SheetContent>
                                 </Sheet>

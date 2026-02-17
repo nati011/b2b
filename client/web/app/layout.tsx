@@ -17,7 +17,7 @@ const overpass = Overpass({
 });
 
 export const metadata: Metadata = {
-  title: "Efoyeta Store",
+  title: "Efoyeta Store | Turning Small Capital into Big Opportunities",
   viewport: {
     width: 'device-width',
     initialScale: 1,
