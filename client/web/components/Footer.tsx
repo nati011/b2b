@@ -171,6 +171,29 @@ export const Footer = () => {
                     </div>
                 </div>
 
+                {/* Payment Partners */}
+                <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-800">
+                    <p className="text-gray-500 text-xs sm:text-sm text-center mb-3 sm:mb-4">
+                        Payment partners
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+                        <Image
+                            src="/telebirr-logo.png"
+                            alt="Telebirr"
+                            width={100}
+                            height={40}
+                            className="h-8 sm:h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                        />
+                        <Image
+                            src="/cbe-logo.png"
+                            alt="CBE"
+                            width={100}
+                            height={40}
+                            className="h-8 sm:h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                        />
+                    </div>
+                </div>
+
                 {/* Copyright */}
                 <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-800">
                     <div className="text-center text-xs sm:text-sm text-gray-500 px-4">
