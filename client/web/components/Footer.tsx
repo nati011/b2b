@@ -179,6 +179,31 @@ export const Footer = () => {
                     </div>
                 </div>
 
+                {/* Payment Partners */}
+                <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-800">
+                    <h3 className="text-white font-semibold text-sm sm:text-base text-center mb-4 sm:mb-5">
+                        Payment Partners
+                    </h3>
+                    <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+                        <Image
+                            src="/telebirr-logo.png"
+                            width={120}
+                            height={48}
+                            alt="Telebirr"
+                            className="h-10 sm:h-12 object-contain"
+                            loading="lazy"
+                        />
+                        <Image
+                            src="/cbe-logo.png"
+                            width={80}
+                            height={80}
+                            alt="Commercial Bank of Ethiopia"
+                            className="h-10 sm:h-12 w-auto object-contain"
+                            loading="lazy"
+                        />
+                    </div>
+                </div>
+
                 {/* Copyright */}
                 <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-800">
                     <div className="text-center text-xs sm:text-sm text-gray-500 px-4">
